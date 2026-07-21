@@ -76,10 +76,10 @@ export default function TailSpendPage() {
   );
 
   return (
-    <div className="-m-8 min-h-[calc(100vh-4rem)] bg-slate-950 p-6 text-slate-100 lg:p-8">
+    <div className="min-h-[calc(100vh-4rem)] rounded-xl bg-slate-950 p-6 text-slate-100 lg:p-8">
       <div className="mx-auto flex max-w-[1400px] flex-col gap-6">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-50">Tail Spend Assessment</h1>
+          <h2 className="text-2xl font-semibold text-slate-50">Tail Spend Assessment</h2>
           <p className="mt-1 text-sm text-slate-400">
             Supplier consolidation opportunities, micro-PO exposure, and process cost savings across
             Vedanta&apos;s indirect spend base.

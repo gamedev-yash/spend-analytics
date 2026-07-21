@@ -67,12 +67,14 @@ export function TailFilters({ value, onChange, categories }: TailFiltersProps) {
 
       <div className="flex flex-1 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
         <FilterSelect
+          id="tail-filter-category"
           label="Category"
           value={value.category}
           options={[ALL_CATEGORIES, ...categories]}
           onChange={(category) => onChange({ ...value, category })}
         />
         <FilterSelect
+          id="tail-filter-segment"
           label="Segment"
           value={value.segment}
           options={SEGMENT_OPTIONS}
@@ -80,13 +82,14 @@ export function TailFilters({ value, onChange, categories }: TailFiltersProps) {
         />
       </div>
 
-      <label className="flex items-center gap-2.5 self-start pt-1 lg:self-auto lg:pt-0">
+      <div className="flex items-center gap-2.5 self-start pt-1 lg:self-auto lg:pt-0">
         <button
           type="button"
           role="switch"
           aria-checked={value.microPOOnly}
+          aria-label="Micro-POs only"
           onClick={() => onChange({ ...value, microPOOnly: !value.microPOOnly })}
-          className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
+          className={`relative h-5 w-9 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
             value.microPOOnly ? "bg-amber-500" : "bg-slate-700"
           }`}
         >
@@ -99,27 +102,31 @@ export function TailFilters({ value, onChange, categories }: TailFiltersProps) {
         <span className="whitespace-nowrap text-xs font-medium text-slate-300">
           Micro-POs only
         </span>
-      </label>
+      </div>
     </div>
   );
 }
 
 interface FilterSelectProps {
+  id: string;
   label: string;
   value: string;
   options: string[];
   onChange: (value: string) => void;
 }
 
-function FilterSelect({ label, value, options, onChange }: FilterSelectProps) {
+function FilterSelect({ id, label, value, options, onChange }: FilterSelectProps) {
   return (
     <div className="flex min-w-[168px] flex-1 flex-col gap-1.5">
-      <label className="text-xs font-medium text-slate-400">{label}</label>
+      <label htmlFor={id} className="text-xs font-medium text-slate-400">
+        {label}
+      </label>
       <div className="relative">
         <select
+          id={id}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className="w-full appearance-none rounded-md border border-slate-700 bg-slate-800 px-3 py-1.5 text-sm text-slate-100 shadow-sm transition-colors hover:border-slate-600 focus:outline-none focus:ring-1 focus:ring-amber-500"
+          className="w-full appearance-none rounded-md border border-slate-700 bg-slate-800 py-1.5 pl-3 pr-9 text-sm text-slate-100 shadow-sm transition-colors hover:border-slate-600 focus:outline-none focus:ring-1 focus:ring-amber-500"
         >
           {options.map((option) => (
             <option key={option} value={option}>

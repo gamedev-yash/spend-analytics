@@ -113,7 +113,7 @@ export function ConsolidationTable({ candidates }: ConsolidationTableProps) {
         <button
           type="button"
           onClick={() => downloadCsv(sorted)}
-          className="flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-200 transition-colors hover:border-slate-600 hover:bg-slate-750"
+          className="flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-200 transition-colors hover:border-slate-600 hover:bg-slate-700"
         >
           <Download className="h-3.5 w-3.5" />
           Export CSV
@@ -127,6 +127,9 @@ export function ConsolidationTable({ candidates }: ConsolidationTableProps) {
               {COLUMNS.map((col) => (
                 <th
                   key={col.key}
+                  aria-sort={
+                    sortKey === col.key ? (sortDir === "asc" ? "ascending" : "descending") : "none"
+                  }
                   className={`px-3 py-2.5 text-xs font-medium uppercase tracking-wide text-slate-400 ${
                     col.align === "right" ? "text-right" : "text-left"
                   }`}
@@ -157,7 +160,14 @@ export function ConsolidationTable({ candidates }: ConsolidationTableProps) {
             </tr>
           </thead>
           <tbody>
-            {sorted.map((row) => {
+            {sorted.length === 0 ? (
+              <tr>
+                <td colSpan={COLUMNS.length + 1} className="px-3 py-8 text-center text-sm text-slate-500">
+                  No suppliers match these filters.
+                </td>
+              </tr>
+            ) : (
+              sorted.map((row) => {
               const ActionIcon = ACTION_ICON[row.recommendedAction];
               return (
                 <tr key={row.supplierId} className="border-t border-slate-800 hover:bg-slate-800/40">
@@ -196,7 +206,8 @@ export function ConsolidationTable({ candidates }: ConsolidationTableProps) {
                   </td>
                 </tr>
               );
-            })}
+            })
+            )}
           </tbody>
         </table>
       </div>

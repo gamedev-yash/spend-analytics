@@ -53,7 +53,7 @@ export function MicroPOAnalysis({ buckets, threshold }: MicroPOAnalysisProps) {
 
   return (
     <div>
-      <div className="relative">
+      <div className="relative h-[320px]">
         <ResponsiveContainer width="100%" height={320}>
           <PieChart>
             <Pie
@@ -88,9 +88,11 @@ export function MicroPOAnalysis({ buckets, threshold }: MicroPOAnalysisProps) {
             />
           </PieChart>
         </ResponsiveContainer>
-        <div className="pointer-events-none absolute left-[38%] top-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-          <p className="text-2xl font-semibold text-slate-50">{microShare.toFixed(0)}%</p>
-          <p className="text-xs text-slate-500">of POs are micro</p>
+        <div className="pointer-events-none absolute inset-y-0 left-0 flex w-[68%] items-center justify-center">
+          <div className="text-center">
+            <p className="text-2xl font-semibold text-slate-50">{microShare.toFixed(0)}%</p>
+            <p className="text-xs text-slate-500">of POs are micro</p>
+          </div>
         </div>
       </div>
       <p className="mt-2 text-center text-xs text-slate-500">
