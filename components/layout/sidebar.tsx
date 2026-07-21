@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { PanelLeft, PanelLeftClose } from "lucide-react";
 import { NAV_ITEMS } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
@@ -58,26 +58,91 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
 
   return (
     <aside
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       className={cn(
         "inset-y-0 left-0 flex flex-col overflow-hidden border-r border-slate-200 bg-white transition-all duration-300 dark:border-slate-800 dark:bg-slate-900",
         isPeeking ? "absolute z-40 shadow-2xl" : "fixed z-20",
         showExpanded ? "w-60" : "w-16"
       )}
     >
-      <div className="flex h-16 items-center gap-2.5 border-b border-slate-200 px-4 dark:border-slate-800">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-slate-900 text-sm font-semibold text-white dark:bg-slate-100 dark:text-slate-900">
-          P
+      <div
+        className={cn(
+          "flex h-16 items-center border-b border-slate-200 px-4 dark:border-slate-800",
+          showExpanded && "gap-2.5"
+        )}
+      >
+        {/*
+          Logo and the collapsed-state expand-toggle share one 8x8 slot,
+          cross-fading via opacity so the swap is smooth instead of an
+          instant pop; tabIndex/pointer-events keep the hidden one inert.
+        */}
+        <div className="relative flex h-8 w-8 shrink-0 items-center justify-center">
+          <div
+            aria-hidden={!showExpanded}
+            className={cn(
+              "absolute inset-0 flex items-center justify-center rounded-md bg-slate-900 text-sm font-semibold text-white transition-opacity duration-300 dark:bg-slate-100 dark:text-slate-900",
+              showExpanded ? "opacity-100" : "pointer-events-none opacity-0"
+            )}
+          >
+            P
+          </div>
+          {/*
+            Idle, this button looks identical to the logo above it (same "P"
+            mark) — hovering swaps it to the PanelLeft affordance via
+            group-hover, so the click target only reveals itself as
+            interactive on intent, not permanently replacing the brand mark.
+          */}
+          <button
+            type="button"
+            onClick={handleToggleCollapsed}
+            aria-label="Expand sidebar"
+            title="Expand sidebar"
+            tabIndex={showExpanded ? -1 : 0}
+            className={cn(
+              "group absolute inset-0 flex items-center justify-center rounded-md transition-opacity duration-300",
+              showExpanded ? "pointer-events-none opacity-0" : "opacity-100"
+            )}
+          >
+            <span className="absolute inset-0 flex items-center justify-center rounded-md bg-slate-900 text-sm font-semibold text-white transition-opacity duration-150 group-hover:opacity-0 dark:bg-slate-100 dark:text-slate-900">
+              P
+            </span>
+            <PanelLeft className="h-4 w-4 text-slate-500 opacity-0 transition-opacity duration-150 group-hover:opacity-100 dark:text-slate-400" />
+          </button>
         </div>
-        {showExpanded && (
-          <span className="truncate text-sm font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+
+        <div
+          className={cn(
+            "flex items-center gap-2 overflow-hidden transition-all duration-300",
+            showExpanded ? "flex-1 opacity-100" : "w-0 flex-none opacity-0"
+          )}
+        >
+          <span className="flex-1 truncate text-sm font-semibold tracking-tight text-slate-900 dark:text-slate-100">
             Procurement Analytics
           </span>
-        )}
+          <button
+            type="button"
+            onClick={handleToggleCollapsed}
+            aria-label="Collapse sidebar"
+            title="Collapse sidebar"
+            tabIndex={showExpanded ? 0 : -1}
+            className="shrink-0 rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+          >
+            <PanelLeftClose className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      {/*
+        Hover-peek timers live ONLY on this nav — not the aside, and
+        deliberately not the header toggle above. Scoping them here means
+        hovering the Expand/Collapse button can never arm or race a peek
+        timeout: the button's own click handler is the only thing that ever
+        changes `collapsed`, so pin/unpin stays instant regardless of hover.
+      */}
+      <nav
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className="flex-1 space-y-1 px-3 py-4"
+      >
         {NAV_ITEMS.map((item) => {
           const isActive = pathname?.startsWith(item.href) ?? false;
           const Icon = item.icon;
@@ -102,29 +167,22 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
         })}
       </nav>
 
-      <button
-        type="button"
-        onClick={handleToggleCollapsed}
-        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        title={!showExpanded ? (collapsed ? "Expand sidebar" : "Collapse sidebar") : undefined}
+      {/*
+        Always mounted (not conditionally rendered) so only opacity animates —
+        whitespace-nowrap + overflow-hidden keep it single-line and clipped
+        instead of wrapping while w-16/w-60 is mid-transition, which was
+        producing a visible height jump. pointer-events-none while collapsed
+        since it's clipped to nothing but still technically in the box.
+      */}
+      <div
+        aria-hidden={!showExpanded}
         className={cn(
-          "flex items-center gap-2 border-t border-slate-200 px-4 py-3 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100",
-          !showExpanded && "justify-center px-0"
+          "overflow-hidden whitespace-nowrap border-t border-slate-200 px-4 py-3 text-xs text-slate-400 transition-opacity duration-200 dark:border-slate-800 dark:text-slate-500",
+          showExpanded ? "opacity-100" : "pointer-events-none opacity-0"
         )}
       >
-        {collapsed ? (
-          <PanelLeftOpen className="h-4 w-4 shrink-0" />
-        ) : (
-          <PanelLeftClose className="h-4 w-4 shrink-0" />
-        )}
-        {showExpanded && <span>{collapsed ? "Expand" : "Collapse"}</span>}
-      </button>
-
-      {showExpanded && (
-        <div className="border-t border-slate-200 px-4 py-3 text-xs text-slate-400 dark:border-slate-800 dark:text-slate-500">
-          v0.1.0 · Internal Build
-        </div>
-      )}
+        v0.1.0 · Internal Build
+      </div>
     </aside>
   );
 }
