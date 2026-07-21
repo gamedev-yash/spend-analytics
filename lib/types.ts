@@ -17,17 +17,6 @@ export interface Supplier {
   currency: string;
 }
 
-export interface Material {
-  materialId: string;
-  materialCode: string;
-  materialName: string;
-  category: string;
-  subcategory: string;
-  uom: string;
-  manufacturer: string;
-  preferredSupplierId: string;
-}
-
 export type DeliveryStatus = "On Time" | "Early" | "Delayed" | "Pending" | "Cancelled";
 export type PaymentStatus = "Paid" | "Pending" | "Overdue" | "Partially Paid";
 
@@ -56,43 +45,6 @@ export interface PurchaseOrder {
   paymentStatus: PaymentStatus;
 }
 
-export interface Invoice {
-  invoiceId: string;
-  poId: string;
-  invoiceDate: string;
-  invoiceAmount: number;
-  paidAmount: number;
-  paymentDate: string | null;
-  paymentStatus: PaymentStatus;
-}
-
-export type ContractStatus = "Active" | "Expired" | "Terminated" | "Draft";
-
-export interface Contract {
-  contractId: string;
-  supplierId: string;
-  contractNumber: string;
-  startDate: string;
-  endDate: string;
-  contractValue: number;
-  remainingValue: number;
-  contractType: string;
-  contractStatus: ContractStatus;
-}
-
-export interface SpendSummaryMonth {
-  month: string;
-  totalSpend: number;
-  contractSpend: number;
-  nonContractSpend: number;
-  maverickSpend: number;
-  savings: number;
-  averagePOValue: number;
-  supplierCount: number;
-  poCount: number;
-  invoiceCount: number;
-}
-
 export type RiskLevel = "Low" | "Medium" | "High";
 export type ViolationType =
   | "Off-Contract Purchase"
@@ -113,39 +65,6 @@ export interface ComplianceRecord {
   overallCompliance: number;
   violationType: ViolationType | null;
   riskLevel: RiskLevel;
-}
-
-export interface SavingRecord {
-  savingId: string;
-  supplierId: string;
-  materialId: string;
-  previousPrice: number;
-  currentPrice: number;
-  savingAmount: number;
-  savingPercentage: number;
-  savingReason: string;
-}
-
-export interface Kpis {
-  totalSpend: number;
-  spendUnderContract: number;
-  contractCompliancePercent: number;
-  supplierCompliancePercent: number;
-  maverickSpend: number;
-  savingsAchieved: number;
-  averagePOValue: number;
-  totalSuppliers: number;
-  preferredSuppliers: number;
-  activeContracts: number;
-  totalPurchaseOrders: number;
-  averageSupplierRating: number;
-  spendGrowthPercent: number;
-  monthlySpendTrend: { month: string; spend: number }[];
-}
-
-export interface SummaryFilters {
-  businessUnit?: string;
-  category?: string;
 }
 
 export interface ComplianceFilters {

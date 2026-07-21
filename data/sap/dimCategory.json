@@ -1,0 +1,392 @@
+[
+  {
+    "category_code": "M001",
+    "category_name": "Zinc Concentrate",
+    "category_l1": "Raw Materials",
+    "category_l2": "Zinc Concentrate"
+  },
+  {
+    "category_code": "M002",
+    "category_name": "Lead Concentrate",
+    "category_l1": "Raw Materials",
+    "category_l2": "Lead Concentrate"
+  },
+  {
+    "category_code": "M003",
+    "category_name": "Copper Concentrate",
+    "category_l1": "Raw Materials",
+    "category_l2": "Copper Concentrate"
+  },
+  {
+    "category_code": "M004",
+    "category_name": "Bauxite",
+    "category_l1": "Raw Materials",
+    "category_l2": "Bauxite"
+  },
+  {
+    "category_code": "M005",
+    "category_name": "Alumina",
+    "category_l1": "Raw Materials",
+    "category_l2": "Alumina"
+  },
+  {
+    "category_code": "M006",
+    "category_name": "Iron Ore Fines",
+    "category_l1": "Raw Materials",
+    "category_l2": "Iron Ore Fines"
+  },
+  {
+    "category_code": "M007",
+    "category_name": "Bearings",
+    "category_l1": "MRO & Spares",
+    "category_l2": "Bearings"
+  },
+  {
+    "category_code": "M008",
+    "category_name": "Seals & Gaskets",
+    "category_l1": "MRO & Spares",
+    "category_l2": "Seals & Gaskets"
+  },
+  {
+    "category_code": "M009",
+    "category_name": "Pumps",
+    "category_l1": "MRO & Spares",
+    "category_l2": "Pumps"
+  },
+  {
+    "category_code": "M010",
+    "category_name": "Conveyor Components",
+    "category_l1": "MRO & Spares",
+    "category_l2": "Conveyor Components"
+  },
+  {
+    "category_code": "M011",
+    "category_name": "Grinding Media",
+    "category_l1": "MRO & Spares",
+    "category_l2": "Grinding Media"
+  },
+  {
+    "category_code": "M012",
+    "category_name": "Flotation Cells",
+    "category_l1": "MRO & Spares",
+    "category_l2": "Flotation Cells"
+  },
+  {
+    "category_code": "M013",
+    "category_name": "Crusher Parts",
+    "category_l1": "MRO & Spares",
+    "category_l2": "Crusher Parts"
+  },
+  {
+    "category_code": "M014",
+    "category_name": "Motor Spares",
+    "category_l1": "MRO & Spares",
+    "category_l2": "Motor Spares"
+  },
+  {
+    "category_code": "M015",
+    "category_name": "SAG Mills",
+    "category_l1": "Capital Equipment",
+    "category_l2": "SAG Mills"
+  },
+  {
+    "category_code": "M016",
+    "category_name": "Furnaces",
+    "category_l1": "Capital Equipment",
+    "category_l2": "Furnaces"
+  },
+  {
+    "category_code": "M017",
+    "category_name": "Crushers",
+    "category_l1": "Capital Equipment",
+    "category_l2": "Crushers"
+  },
+  {
+    "category_code": "M018",
+    "category_name": "Conveyor Systems",
+    "category_l1": "Capital Equipment",
+    "category_l2": "Conveyor Systems"
+  },
+  {
+    "category_code": "M019",
+    "category_name": "Electrolytic Cells",
+    "category_l1": "Capital Equipment",
+    "category_l2": "Electrolytic Cells"
+  },
+  {
+    "category_code": "M020",
+    "category_name": "Drilling Rigs",
+    "category_l1": "Capital Equipment",
+    "category_l2": "Drilling Rigs"
+  },
+  {
+    "category_code": "M021",
+    "category_name": "Shutdown Maintenance Contractors",
+    "category_l1": "Services",
+    "category_l2": "Shutdown Maintenance Contractors"
+  },
+  {
+    "category_code": "M022",
+    "category_name": "Logistics Services",
+    "category_l1": "Services",
+    "category_l2": "Logistics Services"
+  },
+  {
+    "category_code": "M023",
+    "category_name": "Civil Works",
+    "category_l1": "Services",
+    "category_l2": "Civil Works"
+  },
+  {
+    "category_code": "M024",
+    "category_name": "Consulting Services",
+    "category_l1": "Services",
+    "category_l2": "Consulting Services"
+  },
+  {
+    "category_code": "M025",
+    "category_name": "Housekeeping Services",
+    "category_l1": "Services",
+    "category_l2": "Housekeeping Services"
+  },
+  {
+    "category_code": "M026",
+    "category_name": "Security Services",
+    "category_l1": "Services",
+    "category_l2": "Security Services"
+  },
+  {
+    "category_code": "M027",
+    "category_name": "Sodium Cyanide",
+    "category_l1": "Chemicals & Reagents",
+    "category_l2": "Sodium Cyanide"
+  },
+  {
+    "category_code": "M028",
+    "category_name": "Xanthate Collectors",
+    "category_l1": "Chemicals & Reagents",
+    "category_l2": "Xanthate Collectors"
+  },
+  {
+    "category_code": "M029",
+    "category_name": "Frothers",
+    "category_l1": "Chemicals & Reagents",
+    "category_l2": "Frothers"
+  },
+  {
+    "category_code": "M030",
+    "category_name": "Sulphuric Acid",
+    "category_l1": "Chemicals & Reagents",
+    "category_l2": "Sulphuric Acid"
+  },
+  {
+    "category_code": "M031",
+    "category_name": "Lime",
+    "category_l1": "Chemicals & Reagents",
+    "category_l2": "Lime"
+  },
+  {
+    "category_code": "M032",
+    "category_name": "Flocculants",
+    "category_l1": "Chemicals & Reagents",
+    "category_l2": "Flocculants"
+  },
+  {
+    "category_code": "M033",
+    "category_name": "Coal",
+    "category_l1": "Fuel & Energy",
+    "category_l2": "Coal"
+  },
+  {
+    "category_code": "M034",
+    "category_name": "Diesel",
+    "category_l1": "Fuel & Energy",
+    "category_l2": "Diesel"
+  },
+  {
+    "category_code": "M035",
+    "category_name": "Furnace Oil",
+    "category_l1": "Fuel & Energy",
+    "category_l2": "Furnace Oil"
+  },
+  {
+    "category_code": "M036",
+    "category_name": "Petroleum Coke",
+    "category_l1": "Fuel & Energy",
+    "category_l2": "Petroleum Coke"
+  },
+  {
+    "category_code": "M037",
+    "category_name": "Electricity Purchase",
+    "category_l1": "Fuel & Energy",
+    "category_l2": "Electricity Purchase"
+  },
+  {
+    "category_code": "M038",
+    "category_name": "Natural Gas",
+    "category_l1": "Fuel & Energy",
+    "category_l2": "Natural Gas"
+  },
+  {
+    "category_code": "M039",
+    "category_name": "Rail Freight",
+    "category_l1": "Logistics & Transport",
+    "category_l2": "Rail Freight"
+  },
+  {
+    "category_code": "M040",
+    "category_name": "Road Transport",
+    "category_l1": "Logistics & Transport",
+    "category_l2": "Road Transport"
+  },
+  {
+    "category_code": "M041",
+    "category_name": "Port Handling",
+    "category_l1": "Logistics & Transport",
+    "category_l2": "Port Handling"
+  },
+  {
+    "category_code": "M042",
+    "category_name": "Shipping & Freight Forwarding",
+    "category_l1": "Logistics & Transport",
+    "category_l2": "Shipping & Freight Forwarding"
+  },
+  {
+    "category_code": "M043",
+    "category_name": "Hardware",
+    "category_l1": "IT & Telecom",
+    "category_l2": "Hardware"
+  },
+  {
+    "category_code": "M044",
+    "category_name": "Software Licenses",
+    "category_l1": "IT & Telecom",
+    "category_l2": "Software Licenses"
+  },
+  {
+    "category_code": "M045",
+    "category_name": "Network Services",
+    "category_l1": "IT & Telecom",
+    "category_l2": "Network Services"
+  },
+  {
+    "category_code": "M046",
+    "category_name": "Telecom Services",
+    "category_l1": "IT & Telecom",
+    "category_l2": "Telecom Services"
+  },
+  {
+    "category_code": "M047",
+    "category_name": "Helmets & Protective Gear",
+    "category_l1": "Safety & PPE",
+    "category_l2": "Helmets & Protective Gear"
+  },
+  {
+    "category_code": "M048",
+    "category_name": "Fire Safety Equipment",
+    "category_l1": "Safety & PPE",
+    "category_l2": "Fire Safety Equipment"
+  },
+  {
+    "category_code": "M049",
+    "category_name": "Gas Detectors",
+    "category_l1": "Safety & PPE",
+    "category_l2": "Gas Detectors"
+  },
+  {
+    "category_code": "M050",
+    "category_name": "Safety Footwear",
+    "category_l1": "Safety & PPE",
+    "category_l2": "Safety Footwear"
+  },
+  {
+    "category_code": "M051",
+    "category_name": "Cement",
+    "category_l1": "Civil & Construction",
+    "category_l2": "Cement"
+  },
+  {
+    "category_code": "M052",
+    "category_name": "Steel Structures",
+    "category_l1": "Civil & Construction",
+    "category_l2": "Steel Structures"
+  },
+  {
+    "category_code": "M053",
+    "category_name": "Ready Mix Concrete",
+    "category_l1": "Civil & Construction",
+    "category_l2": "Ready Mix Concrete"
+  },
+  {
+    "category_code": "M054",
+    "category_name": "Construction Services",
+    "category_l1": "Civil & Construction",
+    "category_l2": "Construction Services"
+  },
+  {
+    "category_code": "M055",
+    "category_name": "Cables & Wires",
+    "category_l1": "Electrical",
+    "category_l2": "Cables & Wires"
+  },
+  {
+    "category_code": "M056",
+    "category_name": "Transformers",
+    "category_l1": "Electrical",
+    "category_l2": "Transformers"
+  },
+  {
+    "category_code": "M057",
+    "category_name": "Switchgear",
+    "category_l1": "Electrical",
+    "category_l2": "Switchgear"
+  },
+  {
+    "category_code": "M058",
+    "category_name": "VFDs & Drives",
+    "category_l1": "Electrical",
+    "category_l2": "VFDs & Drives"
+  },
+  {
+    "category_code": "M059",
+    "category_name": "Flow Meters",
+    "category_l1": "Instrumentation",
+    "category_l2": "Flow Meters"
+  },
+  {
+    "category_code": "M060",
+    "category_name": "Analyzers",
+    "category_l1": "Instrumentation",
+    "category_l2": "Analyzers"
+  },
+  {
+    "category_code": "M061",
+    "category_name": "Control Valves",
+    "category_l1": "Instrumentation",
+    "category_l2": "Control Valves"
+  },
+  {
+    "category_code": "M062",
+    "category_name": "PLC & DCS Systems",
+    "category_l1": "Instrumentation",
+    "category_l2": "PLC & DCS Systems"
+  },
+  {
+    "category_code": "M063",
+    "category_name": "Bags & Sacks",
+    "category_l1": "Packaging",
+    "category_l2": "Bags & Sacks"
+  },
+  {
+    "category_code": "M064",
+    "category_name": "Drums & Containers",
+    "category_l1": "Packaging",
+    "category_l2": "Drums & Containers"
+  },
+  {
+    "category_code": "M065",
+    "category_name": "Pallets & Crates",
+    "category_l1": "Packaging",
+    "category_l2": "Pallets & Crates"
+  }
+]
