@@ -1,14 +1,7 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
-import { tailSpendMock, estimateMicroPOStats } from "./tailSpendMock";
-import { TailFilters, DEFAULT_TAIL_FILTERS, ALL_CATEGORIES, type TailFilterState } from "./components/TailFilters";
-import {
-  SapFilterPanel,
-  defaultSapFilters,
-  ALL_SUPPLIERS,
-  type SapFilterState,
-} from "./components/SapFilterPanel";
+import { tailSpendMock, estimateMicroPOStats, formatINR } from "./tailSpendMock";
 import { SapKpiRibbon } from "./components/SapKpiRibbon";
 import { InvoiceValueBucketChart } from "./components/InvoiceValueBucketChart";
 import { SupplierSpendRankChart } from "./components/SupplierSpendRankChart";
@@ -23,6 +16,24 @@ import { StrategicComparison } from "./components/StrategicComparison";
 import { TailTrendChart } from "./components/TailTrendChart";
 import { ConsolidationTable } from "./components/ConsolidationTable";
 import { MicroPOAnalysis } from "./components/MicroPOAnalysis";
+import { useFilterSlot } from "@/context/FilterContext";
+import { FilterGroup, FilterSelect, FilterSlider, FilterToggle } from "@/components/ui/filter-controls";
+
+const ALL_CATEGORIES = "All Categories";
+const ALL_SUPPLIERS = "All Suppliers";
+const ALL_SOURCE_SYSTEMS = "All Source Systems";
+const ALL_PLANTS = "All Plants/Sites";
+
+interface TailSpendFilters {
+  dateRange: string;
+  category: string;
+  supplierGlobalUltimate: string;
+  sourceSystem: string;
+  plantSite: string;
+  microPOThreshold: number;
+  paretoThreshold: number;
+  microPOOnly: boolean;
+}
 
 function Section({
   title,
@@ -77,10 +88,87 @@ export default function TailSpendPage() {
     [sapSupplierReport]
   );
 
-  // --- Tier 1: SAP Spend Control Tower state --------------------------------
-  const [sapFilters, setSapFilters] = useState<SapFilterState>(() =>
-    defaultSapFilters(sapFilterOptions.dateRanges[0])
+  // Single filter state shared by every widget on the page — the sidebar
+  // drawer is the only place any of it is edited (see useFilterSlot below).
+  const [filters, setFilters] = useState<TailSpendFilters>(() => ({
+    dateRange: sapFilterOptions.dateRanges[0],
+    category: ALL_CATEGORIES,
+    supplierGlobalUltimate: ALL_SUPPLIERS,
+    sourceSystem: ALL_SOURCE_SYSTEMS,
+    plantSite: ALL_PLANTS,
+    microPOThreshold: 25_000,
+    paretoThreshold: 80,
+    microPOOnly: false,
+  }));
+
+  function updateFilter<K extends keyof TailSpendFilters>(key: K, value: TailSpendFilters[K]) {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  }
+
+  useFilterSlot(
+    <>
+      <FilterGroup title="Global Filters">
+        <FilterSelect
+          label="Date Range"
+          value={filters.dateRange}
+          onChange={(v) => updateFilter("dateRange", v)}
+          options={sapFilterOptions.dateRanges.map((d) => ({ label: d, value: d }))}
+        />
+        <FilterSelect
+          label="Category L1"
+          value={filters.category}
+          onChange={(v) => updateFilter("category", v)}
+          options={[ALL_CATEGORIES, ...categoryNames].map((c) => ({ label: c, value: c }))}
+        />
+        <FilterSelect
+          label="Supplier (Global Ultimate)"
+          value={filters.supplierGlobalUltimate}
+          onChange={(v) => updateFilter("supplierGlobalUltimate", v)}
+          options={[ALL_SUPPLIERS, ...supplierNames].map((s) => ({ label: s, value: s }))}
+        />
+        <FilterSelect
+          label="Source System"
+          value={filters.sourceSystem}
+          onChange={(v) => updateFilter("sourceSystem", v)}
+          options={[ALL_SOURCE_SYSTEMS, ...sapFilterOptions.sourceSystems].map((s) => ({ label: s, value: s }))}
+        />
+        <FilterSelect
+          label="Plant / Site"
+          value={filters.plantSite}
+          onChange={(v) => updateFilter("plantSite", v)}
+          options={[ALL_PLANTS, ...sapFilterOptions.plantSites].map((p) => ({ label: p, value: p }))}
+        />
+      </FilterGroup>
+
+      <FilterGroup title="Page Options" className="mt-6">
+        <FilterSlider
+          label="Micro-PO Threshold"
+          min={5_000}
+          max={100_000}
+          step={5_000}
+          value={filters.microPOThreshold}
+          onChange={(v) => updateFilter("microPOThreshold", v)}
+          formatValue={formatINR}
+        />
+        <FilterSlider
+          label="Pareto Split"
+          min={50}
+          max={95}
+          step={5}
+          value={filters.paretoThreshold}
+          onChange={(v) => updateFilter("paretoThreshold", v)}
+          formatValue={(v) => `${v}%`}
+        />
+        <FilterToggle
+          label="Micro-POs only"
+          checked={filters.microPOOnly}
+          onChange={(v) => updateFilter("microPOOnly", v)}
+        />
+      </FilterGroup>
+    </>
   );
+
+  // --- Tier 1: SAP Spend Control Tower --------------------------------------
   const [selectedBuckets, setSelectedBuckets] = useState<Set<string>>(
     () => new Set(invoiceValueBuckets.map((b) => b.bucketLabel))
   );
@@ -109,30 +197,28 @@ export default function TailSpendPage() {
   const scaledSupplierSpendRank = useMemo(
     () =>
       supplierSpendRank
-        .filter((s) => sapFilters.supplierGlobalUltimate === ALL_SUPPLIERS || s.supplierName === sapFilters.supplierGlobalUltimate)
+        .filter((s) => filters.supplierGlobalUltimate === ALL_SUPPLIERS || s.supplierName === filters.supplierGlobalUltimate)
         .map((s) => ({ ...s, totalSpend: s.totalSpend * selectedSpendFraction })),
-    [supplierSpendRank, sapFilters.supplierGlobalUltimate, selectedSpendFraction]
+    [supplierSpendRank, filters.supplierGlobalUltimate, selectedSpendFraction]
   );
 
   const scaledCategoryRows = useMemo(
     () =>
       sapCategoryRows
-        .filter((c) => sapFilters.category === ALL_CATEGORIES || c.category === sapFilters.category)
+        .filter((c) => filters.category === ALL_CATEGORIES || c.category === filters.category)
         .map((c) => ({ ...c, spend: c.spend * selectedSpendFraction })),
-    [sapCategoryRows, sapFilters.category, selectedSpendFraction]
+    [sapCategoryRows, filters.category, selectedSpendFraction]
   );
 
   const filteredSupplierReport = useMemo(
     () =>
       sapSupplierReport.filter(
-        (r) => sapFilters.supplierGlobalUltimate === ALL_SUPPLIERS || r.supplierName === sapFilters.supplierGlobalUltimate
+        (r) => filters.supplierGlobalUltimate === ALL_SUPPLIERS || r.supplierName === filters.supplierGlobalUltimate
       ),
-    [sapSupplierReport, sapFilters.supplierGlobalUltimate]
+    [sapSupplierReport, filters.supplierGlobalUltimate]
   );
 
-  // --- Tier 2: Advanced AI & Optimization Insights state --------------------
-  const [filters, setFilters] = useState<TailFilterState>(DEFAULT_TAIL_FILTERS);
-
+  // --- Tier 2: Advanced AI & Tail Spend Optimization ------------------------
   const sortedCategories = useMemo(
     () =>
       [...categoryBreakdown]
@@ -142,13 +228,8 @@ export default function TailSpendPage() {
   );
 
   const filteredBubbles = useMemo(
-    () =>
-      supplierBubbles.filter(
-        (s) =>
-          (filters.category === ALL_CATEGORIES || s.category === filters.category) &&
-          (filters.segment === "All" || s.segment === filters.segment)
-      ),
-    [supplierBubbles, filters.category, filters.segment]
+    () => supplierBubbles.filter((s) => filters.category === ALL_CATEGORIES || s.category === filters.category),
+    [supplierBubbles, filters.category]
   );
 
   const filteredCandidates = useMemo(
@@ -181,38 +262,26 @@ export default function TailSpendPage() {
 
         <SapKpiRibbon kpi={sapKpiRibbon} />
 
-        <div className="flex flex-col gap-6 lg:flex-row">
-          <SapFilterPanel
-            value={sapFilters}
-            onChange={setSapFilters}
-            dateRanges={sapFilterOptions.dateRanges}
-            categories={categoryNames}
-            suppliers={supplierNames}
-            sourceSystems={sapFilterOptions.sourceSystems}
-            plantSites={sapFilterOptions.plantSites}
-          />
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+          <Widget title="Invoice Count by Invoice Value">
+            <InvoiceValueBucketChart
+              buckets={invoiceValueBuckets}
+              selectedBuckets={selectedBuckets}
+              onToggleBucket={toggleBucket}
+            />
+          </Widget>
 
-          <div className="grid flex-1 grid-cols-1 gap-4 xl:grid-cols-2">
-            <Widget title="Invoice Count by Invoice Value">
-              <InvoiceValueBucketChart
-                buckets={invoiceValueBuckets}
-                selectedBuckets={selectedBuckets}
-                onToggleBucket={toggleBucket}
-              />
-            </Widget>
+          <Widget title="Spend by Supplier (Global Ultimate) for Selected Buckets">
+            <SupplierSpendRankChart suppliers={scaledSupplierSpendRank} />
+          </Widget>
 
-            <Widget title="Spend by Supplier (Global Ultimate) for Selected Buckets">
-              <SupplierSpendRankChart suppliers={scaledSupplierSpendRank} />
-            </Widget>
+          <Widget title="Spend by Invoice Value">
+            <SpendByInvoiceValueDonut buckets={invoiceValueBuckets} selectedBuckets={selectedBuckets} />
+          </Widget>
 
-            <Widget title="Spend by Invoice Value">
-              <SpendByInvoiceValueDonut buckets={invoiceValueBuckets} selectedBuckets={selectedBuckets} />
-            </Widget>
-
-            <Widget title="Spend by Category for Selected Buckets">
-              <CategorySpendHybrid categories={scaledCategoryRows} />
-            </Widget>
-          </div>
+          <Widget title="Spend by Category for Selected Buckets">
+            <CategorySpendHybrid categories={scaledCategoryRows} />
+          </Widget>
         </div>
 
         <Section title="Supplier (Global Ultimate) Detail Report">
@@ -229,8 +298,6 @@ export default function TailSpendPage() {
         </div>
 
         {/* ================= TIER 2: Advanced AI & Tail Spend Optimization ================= */}
-
-        <TailFilters value={filters} onChange={setFilters} categories={categoryNames} />
 
         <TailKPICards kpi={kpi} microStats={microStats} threshold={filters.microPOThreshold} />
 

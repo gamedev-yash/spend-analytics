@@ -148,14 +148,16 @@ export function FilterToggle({ label, checked, onChange, id, className }: Filter
         aria-checked={checked}
         onClick={() => onChange(!checked)}
         className={cn(
-          "relative h-5 w-9 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900",
+          "relative h-5 w-9 shrink-0 overflow-hidden rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900",
           checked ? "bg-slate-900 dark:bg-slate-100" : "bg-slate-200 dark:bg-slate-700"
         )}
       >
         <span
           className={cn(
-            "absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform",
-            checked ? "translate-x-4" : "translate-x-0.5"
+            "pointer-events-none absolute top-0.5 left-0.5 h-4 w-4 rounded-full shadow-sm transition-transform",
+            checked
+              ? "translate-x-4 bg-white dark:bg-slate-900"
+              : "translate-x-0 bg-white dark:bg-slate-300"
           )}
         />
       </button>
