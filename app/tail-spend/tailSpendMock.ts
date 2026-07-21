@@ -95,6 +95,58 @@ export interface POValueBucket {
   isMicroPO: boolean;
 }
 
+// --- SAP Spend Control Tower (Tier 1) types -------------------------------
+
+/** The 4-metric navy KPI ribbon at the top of the SAP standard workspace. */
+export interface SapKpiRibbon {
+  invoiceCount: number;
+  supplierCountGlobalUltimate: number;
+  meanInvoiceAmountPerSupplier: number;
+  meanInvoicesPerSupplier: number;
+}
+
+/** Top-left widget: invoice value buckets, bar = invoices/supplier, line = invoice count. */
+export interface InvoiceValueBucket {
+  bucketLabel: string;
+  invoiceCount: number;
+  invoicesPerSupplier: number;
+  spend: number;
+  spendPercent: number;
+}
+
+/** Top-right widget: suppliers (Global Ultimate) ranked by spend. */
+export interface SupplierSpendRank {
+  supplierId: string;
+  supplierName: string;
+  totalSpend: number;
+}
+
+/** Bottom-right widget: SAP category code/name with supplier count and spend bar. */
+export interface SapCategoryRow {
+  code: string;
+  category: string;
+  supplierCount: number;
+  spend: number;
+}
+
+/** Full-width SAP detailed report table row. */
+export interface SapSupplierReportRow {
+  supplierId: string;
+  supplierName: string;
+  invoiceCount: number;
+  plantCount: number;
+  categoryCount: number;
+  productCount: number;
+  costCenterCount: number;
+  spend: number;
+}
+
+export interface SapFilterOptions {
+  dateRanges: string[];
+  sourceSystems: string[];
+  plantSites: string[];
+}
+
 export interface TailSpendData {
   kpi: KPISummary;
   paretoDeciles: ParetoDecile[];
@@ -104,6 +156,12 @@ export interface TailSpendData {
   monthlyTrend: MonthlyTrendPoint[];
   consolidationCandidates: ConsolidationCandidate[];
   poValueBuckets: POValueBucket[];
+  sapKpiRibbon: SapKpiRibbon;
+  invoiceValueBuckets: InvoiceValueBucket[];
+  supplierSpendRank: SupplierSpendRank[];
+  sapCategoryRows: SapCategoryRow[];
+  sapSupplierReport: SapSupplierReportRow[];
+  sapFilterOptions: SapFilterOptions;
 }
 
 export const tailSpendMock: TailSpendData = {
@@ -260,6 +318,80 @@ export const tailSpendMock: TailSpendData = {
     { supplierId: "SUP-1020", supplierName: "Unique Office Automation", category: "IT, Electronics & Software", poCount: 58, microPOCount: 19, totalSpend: 1_252_800, avgPOValue: 21_600, processingCost: 290_000, potentialSavings: 72_500, consolidationScore: 55, recommendedAction: "Monitor" },
     { supplierId: "SUP-1031", supplierName: "Digital Age Computers", category: "IT, Electronics & Software", poCount: 51, microPOCount: 17, totalSpend: 989_400, avgPOValue: 19_400, processingCost: 255_000, potentialSavings: 63_750, consolidationScore: 52, recommendedAction: "Monitor" },
   ],
+
+  // --- SAP Spend Control Tower (Tier 1) ------------------------------------
+  // Invoice-centric counts run slightly ahead of PO counts above (a PO can be
+  // billed across several invoices); Global Ultimate supplier count is lower
+  // than the raw active-supplier count since it groups child suppliers under
+  // their parent entity.
+
+  sapKpiRibbon: {
+    invoiceCount: 214_800,
+    supplierCountGlobalUltimate: 3_120,
+    meanInvoiceAmountPerSupplier: 15_576_923,
+    meanInvoicesPerSupplier: 68.8,
+  },
+
+  invoiceValueBuckets: [
+    { bucketLabel: "<1K", invoiceCount: 42_500, invoicesPerSupplier: 24.3, spend: 21_250_000, spendPercent: 0.04 },
+    { bucketLabel: "1K-5K", invoiceCount: 51_300, invoicesPerSupplier: 18.7, spend: 153_900_000, spendPercent: 0.32 },
+    { bucketLabel: "5K-10K", invoiceCount: 38_900, invoicesPerSupplier: 13.4, spend: 291_750_000, spendPercent: 0.6 },
+    { bucketLabel: "10K-100K", invoiceCount: 46_700, invoicesPerSupplier: 9.6, spend: 2_568_500_000, spendPercent: 5.28 },
+    { bucketLabel: "100K-1M", invoiceCount: 25_800, invoicesPerSupplier: 5.8, spend: 12_900_000_000, spendPercent: 26.54 },
+    { bucketLabel: "1M-5M", invoiceCount: 7_400, invoicesPerSupplier: 2.1, spend: 18_500_000_000, spendPercent: 38.07 },
+    { bucketLabel: ">5M", invoiceCount: 2_200, invoicesPerSupplier: 1.2, spend: 14_164_600_000, spendPercent: 29.15 },
+  ],
+
+  supplierSpendRank: [
+    { supplierId: "SUP-3001", supplierName: "Larsen Heavy Equipment Ltd.", totalSpend: 510_000_000 },
+    { supplierId: "SUP-3002", supplierName: "Vedanta EPC Partners", totalSpend: 343_800_000 },
+    { supplierId: "SUP-3003", supplierName: "Continental Mining Systems", totalSpend: 385_200_000 },
+    { supplierId: "SUP-3004", supplierName: "TransIndia Bulk Logistics", totalSpend: 332_800_000 },
+    { supplierId: "SUP-3005", supplierName: "Apex Civil & Infra Ltd.", totalSpend: 279_000_000 },
+    { supplierId: "SUP-3006", supplierName: "Global Process Chemicals", totalSpend: 193_200_000 },
+    { supplierId: "SUP-2005", supplierName: "Krishna Civil Contractors", totalSpend: 15_990_000 },
+    { supplierId: "SUP-2004", supplierName: "Continental Chemicals Pvt Ltd", totalSpend: 14_880_000 },
+    { supplierId: "SUP-2009", supplierName: "Vardhman Structural Works", totalSpend: 12_705_000 },
+    { supplierId: "SUP-2008", supplierName: "National Mining Spares", totalSpend: 12_580_000 },
+  ],
+
+  sapCategoryRows: [
+    { code: "CAP-EQP", category: "Capital Equipment & Capex Contracts", supplierCount: 45, spend: 10_692_000_000 },
+    { code: "MIN-SPR", category: "Mining Equipment Spares", supplierCount: 680, spend: 9_306_900_000 },
+    { code: "CIV-CON", category: "Civil, Structural & Construction", supplierCount: 380, spend: 5_710_500_000 },
+    { code: "LOG-FRT", category: "Logistics, Freight & Handling", supplierCount: 410, spend: 5_005_800_000 },
+    { code: "ELE-INS", category: "Electrical & Instrumentation Spares", supplierCount: 520, spend: 5_346_000_000 },
+    { code: "MRO-MEC", category: "MRO – Mechanical Consumables", supplierCount: 890, spend: 4_179_600_000 },
+    { code: "CHM-REA", category: "Chemicals & Reagents", supplierCount: 310, spend: 3_304_800_000 },
+    { code: "SAF-PPE", category: "Safety & PPE", supplierCount: 640, spend: 1_555_200_000 },
+    { code: "ITE-SFT", category: "IT, Electronics & Software", supplierCount: 480, spend: 1_263_600_000 },
+    { code: "FAC-ADM", category: "Facility, Housekeeping & Admin", supplierCount: 520, spend: 1_166_400_000 },
+    { code: "OFF-STA", category: "Office Supplies, Stationery & Misc", supplierCount: 365, spend: 1_069_200_000 },
+  ],
+
+  sapSupplierReport: [
+    { supplierId: "SUP-3001", supplierName: "Larsen Heavy Equipment Ltd.", invoiceCount: 58, plantCount: 6, categoryCount: 3, productCount: 142, costCenterCount: 12, spend: 510_000_000 },
+    { supplierId: "SUP-3002", supplierName: "Vedanta EPC Partners", invoiceCount: 44, plantCount: 4, categoryCount: 2, productCount: 96, costCenterCount: 9, spend: 343_800_000 },
+    { supplierId: "SUP-3003", supplierName: "Continental Mining Systems", invoiceCount: 71, plantCount: 5, categoryCount: 2, productCount: 118, costCenterCount: 10, spend: 385_200_000 },
+    { supplierId: "SUP-3004", supplierName: "TransIndia Bulk Logistics", invoiceCount: 96, plantCount: 8, categoryCount: 1, productCount: 34, costCenterCount: 14, spend: 332_800_000 },
+    { supplierId: "SUP-3005", supplierName: "Apex Civil & Infra Ltd.", invoiceCount: 39, plantCount: 3, categoryCount: 1, productCount: 27, costCenterCount: 6, spend: 279_000_000 },
+    { supplierId: "SUP-3006", supplierName: "Global Process Chemicals", invoiceCount: 54, plantCount: 4, categoryCount: 2, productCount: 61, costCenterCount: 7, spend: 193_200_000 },
+    { supplierId: "SUP-2005", supplierName: "Krishna Civil Contractors", invoiceCount: 39, plantCount: 2, categoryCount: 1, productCount: 18, costCenterCount: 4, spend: 15_990_000 },
+    { supplierId: "SUP-2004", supplierName: "Continental Chemicals Pvt Ltd", invoiceCount: 48, plantCount: 3, categoryCount: 1, productCount: 29, costCenterCount: 5, spend: 14_880_000 },
+    { supplierId: "SUP-2002", supplierName: "Precision Electricals Ltd.", invoiceCount: 54, plantCount: 3, categoryCount: 1, productCount: 41, costCenterCount: 6, spend: 11_880_000 },
+    { supplierId: "SUP-2003", supplierName: "Bharat Mechanical Works", invoiceCount: 71, plantCount: 4, categoryCount: 2, productCount: 58, costCenterCount: 8, spend: 11_715_000 },
+    { supplierId: "SUP-2001", supplierName: "Sundaram Spares & Components", invoiceCount: 62, plantCount: 3, categoryCount: 1, productCount: 37, costCenterCount: 5, spend: 11_470_000 },
+    { supplierId: "SUP-2007", supplierName: "Apex Instrumentation Co.", invoiceCount: 44, plantCount: 2, categoryCount: 1, productCount: 22, costCenterCount: 4, spend: 11_440_000 },
+    { supplierId: "SUP-1002", supplierName: "Om Sai Enterprises", invoiceCount: 134, plantCount: 1, categoryCount: 1, productCount: 8, costCenterCount: 2, spend: 1_688_400 },
+    { supplierId: "SUP-1008", supplierName: "Raghav Facility Services", invoiceCount: 121, plantCount: 1, categoryCount: 1, productCount: 6, costCenterCount: 3, spend: 1_718_200 },
+    { supplierId: "SUP-1012", supplierName: "Sanman Electricals Trading", invoiceCount: 88, plantCount: 1, categoryCount: 1, productCount: 11, costCenterCount: 2, spend: 2_164_800 },
+  ],
+
+  sapFilterOptions: {
+    dateRanges: ["Jan 2025 – Dec 2025", "Jul 2025 – Jun 2026", "Jan 2024 – Dec 2024", "Apr 2025 – Mar 2026"],
+    sourceSystems: ["SAP ECC", "SAP S/4HANA", "Ariba", "Coupa"],
+    plantSites: ["Jharsuguda (Odisha)", "Lanjigarh (Odisha)", "Korba (Chhattisgarh)", "Chanderiya (Rajasthan)", "Zawar Mines (Rajasthan)", "Tuticorin (Tamil Nadu)", "Goa"],
+  },
 };
 
 /** Compact INR formatter: crore / lakh for large values, comma-grouped for small ones. */

@@ -6,6 +6,7 @@ import { formatINR } from "../tailSpendMock";
 
 export interface TailFilterState {
   microPOThreshold: number;
+  paretoThreshold: number;
   category: string;
   segment: "All" | SpendSegment;
   microPOOnly: boolean;
@@ -14,6 +15,7 @@ export interface TailFilterState {
 export const ALL_CATEGORIES = "All Categories";
 export const DEFAULT_TAIL_FILTERS: TailFilterState = {
   microPOThreshold: 25_000,
+  paretoThreshold: 80,
   category: ALL_CATEGORIES,
   segment: "All",
   microPOOnly: false,
@@ -61,6 +63,25 @@ export function TailFilters({ value, onChange, categories }: TailFiltersProps) {
           onChange={(event) =>
             onChange({ ...value, microPOThreshold: Number(event.target.value) })
           }
+          className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-slate-700 accent-amber-500"
+        />
+      </div>
+
+      <div className="flex min-w-[240px] flex-1 flex-col gap-1.5">
+        <div className="flex items-center justify-between">
+          <label htmlFor="pareto-threshold" className="text-xs font-medium text-slate-400">
+            Pareto threshold
+          </label>
+          <span className="text-sm font-semibold text-slate-100">{value.paretoThreshold}%</span>
+        </div>
+        <input
+          id="pareto-threshold"
+          type="range"
+          min={50}
+          max={95}
+          step={5}
+          value={value.paretoThreshold}
+          onChange={(event) => onChange({ ...value, paretoThreshold: Number(event.target.value) })}
           className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-slate-700 accent-amber-500"
         />
       </div>

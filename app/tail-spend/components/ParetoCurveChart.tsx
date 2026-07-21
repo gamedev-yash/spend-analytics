@@ -10,6 +10,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  ReferenceLine,
   type TooltipContentProps,
 } from "recharts";
 import type { ParetoDecile } from "../tailSpendMock";
@@ -18,6 +19,7 @@ import { GRIDLINE, AXIS_LINE, TEXT_MUTED, PARETO_BAR_COLOR, PARETO_LINE_COLOR } 
 
 interface ParetoCurveChartProps {
   deciles: ParetoDecile[];
+  threshold?: number;
 }
 
 function ParetoTooltip({ active, payload, label }: TooltipContentProps) {
@@ -46,17 +48,16 @@ function ParetoTooltip({ active, payload, label }: TooltipContentProps) {
  * share per supplier decile) and the line (cumulative spend %) are percentages,
  * so there's no second y-scale to invent a false alignment.
  */
-export function ParetoCurveChart({ deciles }: ParetoCurveChartProps) {
-  const crossoverIndex = deciles.findIndex((d) => d.cumulativeSpendPercent >= 80);
-  const crossover = deciles[crossoverIndex];
+export function ParetoCurveChart({ deciles, threshold = 80 }: ParetoCurveChartProps) {
+  const crossover = deciles.find((d) => d.cumulativeSpendPercent >= threshold);
 
   return (
     <div>
       {crossover && (
         <p className="mb-3 text-sm text-slate-400">
-          The top <span className="font-semibold text-slate-100">{crossover.decileLabel === "Top 10%" ? "10%" : "20%"}</span> of
-          suppliers by spend drive <span className="font-semibold text-slate-100">{crossover.cumulativeSpendPercent}%</span> of
-          total value — the rest is tail.
+          Suppliers through <span className="font-semibold text-slate-100">{crossover.decileLabel}</span> drive{" "}
+          <span className="font-semibold text-slate-100">{crossover.cumulativeSpendPercent}%</span> of total value —
+          past the {threshold}% mark, the rest is tail.
         </p>
       )}
       <ResponsiveContainer width="100%" height={320}>
@@ -77,6 +78,13 @@ export function ParetoCurveChart({ deciles }: ParetoCurveChartProps) {
             width={44}
           />
           <Tooltip content={(props) => <ParetoTooltip {...props} />} cursor={{ fill: "rgba(148,163,184,0.08)" }} />
+          <ReferenceLine
+            y={threshold}
+            stroke={PARETO_LINE_COLOR}
+            strokeDasharray="4 4"
+            strokeOpacity={0.6}
+            label={{ value: `${threshold}%`, position: "insideTopLeft", fill: PARETO_LINE_COLOR, fontSize: 11 }}
+          />
           <Legend
             wrapperStyle={{ fontSize: 12, color: TEXT_MUTED }}
             formatter={(value) => <span style={{ color: TEXT_MUTED }}>{value}</span>}

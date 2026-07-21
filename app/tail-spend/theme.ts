@@ -36,3 +36,19 @@ export const CHART_MARGIN = { top: 8, right: 16, bottom: 8, left: 8 };
 // Pareto chart — decile share (bar) vs cumulative curve (line). Validated all-pairs.
 export const PARETO_BAR_COLOR = "#3987e5"; // blue
 export const PARETO_LINE_COLOR = "#d95926"; // orange
+
+// SAP Spend Control Tower ribbon — navy chrome, not a data-encoding color.
+export const SAP_NAVY = "#0a1f44";
+export const SAP_NAVY_BORDER = "#16305e";
+
+// One-hue ordinal ramp for the 7 SAP invoice-value buckets (order carries
+// meaning), darkest = smallest bucket. Same hue family as the micro-PO donut.
+export const INVOICE_BUCKET_RAMP = [
+  "#0f3a73",
+  "#184f95",
+  "#256abf",
+  "#3987e5",
+  "#6da7ec",
+  "#9ec5f4",
+  "#cde2fb",
+];
