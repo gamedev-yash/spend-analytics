@@ -1,0 +1,62 @@
+[
+  {
+    "category": "Flotation",
+    "spend": 4080226.25,
+    "percentage": 1.03
+  },
+  {
+    "category": "Conveyance",
+    "spend": 45471382.9,
+    "percentage": 11.43
+  },
+  {
+    "category": "Lead & Copper",
+    "spend": 71390508.43,
+    "percentage": 17.95
+  },
+  {
+    "category": "Milling",
+    "spend": 46173645.77,
+    "percentage": 11.61
+  },
+  {
+    "category": "Pumping",
+    "spend": 31175393.1,
+    "percentage": 7.84
+  },
+  {
+    "category": "Crushing",
+    "spend": 81310613.99,
+    "percentage": 20.45
+  },
+  {
+    "category": "Instrumentation",
+    "spend": 24241053.43,
+    "percentage": 6.1
+  },
+  {
+    "category": "Electrical Motors",
+    "spend": 47086715.63,
+    "percentage": 11.84
+  },
+  {
+    "category": "Bearings",
+    "spend": 11000920.52,
+    "percentage": 2.77
+  },
+  {
+    "category": "Pipes",
+    "spend": 11044886.76,
+    "percentage": 2.78
+  },
+  {
+    "category": "Valves",
+    "spend": 22105517.1,
+    "percentage": 5.56
+  },
+  {
+    "category": "Lubricants",
+    "spend": 2621955.12,
+    "percentage": 0.66
+  }
+]

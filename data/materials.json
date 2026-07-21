@@ -1,0 +1,5002 @@
+[
+  {
+    "materialId": "MAT-0001",
+    "materialCode": "100000001",
+    "materialName": "Frothers - Type B977",
+    "category": "Flotation",
+    "subcategory": "Frothers",
+    "uom": "MTR",
+    "manufacturer": "Senmin",
+    "preferredSupplierId": "SUP-0086"
+  },
+  {
+    "materialId": "MAT-0002",
+    "materialCode": "100000002",
+    "materialName": "Frothers - Type C323",
+    "category": "Flotation",
+    "subcategory": "Frothers",
+    "uom": "BOX",
+    "manufacturer": "Cytec Solvay",
+    "preferredSupplierId": "SUP-0059"
+  },
+  {
+    "materialId": "MAT-0003",
+    "materialCode": "100000003",
+    "materialName": "Frothers - Type D544",
+    "category": "Flotation",
+    "subcategory": "Frothers",
+    "uom": "LTR",
+    "manufacturer": "Cytec Solvay",
+    "preferredSupplierId": "SUP-0003"
+  },
+  {
+    "materialId": "MAT-0004",
+    "materialCode": "100000004",
+    "materialName": "Activators - Type E510",
+    "category": "Flotation",
+    "subcategory": "Activators",
+    "uom": "LTR",
+    "manufacturer": "Cytec Solvay",
+    "preferredSupplierId": "SUP-0070"
+  },
+  {
+    "materialId": "MAT-0005",
+    "materialCode": "100000005",
+    "materialName": "Frothers - Type F265",
+    "category": "Flotation",
+    "subcategory": "Frothers",
+    "uom": "MTR",
+    "manufacturer": "Orica",
+    "preferredSupplierId": "SUP-0002"
+  },
+  {
+    "materialId": "MAT-0006",
+    "materialCode": "100000006",
+    "materialName": "Depressants - Type A347",
+    "category": "Flotation",
+    "subcategory": "Depressants",
+    "uom": "MTR",
+    "manufacturer": "Senmin",
+    "preferredSupplierId": "SUP-0088"
+  },
+  {
+    "materialId": "MAT-0007",
+    "materialCode": "100000007",
+    "materialName": "Depressants - Type B830",
+    "category": "Flotation",
+    "subcategory": "Depressants",
+    "uom": "KG",
+    "manufacturer": "BASF",
+    "preferredSupplierId": "SUP-0095"
+  },
+  {
+    "materialId": "MAT-0008",
+    "materialCode": "100000008",
+    "materialName": "Collectors - Type C396",
+    "category": "Flotation",
+    "subcategory": "Collectors",
+    "uom": "BOX",
+    "manufacturer": "BASF",
+    "preferredSupplierId": "SUP-0092"
+  },
+  {
+    "materialId": "MAT-0009",
+    "materialCode": "100000009",
+    "materialName": "Flotation Cells - Type D942",
+    "category": "Flotation",
+    "subcategory": "Flotation Cells",
+    "uom": "MT",
+    "manufacturer": "Cytec Solvay",
+    "preferredSupplierId": "SUP-0059"
+  },
+  {
+    "materialId": "MAT-0010",
+    "materialCode": "100000010",
+    "materialName": "Depressants - Type E397",
+    "category": "Flotation",
+    "subcategory": "Depressants",
+    "uom": "LTR",
+    "manufacturer": "Orica",
+    "preferredSupplierId": "SUP-0079"
+  },
+  {
+    "materialId": "MAT-0011",
+    "materialCode": "100000011",
+    "materialName": "Activators - Type F953",
+    "category": "Flotation",
+    "subcategory": "Activators",
+    "uom": "BOX",
+    "manufacturer": "BASF",
+    "preferredSupplierId": "SUP-0058"
+  },
+  {
+    "materialId": "MAT-0012",
+    "materialCode": "100000012",
+    "materialName": "Activators - Type A444",
+    "category": "Flotation",
+    "subcategory": "Activators",
+    "uom": "ROLL",
+    "manufacturer": "Orica",
+    "preferredSupplierId": "SUP-0005"
+  },
+  {
+    "materialId": "MAT-0013",
+    "materialCode": "100000013",
+    "materialName": "Flotation Cells - Type B573",
+    "category": "Flotation",
+    "subcategory": "Flotation Cells",
+    "uom": "KG",
+    "manufacturer": "BASF",
+    "preferredSupplierId": "SUP-0007"
+  },
+  {
+    "materialId": "MAT-0014",
+    "materialCode": "100000014",
+    "materialName": "Frothers - Type C403",
+    "category": "Flotation",
+    "subcategory": "Frothers",
+    "uom": "PAIR",
+    "manufacturer": "Cytec Solvay",
+    "preferredSupplierId": "SUP-0098"
+  },
+  {
+    "materialId": "MAT-0015",
+    "materialCode": "100000015",
+    "materialName": "Depressants - Type D379",
+    "category": "Flotation",
+    "subcategory": "Depressants",
+    "uom": "LTR",
+    "manufacturer": "Cytec Solvay",
+    "preferredSupplierId": "SUP-0072"
+  },
+  {
+    "materialId": "MAT-0016",
+    "materialCode": "100000016",
+    "materialName": "Depressants - Type E635",
+    "category": "Flotation",
+    "subcategory": "Depressants",
+    "uom": "SET",
+    "manufacturer": "Senmin",
+    "preferredSupplierId": "SUP-0039"
+  },
+  {
+    "materialId": "MAT-0017",
+    "materialCode": "100000017",
+    "materialName": "Flotation Cells - Type F109",
+    "category": "Flotation",
+    "subcategory": "Flotation Cells",
+    "uom": "PAIR",
+    "manufacturer": "Senmin",
+    "preferredSupplierId": "SUP-0055"
+  },
+  {
+    "materialId": "MAT-0018",
+    "materialCode": "100000018",
+    "materialName": "Flotation Cells - Type A684",
+    "category": "Flotation",
+    "subcategory": "Flotation Cells",
+    "uom": "KG",
+    "manufacturer": "Clariant",
+    "preferredSupplierId": "SUP-0094"
+  },
+  {
+    "materialId": "MAT-0019",
+    "materialCode": "100000019",
+    "materialName": "Collectors - Type B509",
+    "category": "Flotation",
+    "subcategory": "Collectors",
+    "uom": "SET",
+    "manufacturer": "Cytec Solvay",
+    "preferredSupplierId": "SUP-0047"
+  },
+  {
+    "materialId": "MAT-0020",
+    "materialCode": "100000020",
+    "materialName": "Flotation Cells - Type C884",
+    "category": "Flotation",
+    "subcategory": "Flotation Cells",
+    "uom": "MT",
+    "manufacturer": "Senmin",
+    "preferredSupplierId": "SUP-0027"
+  },
+  {
+    "materialId": "MAT-0021",
+    "materialCode": "100000021",
+    "materialName": "Activators - Type D793",
+    "category": "Flotation",
+    "subcategory": "Activators",
+    "uom": "BOX",
+    "manufacturer": "Cytec Solvay",
+    "preferredSupplierId": "SUP-0056"
+  },
+  {
+    "materialId": "MAT-0022",
+    "materialCode": "100000022",
+    "materialName": "Collectors - Type E408",
+    "category": "Flotation",
+    "subcategory": "Collectors",
+    "uom": "ROLL",
+    "manufacturer": "Orica",
+    "preferredSupplierId": "SUP-0043"
+  },
+  {
+    "materialId": "MAT-0023",
+    "materialCode": "100000023",
+    "materialName": "Frothers - Type F679",
+    "category": "Flotation",
+    "subcategory": "Frothers",
+    "uom": "EA",
+    "manufacturer": "Cytec Solvay",
+    "preferredSupplierId": "SUP-0030"
+  },
+  {
+    "materialId": "MAT-0024",
+    "materialCode": "100000024",
+    "materialName": "Depressants - Type A675",
+    "category": "Flotation",
+    "subcategory": "Depressants",
+    "uom": "KG",
+    "manufacturer": "Orica",
+    "preferredSupplierId": "SUP-0010"
+  },
+  {
+    "materialId": "MAT-0025",
+    "materialCode": "100000025",
+    "materialName": "Frothers - Type B360",
+    "category": "Flotation",
+    "subcategory": "Frothers",
+    "uom": "LTR",
+    "manufacturer": "Cytec Solvay",
+    "preferredSupplierId": "SUP-0002"
+  },
+  {
+    "materialId": "MAT-0026",
+    "materialCode": "100000026",
+    "materialName": "Frothers - Type C660",
+    "category": "Flotation",
+    "subcategory": "Frothers",
+    "uom": "SET",
+    "manufacturer": "Orica",
+    "preferredSupplierId": "SUP-0067"
+  },
+  {
+    "materialId": "MAT-0027",
+    "materialCode": "100000027",
+    "materialName": "Flotation Cells - Type D666",
+    "category": "Flotation",
+    "subcategory": "Flotation Cells",
+    "uom": "MTR",
+    "manufacturer": "Cytec Solvay",
+    "preferredSupplierId": "SUP-0055"
+  },
+  {
+    "materialId": "MAT-0028",
+    "materialCode": "100000028",
+    "materialName": "Flotation Cells - Type E172",
+    "category": "Flotation",
+    "subcategory": "Flotation Cells",
+    "uom": "ROLL",
+    "manufacturer": "Clariant",
+    "preferredSupplierId": "SUP-0002"
+  },
+  {
+    "materialId": "MAT-0029",
+    "materialCode": "100000029",
+    "materialName": "Collectors - Type F652",
+    "category": "Flotation",
+    "subcategory": "Collectors",
+    "uom": "MT",
+    "manufacturer": "BASF",
+    "preferredSupplierId": "SUP-0017"
+  },
+  {
+    "materialId": "MAT-0030",
+    "materialCode": "100000030",
+    "materialName": "Activators - Type A457",
+    "category": "Flotation",
+    "subcategory": "Activators",
+    "uom": "ROLL",
+    "manufacturer": "BASF",
+    "preferredSupplierId": "SUP-0052"
+  },
+  {
+    "materialId": "MAT-0031",
+    "materialCode": "100000031",
+    "materialName": "Depressants - Type B975",
+    "category": "Flotation",
+    "subcategory": "Depressants",
+    "uom": "PAIR",
+    "manufacturer": "Clariant",
+    "preferredSupplierId": "SUP-0030"
+  },
+  {
+    "materialId": "MAT-0032",
+    "materialCode": "100000032",
+    "materialName": "Depressants - Type C708",
+    "category": "Flotation",
+    "subcategory": "Depressants",
+    "uom": "EA",
+    "manufacturer": "Senmin",
+    "preferredSupplierId": "SUP-0069"
+  },
+  {
+    "materialId": "MAT-0033",
+    "materialCode": "100000033",
+    "materialName": "Depressants - Type D527",
+    "category": "Flotation",
+    "subcategory": "Depressants",
+    "uom": "LTR",
+    "manufacturer": "Senmin",
+    "preferredSupplierId": "SUP-0034"
+  },
+  {
+    "materialId": "MAT-0034",
+    "materialCode": "100000034",
+    "materialName": "Activators - Type E931",
+    "category": "Flotation",
+    "subcategory": "Activators",
+    "uom": "EA",
+    "manufacturer": "BASF",
+    "preferredSupplierId": "SUP-0074"
+  },
+  {
+    "materialId": "MAT-0035",
+    "materialCode": "100000035",
+    "materialName": "Depressants - Type F822",
+    "category": "Flotation",
+    "subcategory": "Depressants",
+    "uom": "PAIR",
+    "manufacturer": "Orica",
+    "preferredSupplierId": "SUP-0047"
+  },
+  {
+    "materialId": "MAT-0036",
+    "materialCode": "100000036",
+    "materialName": "Depressants - Type A832",
+    "category": "Flotation",
+    "subcategory": "Depressants",
+    "uom": "LTR",
+    "manufacturer": "Cytec Solvay",
+    "preferredSupplierId": "SUP-0085"
+  },
+  {
+    "materialId": "MAT-0037",
+    "materialCode": "100000037",
+    "materialName": "Collectors - Type B376",
+    "category": "Flotation",
+    "subcategory": "Collectors",
+    "uom": "LTR",
+    "manufacturer": "Cytec Solvay",
+    "preferredSupplierId": "SUP-0021"
+  },
+  {
+    "materialId": "MAT-0038",
+    "materialCode": "100000038",
+    "materialName": "Activators - Type C885",
+    "category": "Flotation",
+    "subcategory": "Activators",
+    "uom": "SET",
+    "manufacturer": "Clariant",
+    "preferredSupplierId": "SUP-0027"
+  },
+  {
+    "materialId": "MAT-0039",
+    "materialCode": "100000039",
+    "materialName": "Depressants - Type D131",
+    "category": "Flotation",
+    "subcategory": "Depressants",
+    "uom": "EA",
+    "manufacturer": "Orica",
+    "preferredSupplierId": "SUP-0099"
+  },
+  {
+    "materialId": "MAT-0040",
+    "materialCode": "100000040",
+    "materialName": "Collectors - Type E845",
+    "category": "Flotation",
+    "subcategory": "Collectors",
+    "uom": "EA",
+    "manufacturer": "Clariant",
+    "preferredSupplierId": "SUP-0097"
+  },
+  {
+    "materialId": "MAT-0041",
+    "materialCode": "100000041",
+    "materialName": "Collectors - Type F193",
+    "category": "Flotation",
+    "subcategory": "Collectors",
+    "uom": "SET",
+    "manufacturer": "Cytec Solvay",
+    "preferredSupplierId": "SUP-0078"
+  },
+  {
+    "materialId": "MAT-0042",
+    "materialCode": "100000042",
+    "materialName": "Idlers - Type A320",
+    "category": "Conveyance",
+    "subcategory": "Idlers",
+    "uom": "LTR",
+    "manufacturer": "Fenner Conveyor Belting",
+    "preferredSupplierId": "SUP-0004"
+  },
+  {
+    "materialId": "MAT-0043",
+    "materialCode": "100000043",
+    "materialName": "Chutes - Type B538",
+    "category": "Conveyance",
+    "subcategory": "Chutes",
+    "uom": "LTR",
+    "manufacturer": "Continental ContiTech",
+    "preferredSupplierId": "SUP-0042"
+  },
+  {
+    "materialId": "MAT-0044",
+    "materialCode": "100000044",
+    "materialName": "Conveyor Belts - Type C930",
+    "category": "Conveyance",
+    "subcategory": "Conveyor Belts",
+    "uom": "MT",
+    "manufacturer": "Fenner Conveyor Belting",
+    "preferredSupplierId": "SUP-0025"
+  },
+  {
+    "materialId": "MAT-0045",
+    "materialCode": "100000045",
+    "materialName": "Idlers - Type D778",
+    "category": "Conveyance",
+    "subcategory": "Idlers",
+    "uom": "BOX",
+    "manufacturer": "Tega Industries",
+    "preferredSupplierId": "SUP-0059"
+  },
+  {
+    "materialId": "MAT-0046",
+    "materialCode": "100000046",
+    "materialName": "Idlers - Type E848",
+    "category": "Conveyance",
+    "subcategory": "Idlers",
+    "uom": "SET",
+    "manufacturer": "Tega Industries",
+    "preferredSupplierId": "SUP-0094"
+  },
+  {
+    "materialId": "MAT-0047",
+    "materialCode": "100000047",
+    "materialName": "Belt Fasteners - Type F476",
+    "category": "Conveyance",
+    "subcategory": "Belt Fasteners",
+    "uom": "PAIR",
+    "manufacturer": "Bridgestone",
+    "preferredSupplierId": "SUP-0073"
+  },
+  {
+    "materialId": "MAT-0048",
+    "materialCode": "100000048",
+    "materialName": "Conveyor Belts - Type A639",
+    "category": "Conveyance",
+    "subcategory": "Conveyor Belts",
+    "uom": "LTR",
+    "manufacturer": "Continental ContiTech",
+    "preferredSupplierId": "SUP-0075"
+  },
+  {
+    "materialId": "MAT-0049",
+    "materialCode": "100000049",
+    "materialName": "Conveyor Belts - Type B778",
+    "category": "Conveyance",
+    "subcategory": "Conveyor Belts",
+    "uom": "MTR",
+    "manufacturer": "Fenner Conveyor Belting",
+    "preferredSupplierId": "SUP-0044"
+  },
+  {
+    "materialId": "MAT-0050",
+    "materialCode": "100000050",
+    "materialName": "Chutes - Type C986",
+    "category": "Conveyance",
+    "subcategory": "Chutes",
+    "uom": "PAIR",
+    "manufacturer": "Continental ContiTech",
+    "preferredSupplierId": "SUP-0039"
+  },
+  {
+    "materialId": "MAT-0051",
+    "materialCode": "100000051",
+    "materialName": "Belt Fasteners - Type D333",
+    "category": "Conveyance",
+    "subcategory": "Belt Fasteners",
+    "uom": "MTR",
+    "manufacturer": "Elecon",
+    "preferredSupplierId": "SUP-0094"
+  },
+  {
+    "materialId": "MAT-0052",
+    "materialCode": "100000052",
+    "materialName": "Chutes - Type E703",
+    "category": "Conveyance",
+    "subcategory": "Chutes",
+    "uom": "LTR",
+    "manufacturer": "Bridgestone",
+    "preferredSupplierId": "SUP-0026"
+  },
+  {
+    "materialId": "MAT-0053",
+    "materialCode": "100000053",
+    "materialName": "Conveyor Belts - Type F920",
+    "category": "Conveyance",
+    "subcategory": "Conveyor Belts",
+    "uom": "LTR",
+    "manufacturer": "Tega Industries",
+    "preferredSupplierId": "SUP-0065"
+  },
+  {
+    "materialId": "MAT-0054",
+    "materialCode": "100000054",
+    "materialName": "Chutes - Type A946",
+    "category": "Conveyance",
+    "subcategory": "Chutes",
+    "uom": "SET",
+    "manufacturer": "Bridgestone",
+    "preferredSupplierId": "SUP-0091"
+  },
+  {
+    "materialId": "MAT-0055",
+    "materialCode": "100000055",
+    "materialName": "Conveyor Belts - Type B672",
+    "category": "Conveyance",
+    "subcategory": "Conveyor Belts",
+    "uom": "BOX",
+    "manufacturer": "Fenner Conveyor Belting",
+    "preferredSupplierId": "SUP-0044"
+  },
+  {
+    "materialId": "MAT-0056",
+    "materialCode": "100000056",
+    "materialName": "Belt Fasteners - Type C287",
+    "category": "Conveyance",
+    "subcategory": "Belt Fasteners",
+    "uom": "SET",
+    "manufacturer": "Fenner Conveyor Belting",
+    "preferredSupplierId": "SUP-0094"
+  },
+  {
+    "materialId": "MAT-0057",
+    "materialCode": "100000057",
+    "materialName": "Conveyor Belts - Type D649",
+    "category": "Conveyance",
+    "subcategory": "Conveyor Belts",
+    "uom": "ROLL",
+    "manufacturer": "Continental ContiTech",
+    "preferredSupplierId": "SUP-0061"
+  },
+  {
+    "materialId": "MAT-0058",
+    "materialCode": "100000058",
+    "materialName": "Idlers - Type E301",
+    "category": "Conveyance",
+    "subcategory": "Idlers",
+    "uom": "KG",
+    "manufacturer": "Elecon",
+    "preferredSupplierId": "SUP-0034"
+  },
+  {
+    "materialId": "MAT-0059",
+    "materialCode": "100000059",
+    "materialName": "Chutes - Type F690",
+    "category": "Conveyance",
+    "subcategory": "Chutes",
+    "uom": "LTR",
+    "manufacturer": "Fenner Conveyor Belting",
+    "preferredSupplierId": "SUP-0013"
+  },
+  {
+    "materialId": "MAT-0060",
+    "materialCode": "100000060",
+    "materialName": "Belt Fasteners - Type A440",
+    "category": "Conveyance",
+    "subcategory": "Belt Fasteners",
+    "uom": "PAIR",
+    "manufacturer": "Elecon",
+    "preferredSupplierId": "SUP-0041"
+  },
+  {
+    "materialId": "MAT-0061",
+    "materialCode": "100000061",
+    "materialName": "Conveyor Belts - Type B565",
+    "category": "Conveyance",
+    "subcategory": "Conveyor Belts",
+    "uom": "BOX",
+    "manufacturer": "Bridgestone",
+    "preferredSupplierId": "SUP-0077"
+  },
+  {
+    "materialId": "MAT-0062",
+    "materialCode": "100000062",
+    "materialName": "Pulleys - Type C830",
+    "category": "Conveyance",
+    "subcategory": "Pulleys",
+    "uom": "EA",
+    "manufacturer": "Tega Industries",
+    "preferredSupplierId": "SUP-0042"
+  },
+  {
+    "materialId": "MAT-0063",
+    "materialCode": "100000063",
+    "materialName": "Belt Fasteners - Type D485",
+    "category": "Conveyance",
+    "subcategory": "Belt Fasteners",
+    "uom": "BOX",
+    "manufacturer": "Fenner Conveyor Belting",
+    "preferredSupplierId": "SUP-0035"
+  },
+  {
+    "materialId": "MAT-0064",
+    "materialCode": "100000064",
+    "materialName": "Conveyor Belts - Type E579",
+    "category": "Conveyance",
+    "subcategory": "Conveyor Belts",
+    "uom": "LTR",
+    "manufacturer": "Elecon",
+    "preferredSupplierId": "SUP-0031"
+  },
+  {
+    "materialId": "MAT-0065",
+    "materialCode": "100000065",
+    "materialName": "Chutes - Type F863",
+    "category": "Conveyance",
+    "subcategory": "Chutes",
+    "uom": "LTR",
+    "manufacturer": "Elecon",
+    "preferredSupplierId": "SUP-0055"
+  },
+  {
+    "materialId": "MAT-0066",
+    "materialCode": "100000066",
+    "materialName": "Conveyor Belts - Type A373",
+    "category": "Conveyance",
+    "subcategory": "Conveyor Belts",
+    "uom": "LTR",
+    "manufacturer": "Fenner Conveyor Belting",
+    "preferredSupplierId": "SUP-0079"
+  },
+  {
+    "materialId": "MAT-0067",
+    "materialCode": "100000067",
+    "materialName": "Chutes - Type B757",
+    "category": "Conveyance",
+    "subcategory": "Chutes",
+    "uom": "LTR",
+    "manufacturer": "Continental ContiTech",
+    "preferredSupplierId": "SUP-0089"
+  },
+  {
+    "materialId": "MAT-0068",
+    "materialCode": "100000068",
+    "materialName": "Idlers - Type C831",
+    "category": "Conveyance",
+    "subcategory": "Idlers",
+    "uom": "MT",
+    "manufacturer": "Continental ContiTech",
+    "preferredSupplierId": "SUP-0059"
+  },
+  {
+    "materialId": "MAT-0069",
+    "materialCode": "100000069",
+    "materialName": "Conveyor Belts - Type D199",
+    "category": "Conveyance",
+    "subcategory": "Conveyor Belts",
+    "uom": "SET",
+    "manufacturer": "Continental ContiTech",
+    "preferredSupplierId": "SUP-0030"
+  },
+  {
+    "materialId": "MAT-0070",
+    "materialCode": "100000070",
+    "materialName": "Chutes - Type E622",
+    "category": "Conveyance",
+    "subcategory": "Chutes",
+    "uom": "KG",
+    "manufacturer": "Elecon",
+    "preferredSupplierId": "SUP-0074"
+  },
+  {
+    "materialId": "MAT-0071",
+    "materialCode": "100000071",
+    "materialName": "Idlers - Type F433",
+    "category": "Conveyance",
+    "subcategory": "Idlers",
+    "uom": "ROLL",
+    "manufacturer": "Bridgestone",
+    "preferredSupplierId": "SUP-0010"
+  },
+  {
+    "materialId": "MAT-0072",
+    "materialCode": "100000072",
+    "materialName": "Pulleys - Type A658",
+    "category": "Conveyance",
+    "subcategory": "Pulleys",
+    "uom": "BOX",
+    "manufacturer": "Fenner Conveyor Belting",
+    "preferredSupplierId": "SUP-0043"
+  },
+  {
+    "materialId": "MAT-0073",
+    "materialCode": "100000073",
+    "materialName": "Belt Fasteners - Type B552",
+    "category": "Conveyance",
+    "subcategory": "Belt Fasteners",
+    "uom": "MTR",
+    "manufacturer": "Elecon",
+    "preferredSupplierId": "SUP-0001"
+  },
+  {
+    "materialId": "MAT-0074",
+    "materialCode": "100000074",
+    "materialName": "Conveyor Belts - Type C580",
+    "category": "Conveyance",
+    "subcategory": "Conveyor Belts",
+    "uom": "ROLL",
+    "manufacturer": "Elecon",
+    "preferredSupplierId": "SUP-0019"
+  },
+  {
+    "materialId": "MAT-0075",
+    "materialCode": "100000075",
+    "materialName": "Belt Fasteners - Type D919",
+    "category": "Conveyance",
+    "subcategory": "Belt Fasteners",
+    "uom": "MTR",
+    "manufacturer": "Bridgestone",
+    "preferredSupplierId": "SUP-0097"
+  },
+  {
+    "materialId": "MAT-0076",
+    "materialCode": "100000076",
+    "materialName": "Belt Fasteners - Type E214",
+    "category": "Conveyance",
+    "subcategory": "Belt Fasteners",
+    "uom": "EA",
+    "manufacturer": "Fenner Conveyor Belting",
+    "preferredSupplierId": "SUP-0093"
+  },
+  {
+    "materialId": "MAT-0077",
+    "materialCode": "100000077",
+    "materialName": "Belt Fasteners - Type F127",
+    "category": "Conveyance",
+    "subcategory": "Belt Fasteners",
+    "uom": "KG",
+    "manufacturer": "Bridgestone",
+    "preferredSupplierId": "SUP-0030"
+  },
+  {
+    "materialId": "MAT-0078",
+    "materialCode": "100000078",
+    "materialName": "Conveyor Belts - Type A855",
+    "category": "Conveyance",
+    "subcategory": "Conveyor Belts",
+    "uom": "BOX",
+    "manufacturer": "Tega Industries",
+    "preferredSupplierId": "SUP-0090"
+  },
+  {
+    "materialId": "MAT-0079",
+    "materialCode": "100000079",
+    "materialName": "Idlers - Type B203",
+    "category": "Conveyance",
+    "subcategory": "Idlers",
+    "uom": "MTR",
+    "manufacturer": "Elecon",
+    "preferredSupplierId": "SUP-0034"
+  },
+  {
+    "materialId": "MAT-0080",
+    "materialCode": "100000080",
+    "materialName": "Belt Fasteners - Type C986",
+    "category": "Conveyance",
+    "subcategory": "Belt Fasteners",
+    "uom": "LTR",
+    "manufacturer": "Fenner Conveyor Belting",
+    "preferredSupplierId": "SUP-0007"
+  },
+  {
+    "materialId": "MAT-0081",
+    "materialCode": "100000081",
+    "materialName": "Idlers - Type D182",
+    "category": "Conveyance",
+    "subcategory": "Idlers",
+    "uom": "ROLL",
+    "manufacturer": "Elecon",
+    "preferredSupplierId": "SUP-0068"
+  },
+  {
+    "materialId": "MAT-0082",
+    "materialCode": "100000082",
+    "materialName": "Pulleys - Type E527",
+    "category": "Conveyance",
+    "subcategory": "Pulleys",
+    "uom": "MTR",
+    "manufacturer": "Bridgestone",
+    "preferredSupplierId": "SUP-0080"
+  },
+  {
+    "materialId": "MAT-0083",
+    "materialCode": "100000083",
+    "materialName": "Smelting Consumables - Type F973",
+    "category": "Lead & Copper",
+    "subcategory": "Smelting Consumables",
+    "uom": "EA",
+    "manufacturer": "Glencore Technology",
+    "preferredSupplierId": "SUP-0047"
+  },
+  {
+    "materialId": "MAT-0084",
+    "materialCode": "100000084",
+    "materialName": "Smelting Consumables - Type A938",
+    "category": "Lead & Copper",
+    "subcategory": "Smelting Consumables",
+    "uom": "LTR",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0094"
+  },
+  {
+    "materialId": "MAT-0085",
+    "materialCode": "100000085",
+    "materialName": "Copper Cathode Equipment - Type B108",
+    "category": "Lead & Copper",
+    "subcategory": "Copper Cathode Equipment",
+    "uom": "MT",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0046"
+  },
+  {
+    "materialId": "MAT-0086",
+    "materialCode": "100000086",
+    "materialName": "Smelting Consumables - Type C818",
+    "category": "Lead & Copper",
+    "subcategory": "Smelting Consumables",
+    "uom": "SET",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0038"
+  },
+  {
+    "materialId": "MAT-0087",
+    "materialCode": "100000087",
+    "materialName": "Copper Cathode Equipment - Type D663",
+    "category": "Lead & Copper",
+    "subcategory": "Copper Cathode Equipment",
+    "uom": "MTR",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0075"
+  },
+  {
+    "materialId": "MAT-0088",
+    "materialCode": "100000088",
+    "materialName": "Refining Reagents - Type E288",
+    "category": "Lead & Copper",
+    "subcategory": "Refining Reagents",
+    "uom": "SET",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0054"
+  },
+  {
+    "materialId": "MAT-0089",
+    "materialCode": "100000089",
+    "materialName": "Lead Concentrate Handling - Type F940",
+    "category": "Lead & Copper",
+    "subcategory": "Lead Concentrate Handling",
+    "uom": "SET",
+    "manufacturer": "Outotec",
+    "preferredSupplierId": "SUP-0091"
+  },
+  {
+    "materialId": "MAT-0090",
+    "materialCode": "100000090",
+    "materialName": "Refining Reagents - Type A315",
+    "category": "Lead & Copper",
+    "subcategory": "Refining Reagents",
+    "uom": "SET",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0081"
+  },
+  {
+    "materialId": "MAT-0091",
+    "materialCode": "100000091",
+    "materialName": "Lead Concentrate Handling - Type B145",
+    "category": "Lead & Copper",
+    "subcategory": "Lead Concentrate Handling",
+    "uom": "BOX",
+    "manufacturer": "Outotec",
+    "preferredSupplierId": "SUP-0001"
+  },
+  {
+    "materialId": "MAT-0092",
+    "materialCode": "100000092",
+    "materialName": "Lead Concentrate Handling - Type C837",
+    "category": "Lead & Copper",
+    "subcategory": "Lead Concentrate Handling",
+    "uom": "EA",
+    "manufacturer": "Outotec",
+    "preferredSupplierId": "SUP-0097"
+  },
+  {
+    "materialId": "MAT-0093",
+    "materialCode": "100000093",
+    "materialName": "Smelting Consumables - Type D284",
+    "category": "Lead & Copper",
+    "subcategory": "Smelting Consumables",
+    "uom": "MT",
+    "manufacturer": "Outotec",
+    "preferredSupplierId": "SUP-0034"
+  },
+  {
+    "materialId": "MAT-0094",
+    "materialCode": "100000094",
+    "materialName": "Refining Reagents - Type E989",
+    "category": "Lead & Copper",
+    "subcategory": "Refining Reagents",
+    "uom": "SET",
+    "manufacturer": "Glencore Technology",
+    "preferredSupplierId": "SUP-0002"
+  },
+  {
+    "materialId": "MAT-0095",
+    "materialCode": "100000095",
+    "materialName": "Smelting Consumables - Type F854",
+    "category": "Lead & Copper",
+    "subcategory": "Smelting Consumables",
+    "uom": "EA",
+    "manufacturer": "Outotec",
+    "preferredSupplierId": "SUP-0086"
+  },
+  {
+    "materialId": "MAT-0096",
+    "materialCode": "100000096",
+    "materialName": "Refining Reagents - Type A417",
+    "category": "Lead & Copper",
+    "subcategory": "Refining Reagents",
+    "uom": "MT",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0023"
+  },
+  {
+    "materialId": "MAT-0097",
+    "materialCode": "100000097",
+    "materialName": "Lead Concentrate Handling - Type B648",
+    "category": "Lead & Copper",
+    "subcategory": "Lead Concentrate Handling",
+    "uom": "MTR",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0004"
+  },
+  {
+    "materialId": "MAT-0098",
+    "materialCode": "100000098",
+    "materialName": "Smelting Consumables - Type C194",
+    "category": "Lead & Copper",
+    "subcategory": "Smelting Consumables",
+    "uom": "MT",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0073"
+  },
+  {
+    "materialId": "MAT-0099",
+    "materialCode": "100000099",
+    "materialName": "Smelting Consumables - Type D329",
+    "category": "Lead & Copper",
+    "subcategory": "Smelting Consumables",
+    "uom": "SET",
+    "manufacturer": "Glencore Technology",
+    "preferredSupplierId": "SUP-0093"
+  },
+  {
+    "materialId": "MAT-0100",
+    "materialCode": "100000100",
+    "materialName": "Refining Reagents - Type E396",
+    "category": "Lead & Copper",
+    "subcategory": "Refining Reagents",
+    "uom": "ROLL",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0056"
+  },
+  {
+    "materialId": "MAT-0101",
+    "materialCode": "100000101",
+    "materialName": "Lead Concentrate Handling - Type F913",
+    "category": "Lead & Copper",
+    "subcategory": "Lead Concentrate Handling",
+    "uom": "ROLL",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0029"
+  },
+  {
+    "materialId": "MAT-0102",
+    "materialCode": "100000102",
+    "materialName": "Smelting Consumables - Type A480",
+    "category": "Lead & Copper",
+    "subcategory": "Smelting Consumables",
+    "uom": "EA",
+    "manufacturer": "Glencore Technology",
+    "preferredSupplierId": "SUP-0006"
+  },
+  {
+    "materialId": "MAT-0103",
+    "materialCode": "100000103",
+    "materialName": "Copper Cathode Equipment - Type B129",
+    "category": "Lead & Copper",
+    "subcategory": "Copper Cathode Equipment",
+    "uom": "KG",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0002"
+  },
+  {
+    "materialId": "MAT-0104",
+    "materialCode": "100000104",
+    "materialName": "Copper Cathode Equipment - Type C570",
+    "category": "Lead & Copper",
+    "subcategory": "Copper Cathode Equipment",
+    "uom": "LTR",
+    "manufacturer": "Outotec",
+    "preferredSupplierId": "SUP-0017"
+  },
+  {
+    "materialId": "MAT-0105",
+    "materialCode": "100000105",
+    "materialName": "Lead Concentrate Handling - Type D889",
+    "category": "Lead & Copper",
+    "subcategory": "Lead Concentrate Handling",
+    "uom": "ROLL",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0016"
+  },
+  {
+    "materialId": "MAT-0106",
+    "materialCode": "100000106",
+    "materialName": "Copper Cathode Equipment - Type E121",
+    "category": "Lead & Copper",
+    "subcategory": "Copper Cathode Equipment",
+    "uom": "EA",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0042"
+  },
+  {
+    "materialId": "MAT-0107",
+    "materialCode": "100000107",
+    "materialName": "Copper Cathode Equipment - Type F110",
+    "category": "Lead & Copper",
+    "subcategory": "Copper Cathode Equipment",
+    "uom": "MTR",
+    "manufacturer": "Outotec",
+    "preferredSupplierId": "SUP-0012"
+  },
+  {
+    "materialId": "MAT-0108",
+    "materialCode": "100000108",
+    "materialName": "Refining Reagents - Type A844",
+    "category": "Lead & Copper",
+    "subcategory": "Refining Reagents",
+    "uom": "ROLL",
+    "manufacturer": "Glencore Technology",
+    "preferredSupplierId": "SUP-0038"
+  },
+  {
+    "materialId": "MAT-0109",
+    "materialCode": "100000109",
+    "materialName": "Copper Cathode Equipment - Type B134",
+    "category": "Lead & Copper",
+    "subcategory": "Copper Cathode Equipment",
+    "uom": "EA",
+    "manufacturer": "Outotec",
+    "preferredSupplierId": "SUP-0005"
+  },
+  {
+    "materialId": "MAT-0110",
+    "materialCode": "100000110",
+    "materialName": "Smelting Consumables - Type C117",
+    "category": "Lead & Copper",
+    "subcategory": "Smelting Consumables",
+    "uom": "MTR",
+    "manufacturer": "Outotec",
+    "preferredSupplierId": "SUP-0008"
+  },
+  {
+    "materialId": "MAT-0111",
+    "materialCode": "100000111",
+    "materialName": "Lead Concentrate Handling - Type D484",
+    "category": "Lead & Copper",
+    "subcategory": "Lead Concentrate Handling",
+    "uom": "LTR",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0087"
+  },
+  {
+    "materialId": "MAT-0112",
+    "materialCode": "100000112",
+    "materialName": "Copper Cathode Equipment - Type E692",
+    "category": "Lead & Copper",
+    "subcategory": "Copper Cathode Equipment",
+    "uom": "LTR",
+    "manufacturer": "Glencore Technology",
+    "preferredSupplierId": "SUP-0087"
+  },
+  {
+    "materialId": "MAT-0113",
+    "materialCode": "100000113",
+    "materialName": "Refining Reagents - Type F116",
+    "category": "Lead & Copper",
+    "subcategory": "Refining Reagents",
+    "uom": "PAIR",
+    "manufacturer": "Glencore Technology",
+    "preferredSupplierId": "SUP-0010"
+  },
+  {
+    "materialId": "MAT-0114",
+    "materialCode": "100000114",
+    "materialName": "Smelting Consumables - Type A524",
+    "category": "Lead & Copper",
+    "subcategory": "Smelting Consumables",
+    "uom": "MTR",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0005"
+  },
+  {
+    "materialId": "MAT-0115",
+    "materialCode": "100000115",
+    "materialName": "Copper Cathode Equipment - Type B117",
+    "category": "Lead & Copper",
+    "subcategory": "Copper Cathode Equipment",
+    "uom": "MTR",
+    "manufacturer": "Glencore Technology",
+    "preferredSupplierId": "SUP-0058"
+  },
+  {
+    "materialId": "MAT-0116",
+    "materialCode": "100000116",
+    "materialName": "Smelting Consumables - Type C618",
+    "category": "Lead & Copper",
+    "subcategory": "Smelting Consumables",
+    "uom": "PAIR",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0084"
+  },
+  {
+    "materialId": "MAT-0117",
+    "materialCode": "100000117",
+    "materialName": "Smelting Consumables - Type D512",
+    "category": "Lead & Copper",
+    "subcategory": "Smelting Consumables",
+    "uom": "KG",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0073"
+  },
+  {
+    "materialId": "MAT-0118",
+    "materialCode": "100000118",
+    "materialName": "Refining Reagents - Type E978",
+    "category": "Lead & Copper",
+    "subcategory": "Refining Reagents",
+    "uom": "MTR",
+    "manufacturer": "Outotec",
+    "preferredSupplierId": "SUP-0100"
+  },
+  {
+    "materialId": "MAT-0119",
+    "materialCode": "100000119",
+    "materialName": "Smelting Consumables - Type F207",
+    "category": "Lead & Copper",
+    "subcategory": "Smelting Consumables",
+    "uom": "MT",
+    "manufacturer": "Outotec",
+    "preferredSupplierId": "SUP-0012"
+  },
+  {
+    "materialId": "MAT-0120",
+    "materialCode": "100000120",
+    "materialName": "Lead Concentrate Handling - Type A446",
+    "category": "Lead & Copper",
+    "subcategory": "Lead Concentrate Handling",
+    "uom": "KG",
+    "manufacturer": "Outotec",
+    "preferredSupplierId": "SUP-0087"
+  },
+  {
+    "materialId": "MAT-0121",
+    "materialCode": "100000121",
+    "materialName": "Refining Reagents - Type B421",
+    "category": "Lead & Copper",
+    "subcategory": "Refining Reagents",
+    "uom": "KG",
+    "manufacturer": "Outotec",
+    "preferredSupplierId": "SUP-0007"
+  },
+  {
+    "materialId": "MAT-0122",
+    "materialCode": "100000122",
+    "materialName": "Refining Reagents - Type C818",
+    "category": "Lead & Copper",
+    "subcategory": "Refining Reagents",
+    "uom": "KG",
+    "manufacturer": "Glencore Technology",
+    "preferredSupplierId": "SUP-0093"
+  },
+  {
+    "materialId": "MAT-0123",
+    "materialCode": "100000123",
+    "materialName": "Lead Concentrate Handling - Type D571",
+    "category": "Lead & Copper",
+    "subcategory": "Lead Concentrate Handling",
+    "uom": "LTR",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0032"
+  },
+  {
+    "materialId": "MAT-0124",
+    "materialCode": "100000124",
+    "materialName": "Ball Mills - Type E179",
+    "category": "Milling",
+    "subcategory": "Ball Mills",
+    "uom": "LTR",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0076"
+  },
+  {
+    "materialId": "MAT-0125",
+    "materialCode": "100000125",
+    "materialName": "SAG Mill Parts - Type F721",
+    "category": "Milling",
+    "subcategory": "SAG Mill Parts",
+    "uom": "KG",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0004"
+  },
+  {
+    "materialId": "MAT-0126",
+    "materialCode": "100000126",
+    "materialName": "SAG Mill Parts - Type A554",
+    "category": "Milling",
+    "subcategory": "SAG Mill Parts",
+    "uom": "KG",
+    "manufacturer": "Tega Industries",
+    "preferredSupplierId": "SUP-0059"
+  },
+  {
+    "materialId": "MAT-0127",
+    "materialCode": "100000127",
+    "materialName": "Mill Liners - Type B172",
+    "category": "Milling",
+    "subcategory": "Mill Liners",
+    "uom": "MTR",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0047"
+  },
+  {
+    "materialId": "MAT-0128",
+    "materialCode": "100000128",
+    "materialName": "SAG Mill Parts - Type C477",
+    "category": "Milling",
+    "subcategory": "SAG Mill Parts",
+    "uom": "KG",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0083"
+  },
+  {
+    "materialId": "MAT-0129",
+    "materialCode": "100000129",
+    "materialName": "Ball Mills - Type D515",
+    "category": "Milling",
+    "subcategory": "Ball Mills",
+    "uom": "EA",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0037"
+  },
+  {
+    "materialId": "MAT-0130",
+    "materialCode": "100000130",
+    "materialName": "Ball Mills - Type E791",
+    "category": "Milling",
+    "subcategory": "Ball Mills",
+    "uom": "MT",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0027"
+  },
+  {
+    "materialId": "MAT-0131",
+    "materialCode": "100000131",
+    "materialName": "Mill Liners - Type F121",
+    "category": "Milling",
+    "subcategory": "Mill Liners",
+    "uom": "PAIR",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0029"
+  },
+  {
+    "materialId": "MAT-0132",
+    "materialCode": "100000132",
+    "materialName": "Ball Mills - Type A743",
+    "category": "Milling",
+    "subcategory": "Ball Mills",
+    "uom": "EA",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0069"
+  },
+  {
+    "materialId": "MAT-0133",
+    "materialCode": "100000133",
+    "materialName": "SAG Mill Parts - Type B828",
+    "category": "Milling",
+    "subcategory": "SAG Mill Parts",
+    "uom": "ROLL",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0097"
+  },
+  {
+    "materialId": "MAT-0134",
+    "materialCode": "100000134",
+    "materialName": "Grinding Media - Type C450",
+    "category": "Milling",
+    "subcategory": "Grinding Media",
+    "uom": "LTR",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0072"
+  },
+  {
+    "materialId": "MAT-0135",
+    "materialCode": "100000135",
+    "materialName": "Mill Liners - Type D379",
+    "category": "Milling",
+    "subcategory": "Mill Liners",
+    "uom": "PAIR",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0039"
+  },
+  {
+    "materialId": "MAT-0136",
+    "materialCode": "100000136",
+    "materialName": "SAG Mill Parts - Type E557",
+    "category": "Milling",
+    "subcategory": "SAG Mill Parts",
+    "uom": "ROLL",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0072"
+  },
+  {
+    "materialId": "MAT-0137",
+    "materialCode": "100000137",
+    "materialName": "Grinding Media - Type F717",
+    "category": "Milling",
+    "subcategory": "Grinding Media",
+    "uom": "EA",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0091"
+  },
+  {
+    "materialId": "MAT-0138",
+    "materialCode": "100000138",
+    "materialName": "Grinding Media - Type A206",
+    "category": "Milling",
+    "subcategory": "Grinding Media",
+    "uom": "BOX",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0092"
+  },
+  {
+    "materialId": "MAT-0139",
+    "materialCode": "100000139",
+    "materialName": "SAG Mill Parts - Type B825",
+    "category": "Milling",
+    "subcategory": "SAG Mill Parts",
+    "uom": "MTR",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0027"
+  },
+  {
+    "materialId": "MAT-0140",
+    "materialCode": "100000140",
+    "materialName": "Grinding Media - Type C712",
+    "category": "Milling",
+    "subcategory": "Grinding Media",
+    "uom": "ROLL",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0048"
+  },
+  {
+    "materialId": "MAT-0141",
+    "materialCode": "100000141",
+    "materialName": "Grinding Media - Type D527",
+    "category": "Milling",
+    "subcategory": "Grinding Media",
+    "uom": "BOX",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0014"
+  },
+  {
+    "materialId": "MAT-0142",
+    "materialCode": "100000142",
+    "materialName": "SAG Mill Parts - Type E633",
+    "category": "Milling",
+    "subcategory": "SAG Mill Parts",
+    "uom": "BOX",
+    "manufacturer": "Tega Industries",
+    "preferredSupplierId": "SUP-0076"
+  },
+  {
+    "materialId": "MAT-0143",
+    "materialCode": "100000143",
+    "materialName": "Grinding Media - Type F166",
+    "category": "Milling",
+    "subcategory": "Grinding Media",
+    "uom": "SET",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0065"
+  },
+  {
+    "materialId": "MAT-0144",
+    "materialCode": "100000144",
+    "materialName": "Ball Mills - Type A184",
+    "category": "Milling",
+    "subcategory": "Ball Mills",
+    "uom": "PAIR",
+    "manufacturer": "Tega Industries",
+    "preferredSupplierId": "SUP-0038"
+  },
+  {
+    "materialId": "MAT-0145",
+    "materialCode": "100000145",
+    "materialName": "Grinding Media - Type B557",
+    "category": "Milling",
+    "subcategory": "Grinding Media",
+    "uom": "LTR",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0086"
+  },
+  {
+    "materialId": "MAT-0146",
+    "materialCode": "100000146",
+    "materialName": "Grinding Media - Type C234",
+    "category": "Milling",
+    "subcategory": "Grinding Media",
+    "uom": "PAIR",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0036"
+  },
+  {
+    "materialId": "MAT-0147",
+    "materialCode": "100000147",
+    "materialName": "Grinding Media - Type D295",
+    "category": "Milling",
+    "subcategory": "Grinding Media",
+    "uom": "BOX",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0028"
+  },
+  {
+    "materialId": "MAT-0148",
+    "materialCode": "100000148",
+    "materialName": "Grinding Media - Type E961",
+    "category": "Milling",
+    "subcategory": "Grinding Media",
+    "uom": "PAIR",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0065"
+  },
+  {
+    "materialId": "MAT-0149",
+    "materialCode": "100000149",
+    "materialName": "Grinding Media - Type F902",
+    "category": "Milling",
+    "subcategory": "Grinding Media",
+    "uom": "MTR",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0032"
+  },
+  {
+    "materialId": "MAT-0150",
+    "materialCode": "100000150",
+    "materialName": "Grinding Media - Type A376",
+    "category": "Milling",
+    "subcategory": "Grinding Media",
+    "uom": "KG",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0001"
+  },
+  {
+    "materialId": "MAT-0151",
+    "materialCode": "100000151",
+    "materialName": "Grinding Media - Type B170",
+    "category": "Milling",
+    "subcategory": "Grinding Media",
+    "uom": "LTR",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0001"
+  },
+  {
+    "materialId": "MAT-0152",
+    "materialCode": "100000152",
+    "materialName": "Grinding Media - Type C569",
+    "category": "Milling",
+    "subcategory": "Grinding Media",
+    "uom": "BOX",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0057"
+  },
+  {
+    "materialId": "MAT-0153",
+    "materialCode": "100000153",
+    "materialName": "Grinding Media - Type D336",
+    "category": "Milling",
+    "subcategory": "Grinding Media",
+    "uom": "MTR",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0017"
+  },
+  {
+    "materialId": "MAT-0154",
+    "materialCode": "100000154",
+    "materialName": "SAG Mill Parts - Type E281",
+    "category": "Milling",
+    "subcategory": "SAG Mill Parts",
+    "uom": "KG",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0058"
+  },
+  {
+    "materialId": "MAT-0155",
+    "materialCode": "100000155",
+    "materialName": "Ball Mills - Type F122",
+    "category": "Milling",
+    "subcategory": "Ball Mills",
+    "uom": "MTR",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0042"
+  },
+  {
+    "materialId": "MAT-0156",
+    "materialCode": "100000156",
+    "materialName": "Ball Mills - Type A441",
+    "category": "Milling",
+    "subcategory": "Ball Mills",
+    "uom": "ROLL",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0020"
+  },
+  {
+    "materialId": "MAT-0157",
+    "materialCode": "100000157",
+    "materialName": "Grinding Media - Type B594",
+    "category": "Milling",
+    "subcategory": "Grinding Media",
+    "uom": "ROLL",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0026"
+  },
+  {
+    "materialId": "MAT-0158",
+    "materialCode": "100000158",
+    "materialName": "Ball Mills - Type C810",
+    "category": "Milling",
+    "subcategory": "Ball Mills",
+    "uom": "KG",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0014"
+  },
+  {
+    "materialId": "MAT-0159",
+    "materialCode": "100000159",
+    "materialName": "Ball Mills - Type D989",
+    "category": "Milling",
+    "subcategory": "Ball Mills",
+    "uom": "KG",
+    "manufacturer": "Tega Industries",
+    "preferredSupplierId": "SUP-0064"
+  },
+  {
+    "materialId": "MAT-0160",
+    "materialCode": "100000160",
+    "materialName": "Mill Liners - Type E950",
+    "category": "Milling",
+    "subcategory": "Mill Liners",
+    "uom": "SET",
+    "manufacturer": "Tega Industries",
+    "preferredSupplierId": "SUP-0034"
+  },
+  {
+    "materialId": "MAT-0161",
+    "materialCode": "100000161",
+    "materialName": "Mill Liners - Type F205",
+    "category": "Milling",
+    "subcategory": "Mill Liners",
+    "uom": "SET",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0098"
+  },
+  {
+    "materialId": "MAT-0162",
+    "materialCode": "100000162",
+    "materialName": "Mill Liners - Type A181",
+    "category": "Milling",
+    "subcategory": "Mill Liners",
+    "uom": "MT",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0020"
+  },
+  {
+    "materialId": "MAT-0163",
+    "materialCode": "100000163",
+    "materialName": "Grinding Media - Type B565",
+    "category": "Milling",
+    "subcategory": "Grinding Media",
+    "uom": "PAIR",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0093"
+  },
+  {
+    "materialId": "MAT-0164",
+    "materialCode": "100000164",
+    "materialName": "Grinding Media - Type C123",
+    "category": "Milling",
+    "subcategory": "Grinding Media",
+    "uom": "LTR",
+    "manufacturer": "Tega Industries",
+    "preferredSupplierId": "SUP-0073"
+  },
+  {
+    "materialId": "MAT-0165",
+    "materialCode": "100000165",
+    "materialName": "Pump Spares - Type D990",
+    "category": "Pumping",
+    "subcategory": "Pump Spares",
+    "uom": "MTR",
+    "manufacturer": "Grundfos",
+    "preferredSupplierId": "SUP-0067"
+  },
+  {
+    "materialId": "MAT-0166",
+    "materialCode": "100000166",
+    "materialName": "Submersible Pumps - Type E505",
+    "category": "Pumping",
+    "subcategory": "Submersible Pumps",
+    "uom": "BOX",
+    "manufacturer": "Grundfos",
+    "preferredSupplierId": "SUP-0088"
+  },
+  {
+    "materialId": "MAT-0167",
+    "materialCode": "100000167",
+    "materialName": "Centrifugal Pumps - Type F122",
+    "category": "Pumping",
+    "subcategory": "Centrifugal Pumps",
+    "uom": "BOX",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0038"
+  },
+  {
+    "materialId": "MAT-0168",
+    "materialCode": "100000168",
+    "materialName": "Pump Spares - Type A943",
+    "category": "Pumping",
+    "subcategory": "Pump Spares",
+    "uom": "KG",
+    "manufacturer": "Grundfos",
+    "preferredSupplierId": "SUP-0002"
+  },
+  {
+    "materialId": "MAT-0169",
+    "materialCode": "100000169",
+    "materialName": "Submersible Pumps - Type B982",
+    "category": "Pumping",
+    "subcategory": "Submersible Pumps",
+    "uom": "ROLL",
+    "manufacturer": "Flowserve",
+    "preferredSupplierId": "SUP-0065"
+  },
+  {
+    "materialId": "MAT-0170",
+    "materialCode": "100000170",
+    "materialName": "Centrifugal Pumps - Type C452",
+    "category": "Pumping",
+    "subcategory": "Centrifugal Pumps",
+    "uom": "MT",
+    "manufacturer": "Kirloskar Brothers",
+    "preferredSupplierId": "SUP-0073"
+  },
+  {
+    "materialId": "MAT-0171",
+    "materialCode": "100000171",
+    "materialName": "Centrifugal Pumps - Type D357",
+    "category": "Pumping",
+    "subcategory": "Centrifugal Pumps",
+    "uom": "SET",
+    "manufacturer": "Grundfos",
+    "preferredSupplierId": "SUP-0060"
+  },
+  {
+    "materialId": "MAT-0172",
+    "materialCode": "100000172",
+    "materialName": "Slurry Pumps - Type E925",
+    "category": "Pumping",
+    "subcategory": "Slurry Pumps",
+    "uom": "LTR",
+    "manufacturer": "Grundfos",
+    "preferredSupplierId": "SUP-0065"
+  },
+  {
+    "materialId": "MAT-0173",
+    "materialCode": "100000173",
+    "materialName": "Centrifugal Pumps - Type F277",
+    "category": "Pumping",
+    "subcategory": "Centrifugal Pumps",
+    "uom": "MTR",
+    "manufacturer": "Weir Group",
+    "preferredSupplierId": "SUP-0080"
+  },
+  {
+    "materialId": "MAT-0174",
+    "materialCode": "100000174",
+    "materialName": "Slurry Pumps - Type A184",
+    "category": "Pumping",
+    "subcategory": "Slurry Pumps",
+    "uom": "MTR",
+    "manufacturer": "Kirloskar Brothers",
+    "preferredSupplierId": "SUP-0035"
+  },
+  {
+    "materialId": "MAT-0175",
+    "materialCode": "100000175",
+    "materialName": "Pump Spares - Type B610",
+    "category": "Pumping",
+    "subcategory": "Pump Spares",
+    "uom": "PAIR",
+    "manufacturer": "Weir Group",
+    "preferredSupplierId": "SUP-0078"
+  },
+  {
+    "materialId": "MAT-0176",
+    "materialCode": "100000176",
+    "materialName": "Submersible Pumps - Type C254",
+    "category": "Pumping",
+    "subcategory": "Submersible Pumps",
+    "uom": "LTR",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0039"
+  },
+  {
+    "materialId": "MAT-0177",
+    "materialCode": "100000177",
+    "materialName": "Slurry Pumps - Type D907",
+    "category": "Pumping",
+    "subcategory": "Slurry Pumps",
+    "uom": "ROLL",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0061"
+  },
+  {
+    "materialId": "MAT-0178",
+    "materialCode": "100000178",
+    "materialName": "Slurry Pumps - Type E525",
+    "category": "Pumping",
+    "subcategory": "Slurry Pumps",
+    "uom": "ROLL",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0029"
+  },
+  {
+    "materialId": "MAT-0179",
+    "materialCode": "100000179",
+    "materialName": "Slurry Pumps - Type F446",
+    "category": "Pumping",
+    "subcategory": "Slurry Pumps",
+    "uom": "LTR",
+    "manufacturer": "Weir Group",
+    "preferredSupplierId": "SUP-0092"
+  },
+  {
+    "materialId": "MAT-0180",
+    "materialCode": "100000180",
+    "materialName": "Centrifugal Pumps - Type A221",
+    "category": "Pumping",
+    "subcategory": "Centrifugal Pumps",
+    "uom": "SET",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0098"
+  },
+  {
+    "materialId": "MAT-0181",
+    "materialCode": "100000181",
+    "materialName": "Slurry Pumps - Type B803",
+    "category": "Pumping",
+    "subcategory": "Slurry Pumps",
+    "uom": "KG",
+    "manufacturer": "Grundfos",
+    "preferredSupplierId": "SUP-0032"
+  },
+  {
+    "materialId": "MAT-0182",
+    "materialCode": "100000182",
+    "materialName": "Submersible Pumps - Type C515",
+    "category": "Pumping",
+    "subcategory": "Submersible Pumps",
+    "uom": "LTR",
+    "manufacturer": "Weir Group",
+    "preferredSupplierId": "SUP-0067"
+  },
+  {
+    "materialId": "MAT-0183",
+    "materialCode": "100000183",
+    "materialName": "Pump Spares - Type D363",
+    "category": "Pumping",
+    "subcategory": "Pump Spares",
+    "uom": "BOX",
+    "manufacturer": "Flowserve",
+    "preferredSupplierId": "SUP-0080"
+  },
+  {
+    "materialId": "MAT-0184",
+    "materialCode": "100000184",
+    "materialName": "Pump Spares - Type E503",
+    "category": "Pumping",
+    "subcategory": "Pump Spares",
+    "uom": "LTR",
+    "manufacturer": "Flowserve",
+    "preferredSupplierId": "SUP-0082"
+  },
+  {
+    "materialId": "MAT-0185",
+    "materialCode": "100000185",
+    "materialName": "Slurry Pumps - Type F855",
+    "category": "Pumping",
+    "subcategory": "Slurry Pumps",
+    "uom": "PAIR",
+    "manufacturer": "Flowserve",
+    "preferredSupplierId": "SUP-0006"
+  },
+  {
+    "materialId": "MAT-0186",
+    "materialCode": "100000186",
+    "materialName": "Centrifugal Pumps - Type A433",
+    "category": "Pumping",
+    "subcategory": "Centrifugal Pumps",
+    "uom": "PAIR",
+    "manufacturer": "Flowserve",
+    "preferredSupplierId": "SUP-0046"
+  },
+  {
+    "materialId": "MAT-0187",
+    "materialCode": "100000187",
+    "materialName": "Submersible Pumps - Type B939",
+    "category": "Pumping",
+    "subcategory": "Submersible Pumps",
+    "uom": "MT",
+    "manufacturer": "Weir Group",
+    "preferredSupplierId": "SUP-0081"
+  },
+  {
+    "materialId": "MAT-0188",
+    "materialCode": "100000188",
+    "materialName": "Slurry Pumps - Type C948",
+    "category": "Pumping",
+    "subcategory": "Slurry Pumps",
+    "uom": "EA",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0029"
+  },
+  {
+    "materialId": "MAT-0189",
+    "materialCode": "100000189",
+    "materialName": "Centrifugal Pumps - Type D573",
+    "category": "Pumping",
+    "subcategory": "Centrifugal Pumps",
+    "uom": "SET",
+    "manufacturer": "Flowserve",
+    "preferredSupplierId": "SUP-0049"
+  },
+  {
+    "materialId": "MAT-0190",
+    "materialCode": "100000190",
+    "materialName": "Submersible Pumps - Type E426",
+    "category": "Pumping",
+    "subcategory": "Submersible Pumps",
+    "uom": "KG",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0052"
+  },
+  {
+    "materialId": "MAT-0191",
+    "materialCode": "100000191",
+    "materialName": "Centrifugal Pumps - Type F910",
+    "category": "Pumping",
+    "subcategory": "Centrifugal Pumps",
+    "uom": "EA",
+    "manufacturer": "Weir Group",
+    "preferredSupplierId": "SUP-0078"
+  },
+  {
+    "materialId": "MAT-0192",
+    "materialCode": "100000192",
+    "materialName": "Submersible Pumps - Type A279",
+    "category": "Pumping",
+    "subcategory": "Submersible Pumps",
+    "uom": "EA",
+    "manufacturer": "Grundfos",
+    "preferredSupplierId": "SUP-0012"
+  },
+  {
+    "materialId": "MAT-0193",
+    "materialCode": "100000193",
+    "materialName": "Slurry Pumps - Type B656",
+    "category": "Pumping",
+    "subcategory": "Slurry Pumps",
+    "uom": "SET",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0088"
+  },
+  {
+    "materialId": "MAT-0194",
+    "materialCode": "100000194",
+    "materialName": "Slurry Pumps - Type C466",
+    "category": "Pumping",
+    "subcategory": "Slurry Pumps",
+    "uom": "EA",
+    "manufacturer": "Grundfos",
+    "preferredSupplierId": "SUP-0100"
+  },
+  {
+    "materialId": "MAT-0195",
+    "materialCode": "100000195",
+    "materialName": "Submersible Pumps - Type D846",
+    "category": "Pumping",
+    "subcategory": "Submersible Pumps",
+    "uom": "LTR",
+    "manufacturer": "Flowserve",
+    "preferredSupplierId": "SUP-0040"
+  },
+  {
+    "materialId": "MAT-0196",
+    "materialCode": "100000196",
+    "materialName": "Centrifugal Pumps - Type E541",
+    "category": "Pumping",
+    "subcategory": "Centrifugal Pumps",
+    "uom": "MTR",
+    "manufacturer": "Kirloskar Brothers",
+    "preferredSupplierId": "SUP-0027"
+  },
+  {
+    "materialId": "MAT-0197",
+    "materialCode": "100000197",
+    "materialName": "Submersible Pumps - Type F462",
+    "category": "Pumping",
+    "subcategory": "Submersible Pumps",
+    "uom": "BOX",
+    "manufacturer": "Grundfos",
+    "preferredSupplierId": "SUP-0006"
+  },
+  {
+    "materialId": "MAT-0198",
+    "materialCode": "100000198",
+    "materialName": "Centrifugal Pumps - Type A358",
+    "category": "Pumping",
+    "subcategory": "Centrifugal Pumps",
+    "uom": "BOX",
+    "manufacturer": "Flowserve",
+    "preferredSupplierId": "SUP-0068"
+  },
+  {
+    "materialId": "MAT-0199",
+    "materialCode": "100000199",
+    "materialName": "Pump Spares - Type B368",
+    "category": "Pumping",
+    "subcategory": "Pump Spares",
+    "uom": "BOX",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0065"
+  },
+  {
+    "materialId": "MAT-0200",
+    "materialCode": "100000200",
+    "materialName": "Pump Spares - Type C432",
+    "category": "Pumping",
+    "subcategory": "Pump Spares",
+    "uom": "BOX",
+    "manufacturer": "Grundfos",
+    "preferredSupplierId": "SUP-0007"
+  },
+  {
+    "materialId": "MAT-0201",
+    "materialCode": "100000201",
+    "materialName": "Submersible Pumps - Type D138",
+    "category": "Pumping",
+    "subcategory": "Submersible Pumps",
+    "uom": "ROLL",
+    "manufacturer": "Kirloskar Brothers",
+    "preferredSupplierId": "SUP-0058"
+  },
+  {
+    "materialId": "MAT-0202",
+    "materialCode": "100000202",
+    "materialName": "Slurry Pumps - Type E414",
+    "category": "Pumping",
+    "subcategory": "Slurry Pumps",
+    "uom": "SET",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0042"
+  },
+  {
+    "materialId": "MAT-0203",
+    "materialCode": "100000203",
+    "materialName": "Pump Spares - Type F221",
+    "category": "Pumping",
+    "subcategory": "Pump Spares",
+    "uom": "BOX",
+    "manufacturer": "Grundfos",
+    "preferredSupplierId": "SUP-0066"
+  },
+  {
+    "materialId": "MAT-0204",
+    "materialCode": "100000204",
+    "materialName": "Submersible Pumps - Type A667",
+    "category": "Pumping",
+    "subcategory": "Submersible Pumps",
+    "uom": "SET",
+    "manufacturer": "Kirloskar Brothers",
+    "preferredSupplierId": "SUP-0081"
+  },
+  {
+    "materialId": "MAT-0205",
+    "materialCode": "100000205",
+    "materialName": "Centrifugal Pumps - Type B951",
+    "category": "Pumping",
+    "subcategory": "Centrifugal Pumps",
+    "uom": "BOX",
+    "manufacturer": "Kirloskar Brothers",
+    "preferredSupplierId": "SUP-0056"
+  },
+  {
+    "materialId": "MAT-0206",
+    "materialCode": "100000206",
+    "materialName": "Screens - Type C798",
+    "category": "Crushing",
+    "subcategory": "Screens",
+    "uom": "LTR",
+    "manufacturer": "Weir Group",
+    "preferredSupplierId": "SUP-0031"
+  },
+  {
+    "materialId": "MAT-0207",
+    "materialCode": "100000207",
+    "materialName": "Cone Crushers - Type D675",
+    "category": "Crushing",
+    "subcategory": "Cone Crushers",
+    "uom": "LTR",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0058"
+  },
+  {
+    "materialId": "MAT-0208",
+    "materialCode": "100000208",
+    "materialName": "Crusher Liners - Type E477",
+    "category": "Crushing",
+    "subcategory": "Crusher Liners",
+    "uom": "ROLL",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0081"
+  },
+  {
+    "materialId": "MAT-0209",
+    "materialCode": "100000209",
+    "materialName": "Screens - Type F715",
+    "category": "Crushing",
+    "subcategory": "Screens",
+    "uom": "SET",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0034"
+  },
+  {
+    "materialId": "MAT-0210",
+    "materialCode": "100000210",
+    "materialName": "Screens - Type A424",
+    "category": "Crushing",
+    "subcategory": "Screens",
+    "uom": "MT",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0068"
+  },
+  {
+    "materialId": "MAT-0211",
+    "materialCode": "100000211",
+    "materialName": "Cone Crushers - Type B205",
+    "category": "Crushing",
+    "subcategory": "Cone Crushers",
+    "uom": "LTR",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0054"
+  },
+  {
+    "materialId": "MAT-0212",
+    "materialCode": "100000212",
+    "materialName": "Jaw Crushers - Type C347",
+    "category": "Crushing",
+    "subcategory": "Jaw Crushers",
+    "uom": "MTR",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0018"
+  },
+  {
+    "materialId": "MAT-0213",
+    "materialCode": "100000213",
+    "materialName": "Crusher Liners - Type D520",
+    "category": "Crushing",
+    "subcategory": "Crusher Liners",
+    "uom": "ROLL",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0048"
+  },
+  {
+    "materialId": "MAT-0214",
+    "materialCode": "100000214",
+    "materialName": "Crusher Liners - Type E719",
+    "category": "Crushing",
+    "subcategory": "Crusher Liners",
+    "uom": "MTR",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0028"
+  },
+  {
+    "materialId": "MAT-0215",
+    "materialCode": "100000215",
+    "materialName": "Cone Crushers - Type F280",
+    "category": "Crushing",
+    "subcategory": "Cone Crushers",
+    "uom": "MT",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0096"
+  },
+  {
+    "materialId": "MAT-0216",
+    "materialCode": "100000216",
+    "materialName": "Cone Crushers - Type A861",
+    "category": "Crushing",
+    "subcategory": "Cone Crushers",
+    "uom": "MT",
+    "manufacturer": "Weir Group",
+    "preferredSupplierId": "SUP-0023"
+  },
+  {
+    "materialId": "MAT-0217",
+    "materialCode": "100000217",
+    "materialName": "Cone Crushers - Type B942",
+    "category": "Crushing",
+    "subcategory": "Cone Crushers",
+    "uom": "SET",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0020"
+  },
+  {
+    "materialId": "MAT-0218",
+    "materialCode": "100000218",
+    "materialName": "Jaw Crushers - Type C174",
+    "category": "Crushing",
+    "subcategory": "Jaw Crushers",
+    "uom": "SET",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0061"
+  },
+  {
+    "materialId": "MAT-0219",
+    "materialCode": "100000219",
+    "materialName": "Crusher Liners - Type D509",
+    "category": "Crushing",
+    "subcategory": "Crusher Liners",
+    "uom": "BOX",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0042"
+  },
+  {
+    "materialId": "MAT-0220",
+    "materialCode": "100000220",
+    "materialName": "Jaw Crushers - Type E398",
+    "category": "Crushing",
+    "subcategory": "Jaw Crushers",
+    "uom": "MT",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0080"
+  },
+  {
+    "materialId": "MAT-0221",
+    "materialCode": "100000221",
+    "materialName": "Screens - Type F751",
+    "category": "Crushing",
+    "subcategory": "Screens",
+    "uom": "KG",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0054"
+  },
+  {
+    "materialId": "MAT-0222",
+    "materialCode": "100000222",
+    "materialName": "Jaw Crushers - Type A224",
+    "category": "Crushing",
+    "subcategory": "Jaw Crushers",
+    "uom": "KG",
+    "manufacturer": "Weir Group",
+    "preferredSupplierId": "SUP-0064"
+  },
+  {
+    "materialId": "MAT-0223",
+    "materialCode": "100000223",
+    "materialName": "Screens - Type B638",
+    "category": "Crushing",
+    "subcategory": "Screens",
+    "uom": "MTR",
+    "manufacturer": "Weir Group",
+    "preferredSupplierId": "SUP-0061"
+  },
+  {
+    "materialId": "MAT-0224",
+    "materialCode": "100000224",
+    "materialName": "Screens - Type C508",
+    "category": "Crushing",
+    "subcategory": "Screens",
+    "uom": "ROLL",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0048"
+  },
+  {
+    "materialId": "MAT-0225",
+    "materialCode": "100000225",
+    "materialName": "Screens - Type D313",
+    "category": "Crushing",
+    "subcategory": "Screens",
+    "uom": "MT",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0009"
+  },
+  {
+    "materialId": "MAT-0226",
+    "materialCode": "100000226",
+    "materialName": "Jaw Crushers - Type E920",
+    "category": "Crushing",
+    "subcategory": "Jaw Crushers",
+    "uom": "ROLL",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0046"
+  },
+  {
+    "materialId": "MAT-0227",
+    "materialCode": "100000227",
+    "materialName": "Jaw Crushers - Type F961",
+    "category": "Crushing",
+    "subcategory": "Jaw Crushers",
+    "uom": "SET",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0004"
+  },
+  {
+    "materialId": "MAT-0228",
+    "materialCode": "100000228",
+    "materialName": "Cone Crushers - Type A866",
+    "category": "Crushing",
+    "subcategory": "Cone Crushers",
+    "uom": "MTR",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0052"
+  },
+  {
+    "materialId": "MAT-0229",
+    "materialCode": "100000229",
+    "materialName": "Cone Crushers - Type B624",
+    "category": "Crushing",
+    "subcategory": "Cone Crushers",
+    "uom": "PAIR",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0036"
+  },
+  {
+    "materialId": "MAT-0230",
+    "materialCode": "100000230",
+    "materialName": "Cone Crushers - Type C644",
+    "category": "Crushing",
+    "subcategory": "Cone Crushers",
+    "uom": "MT",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0093"
+  },
+  {
+    "materialId": "MAT-0231",
+    "materialCode": "100000231",
+    "materialName": "Crusher Liners - Type D461",
+    "category": "Crushing",
+    "subcategory": "Crusher Liners",
+    "uom": "MTR",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0069"
+  },
+  {
+    "materialId": "MAT-0232",
+    "materialCode": "100000232",
+    "materialName": "Jaw Crushers - Type E250",
+    "category": "Crushing",
+    "subcategory": "Jaw Crushers",
+    "uom": "KG",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0030"
+  },
+  {
+    "materialId": "MAT-0233",
+    "materialCode": "100000233",
+    "materialName": "Cone Crushers - Type F323",
+    "category": "Crushing",
+    "subcategory": "Cone Crushers",
+    "uom": "SET",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0027"
+  },
+  {
+    "materialId": "MAT-0234",
+    "materialCode": "100000234",
+    "materialName": "Jaw Crushers - Type A290",
+    "category": "Crushing",
+    "subcategory": "Jaw Crushers",
+    "uom": "LTR",
+    "manufacturer": "Weir Group",
+    "preferredSupplierId": "SUP-0021"
+  },
+  {
+    "materialId": "MAT-0235",
+    "materialCode": "100000235",
+    "materialName": "Cone Crushers - Type B359",
+    "category": "Crushing",
+    "subcategory": "Cone Crushers",
+    "uom": "MT",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0051"
+  },
+  {
+    "materialId": "MAT-0236",
+    "materialCode": "100000236",
+    "materialName": "Cone Crushers - Type C949",
+    "category": "Crushing",
+    "subcategory": "Cone Crushers",
+    "uom": "LTR",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0085"
+  },
+  {
+    "materialId": "MAT-0237",
+    "materialCode": "100000237",
+    "materialName": "Screens - Type D817",
+    "category": "Crushing",
+    "subcategory": "Screens",
+    "uom": "SET",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0039"
+  },
+  {
+    "materialId": "MAT-0238",
+    "materialCode": "100000238",
+    "materialName": "Screens - Type E670",
+    "category": "Crushing",
+    "subcategory": "Screens",
+    "uom": "LTR",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0073"
+  },
+  {
+    "materialId": "MAT-0239",
+    "materialCode": "100000239",
+    "materialName": "Screens - Type F855",
+    "category": "Crushing",
+    "subcategory": "Screens",
+    "uom": "MTR",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0062"
+  },
+  {
+    "materialId": "MAT-0240",
+    "materialCode": "100000240",
+    "materialName": "Cone Crushers - Type A584",
+    "category": "Crushing",
+    "subcategory": "Cone Crushers",
+    "uom": "MTR",
+    "manufacturer": "Weir Group",
+    "preferredSupplierId": "SUP-0061"
+  },
+  {
+    "materialId": "MAT-0241",
+    "materialCode": "100000241",
+    "materialName": "Crusher Liners - Type B935",
+    "category": "Crushing",
+    "subcategory": "Crusher Liners",
+    "uom": "PAIR",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0053"
+  },
+  {
+    "materialId": "MAT-0242",
+    "materialCode": "100000242",
+    "materialName": "Cone Crushers - Type C260",
+    "category": "Crushing",
+    "subcategory": "Cone Crushers",
+    "uom": "EA",
+    "manufacturer": "Weir Group",
+    "preferredSupplierId": "SUP-0020"
+  },
+  {
+    "materialId": "MAT-0243",
+    "materialCode": "100000243",
+    "materialName": "Screens - Type D802",
+    "category": "Crushing",
+    "subcategory": "Screens",
+    "uom": "KG",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0008"
+  },
+  {
+    "materialId": "MAT-0244",
+    "materialCode": "100000244",
+    "materialName": "Cone Crushers - Type E842",
+    "category": "Crushing",
+    "subcategory": "Cone Crushers",
+    "uom": "BOX",
+    "manufacturer": "FLSmidth",
+    "preferredSupplierId": "SUP-0005"
+  },
+  {
+    "materialId": "MAT-0245",
+    "materialCode": "100000245",
+    "materialName": "Cone Crushers - Type F818",
+    "category": "Crushing",
+    "subcategory": "Cone Crushers",
+    "uom": "MTR",
+    "manufacturer": "Sandvik",
+    "preferredSupplierId": "SUP-0002"
+  },
+  {
+    "materialId": "MAT-0246",
+    "materialCode": "100000246",
+    "materialName": "Crusher Liners - Type A813",
+    "category": "Crushing",
+    "subcategory": "Crusher Liners",
+    "uom": "EA",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0022"
+  },
+  {
+    "materialId": "MAT-0247",
+    "materialCode": "100000247",
+    "materialName": "Analyzers - Type B904",
+    "category": "Instrumentation",
+    "subcategory": "Analyzers",
+    "uom": "EA",
+    "manufacturer": "Honeywell",
+    "preferredSupplierId": "SUP-0071"
+  },
+  {
+    "materialId": "MAT-0248",
+    "materialCode": "100000248",
+    "materialName": "Flow Meters - Type C588",
+    "category": "Instrumentation",
+    "subcategory": "Flow Meters",
+    "uom": "LTR",
+    "manufacturer": "Yokogawa",
+    "preferredSupplierId": "SUP-0078"
+  },
+  {
+    "materialId": "MAT-0249",
+    "materialCode": "100000249",
+    "materialName": "Level Sensors - Type D703",
+    "category": "Instrumentation",
+    "subcategory": "Level Sensors",
+    "uom": "MTR",
+    "manufacturer": "Yokogawa",
+    "preferredSupplierId": "SUP-0015"
+  },
+  {
+    "materialId": "MAT-0250",
+    "materialCode": "100000250",
+    "materialName": "Flow Meters - Type E556",
+    "category": "Instrumentation",
+    "subcategory": "Flow Meters",
+    "uom": "MT",
+    "manufacturer": "Emerson",
+    "preferredSupplierId": "SUP-0057"
+  },
+  {
+    "materialId": "MAT-0251",
+    "materialCode": "100000251",
+    "materialName": "PLC & DCS - Type F699",
+    "category": "Instrumentation",
+    "subcategory": "PLC & DCS",
+    "uom": "BOX",
+    "manufacturer": "Siemens",
+    "preferredSupplierId": "SUP-0084"
+  },
+  {
+    "materialId": "MAT-0252",
+    "materialCode": "100000252",
+    "materialName": "PLC & DCS - Type A780",
+    "category": "Instrumentation",
+    "subcategory": "PLC & DCS",
+    "uom": "KG",
+    "manufacturer": "Emerson",
+    "preferredSupplierId": "SUP-0041"
+  },
+  {
+    "materialId": "MAT-0253",
+    "materialCode": "100000253",
+    "materialName": "PLC & DCS - Type B764",
+    "category": "Instrumentation",
+    "subcategory": "PLC & DCS",
+    "uom": "LTR",
+    "manufacturer": "Honeywell",
+    "preferredSupplierId": "SUP-0001"
+  },
+  {
+    "materialId": "MAT-0254",
+    "materialCode": "100000254",
+    "materialName": "Flow Meters - Type C615",
+    "category": "Instrumentation",
+    "subcategory": "Flow Meters",
+    "uom": "MTR",
+    "manufacturer": "Siemens",
+    "preferredSupplierId": "SUP-0039"
+  },
+  {
+    "materialId": "MAT-0255",
+    "materialCode": "100000255",
+    "materialName": "PLC & DCS - Type D745",
+    "category": "Instrumentation",
+    "subcategory": "PLC & DCS",
+    "uom": "SET",
+    "manufacturer": "Endress+Hauser",
+    "preferredSupplierId": "SUP-0030"
+  },
+  {
+    "materialId": "MAT-0256",
+    "materialCode": "100000256",
+    "materialName": "Level Sensors - Type E538",
+    "category": "Instrumentation",
+    "subcategory": "Level Sensors",
+    "uom": "LTR",
+    "manufacturer": "Honeywell",
+    "preferredSupplierId": "SUP-0002"
+  },
+  {
+    "materialId": "MAT-0257",
+    "materialCode": "100000257",
+    "materialName": "PLC & DCS - Type F835",
+    "category": "Instrumentation",
+    "subcategory": "PLC & DCS",
+    "uom": "KG",
+    "manufacturer": "Emerson",
+    "preferredSupplierId": "SUP-0023"
+  },
+  {
+    "materialId": "MAT-0258",
+    "materialCode": "100000258",
+    "materialName": "Control Instruments - Type A409",
+    "category": "Instrumentation",
+    "subcategory": "Control Instruments",
+    "uom": "PAIR",
+    "manufacturer": "Siemens",
+    "preferredSupplierId": "SUP-0095"
+  },
+  {
+    "materialId": "MAT-0259",
+    "materialCode": "100000259",
+    "materialName": "PLC & DCS - Type B731",
+    "category": "Instrumentation",
+    "subcategory": "PLC & DCS",
+    "uom": "MT",
+    "manufacturer": "Endress+Hauser",
+    "preferredSupplierId": "SUP-0095"
+  },
+  {
+    "materialId": "MAT-0260",
+    "materialCode": "100000260",
+    "materialName": "PLC & DCS - Type C477",
+    "category": "Instrumentation",
+    "subcategory": "PLC & DCS",
+    "uom": "SET",
+    "manufacturer": "Emerson",
+    "preferredSupplierId": "SUP-0037"
+  },
+  {
+    "materialId": "MAT-0261",
+    "materialCode": "100000261",
+    "materialName": "Control Instruments - Type D702",
+    "category": "Instrumentation",
+    "subcategory": "Control Instruments",
+    "uom": "MTR",
+    "manufacturer": "Endress+Hauser",
+    "preferredSupplierId": "SUP-0007"
+  },
+  {
+    "materialId": "MAT-0262",
+    "materialCode": "100000262",
+    "materialName": "PLC & DCS - Type E629",
+    "category": "Instrumentation",
+    "subcategory": "PLC & DCS",
+    "uom": "LTR",
+    "manufacturer": "Siemens",
+    "preferredSupplierId": "SUP-0082"
+  },
+  {
+    "materialId": "MAT-0263",
+    "materialCode": "100000263",
+    "materialName": "Analyzers - Type F667",
+    "category": "Instrumentation",
+    "subcategory": "Analyzers",
+    "uom": "MT",
+    "manufacturer": "Yokogawa",
+    "preferredSupplierId": "SUP-0039"
+  },
+  {
+    "materialId": "MAT-0264",
+    "materialCode": "100000264",
+    "materialName": "Flow Meters - Type A681",
+    "category": "Instrumentation",
+    "subcategory": "Flow Meters",
+    "uom": "LTR",
+    "manufacturer": "Yokogawa",
+    "preferredSupplierId": "SUP-0063"
+  },
+  {
+    "materialId": "MAT-0265",
+    "materialCode": "100000265",
+    "materialName": "Control Instruments - Type B816",
+    "category": "Instrumentation",
+    "subcategory": "Control Instruments",
+    "uom": "PAIR",
+    "manufacturer": "Emerson",
+    "preferredSupplierId": "SUP-0001"
+  },
+  {
+    "materialId": "MAT-0266",
+    "materialCode": "100000266",
+    "materialName": "Control Instruments - Type C554",
+    "category": "Instrumentation",
+    "subcategory": "Control Instruments",
+    "uom": "ROLL",
+    "manufacturer": "Siemens",
+    "preferredSupplierId": "SUP-0023"
+  },
+  {
+    "materialId": "MAT-0267",
+    "materialCode": "100000267",
+    "materialName": "Flow Meters - Type D302",
+    "category": "Instrumentation",
+    "subcategory": "Flow Meters",
+    "uom": "KG",
+    "manufacturer": "Honeywell",
+    "preferredSupplierId": "SUP-0043"
+  },
+  {
+    "materialId": "MAT-0268",
+    "materialCode": "100000268",
+    "materialName": "Control Instruments - Type E274",
+    "category": "Instrumentation",
+    "subcategory": "Control Instruments",
+    "uom": "ROLL",
+    "manufacturer": "Siemens",
+    "preferredSupplierId": "SUP-0055"
+  },
+  {
+    "materialId": "MAT-0269",
+    "materialCode": "100000269",
+    "materialName": "Flow Meters - Type F827",
+    "category": "Instrumentation",
+    "subcategory": "Flow Meters",
+    "uom": "EA",
+    "manufacturer": "Honeywell",
+    "preferredSupplierId": "SUP-0034"
+  },
+  {
+    "materialId": "MAT-0270",
+    "materialCode": "100000270",
+    "materialName": "PLC & DCS - Type A342",
+    "category": "Instrumentation",
+    "subcategory": "PLC & DCS",
+    "uom": "MTR",
+    "manufacturer": "Emerson",
+    "preferredSupplierId": "SUP-0051"
+  },
+  {
+    "materialId": "MAT-0271",
+    "materialCode": "100000271",
+    "materialName": "Control Instruments - Type B209",
+    "category": "Instrumentation",
+    "subcategory": "Control Instruments",
+    "uom": "EA",
+    "manufacturer": "Endress+Hauser",
+    "preferredSupplierId": "SUP-0056"
+  },
+  {
+    "materialId": "MAT-0272",
+    "materialCode": "100000272",
+    "materialName": "Flow Meters - Type C103",
+    "category": "Instrumentation",
+    "subcategory": "Flow Meters",
+    "uom": "MTR",
+    "manufacturer": "Yokogawa",
+    "preferredSupplierId": "SUP-0048"
+  },
+  {
+    "materialId": "MAT-0273",
+    "materialCode": "100000273",
+    "materialName": "Flow Meters - Type D320",
+    "category": "Instrumentation",
+    "subcategory": "Flow Meters",
+    "uom": "MTR",
+    "manufacturer": "Siemens",
+    "preferredSupplierId": "SUP-0082"
+  },
+  {
+    "materialId": "MAT-0274",
+    "materialCode": "100000274",
+    "materialName": "Analyzers - Type E528",
+    "category": "Instrumentation",
+    "subcategory": "Analyzers",
+    "uom": "MT",
+    "manufacturer": "Endress+Hauser",
+    "preferredSupplierId": "SUP-0050"
+  },
+  {
+    "materialId": "MAT-0275",
+    "materialCode": "100000275",
+    "materialName": "Control Instruments - Type F835",
+    "category": "Instrumentation",
+    "subcategory": "Control Instruments",
+    "uom": "MTR",
+    "manufacturer": "Siemens",
+    "preferredSupplierId": "SUP-0051"
+  },
+  {
+    "materialId": "MAT-0276",
+    "materialCode": "100000276",
+    "materialName": "PLC & DCS - Type A441",
+    "category": "Instrumentation",
+    "subcategory": "PLC & DCS",
+    "uom": "MT",
+    "manufacturer": "Siemens",
+    "preferredSupplierId": "SUP-0069"
+  },
+  {
+    "materialId": "MAT-0277",
+    "materialCode": "100000277",
+    "materialName": "PLC & DCS - Type B347",
+    "category": "Instrumentation",
+    "subcategory": "PLC & DCS",
+    "uom": "EA",
+    "manufacturer": "Yokogawa",
+    "preferredSupplierId": "SUP-0080"
+  },
+  {
+    "materialId": "MAT-0278",
+    "materialCode": "100000278",
+    "materialName": "Level Sensors - Type C270",
+    "category": "Instrumentation",
+    "subcategory": "Level Sensors",
+    "uom": "BOX",
+    "manufacturer": "Honeywell",
+    "preferredSupplierId": "SUP-0029"
+  },
+  {
+    "materialId": "MAT-0279",
+    "materialCode": "100000279",
+    "materialName": "Control Instruments - Type D113",
+    "category": "Instrumentation",
+    "subcategory": "Control Instruments",
+    "uom": "MT",
+    "manufacturer": "Honeywell",
+    "preferredSupplierId": "SUP-0003"
+  },
+  {
+    "materialId": "MAT-0280",
+    "materialCode": "100000280",
+    "materialName": "Analyzers - Type E865",
+    "category": "Instrumentation",
+    "subcategory": "Analyzers",
+    "uom": "SET",
+    "manufacturer": "Siemens",
+    "preferredSupplierId": "SUP-0023"
+  },
+  {
+    "materialId": "MAT-0281",
+    "materialCode": "100000281",
+    "materialName": "Level Sensors - Type F481",
+    "category": "Instrumentation",
+    "subcategory": "Level Sensors",
+    "uom": "PAIR",
+    "manufacturer": "Yokogawa",
+    "preferredSupplierId": "SUP-0012"
+  },
+  {
+    "materialId": "MAT-0282",
+    "materialCode": "100000282",
+    "materialName": "Control Instruments - Type A227",
+    "category": "Instrumentation",
+    "subcategory": "Control Instruments",
+    "uom": "PAIR",
+    "manufacturer": "Endress+Hauser",
+    "preferredSupplierId": "SUP-0042"
+  },
+  {
+    "materialId": "MAT-0283",
+    "materialCode": "100000283",
+    "materialName": "Analyzers - Type B715",
+    "category": "Instrumentation",
+    "subcategory": "Analyzers",
+    "uom": "MTR",
+    "manufacturer": "Endress+Hauser",
+    "preferredSupplierId": "SUP-0035"
+  },
+  {
+    "materialId": "MAT-0284",
+    "materialCode": "100000284",
+    "materialName": "PLC & DCS - Type C857",
+    "category": "Instrumentation",
+    "subcategory": "PLC & DCS",
+    "uom": "BOX",
+    "manufacturer": "Honeywell",
+    "preferredSupplierId": "SUP-0004"
+  },
+  {
+    "materialId": "MAT-0285",
+    "materialCode": "100000285",
+    "materialName": "Analyzers - Type D491",
+    "category": "Instrumentation",
+    "subcategory": "Analyzers",
+    "uom": "MTR",
+    "manufacturer": "Yokogawa",
+    "preferredSupplierId": "SUP-0002"
+  },
+  {
+    "materialId": "MAT-0286",
+    "materialCode": "100000286",
+    "materialName": "Level Sensors - Type E821",
+    "category": "Instrumentation",
+    "subcategory": "Level Sensors",
+    "uom": "SET",
+    "manufacturer": "Emerson",
+    "preferredSupplierId": "SUP-0005"
+  },
+  {
+    "materialId": "MAT-0287",
+    "materialCode": "100000287",
+    "materialName": "PLC & DCS - Type F571",
+    "category": "Instrumentation",
+    "subcategory": "PLC & DCS",
+    "uom": "KG",
+    "manufacturer": "Siemens",
+    "preferredSupplierId": "SUP-0082"
+  },
+  {
+    "materialId": "MAT-0288",
+    "materialCode": "100000288",
+    "materialName": "Variable Frequency Drives - Type A797",
+    "category": "Electrical Motors",
+    "subcategory": "Variable Frequency Drives",
+    "uom": "EA",
+    "manufacturer": "Siemens",
+    "preferredSupplierId": "SUP-0026"
+  },
+  {
+    "materialId": "MAT-0289",
+    "materialCode": "100000289",
+    "materialName": "Motor Spares - Type B768",
+    "category": "Electrical Motors",
+    "subcategory": "Motor Spares",
+    "uom": "MTR",
+    "manufacturer": "Siemens",
+    "preferredSupplierId": "SUP-0098"
+  },
+  {
+    "materialId": "MAT-0290",
+    "materialCode": "100000290",
+    "materialName": "AC Motors - Type C777",
+    "category": "Electrical Motors",
+    "subcategory": "AC Motors",
+    "uom": "EA",
+    "manufacturer": "Crompton Greaves",
+    "preferredSupplierId": "SUP-0008"
+  },
+  {
+    "materialId": "MAT-0291",
+    "materialCode": "100000291",
+    "materialName": "AC Motors - Type D835",
+    "category": "Electrical Motors",
+    "subcategory": "AC Motors",
+    "uom": "EA",
+    "manufacturer": "ABB",
+    "preferredSupplierId": "SUP-0033"
+  },
+  {
+    "materialId": "MAT-0292",
+    "materialCode": "100000292",
+    "materialName": "DC Motors - Type E674",
+    "category": "Electrical Motors",
+    "subcategory": "DC Motors",
+    "uom": "ROLL",
+    "manufacturer": "Crompton Greaves",
+    "preferredSupplierId": "SUP-0048"
+  },
+  {
+    "materialId": "MAT-0293",
+    "materialCode": "100000293",
+    "materialName": "DC Motors - Type F340",
+    "category": "Electrical Motors",
+    "subcategory": "DC Motors",
+    "uom": "MT",
+    "manufacturer": "Crompton Greaves",
+    "preferredSupplierId": "SUP-0089"
+  },
+  {
+    "materialId": "MAT-0294",
+    "materialCode": "100000294",
+    "materialName": "Variable Frequency Drives - Type A772",
+    "category": "Electrical Motors",
+    "subcategory": "Variable Frequency Drives",
+    "uom": "MTR",
+    "manufacturer": "Schneider Electric",
+    "preferredSupplierId": "SUP-0041"
+  },
+  {
+    "materialId": "MAT-0295",
+    "materialCode": "100000295",
+    "materialName": "DC Motors - Type B861",
+    "category": "Electrical Motors",
+    "subcategory": "DC Motors",
+    "uom": "BOX",
+    "manufacturer": "ABB",
+    "preferredSupplierId": "SUP-0069"
+  },
+  {
+    "materialId": "MAT-0296",
+    "materialCode": "100000296",
+    "materialName": "Motor Spares - Type C407",
+    "category": "Electrical Motors",
+    "subcategory": "Motor Spares",
+    "uom": "MTR",
+    "manufacturer": "Crompton Greaves",
+    "preferredSupplierId": "SUP-0074"
+  },
+  {
+    "materialId": "MAT-0297",
+    "materialCode": "100000297",
+    "materialName": "AC Motors - Type D542",
+    "category": "Electrical Motors",
+    "subcategory": "AC Motors",
+    "uom": "KG",
+    "manufacturer": "Cummins",
+    "preferredSupplierId": "SUP-0024"
+  },
+  {
+    "materialId": "MAT-0298",
+    "materialCode": "100000298",
+    "materialName": "Motor Spares - Type E984",
+    "category": "Electrical Motors",
+    "subcategory": "Motor Spares",
+    "uom": "BOX",
+    "manufacturer": "Schneider Electric",
+    "preferredSupplierId": "SUP-0095"
+  },
+  {
+    "materialId": "MAT-0299",
+    "materialCode": "100000299",
+    "materialName": "Variable Frequency Drives - Type F644",
+    "category": "Electrical Motors",
+    "subcategory": "Variable Frequency Drives",
+    "uom": "PAIR",
+    "manufacturer": "Siemens",
+    "preferredSupplierId": "SUP-0065"
+  },
+  {
+    "materialId": "MAT-0300",
+    "materialCode": "100000300",
+    "materialName": "Variable Frequency Drives - Type A522",
+    "category": "Electrical Motors",
+    "subcategory": "Variable Frequency Drives",
+    "uom": "LTR",
+    "manufacturer": "Cummins",
+    "preferredSupplierId": "SUP-0064"
+  },
+  {
+    "materialId": "MAT-0301",
+    "materialCode": "100000301",
+    "materialName": "Motor Spares - Type B688",
+    "category": "Electrical Motors",
+    "subcategory": "Motor Spares",
+    "uom": "SET",
+    "manufacturer": "ABB",
+    "preferredSupplierId": "SUP-0060"
+  },
+  {
+    "materialId": "MAT-0302",
+    "materialCode": "100000302",
+    "materialName": "Motor Spares - Type C974",
+    "category": "Electrical Motors",
+    "subcategory": "Motor Spares",
+    "uom": "EA",
+    "manufacturer": "Siemens",
+    "preferredSupplierId": "SUP-0006"
+  },
+  {
+    "materialId": "MAT-0303",
+    "materialCode": "100000303",
+    "materialName": "AC Motors - Type D619",
+    "category": "Electrical Motors",
+    "subcategory": "AC Motors",
+    "uom": "MTR",
+    "manufacturer": "Schneider Electric",
+    "preferredSupplierId": "SUP-0063"
+  },
+  {
+    "materialId": "MAT-0304",
+    "materialCode": "100000304",
+    "materialName": "Motor Spares - Type E468",
+    "category": "Electrical Motors",
+    "subcategory": "Motor Spares",
+    "uom": "KG",
+    "manufacturer": "Crompton Greaves",
+    "preferredSupplierId": "SUP-0050"
+  },
+  {
+    "materialId": "MAT-0305",
+    "materialCode": "100000305",
+    "materialName": "Variable Frequency Drives - Type F545",
+    "category": "Electrical Motors",
+    "subcategory": "Variable Frequency Drives",
+    "uom": "EA",
+    "manufacturer": "ABB",
+    "preferredSupplierId": "SUP-0022"
+  },
+  {
+    "materialId": "MAT-0306",
+    "materialCode": "100000306",
+    "materialName": "Motor Spares - Type A840",
+    "category": "Electrical Motors",
+    "subcategory": "Motor Spares",
+    "uom": "LTR",
+    "manufacturer": "Schneider Electric",
+    "preferredSupplierId": "SUP-0071"
+  },
+  {
+    "materialId": "MAT-0307",
+    "materialCode": "100000307",
+    "materialName": "DC Motors - Type B199",
+    "category": "Electrical Motors",
+    "subcategory": "DC Motors",
+    "uom": "BOX",
+    "manufacturer": "Siemens",
+    "preferredSupplierId": "SUP-0019"
+  },
+  {
+    "materialId": "MAT-0308",
+    "materialCode": "100000308",
+    "materialName": "AC Motors - Type C108",
+    "category": "Electrical Motors",
+    "subcategory": "AC Motors",
+    "uom": "MTR",
+    "manufacturer": "Crompton Greaves",
+    "preferredSupplierId": "SUP-0072"
+  },
+  {
+    "materialId": "MAT-0309",
+    "materialCode": "100000309",
+    "materialName": "Variable Frequency Drives - Type D308",
+    "category": "Electrical Motors",
+    "subcategory": "Variable Frequency Drives",
+    "uom": "SET",
+    "manufacturer": "Crompton Greaves",
+    "preferredSupplierId": "SUP-0092"
+  },
+  {
+    "materialId": "MAT-0310",
+    "materialCode": "100000310",
+    "materialName": "AC Motors - Type E390",
+    "category": "Electrical Motors",
+    "subcategory": "AC Motors",
+    "uom": "ROLL",
+    "manufacturer": "Cummins",
+    "preferredSupplierId": "SUP-0071"
+  },
+  {
+    "materialId": "MAT-0311",
+    "materialCode": "100000311",
+    "materialName": "DC Motors - Type F377",
+    "category": "Electrical Motors",
+    "subcategory": "DC Motors",
+    "uom": "MT",
+    "manufacturer": "Siemens",
+    "preferredSupplierId": "SUP-0100"
+  },
+  {
+    "materialId": "MAT-0312",
+    "materialCode": "100000312",
+    "materialName": "Variable Frequency Drives - Type A887",
+    "category": "Electrical Motors",
+    "subcategory": "Variable Frequency Drives",
+    "uom": "PAIR",
+    "manufacturer": "Cummins",
+    "preferredSupplierId": "SUP-0003"
+  },
+  {
+    "materialId": "MAT-0313",
+    "materialCode": "100000313",
+    "materialName": "AC Motors - Type B380",
+    "category": "Electrical Motors",
+    "subcategory": "AC Motors",
+    "uom": "LTR",
+    "manufacturer": "Schneider Electric",
+    "preferredSupplierId": "SUP-0073"
+  },
+  {
+    "materialId": "MAT-0314",
+    "materialCode": "100000314",
+    "materialName": "AC Motors - Type C799",
+    "category": "Electrical Motors",
+    "subcategory": "AC Motors",
+    "uom": "EA",
+    "manufacturer": "Siemens",
+    "preferredSupplierId": "SUP-0095"
+  },
+  {
+    "materialId": "MAT-0315",
+    "materialCode": "100000315",
+    "materialName": "DC Motors - Type D901",
+    "category": "Electrical Motors",
+    "subcategory": "DC Motors",
+    "uom": "MT",
+    "manufacturer": "ABB",
+    "preferredSupplierId": "SUP-0054"
+  },
+  {
+    "materialId": "MAT-0316",
+    "materialCode": "100000316",
+    "materialName": "DC Motors - Type E324",
+    "category": "Electrical Motors",
+    "subcategory": "DC Motors",
+    "uom": "BOX",
+    "manufacturer": "Siemens",
+    "preferredSupplierId": "SUP-0087"
+  },
+  {
+    "materialId": "MAT-0317",
+    "materialCode": "100000317",
+    "materialName": "DC Motors - Type F242",
+    "category": "Electrical Motors",
+    "subcategory": "DC Motors",
+    "uom": "PAIR",
+    "manufacturer": "ABB",
+    "preferredSupplierId": "SUP-0068"
+  },
+  {
+    "materialId": "MAT-0318",
+    "materialCode": "100000318",
+    "materialName": "DC Motors - Type A879",
+    "category": "Electrical Motors",
+    "subcategory": "DC Motors",
+    "uom": "BOX",
+    "manufacturer": "Crompton Greaves",
+    "preferredSupplierId": "SUP-0073"
+  },
+  {
+    "materialId": "MAT-0319",
+    "materialCode": "100000319",
+    "materialName": "Variable Frequency Drives - Type B772",
+    "category": "Electrical Motors",
+    "subcategory": "Variable Frequency Drives",
+    "uom": "LTR",
+    "manufacturer": "ABB",
+    "preferredSupplierId": "SUP-0007"
+  },
+  {
+    "materialId": "MAT-0320",
+    "materialCode": "100000320",
+    "materialName": "Motor Spares - Type C395",
+    "category": "Electrical Motors",
+    "subcategory": "Motor Spares",
+    "uom": "SET",
+    "manufacturer": "Crompton Greaves",
+    "preferredSupplierId": "SUP-0099"
+  },
+  {
+    "materialId": "MAT-0321",
+    "materialCode": "100000321",
+    "materialName": "Variable Frequency Drives - Type D125",
+    "category": "Electrical Motors",
+    "subcategory": "Variable Frequency Drives",
+    "uom": "KG",
+    "manufacturer": "ABB",
+    "preferredSupplierId": "SUP-0036"
+  },
+  {
+    "materialId": "MAT-0322",
+    "materialCode": "100000322",
+    "materialName": "AC Motors - Type E496",
+    "category": "Electrical Motors",
+    "subcategory": "AC Motors",
+    "uom": "BOX",
+    "manufacturer": "Cummins",
+    "preferredSupplierId": "SUP-0020"
+  },
+  {
+    "materialId": "MAT-0323",
+    "materialCode": "100000323",
+    "materialName": "Variable Frequency Drives - Type F191",
+    "category": "Electrical Motors",
+    "subcategory": "Variable Frequency Drives",
+    "uom": "SET",
+    "manufacturer": "ABB",
+    "preferredSupplierId": "SUP-0064"
+  },
+  {
+    "materialId": "MAT-0324",
+    "materialCode": "100000324",
+    "materialName": "AC Motors - Type A386",
+    "category": "Electrical Motors",
+    "subcategory": "AC Motors",
+    "uom": "LTR",
+    "manufacturer": "Crompton Greaves",
+    "preferredSupplierId": "SUP-0080"
+  },
+  {
+    "materialId": "MAT-0325",
+    "materialCode": "100000325",
+    "materialName": "Motor Spares - Type B317",
+    "category": "Electrical Motors",
+    "subcategory": "Motor Spares",
+    "uom": "SET",
+    "manufacturer": "Schneider Electric",
+    "preferredSupplierId": "SUP-0030"
+  },
+  {
+    "materialId": "MAT-0326",
+    "materialCode": "100000326",
+    "materialName": "Variable Frequency Drives - Type C372",
+    "category": "Electrical Motors",
+    "subcategory": "Variable Frequency Drives",
+    "uom": "PAIR",
+    "manufacturer": "Schneider Electric",
+    "preferredSupplierId": "SUP-0080"
+  },
+  {
+    "materialId": "MAT-0327",
+    "materialCode": "100000327",
+    "materialName": "Motor Spares - Type D801",
+    "category": "Electrical Motors",
+    "subcategory": "Motor Spares",
+    "uom": "SET",
+    "manufacturer": "Schneider Electric",
+    "preferredSupplierId": "SUP-0005"
+  },
+  {
+    "materialId": "MAT-0328",
+    "materialCode": "100000328",
+    "materialName": "Variable Frequency Drives - Type E759",
+    "category": "Electrical Motors",
+    "subcategory": "Variable Frequency Drives",
+    "uom": "PAIR",
+    "manufacturer": "Siemens",
+    "preferredSupplierId": "SUP-0037"
+  },
+  {
+    "materialId": "MAT-0329",
+    "materialCode": "100000329",
+    "materialName": "Roller Bearings - Type F426",
+    "category": "Bearings",
+    "subcategory": "Roller Bearings",
+    "uom": "SET",
+    "manufacturer": "NSK",
+    "preferredSupplierId": "SUP-0070"
+  },
+  {
+    "materialId": "MAT-0330",
+    "materialCode": "100000330",
+    "materialName": "Bearing Housings - Type A290",
+    "category": "Bearings",
+    "subcategory": "Bearing Housings",
+    "uom": "MT",
+    "manufacturer": "NTN",
+    "preferredSupplierId": "SUP-0084"
+  },
+  {
+    "materialId": "MAT-0331",
+    "materialCode": "100000331",
+    "materialName": "Spherical Bearings - Type B144",
+    "category": "Bearings",
+    "subcategory": "Spherical Bearings",
+    "uom": "BOX",
+    "manufacturer": "NTN",
+    "preferredSupplierId": "SUP-0042"
+  },
+  {
+    "materialId": "MAT-0332",
+    "materialCode": "100000332",
+    "materialName": "Spherical Bearings - Type C256",
+    "category": "Bearings",
+    "subcategory": "Spherical Bearings",
+    "uom": "KG",
+    "manufacturer": "SKF",
+    "preferredSupplierId": "SUP-0092"
+  },
+  {
+    "materialId": "MAT-0333",
+    "materialCode": "100000333",
+    "materialName": "Roller Bearings - Type D785",
+    "category": "Bearings",
+    "subcategory": "Roller Bearings",
+    "uom": "MT",
+    "manufacturer": "SKF",
+    "preferredSupplierId": "SUP-0082"
+  },
+  {
+    "materialId": "MAT-0334",
+    "materialCode": "100000334",
+    "materialName": "Roller Bearings - Type E224",
+    "category": "Bearings",
+    "subcategory": "Roller Bearings",
+    "uom": "BOX",
+    "manufacturer": "SKF",
+    "preferredSupplierId": "SUP-0042"
+  },
+  {
+    "materialId": "MAT-0335",
+    "materialCode": "100000335",
+    "materialName": "Spherical Bearings - Type F798",
+    "category": "Bearings",
+    "subcategory": "Spherical Bearings",
+    "uom": "KG",
+    "manufacturer": "NSK",
+    "preferredSupplierId": "SUP-0071"
+  },
+  {
+    "materialId": "MAT-0336",
+    "materialCode": "100000336",
+    "materialName": "Spherical Bearings - Type A915",
+    "category": "Bearings",
+    "subcategory": "Spherical Bearings",
+    "uom": "MTR",
+    "manufacturer": "NTN",
+    "preferredSupplierId": "SUP-0055"
+  },
+  {
+    "materialId": "MAT-0337",
+    "materialCode": "100000337",
+    "materialName": "Ball Bearings - Type B668",
+    "category": "Bearings",
+    "subcategory": "Ball Bearings",
+    "uom": "MT",
+    "manufacturer": "Rexnord",
+    "preferredSupplierId": "SUP-0026"
+  },
+  {
+    "materialId": "MAT-0338",
+    "materialCode": "100000338",
+    "materialName": "Roller Bearings - Type C407",
+    "category": "Bearings",
+    "subcategory": "Roller Bearings",
+    "uom": "ROLL",
+    "manufacturer": "Rexnord",
+    "preferredSupplierId": "SUP-0006"
+  },
+  {
+    "materialId": "MAT-0339",
+    "materialCode": "100000339",
+    "materialName": "Bearing Housings - Type D492",
+    "category": "Bearings",
+    "subcategory": "Bearing Housings",
+    "uom": "ROLL",
+    "manufacturer": "Timken",
+    "preferredSupplierId": "SUP-0092"
+  },
+  {
+    "materialId": "MAT-0340",
+    "materialCode": "100000340",
+    "materialName": "Ball Bearings - Type E245",
+    "category": "Bearings",
+    "subcategory": "Ball Bearings",
+    "uom": "ROLL",
+    "manufacturer": "NTN",
+    "preferredSupplierId": "SUP-0072"
+  },
+  {
+    "materialId": "MAT-0341",
+    "materialCode": "100000341",
+    "materialName": "Bearing Housings - Type F635",
+    "category": "Bearings",
+    "subcategory": "Bearing Housings",
+    "uom": "MT",
+    "manufacturer": "Timken",
+    "preferredSupplierId": "SUP-0020"
+  },
+  {
+    "materialId": "MAT-0342",
+    "materialCode": "100000342",
+    "materialName": "Roller Bearings - Type A383",
+    "category": "Bearings",
+    "subcategory": "Roller Bearings",
+    "uom": "MTR",
+    "manufacturer": "NSK",
+    "preferredSupplierId": "SUP-0046"
+  },
+  {
+    "materialId": "MAT-0343",
+    "materialCode": "100000343",
+    "materialName": "Ball Bearings - Type B320",
+    "category": "Bearings",
+    "subcategory": "Ball Bearings",
+    "uom": "LTR",
+    "manufacturer": "Rexnord",
+    "preferredSupplierId": "SUP-0015"
+  },
+  {
+    "materialId": "MAT-0344",
+    "materialCode": "100000344",
+    "materialName": "Roller Bearings - Type C954",
+    "category": "Bearings",
+    "subcategory": "Roller Bearings",
+    "uom": "KG",
+    "manufacturer": "NTN",
+    "preferredSupplierId": "SUP-0098"
+  },
+  {
+    "materialId": "MAT-0345",
+    "materialCode": "100000345",
+    "materialName": "Ball Bearings - Type D685",
+    "category": "Bearings",
+    "subcategory": "Ball Bearings",
+    "uom": "MT",
+    "manufacturer": "NTN",
+    "preferredSupplierId": "SUP-0023"
+  },
+  {
+    "materialId": "MAT-0346",
+    "materialCode": "100000346",
+    "materialName": "Spherical Bearings - Type E103",
+    "category": "Bearings",
+    "subcategory": "Spherical Bearings",
+    "uom": "SET",
+    "manufacturer": "NSK",
+    "preferredSupplierId": "SUP-0010"
+  },
+  {
+    "materialId": "MAT-0347",
+    "materialCode": "100000347",
+    "materialName": "Roller Bearings - Type F577",
+    "category": "Bearings",
+    "subcategory": "Roller Bearings",
+    "uom": "EA",
+    "manufacturer": "NSK",
+    "preferredSupplierId": "SUP-0002"
+  },
+  {
+    "materialId": "MAT-0348",
+    "materialCode": "100000348",
+    "materialName": "Roller Bearings - Type A370",
+    "category": "Bearings",
+    "subcategory": "Roller Bearings",
+    "uom": "KG",
+    "manufacturer": "Timken",
+    "preferredSupplierId": "SUP-0068"
+  },
+  {
+    "materialId": "MAT-0349",
+    "materialCode": "100000349",
+    "materialName": "Spherical Bearings - Type B646",
+    "category": "Bearings",
+    "subcategory": "Spherical Bearings",
+    "uom": "MTR",
+    "manufacturer": "NSK",
+    "preferredSupplierId": "SUP-0066"
+  },
+  {
+    "materialId": "MAT-0350",
+    "materialCode": "100000350",
+    "materialName": "Roller Bearings - Type C121",
+    "category": "Bearings",
+    "subcategory": "Roller Bearings",
+    "uom": "MTR",
+    "manufacturer": "NTN",
+    "preferredSupplierId": "SUP-0072"
+  },
+  {
+    "materialId": "MAT-0351",
+    "materialCode": "100000351",
+    "materialName": "Spherical Bearings - Type D584",
+    "category": "Bearings",
+    "subcategory": "Spherical Bearings",
+    "uom": "KG",
+    "manufacturer": "Timken",
+    "preferredSupplierId": "SUP-0061"
+  },
+  {
+    "materialId": "MAT-0352",
+    "materialCode": "100000352",
+    "materialName": "Ball Bearings - Type E617",
+    "category": "Bearings",
+    "subcategory": "Ball Bearings",
+    "uom": "LTR",
+    "manufacturer": "Timken",
+    "preferredSupplierId": "SUP-0034"
+  },
+  {
+    "materialId": "MAT-0353",
+    "materialCode": "100000353",
+    "materialName": "Bearing Housings - Type F216",
+    "category": "Bearings",
+    "subcategory": "Bearing Housings",
+    "uom": "BOX",
+    "manufacturer": "SKF",
+    "preferredSupplierId": "SUP-0060"
+  },
+  {
+    "materialId": "MAT-0354",
+    "materialCode": "100000354",
+    "materialName": "Bearing Housings - Type A418",
+    "category": "Bearings",
+    "subcategory": "Bearing Housings",
+    "uom": "KG",
+    "manufacturer": "Timken",
+    "preferredSupplierId": "SUP-0019"
+  },
+  {
+    "materialId": "MAT-0355",
+    "materialCode": "100000355",
+    "materialName": "Roller Bearings - Type B854",
+    "category": "Bearings",
+    "subcategory": "Roller Bearings",
+    "uom": "MT",
+    "manufacturer": "Rexnord",
+    "preferredSupplierId": "SUP-0085"
+  },
+  {
+    "materialId": "MAT-0356",
+    "materialCode": "100000356",
+    "materialName": "Ball Bearings - Type C468",
+    "category": "Bearings",
+    "subcategory": "Ball Bearings",
+    "uom": "BOX",
+    "manufacturer": "Timken",
+    "preferredSupplierId": "SUP-0073"
+  },
+  {
+    "materialId": "MAT-0357",
+    "materialCode": "100000357",
+    "materialName": "Roller Bearings - Type D797",
+    "category": "Bearings",
+    "subcategory": "Roller Bearings",
+    "uom": "SET",
+    "manufacturer": "Rexnord",
+    "preferredSupplierId": "SUP-0099"
+  },
+  {
+    "materialId": "MAT-0358",
+    "materialCode": "100000358",
+    "materialName": "Spherical Bearings - Type E938",
+    "category": "Bearings",
+    "subcategory": "Spherical Bearings",
+    "uom": "SET",
+    "manufacturer": "NSK",
+    "preferredSupplierId": "SUP-0016"
+  },
+  {
+    "materialId": "MAT-0359",
+    "materialCode": "100000359",
+    "materialName": "Spherical Bearings - Type F297",
+    "category": "Bearings",
+    "subcategory": "Spherical Bearings",
+    "uom": "MT",
+    "manufacturer": "NTN",
+    "preferredSupplierId": "SUP-0024"
+  },
+  {
+    "materialId": "MAT-0360",
+    "materialCode": "100000360",
+    "materialName": "Bearing Housings - Type A913",
+    "category": "Bearings",
+    "subcategory": "Bearing Housings",
+    "uom": "SET",
+    "manufacturer": "NTN",
+    "preferredSupplierId": "SUP-0083"
+  },
+  {
+    "materialId": "MAT-0361",
+    "materialCode": "100000361",
+    "materialName": "Bearing Housings - Type B459",
+    "category": "Bearings",
+    "subcategory": "Bearing Housings",
+    "uom": "PAIR",
+    "manufacturer": "Timken",
+    "preferredSupplierId": "SUP-0096"
+  },
+  {
+    "materialId": "MAT-0362",
+    "materialCode": "100000362",
+    "materialName": "Bearing Housings - Type C737",
+    "category": "Bearings",
+    "subcategory": "Bearing Housings",
+    "uom": "MT",
+    "manufacturer": "Timken",
+    "preferredSupplierId": "SUP-0066"
+  },
+  {
+    "materialId": "MAT-0363",
+    "materialCode": "100000363",
+    "materialName": "Bearing Housings - Type D822",
+    "category": "Bearings",
+    "subcategory": "Bearing Housings",
+    "uom": "BOX",
+    "manufacturer": "NSK",
+    "preferredSupplierId": "SUP-0001"
+  },
+  {
+    "materialId": "MAT-0364",
+    "materialCode": "100000364",
+    "materialName": "Bearing Housings - Type E686",
+    "category": "Bearings",
+    "subcategory": "Bearing Housings",
+    "uom": "LTR",
+    "manufacturer": "NSK",
+    "preferredSupplierId": "SUP-0045"
+  },
+  {
+    "materialId": "MAT-0365",
+    "materialCode": "100000365",
+    "materialName": "Ball Bearings - Type F612",
+    "category": "Bearings",
+    "subcategory": "Ball Bearings",
+    "uom": "SET",
+    "manufacturer": "Timken",
+    "preferredSupplierId": "SUP-0059"
+  },
+  {
+    "materialId": "MAT-0366",
+    "materialCode": "100000366",
+    "materialName": "Roller Bearings - Type A180",
+    "category": "Bearings",
+    "subcategory": "Roller Bearings",
+    "uom": "MTR",
+    "manufacturer": "SKF",
+    "preferredSupplierId": "SUP-0031"
+  },
+  {
+    "materialId": "MAT-0367",
+    "materialCode": "100000367",
+    "materialName": "Ball Bearings - Type B867",
+    "category": "Bearings",
+    "subcategory": "Ball Bearings",
+    "uom": "PAIR",
+    "manufacturer": "Timken",
+    "preferredSupplierId": "SUP-0080"
+  },
+  {
+    "materialId": "MAT-0368",
+    "materialCode": "100000368",
+    "materialName": "Roller Bearings - Type C359",
+    "category": "Bearings",
+    "subcategory": "Roller Bearings",
+    "uom": "PAIR",
+    "manufacturer": "Timken",
+    "preferredSupplierId": "SUP-0058"
+  },
+  {
+    "materialId": "MAT-0369",
+    "materialCode": "100000369",
+    "materialName": "Ball Bearings - Type D319",
+    "category": "Bearings",
+    "subcategory": "Ball Bearings",
+    "uom": "BOX",
+    "manufacturer": "NTN",
+    "preferredSupplierId": "SUP-0067"
+  },
+  {
+    "materialId": "MAT-0370",
+    "materialCode": "100000370",
+    "materialName": "Pipe Fittings - Type E775",
+    "category": "Pipes",
+    "subcategory": "Pipe Fittings",
+    "uom": "MT",
+    "manufacturer": "Continental ContiTech",
+    "preferredSupplierId": "SUP-0001"
+  },
+  {
+    "materialId": "MAT-0371",
+    "materialCode": "100000371",
+    "materialName": "Steel Pipes - Type F579",
+    "category": "Pipes",
+    "subcategory": "Steel Pipes",
+    "uom": "LTR",
+    "manufacturer": "Tata Pipes",
+    "preferredSupplierId": "SUP-0063"
+  },
+  {
+    "materialId": "MAT-0372",
+    "materialCode": "100000372",
+    "materialName": "HDPE Pipes - Type A590",
+    "category": "Pipes",
+    "subcategory": "HDPE Pipes",
+    "uom": "BOX",
+    "manufacturer": "Jindal Pipes",
+    "preferredSupplierId": "SUP-0062"
+  },
+  {
+    "materialId": "MAT-0373",
+    "materialCode": "100000373",
+    "materialName": "HDPE Pipes - Type B738",
+    "category": "Pipes",
+    "subcategory": "HDPE Pipes",
+    "uom": "SET",
+    "manufacturer": "Finolex",
+    "preferredSupplierId": "SUP-0088"
+  },
+  {
+    "materialId": "MAT-0374",
+    "materialCode": "100000374",
+    "materialName": "HDPE Pipes - Type C948",
+    "category": "Pipes",
+    "subcategory": "HDPE Pipes",
+    "uom": "SET",
+    "manufacturer": "Continental ContiTech",
+    "preferredSupplierId": "SUP-0016"
+  },
+  {
+    "materialId": "MAT-0375",
+    "materialCode": "100000375",
+    "materialName": "Steel Pipes - Type D275",
+    "category": "Pipes",
+    "subcategory": "Steel Pipes",
+    "uom": "MTR",
+    "manufacturer": "Tata Pipes",
+    "preferredSupplierId": "SUP-0053"
+  },
+  {
+    "materialId": "MAT-0376",
+    "materialCode": "100000376",
+    "materialName": "HDPE Pipes - Type E274",
+    "category": "Pipes",
+    "subcategory": "HDPE Pipes",
+    "uom": "EA",
+    "manufacturer": "Tata Pipes",
+    "preferredSupplierId": "SUP-0068"
+  },
+  {
+    "materialId": "MAT-0377",
+    "materialCode": "100000377",
+    "materialName": "HDPE Pipes - Type F888",
+    "category": "Pipes",
+    "subcategory": "HDPE Pipes",
+    "uom": "MT",
+    "manufacturer": "Jindal Pipes",
+    "preferredSupplierId": "SUP-0044"
+  },
+  {
+    "materialId": "MAT-0378",
+    "materialCode": "100000378",
+    "materialName": "Steel Pipes - Type A984",
+    "category": "Pipes",
+    "subcategory": "Steel Pipes",
+    "uom": "BOX",
+    "manufacturer": "Continental ContiTech",
+    "preferredSupplierId": "SUP-0021"
+  },
+  {
+    "materialId": "MAT-0379",
+    "materialCode": "100000379",
+    "materialName": "Steel Pipes - Type B494",
+    "category": "Pipes",
+    "subcategory": "Steel Pipes",
+    "uom": "SET",
+    "manufacturer": "Finolex",
+    "preferredSupplierId": "SUP-0099"
+  },
+  {
+    "materialId": "MAT-0380",
+    "materialCode": "100000380",
+    "materialName": "HDPE Pipes - Type C624",
+    "category": "Pipes",
+    "subcategory": "HDPE Pipes",
+    "uom": "EA",
+    "manufacturer": "Jindal Pipes",
+    "preferredSupplierId": "SUP-0074"
+  },
+  {
+    "materialId": "MAT-0381",
+    "materialCode": "100000381",
+    "materialName": "HDPE Pipes - Type D756",
+    "category": "Pipes",
+    "subcategory": "HDPE Pipes",
+    "uom": "EA",
+    "manufacturer": "Finolex",
+    "preferredSupplierId": "SUP-0099"
+  },
+  {
+    "materialId": "MAT-0382",
+    "materialCode": "100000382",
+    "materialName": "HDPE Pipes - Type E359",
+    "category": "Pipes",
+    "subcategory": "HDPE Pipes",
+    "uom": "BOX",
+    "manufacturer": "Jindal Pipes",
+    "preferredSupplierId": "SUP-0056"
+  },
+  {
+    "materialId": "MAT-0383",
+    "materialCode": "100000383",
+    "materialName": "Pipe Fittings - Type F491",
+    "category": "Pipes",
+    "subcategory": "Pipe Fittings",
+    "uom": "LTR",
+    "manufacturer": "Finolex",
+    "preferredSupplierId": "SUP-0067"
+  },
+  {
+    "materialId": "MAT-0384",
+    "materialCode": "100000384",
+    "materialName": "HDPE Pipes - Type A541",
+    "category": "Pipes",
+    "subcategory": "HDPE Pipes",
+    "uom": "MTR",
+    "manufacturer": "Continental ContiTech",
+    "preferredSupplierId": "SUP-0008"
+  },
+  {
+    "materialId": "MAT-0385",
+    "materialCode": "100000385",
+    "materialName": "Rubber Lined Pipes - Type B304",
+    "category": "Pipes",
+    "subcategory": "Rubber Lined Pipes",
+    "uom": "LTR",
+    "manufacturer": "Tata Pipes",
+    "preferredSupplierId": "SUP-0073"
+  },
+  {
+    "materialId": "MAT-0386",
+    "materialCode": "100000386",
+    "materialName": "Rubber Lined Pipes - Type C667",
+    "category": "Pipes",
+    "subcategory": "Rubber Lined Pipes",
+    "uom": "EA",
+    "manufacturer": "Finolex",
+    "preferredSupplierId": "SUP-0002"
+  },
+  {
+    "materialId": "MAT-0387",
+    "materialCode": "100000387",
+    "materialName": "Rubber Lined Pipes - Type D291",
+    "category": "Pipes",
+    "subcategory": "Rubber Lined Pipes",
+    "uom": "LTR",
+    "manufacturer": "Jindal Pipes",
+    "preferredSupplierId": "SUP-0010"
+  },
+  {
+    "materialId": "MAT-0388",
+    "materialCode": "100000388",
+    "materialName": "Pipe Fittings - Type E790",
+    "category": "Pipes",
+    "subcategory": "Pipe Fittings",
+    "uom": "ROLL",
+    "manufacturer": "Finolex",
+    "preferredSupplierId": "SUP-0028"
+  },
+  {
+    "materialId": "MAT-0389",
+    "materialCode": "100000389",
+    "materialName": "Pipe Fittings - Type F186",
+    "category": "Pipes",
+    "subcategory": "Pipe Fittings",
+    "uom": "ROLL",
+    "manufacturer": "Continental ContiTech",
+    "preferredSupplierId": "SUP-0038"
+  },
+  {
+    "materialId": "MAT-0390",
+    "materialCode": "100000390",
+    "materialName": "HDPE Pipes - Type A628",
+    "category": "Pipes",
+    "subcategory": "HDPE Pipes",
+    "uom": "SET",
+    "manufacturer": "Continental ContiTech",
+    "preferredSupplierId": "SUP-0063"
+  },
+  {
+    "materialId": "MAT-0391",
+    "materialCode": "100000391",
+    "materialName": "Rubber Lined Pipes - Type B113",
+    "category": "Pipes",
+    "subcategory": "Rubber Lined Pipes",
+    "uom": "BOX",
+    "manufacturer": "Tata Pipes",
+    "preferredSupplierId": "SUP-0066"
+  },
+  {
+    "materialId": "MAT-0392",
+    "materialCode": "100000392",
+    "materialName": "Steel Pipes - Type C130",
+    "category": "Pipes",
+    "subcategory": "Steel Pipes",
+    "uom": "PAIR",
+    "manufacturer": "Jindal Pipes",
+    "preferredSupplierId": "SUP-0045"
+  },
+  {
+    "materialId": "MAT-0393",
+    "materialCode": "100000393",
+    "materialName": "HDPE Pipes - Type D156",
+    "category": "Pipes",
+    "subcategory": "HDPE Pipes",
+    "uom": "LTR",
+    "manufacturer": "Continental ContiTech",
+    "preferredSupplierId": "SUP-0070"
+  },
+  {
+    "materialId": "MAT-0394",
+    "materialCode": "100000394",
+    "materialName": "Pipe Fittings - Type E842",
+    "category": "Pipes",
+    "subcategory": "Pipe Fittings",
+    "uom": "BOX",
+    "manufacturer": "Finolex",
+    "preferredSupplierId": "SUP-0005"
+  },
+  {
+    "materialId": "MAT-0395",
+    "materialCode": "100000395",
+    "materialName": "Rubber Lined Pipes - Type F464",
+    "category": "Pipes",
+    "subcategory": "Rubber Lined Pipes",
+    "uom": "MTR",
+    "manufacturer": "Finolex",
+    "preferredSupplierId": "SUP-0085"
+  },
+  {
+    "materialId": "MAT-0396",
+    "materialCode": "100000396",
+    "materialName": "Pipe Fittings - Type A459",
+    "category": "Pipes",
+    "subcategory": "Pipe Fittings",
+    "uom": "LTR",
+    "manufacturer": "Finolex",
+    "preferredSupplierId": "SUP-0030"
+  },
+  {
+    "materialId": "MAT-0397",
+    "materialCode": "100000397",
+    "materialName": "HDPE Pipes - Type B696",
+    "category": "Pipes",
+    "subcategory": "HDPE Pipes",
+    "uom": "SET",
+    "manufacturer": "Continental ContiTech",
+    "preferredSupplierId": "SUP-0012"
+  },
+  {
+    "materialId": "MAT-0398",
+    "materialCode": "100000398",
+    "materialName": "Steel Pipes - Type C983",
+    "category": "Pipes",
+    "subcategory": "Steel Pipes",
+    "uom": "MT",
+    "manufacturer": "Continental ContiTech",
+    "preferredSupplierId": "SUP-0031"
+  },
+  {
+    "materialId": "MAT-0399",
+    "materialCode": "100000399",
+    "materialName": "Pipe Fittings - Type D261",
+    "category": "Pipes",
+    "subcategory": "Pipe Fittings",
+    "uom": "LTR",
+    "manufacturer": "Finolex",
+    "preferredSupplierId": "SUP-0098"
+  },
+  {
+    "materialId": "MAT-0400",
+    "materialCode": "100000400",
+    "materialName": "Pipe Fittings - Type E350",
+    "category": "Pipes",
+    "subcategory": "Pipe Fittings",
+    "uom": "BOX",
+    "manufacturer": "Finolex",
+    "preferredSupplierId": "SUP-0078"
+  },
+  {
+    "materialId": "MAT-0401",
+    "materialCode": "100000401",
+    "materialName": "Pipe Fittings - Type F806",
+    "category": "Pipes",
+    "subcategory": "Pipe Fittings",
+    "uom": "KG",
+    "manufacturer": "Tata Pipes",
+    "preferredSupplierId": "SUP-0012"
+  },
+  {
+    "materialId": "MAT-0402",
+    "materialCode": "100000402",
+    "materialName": "HDPE Pipes - Type A445",
+    "category": "Pipes",
+    "subcategory": "HDPE Pipes",
+    "uom": "BOX",
+    "manufacturer": "Jindal Pipes",
+    "preferredSupplierId": "SUP-0083"
+  },
+  {
+    "materialId": "MAT-0403",
+    "materialCode": "100000403",
+    "materialName": "Rubber Lined Pipes - Type B239",
+    "category": "Pipes",
+    "subcategory": "Rubber Lined Pipes",
+    "uom": "LTR",
+    "manufacturer": "Jindal Pipes",
+    "preferredSupplierId": "SUP-0082"
+  },
+  {
+    "materialId": "MAT-0404",
+    "materialCode": "100000404",
+    "materialName": "Steel Pipes - Type C107",
+    "category": "Pipes",
+    "subcategory": "Steel Pipes",
+    "uom": "ROLL",
+    "manufacturer": "Tata Pipes",
+    "preferredSupplierId": "SUP-0019"
+  },
+  {
+    "materialId": "MAT-0405",
+    "materialCode": "100000405",
+    "materialName": "Rubber Lined Pipes - Type D323",
+    "category": "Pipes",
+    "subcategory": "Rubber Lined Pipes",
+    "uom": "BOX",
+    "manufacturer": "Continental ContiTech",
+    "preferredSupplierId": "SUP-0014"
+  },
+  {
+    "materialId": "MAT-0406",
+    "materialCode": "100000406",
+    "materialName": "HDPE Pipes - Type E390",
+    "category": "Pipes",
+    "subcategory": "HDPE Pipes",
+    "uom": "BOX",
+    "manufacturer": "Tata Pipes",
+    "preferredSupplierId": "SUP-0094"
+  },
+  {
+    "materialId": "MAT-0407",
+    "materialCode": "100000407",
+    "materialName": "Pipe Fittings - Type F754",
+    "category": "Pipes",
+    "subcategory": "Pipe Fittings",
+    "uom": "LTR",
+    "manufacturer": "Jindal Pipes",
+    "preferredSupplierId": "SUP-0061"
+  },
+  {
+    "materialId": "MAT-0408",
+    "materialCode": "100000408",
+    "materialName": "Pipe Fittings - Type A431",
+    "category": "Pipes",
+    "subcategory": "Pipe Fittings",
+    "uom": "MT",
+    "manufacturer": "Jindal Pipes",
+    "preferredSupplierId": "SUP-0074"
+  },
+  {
+    "materialId": "MAT-0409",
+    "materialCode": "100000409",
+    "materialName": "HDPE Pipes - Type B305",
+    "category": "Pipes",
+    "subcategory": "HDPE Pipes",
+    "uom": "MT",
+    "manufacturer": "Continental ContiTech",
+    "preferredSupplierId": "SUP-0099"
+  },
+  {
+    "materialId": "MAT-0410",
+    "materialCode": "100000410",
+    "materialName": "Rubber Lined Pipes - Type C868",
+    "category": "Pipes",
+    "subcategory": "Rubber Lined Pipes",
+    "uom": "KG",
+    "manufacturer": "Finolex",
+    "preferredSupplierId": "SUP-0092"
+  },
+  {
+    "materialId": "MAT-0411",
+    "materialCode": "100000411",
+    "materialName": "Gate Valves - Type D928",
+    "category": "Valves",
+    "subcategory": "Gate Valves",
+    "uom": "MT",
+    "manufacturer": "Parker Hannifin",
+    "preferredSupplierId": "SUP-0094"
+  },
+  {
+    "materialId": "MAT-0412",
+    "materialCode": "100000412",
+    "materialName": "Gate Valves - Type E412",
+    "category": "Valves",
+    "subcategory": "Gate Valves",
+    "uom": "KG",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0007"
+  },
+  {
+    "materialId": "MAT-0413",
+    "materialCode": "100000413",
+    "materialName": "Gate Valves - Type F695",
+    "category": "Valves",
+    "subcategory": "Gate Valves",
+    "uom": "LTR",
+    "manufacturer": "Flowserve",
+    "preferredSupplierId": "SUP-0095"
+  },
+  {
+    "materialId": "MAT-0414",
+    "materialCode": "100000414",
+    "materialName": "Ball Valves - Type A339",
+    "category": "Valves",
+    "subcategory": "Ball Valves",
+    "uom": "KG",
+    "manufacturer": "Emerson",
+    "preferredSupplierId": "SUP-0044"
+  },
+  {
+    "materialId": "MAT-0415",
+    "materialCode": "100000415",
+    "materialName": "Control Valves - Type B375",
+    "category": "Valves",
+    "subcategory": "Control Valves",
+    "uom": "MTR",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0018"
+  },
+  {
+    "materialId": "MAT-0416",
+    "materialCode": "100000416",
+    "materialName": "Ball Valves - Type C834",
+    "category": "Valves",
+    "subcategory": "Ball Valves",
+    "uom": "EA",
+    "manufacturer": "Emerson",
+    "preferredSupplierId": "SUP-0100"
+  },
+  {
+    "materialId": "MAT-0417",
+    "materialCode": "100000417",
+    "materialName": "Gate Valves - Type D243",
+    "category": "Valves",
+    "subcategory": "Gate Valves",
+    "uom": "SET",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0062"
+  },
+  {
+    "materialId": "MAT-0418",
+    "materialCode": "100000418",
+    "materialName": "Ball Valves - Type E121",
+    "category": "Valves",
+    "subcategory": "Ball Valves",
+    "uom": "PAIR",
+    "manufacturer": "Emerson",
+    "preferredSupplierId": "SUP-0016"
+  },
+  {
+    "materialId": "MAT-0419",
+    "materialCode": "100000419",
+    "materialName": "Butterfly Valves - Type F459",
+    "category": "Valves",
+    "subcategory": "Butterfly Valves",
+    "uom": "EA",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0027"
+  },
+  {
+    "materialId": "MAT-0420",
+    "materialCode": "100000420",
+    "materialName": "Butterfly Valves - Type A683",
+    "category": "Valves",
+    "subcategory": "Butterfly Valves",
+    "uom": "BOX",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0015"
+  },
+  {
+    "materialId": "MAT-0421",
+    "materialCode": "100000421",
+    "materialName": "Gate Valves - Type B624",
+    "category": "Valves",
+    "subcategory": "Gate Valves",
+    "uom": "ROLL",
+    "manufacturer": "Flowserve",
+    "preferredSupplierId": "SUP-0086"
+  },
+  {
+    "materialId": "MAT-0422",
+    "materialCode": "100000422",
+    "materialName": "Control Valves - Type C780",
+    "category": "Valves",
+    "subcategory": "Control Valves",
+    "uom": "MTR",
+    "manufacturer": "Flowserve",
+    "preferredSupplierId": "SUP-0091"
+  },
+  {
+    "materialId": "MAT-0423",
+    "materialCode": "100000423",
+    "materialName": "Gate Valves - Type D993",
+    "category": "Valves",
+    "subcategory": "Gate Valves",
+    "uom": "EA",
+    "manufacturer": "Parker Hannifin",
+    "preferredSupplierId": "SUP-0044"
+  },
+  {
+    "materialId": "MAT-0424",
+    "materialCode": "100000424",
+    "materialName": "Gate Valves - Type E584",
+    "category": "Valves",
+    "subcategory": "Gate Valves",
+    "uom": "EA",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0094"
+  },
+  {
+    "materialId": "MAT-0425",
+    "materialCode": "100000425",
+    "materialName": "Butterfly Valves - Type F317",
+    "category": "Valves",
+    "subcategory": "Butterfly Valves",
+    "uom": "MTR",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0057"
+  },
+  {
+    "materialId": "MAT-0426",
+    "materialCode": "100000426",
+    "materialName": "Control Valves - Type A520",
+    "category": "Valves",
+    "subcategory": "Control Valves",
+    "uom": "SET",
+    "manufacturer": "Flowserve",
+    "preferredSupplierId": "SUP-0042"
+  },
+  {
+    "materialId": "MAT-0427",
+    "materialCode": "100000427",
+    "materialName": "Gate Valves - Type B270",
+    "category": "Valves",
+    "subcategory": "Gate Valves",
+    "uom": "KG",
+    "manufacturer": "Parker Hannifin",
+    "preferredSupplierId": "SUP-0041"
+  },
+  {
+    "materialId": "MAT-0428",
+    "materialCode": "100000428",
+    "materialName": "Control Valves - Type C232",
+    "category": "Valves",
+    "subcategory": "Control Valves",
+    "uom": "LTR",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0093"
+  },
+  {
+    "materialId": "MAT-0429",
+    "materialCode": "100000429",
+    "materialName": "Control Valves - Type D599",
+    "category": "Valves",
+    "subcategory": "Control Valves",
+    "uom": "LTR",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0046"
+  },
+  {
+    "materialId": "MAT-0430",
+    "materialCode": "100000430",
+    "materialName": "Ball Valves - Type E404",
+    "category": "Valves",
+    "subcategory": "Ball Valves",
+    "uom": "SET",
+    "manufacturer": "Flowserve",
+    "preferredSupplierId": "SUP-0038"
+  },
+  {
+    "materialId": "MAT-0431",
+    "materialCode": "100000431",
+    "materialName": "Gate Valves - Type F555",
+    "category": "Valves",
+    "subcategory": "Gate Valves",
+    "uom": "MT",
+    "manufacturer": "Flowserve",
+    "preferredSupplierId": "SUP-0065"
+  },
+  {
+    "materialId": "MAT-0432",
+    "materialCode": "100000432",
+    "materialName": "Gate Valves - Type A476",
+    "category": "Valves",
+    "subcategory": "Gate Valves",
+    "uom": "BOX",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0100"
+  },
+  {
+    "materialId": "MAT-0433",
+    "materialCode": "100000433",
+    "materialName": "Control Valves - Type B169",
+    "category": "Valves",
+    "subcategory": "Control Valves",
+    "uom": "MT",
+    "manufacturer": "Flowserve",
+    "preferredSupplierId": "SUP-0059"
+  },
+  {
+    "materialId": "MAT-0434",
+    "materialCode": "100000434",
+    "materialName": "Butterfly Valves - Type C120",
+    "category": "Valves",
+    "subcategory": "Butterfly Valves",
+    "uom": "EA",
+    "manufacturer": "Emerson",
+    "preferredSupplierId": "SUP-0073"
+  },
+  {
+    "materialId": "MAT-0435",
+    "materialCode": "100000435",
+    "materialName": "Butterfly Valves - Type D440",
+    "category": "Valves",
+    "subcategory": "Butterfly Valves",
+    "uom": "MT",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0047"
+  },
+  {
+    "materialId": "MAT-0436",
+    "materialCode": "100000436",
+    "materialName": "Gate Valves - Type E601",
+    "category": "Valves",
+    "subcategory": "Gate Valves",
+    "uom": "PAIR",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0052"
+  },
+  {
+    "materialId": "MAT-0437",
+    "materialCode": "100000437",
+    "materialName": "Butterfly Valves - Type F627",
+    "category": "Valves",
+    "subcategory": "Butterfly Valves",
+    "uom": "KG",
+    "manufacturer": "Emerson",
+    "preferredSupplierId": "SUP-0036"
+  },
+  {
+    "materialId": "MAT-0438",
+    "materialCode": "100000438",
+    "materialName": "Ball Valves - Type A148",
+    "category": "Valves",
+    "subcategory": "Ball Valves",
+    "uom": "ROLL",
+    "manufacturer": "Parker Hannifin",
+    "preferredSupplierId": "SUP-0029"
+  },
+  {
+    "materialId": "MAT-0439",
+    "materialCode": "100000439",
+    "materialName": "Ball Valves - Type B817",
+    "category": "Valves",
+    "subcategory": "Ball Valves",
+    "uom": "BOX",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0058"
+  },
+  {
+    "materialId": "MAT-0440",
+    "materialCode": "100000440",
+    "materialName": "Control Valves - Type C358",
+    "category": "Valves",
+    "subcategory": "Control Valves",
+    "uom": "KG",
+    "manufacturer": "KSB Pumps",
+    "preferredSupplierId": "SUP-0081"
+  },
+  {
+    "materialId": "MAT-0441",
+    "materialCode": "100000441",
+    "materialName": "Ball Valves - Type D751",
+    "category": "Valves",
+    "subcategory": "Ball Valves",
+    "uom": "SET",
+    "manufacturer": "Flowserve",
+    "preferredSupplierId": "SUP-0007"
+  },
+  {
+    "materialId": "MAT-0442",
+    "materialCode": "100000442",
+    "materialName": "Gate Valves - Type E450",
+    "category": "Valves",
+    "subcategory": "Gate Valves",
+    "uom": "LTR",
+    "manufacturer": "Flowserve",
+    "preferredSupplierId": "SUP-0022"
+  },
+  {
+    "materialId": "MAT-0443",
+    "materialCode": "100000443",
+    "materialName": "Butterfly Valves - Type F600",
+    "category": "Valves",
+    "subcategory": "Butterfly Valves",
+    "uom": "MT",
+    "manufacturer": "Parker Hannifin",
+    "preferredSupplierId": "SUP-0038"
+  },
+  {
+    "materialId": "MAT-0444",
+    "materialCode": "100000444",
+    "materialName": "Butterfly Valves - Type A532",
+    "category": "Valves",
+    "subcategory": "Butterfly Valves",
+    "uom": "MT",
+    "manufacturer": "Emerson",
+    "preferredSupplierId": "SUP-0010"
+  },
+  {
+    "materialId": "MAT-0445",
+    "materialCode": "100000445",
+    "materialName": "Control Valves - Type B383",
+    "category": "Valves",
+    "subcategory": "Control Valves",
+    "uom": "MTR",
+    "manufacturer": "Emerson",
+    "preferredSupplierId": "SUP-0057"
+  },
+  {
+    "materialId": "MAT-0446",
+    "materialCode": "100000446",
+    "materialName": "Butterfly Valves - Type C448",
+    "category": "Valves",
+    "subcategory": "Butterfly Valves",
+    "uom": "KG",
+    "manufacturer": "Flowserve",
+    "preferredSupplierId": "SUP-0097"
+  },
+  {
+    "materialId": "MAT-0447",
+    "materialCode": "100000447",
+    "materialName": "Butterfly Valves - Type D195",
+    "category": "Valves",
+    "subcategory": "Butterfly Valves",
+    "uom": "KG",
+    "manufacturer": "Parker Hannifin",
+    "preferredSupplierId": "SUP-0041"
+  },
+  {
+    "materialId": "MAT-0448",
+    "materialCode": "100000448",
+    "materialName": "Butterfly Valves - Type E105",
+    "category": "Valves",
+    "subcategory": "Butterfly Valves",
+    "uom": "LTR",
+    "manufacturer": "Flowserve",
+    "preferredSupplierId": "SUP-0037"
+  },
+  {
+    "materialId": "MAT-0449",
+    "materialCode": "100000449",
+    "materialName": "Gate Valves - Type F188",
+    "category": "Valves",
+    "subcategory": "Gate Valves",
+    "uom": "MT",
+    "manufacturer": "Emerson",
+    "preferredSupplierId": "SUP-0088"
+  },
+  {
+    "materialId": "MAT-0450",
+    "materialCode": "100000450",
+    "materialName": "Butterfly Valves - Type A408",
+    "category": "Valves",
+    "subcategory": "Butterfly Valves",
+    "uom": "PAIR",
+    "manufacturer": "Emerson",
+    "preferredSupplierId": "SUP-0086"
+  },
+  {
+    "materialId": "MAT-0451",
+    "materialCode": "100000451",
+    "materialName": "Control Valves - Type B905",
+    "category": "Valves",
+    "subcategory": "Control Valves",
+    "uom": "ROLL",
+    "manufacturer": "Parker Hannifin",
+    "preferredSupplierId": "SUP-0009"
+  },
+  {
+    "materialId": "MAT-0452",
+    "materialCode": "100000452",
+    "materialName": "Gear Oil - Type C758",
+    "category": "Lubricants",
+    "subcategory": "Gear Oil",
+    "uom": "ROLL",
+    "manufacturer": "Total Lubricants",
+    "preferredSupplierId": "SUP-0084"
+  },
+  {
+    "materialId": "MAT-0453",
+    "materialCode": "100000453",
+    "materialName": "Industrial Grease - Type D728",
+    "category": "Lubricants",
+    "subcategory": "Industrial Grease",
+    "uom": "SET",
+    "manufacturer": "Servo (IOCL)",
+    "preferredSupplierId": "SUP-0042"
+  },
+  {
+    "materialId": "MAT-0454",
+    "materialCode": "100000454",
+    "materialName": "Coolants - Type E239",
+    "category": "Lubricants",
+    "subcategory": "Coolants",
+    "uom": "PAIR",
+    "manufacturer": "Shell Lubricants",
+    "preferredSupplierId": "SUP-0032"
+  },
+  {
+    "materialId": "MAT-0455",
+    "materialCode": "100000455",
+    "materialName": "Industrial Grease - Type F971",
+    "category": "Lubricants",
+    "subcategory": "Industrial Grease",
+    "uom": "PAIR",
+    "manufacturer": "Gulf Oil",
+    "preferredSupplierId": "SUP-0099"
+  },
+  {
+    "materialId": "MAT-0456",
+    "materialCode": "100000456",
+    "materialName": "Coolants - Type A835",
+    "category": "Lubricants",
+    "subcategory": "Coolants",
+    "uom": "SET",
+    "manufacturer": "Shell Lubricants",
+    "preferredSupplierId": "SUP-0024"
+  },
+  {
+    "materialId": "MAT-0457",
+    "materialCode": "100000457",
+    "materialName": "Hydraulic Oil - Type B194",
+    "category": "Lubricants",
+    "subcategory": "Hydraulic Oil",
+    "uom": "LTR",
+    "manufacturer": "Castrol",
+    "preferredSupplierId": "SUP-0034"
+  },
+  {
+    "materialId": "MAT-0458",
+    "materialCode": "100000458",
+    "materialName": "Hydraulic Oil - Type C799",
+    "category": "Lubricants",
+    "subcategory": "Hydraulic Oil",
+    "uom": "LTR",
+    "manufacturer": "Shell Lubricants",
+    "preferredSupplierId": "SUP-0020"
+  },
+  {
+    "materialId": "MAT-0459",
+    "materialCode": "100000459",
+    "materialName": "Coolants - Type D150",
+    "category": "Lubricants",
+    "subcategory": "Coolants",
+    "uom": "ROLL",
+    "manufacturer": "Total Lubricants",
+    "preferredSupplierId": "SUP-0098"
+  },
+  {
+    "materialId": "MAT-0460",
+    "materialCode": "100000460",
+    "materialName": "Industrial Grease - Type E911",
+    "category": "Lubricants",
+    "subcategory": "Industrial Grease",
+    "uom": "KG",
+    "manufacturer": "Castrol",
+    "preferredSupplierId": "SUP-0029"
+  },
+  {
+    "materialId": "MAT-0461",
+    "materialCode": "100000461",
+    "materialName": "Coolants - Type F235",
+    "category": "Lubricants",
+    "subcategory": "Coolants",
+    "uom": "ROLL",
+    "manufacturer": "Servo (IOCL)",
+    "preferredSupplierId": "SUP-0049"
+  },
+  {
+    "materialId": "MAT-0462",
+    "materialCode": "100000462",
+    "materialName": "Gear Oil - Type A336",
+    "category": "Lubricants",
+    "subcategory": "Gear Oil",
+    "uom": "MT",
+    "manufacturer": "Gulf Oil",
+    "preferredSupplierId": "SUP-0039"
+  },
+  {
+    "materialId": "MAT-0463",
+    "materialCode": "100000463",
+    "materialName": "Industrial Grease - Type B183",
+    "category": "Lubricants",
+    "subcategory": "Industrial Grease",
+    "uom": "ROLL",
+    "manufacturer": "Gulf Oil",
+    "preferredSupplierId": "SUP-0080"
+  },
+  {
+    "materialId": "MAT-0464",
+    "materialCode": "100000464",
+    "materialName": "Coolants - Type C465",
+    "category": "Lubricants",
+    "subcategory": "Coolants",
+    "uom": "PAIR",
+    "manufacturer": "Shell Lubricants",
+    "preferredSupplierId": "SUP-0072"
+  },
+  {
+    "materialId": "MAT-0465",
+    "materialCode": "100000465",
+    "materialName": "Industrial Grease - Type D333",
+    "category": "Lubricants",
+    "subcategory": "Industrial Grease",
+    "uom": "SET",
+    "manufacturer": "Gulf Oil",
+    "preferredSupplierId": "SUP-0001"
+  },
+  {
+    "materialId": "MAT-0466",
+    "materialCode": "100000466",
+    "materialName": "Industrial Grease - Type E306",
+    "category": "Lubricants",
+    "subcategory": "Industrial Grease",
+    "uom": "LTR",
+    "manufacturer": "Castrol",
+    "preferredSupplierId": "SUP-0031"
+  },
+  {
+    "materialId": "MAT-0467",
+    "materialCode": "100000467",
+    "materialName": "Coolants - Type F448",
+    "category": "Lubricants",
+    "subcategory": "Coolants",
+    "uom": "BOX",
+    "manufacturer": "Servo (IOCL)",
+    "preferredSupplierId": "SUP-0045"
+  },
+  {
+    "materialId": "MAT-0468",
+    "materialCode": "100000468",
+    "materialName": "Industrial Grease - Type A406",
+    "category": "Lubricants",
+    "subcategory": "Industrial Grease",
+    "uom": "PAIR",
+    "manufacturer": "Castrol",
+    "preferredSupplierId": "SUP-0087"
+  },
+  {
+    "materialId": "MAT-0469",
+    "materialCode": "100000469",
+    "materialName": "Coolants - Type B883",
+    "category": "Lubricants",
+    "subcategory": "Coolants",
+    "uom": "BOX",
+    "manufacturer": "Servo (IOCL)",
+    "preferredSupplierId": "SUP-0039"
+  },
+  {
+    "materialId": "MAT-0470",
+    "materialCode": "100000470",
+    "materialName": "Coolants - Type C990",
+    "category": "Lubricants",
+    "subcategory": "Coolants",
+    "uom": "PAIR",
+    "manufacturer": "Shell Lubricants",
+    "preferredSupplierId": "SUP-0066"
+  },
+  {
+    "materialId": "MAT-0471",
+    "materialCode": "100000471",
+    "materialName": "Hydraulic Oil - Type D534",
+    "category": "Lubricants",
+    "subcategory": "Hydraulic Oil",
+    "uom": "LTR",
+    "manufacturer": "Total Lubricants",
+    "preferredSupplierId": "SUP-0079"
+  },
+  {
+    "materialId": "MAT-0472",
+    "materialCode": "100000472",
+    "materialName": "Hydraulic Oil - Type E543",
+    "category": "Lubricants",
+    "subcategory": "Hydraulic Oil",
+    "uom": "ROLL",
+    "manufacturer": "Shell Lubricants",
+    "preferredSupplierId": "SUP-0065"
+  },
+  {
+    "materialId": "MAT-0473",
+    "materialCode": "100000473",
+    "materialName": "Hydraulic Oil - Type F742",
+    "category": "Lubricants",
+    "subcategory": "Hydraulic Oil",
+    "uom": "BOX",
+    "manufacturer": "Total Lubricants",
+    "preferredSupplierId": "SUP-0015"
+  },
+  {
+    "materialId": "MAT-0474",
+    "materialCode": "100000474",
+    "materialName": "Gear Oil - Type A438",
+    "category": "Lubricants",
+    "subcategory": "Gear Oil",
+    "uom": "BOX",
+    "manufacturer": "Total Lubricants",
+    "preferredSupplierId": "SUP-0027"
+  },
+  {
+    "materialId": "MAT-0475",
+    "materialCode": "100000475",
+    "materialName": "Coolants - Type B197",
+    "category": "Lubricants",
+    "subcategory": "Coolants",
+    "uom": "SET",
+    "manufacturer": "Servo (IOCL)",
+    "preferredSupplierId": "SUP-0018"
+  },
+  {
+    "materialId": "MAT-0476",
+    "materialCode": "100000476",
+    "materialName": "Industrial Grease - Type C725",
+    "category": "Lubricants",
+    "subcategory": "Industrial Grease",
+    "uom": "MT",
+    "manufacturer": "Gulf Oil",
+    "preferredSupplierId": "SUP-0097"
+  },
+  {
+    "materialId": "MAT-0477",
+    "materialCode": "100000477",
+    "materialName": "Coolants - Type D277",
+    "category": "Lubricants",
+    "subcategory": "Coolants",
+    "uom": "SET",
+    "manufacturer": "Castrol",
+    "preferredSupplierId": "SUP-0064"
+  },
+  {
+    "materialId": "MAT-0478",
+    "materialCode": "100000478",
+    "materialName": "Coolants - Type E378",
+    "category": "Lubricants",
+    "subcategory": "Coolants",
+    "uom": "KG",
+    "manufacturer": "Castrol",
+    "preferredSupplierId": "SUP-0045"
+  },
+  {
+    "materialId": "MAT-0479",
+    "materialCode": "100000479",
+    "materialName": "Industrial Grease - Type F320",
+    "category": "Lubricants",
+    "subcategory": "Industrial Grease",
+    "uom": "ROLL",
+    "manufacturer": "Castrol",
+    "preferredSupplierId": "SUP-0036"
+  },
+  {
+    "materialId": "MAT-0480",
+    "materialCode": "100000480",
+    "materialName": "Hydraulic Oil - Type A504",
+    "category": "Lubricants",
+    "subcategory": "Hydraulic Oil",
+    "uom": "BOX",
+    "manufacturer": "Shell Lubricants",
+    "preferredSupplierId": "SUP-0036"
+  },
+  {
+    "materialId": "MAT-0481",
+    "materialCode": "100000481",
+    "materialName": "Gear Oil - Type B349",
+    "category": "Lubricants",
+    "subcategory": "Gear Oil",
+    "uom": "PAIR",
+    "manufacturer": "Servo (IOCL)",
+    "preferredSupplierId": "SUP-0070"
+  },
+  {
+    "materialId": "MAT-0482",
+    "materialCode": "100000482",
+    "materialName": "Gear Oil - Type C263",
+    "category": "Lubricants",
+    "subcategory": "Gear Oil",
+    "uom": "MT",
+    "manufacturer": "Shell Lubricants",
+    "preferredSupplierId": "SUP-0052"
+  },
+  {
+    "materialId": "MAT-0483",
+    "materialCode": "100000483",
+    "materialName": "Coolants - Type D506",
+    "category": "Lubricants",
+    "subcategory": "Coolants",
+    "uom": "LTR",
+    "manufacturer": "Castrol",
+    "preferredSupplierId": "SUP-0031"
+  },
+  {
+    "materialId": "MAT-0484",
+    "materialCode": "100000484",
+    "materialName": "Coolants - Type E615",
+    "category": "Lubricants",
+    "subcategory": "Coolants",
+    "uom": "MT",
+    "manufacturer": "Castrol",
+    "preferredSupplierId": "SUP-0079"
+  },
+  {
+    "materialId": "MAT-0485",
+    "materialCode": "100000485",
+    "materialName": "Coolants - Type F247",
+    "category": "Lubricants",
+    "subcategory": "Coolants",
+    "uom": "EA",
+    "manufacturer": "Shell Lubricants",
+    "preferredSupplierId": "SUP-0054"
+  },
+  {
+    "materialId": "MAT-0486",
+    "materialCode": "100000486",
+    "materialName": "Coolants - Type A109",
+    "category": "Lubricants",
+    "subcategory": "Coolants",
+    "uom": "SET",
+    "manufacturer": "Total Lubricants",
+    "preferredSupplierId": "SUP-0044"
+  },
+  {
+    "materialId": "MAT-0487",
+    "materialCode": "100000487",
+    "materialName": "Industrial Grease - Type B402",
+    "category": "Lubricants",
+    "subcategory": "Industrial Grease",
+    "uom": "LTR",
+    "manufacturer": "Servo (IOCL)",
+    "preferredSupplierId": "SUP-0080"
+  },
+  {
+    "materialId": "MAT-0488",
+    "materialCode": "100000488",
+    "materialName": "Coolants - Type C180",
+    "category": "Lubricants",
+    "subcategory": "Coolants",
+    "uom": "SET",
+    "manufacturer": "Total Lubricants",
+    "preferredSupplierId": "SUP-0045"
+  },
+  {
+    "materialId": "MAT-0489",
+    "materialCode": "100000489",
+    "materialName": "Gear Oil - Type D346",
+    "category": "Lubricants",
+    "subcategory": "Gear Oil",
+    "uom": "KG",
+    "manufacturer": "Total Lubricants",
+    "preferredSupplierId": "SUP-0020"
+  },
+  {
+    "materialId": "MAT-0490",
+    "materialCode": "100000490",
+    "materialName": "Coolants - Type E914",
+    "category": "Lubricants",
+    "subcategory": "Coolants",
+    "uom": "SET",
+    "manufacturer": "Shell Lubricants",
+    "preferredSupplierId": "SUP-0068"
+  },
+  {
+    "materialId": "MAT-0491",
+    "materialCode": "100000491",
+    "materialName": "Gear Oil - Type F594",
+    "category": "Lubricants",
+    "subcategory": "Gear Oil",
+    "uom": "MT",
+    "manufacturer": "Total Lubricants",
+    "preferredSupplierId": "SUP-0027"
+  },
+  {
+    "materialId": "MAT-0492",
+    "materialCode": "100000492",
+    "materialName": "Industrial Grease - Type A108",
+    "category": "Lubricants",
+    "subcategory": "Industrial Grease",
+    "uom": "PAIR",
+    "manufacturer": "Gulf Oil",
+    "preferredSupplierId": "SUP-0082"
+  },
+  {
+    "materialId": "MAT-0493",
+    "materialCode": "100000493",
+    "materialName": "Pipe Fittings - Type B446",
+    "category": "Pipes",
+    "subcategory": "Pipe Fittings",
+    "uom": "EA",
+    "manufacturer": "Continental ContiTech",
+    "preferredSupplierId": "SUP-0040"
+  },
+  {
+    "materialId": "MAT-0494",
+    "materialCode": "100000494",
+    "materialName": "Chutes - Type C372",
+    "category": "Conveyance",
+    "subcategory": "Chutes",
+    "uom": "MT",
+    "manufacturer": "Fenner Conveyor Belting",
+    "preferredSupplierId": "SUP-0039"
+  },
+  {
+    "materialId": "MAT-0495",
+    "materialCode": "100000495",
+    "materialName": "Roller Bearings - Type D678",
+    "category": "Bearings",
+    "subcategory": "Roller Bearings",
+    "uom": "LTR",
+    "manufacturer": "Rexnord",
+    "preferredSupplierId": "SUP-0088"
+  },
+  {
+    "materialId": "MAT-0496",
+    "materialCode": "100000496",
+    "materialName": "Activators - Type E605",
+    "category": "Flotation",
+    "subcategory": "Activators",
+    "uom": "ROLL",
+    "manufacturer": "Senmin",
+    "preferredSupplierId": "SUP-0089"
+  },
+  {
+    "materialId": "MAT-0497",
+    "materialCode": "100000497",
+    "materialName": "Variable Frequency Drives - Type F536",
+    "category": "Electrical Motors",
+    "subcategory": "Variable Frequency Drives",
+    "uom": "EA",
+    "manufacturer": "Crompton Greaves",
+    "preferredSupplierId": "SUP-0078"
+  },
+  {
+    "materialId": "MAT-0498",
+    "materialCode": "100000498",
+    "materialName": "Pipe Fittings - Type A271",
+    "category": "Pipes",
+    "subcategory": "Pipe Fittings",
+    "uom": "PAIR",
+    "manufacturer": "Continental ContiTech",
+    "preferredSupplierId": "SUP-0040"
+  },
+  {
+    "materialId": "MAT-0499",
+    "materialCode": "100000499",
+    "materialName": "Motor Spares - Type B698",
+    "category": "Electrical Motors",
+    "subcategory": "Motor Spares",
+    "uom": "MTR",
+    "manufacturer": "Siemens",
+    "preferredSupplierId": "SUP-0079"
+  },
+  {
+    "materialId": "MAT-0500",
+    "materialCode": "100000500",
+    "materialName": "Cone Crushers - Type C409",
+    "category": "Crushing",
+    "subcategory": "Cone Crushers",
+    "uom": "KG",
+    "manufacturer": "Metso Outotec",
+    "preferredSupplierId": "SUP-0037"
+  }
+]
