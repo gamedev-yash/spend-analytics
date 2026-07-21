@@ -1,0 +1,402 @@
+[
+  {
+    "code": "NET00",
+    "name": "Immediate / Due on receipt",
+    "nominal_days": 0,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "immediate"
+  },
+  {
+    "code": "NET07",
+    "name": "Net 7",
+    "nominal_days": 7,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET10",
+    "name": "Net 10",
+    "nominal_days": 10,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET14",
+    "name": "Net 14",
+    "nominal_days": 14,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET15",
+    "name": "Net 15",
+    "nominal_days": 15,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET21",
+    "name": "Net 21",
+    "nominal_days": 21,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET30",
+    "name": "Net 30",
+    "nominal_days": 30,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET45",
+    "name": "Net 45",
+    "nominal_days": 45,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET60",
+    "name": "Net 60",
+    "nominal_days": 60,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET75",
+    "name": "Net 75",
+    "nominal_days": 75,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET90",
+    "name": "Net 90",
+    "nominal_days": 90,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET120",
+    "name": "Net 120",
+    "nominal_days": 120,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "D2N10N30",
+    "name": "2% 10 Net 30",
+    "nominal_days": 30,
+    "discount_pct": 2.0,
+    "discount_days": 10,
+    "kind": "discount"
+  },
+  {
+    "code": "D1N10N30",
+    "name": "1% 10 Net 30",
+    "nominal_days": 30,
+    "discount_pct": 1.0,
+    "discount_days": 10,
+    "kind": "discount"
+  },
+  {
+    "code": "D15N10N30",
+    "name": "1.5% 10 Net 30",
+    "nominal_days": 30,
+    "discount_pct": 1.5,
+    "discount_days": 10,
+    "kind": "discount"
+  },
+  {
+    "code": "D2N15N45",
+    "name": "2% 15 Net 45",
+    "nominal_days": 45,
+    "discount_pct": 2.0,
+    "discount_days": 15,
+    "kind": "discount"
+  },
+  {
+    "code": "D1N15N45",
+    "name": "1% 15 Net 45",
+    "nominal_days": 45,
+    "discount_pct": 1.0,
+    "discount_days": 15,
+    "kind": "discount"
+  },
+  {
+    "code": "D2N10N45",
+    "name": "2% 10 Net 45",
+    "nominal_days": 45,
+    "discount_pct": 2.0,
+    "discount_days": 10,
+    "kind": "discount"
+  },
+  {
+    "code": "D3N10N60",
+    "name": "3% 10 Net 60",
+    "nominal_days": 60,
+    "discount_pct": 3.0,
+    "discount_days": 10,
+    "kind": "discount"
+  },
+  {
+    "code": "D2N20N60",
+    "name": "2% 20 Net 60",
+    "nominal_days": 60,
+    "discount_pct": 2.0,
+    "discount_days": 20,
+    "kind": "discount"
+  },
+  {
+    "code": "D5N10N30",
+    "name": "5% 10 Net 30",
+    "nominal_days": 30,
+    "discount_pct": 5.0,
+    "discount_days": 10,
+    "kind": "discount"
+  },
+  {
+    "code": "EOM15",
+    "name": "End of month + 15",
+    "nominal_days": 30,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "eom"
+  },
+  {
+    "code": "EOM30",
+    "name": "End of month + 30",
+    "nominal_days": 45,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "eom"
+  },
+  {
+    "code": "EOM45",
+    "name": "EOM Net 45",
+    "nominal_days": 60,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "eom"
+  },
+  {
+    "code": "EOM60",
+    "name": "End of month + 60",
+    "nominal_days": 75,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "eom"
+  },
+  {
+    "code": "EOM90",
+    "name": "End of month + 90",
+    "nominal_days": 105,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "eom"
+  },
+  {
+    "code": "MP10",
+    "name": "Monthly, paid 10th",
+    "nominal_days": 25,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "eom"
+  },
+  {
+    "code": "MP25",
+    "name": "Monthly, paid 25th",
+    "nominal_days": 40,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "eom"
+  },
+  {
+    "code": "WEEKLY",
+    "name": "Weekly settlement",
+    "nominal_days": 7,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "eom"
+  },
+  {
+    "code": "CIA",
+    "name": "Cash in advance",
+    "nominal_days": 0,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "special"
+  },
+  {
+    "code": "COD",
+    "name": "Cash on delivery",
+    "nominal_days": 0,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "special"
+  },
+  {
+    "code": "ADV5050",
+    "name": "50% advance / 50% Net 30",
+    "nominal_days": 30,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "special"
+  },
+  {
+    "code": "MILESTONE",
+    "name": "Milestone based",
+    "nominal_days": 45,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "special"
+  },
+  {
+    "code": "RET10N60",
+    "name": "10% retention / Net 60",
+    "nominal_days": 60,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "special"
+  },
+  {
+    "code": "NET02",
+    "name": "Net 2",
+    "nominal_days": 2,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET04",
+    "name": "Net 4",
+    "nominal_days": 4,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET05",
+    "name": "Net 5",
+    "nominal_days": 5,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET08",
+    "name": "Net 8",
+    "nominal_days": 8,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET11",
+    "name": "Net 11",
+    "nominal_days": 11,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET13",
+    "name": "Net 13",
+    "nominal_days": 13,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET20",
+    "name": "Net 20",
+    "nominal_days": 20,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET25",
+    "name": "Net 25",
+    "nominal_days": 25,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET35",
+    "name": "Net 35",
+    "nominal_days": 35,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET40",
+    "name": "Net 40",
+    "nominal_days": 40,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET50",
+    "name": "Net 50",
+    "nominal_days": 50,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET55",
+    "name": "Net 55",
+    "nominal_days": 55,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET70",
+    "name": "Net 70",
+    "nominal_days": 70,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET100",
+    "name": "Net 100",
+    "nominal_days": 100,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET150",
+    "name": "Net 150",
+    "nominal_days": 150,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  },
+  {
+    "code": "NET180",
+    "name": "Net 180",
+    "nominal_days": 180,
+    "discount_pct": 0.0,
+    "discount_days": 0,
+    "kind": "standard"
+  }
+]

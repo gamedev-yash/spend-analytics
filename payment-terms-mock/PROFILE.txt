@@ -1,0 +1,77 @@
+==========================================================================
+  MOCK DATA PROFILE — Spend Assessment: Payment Terms
+==========================================================================
+Window                 : 2025-07-01 -> 2026-06-30  (last 12 completed months)
+Invoices               : 1,500
+Total Spend            : $950,000,000  (target $950,000,000)
+Global-ultimate suppliers : 50   |  legal entities: 207
+Categories / Plants / Sources : 38 / 14 / 5
+
+KPI ribbon (what the dashboard header will show):
+  • Payment Terms (distinct, used)   : 47   (of 50 defined)
+  • Average Number of Paid Days      : 38.8
+  • Open (unpaid) invoices           : 95  (6.3%)  [excluded from Avg Paid Days]
+
+Pareto check — top 10 GU spend share : 64.6%  (target ~75-80%)
+    Falcon Systems Industries                      $138,839,321
+    Frontier Polymers Global                       $103,056,222
+    Orion Supply Co International                   $70,122,456
+    Sequoia Fasteners Holdings                      $61,237,097
+    Vantage Technologies Inc.                       $46,759,101
+
+Widget 3 — Avg Paid Days vs Nominal (biggest terms; the gap is the story):
+    term          nominal  avg_paid     gap  invoices
+    NET45              45      47.5    +2.5       258
+    NET15              15      17.0    +2.0       123
+    NET30              30      36.6    +6.6        87
+    NET14              14      17.2    +3.2        79
+    NET05               5       8.8    +3.8        67
+    NET120            120     123.9    +3.9        53
+    D15N10N30          30      30.8    +0.8        50
+    NET60              60      66.7    +6.7        50
+
+Widget 4 — invoice count concentrated on few terms (Pareto):
+    NET45            258  (17.2%)
+    NET15            123  ( 8.2%)
+    NET30             87  ( 5.8%)
+    NET14             79  ( 5.3%)
+    NET05             67  ( 4.5%)
+    NET120            53  ( 3.5%)
+    D15N10N30         50  ( 3.3%)
+    NET60             50  ( 3.3%)
+
+Widget 1 — distinct terms per category (fragmentation spread):
+    most fragmented : 29 terms  (Office supplies)
+    median          : 4 terms
+    least           : 1 terms  (Bearings and bushings)
+
+Widget 2 / table — most term-fragmented suppliers (governance red flags):
+    Umbra Fasteners International              20 distinct terms
+    Frontier Polymers Global                   19 distinct terms
+    Zenith Bearings Industries                 14 distinct terms
+    Orion Supply Co International              13 distinct terms
+    Marlin Controls Group                      12 distinct terms
+
+Payment behaviour — avg (paid − nominal) days per supplier (the real drama):
+    latest payers (late-fee / relationship risk):
+      Orion Supply Co International             +15.5 days over terms  (n=103)
+      Orion Polymers Group                      +15.4 days over terms  (n=46)
+      Zenith Bearings Industries                +14.8 days over terms  (n=31)
+    earliest payers (wasted working capital):
+      Sequoia Fluid Systems Global               +1.7 days vs terms  (n=26)
+      Halcyon Controls Corporation               -0.7 days vs terms  (n=29)
+      Frontier Polymers Global                   -3.8 days vs terms  (n=158)
+
+'(No Value)' rows — null category: 67  |  null payment term: 36
+
+Files written:
+    payment_terms.json            7.4 KB
+    global_ultimates.json         6.0 KB
+    suppliers.json               54.5 KB
+    categories.json               6.8 KB
+    plants.json                   1.9 KB
+    source_systems.json           0.3 KB
+    metadata.json                 0.8 KB
+    invoices.json              1163.2 KB
+    TOTAL                        1.21 MB
+==========================================================================

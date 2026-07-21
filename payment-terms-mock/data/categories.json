@@ -1,0 +1,268 @@
+[
+  {
+    "code": "40140000",
+    "name": "Fluid handling pumps",
+    "segment_code": "40000000",
+    "segment_name": "Distribution and Conditioning Systems and Equipment",
+    "level": 3
+  },
+  {
+    "code": "40150000",
+    "name": "Industrial valves",
+    "segment_code": "40000000",
+    "segment_name": "Distribution and Conditioning Systems and Equipment",
+    "level": 3
+  },
+  {
+    "code": "40160000",
+    "name": "HVAC equipment",
+    "segment_code": "40000000",
+    "segment_name": "Distribution and Conditioning Systems and Equipment",
+    "level": 3
+  },
+  {
+    "code": "40170000",
+    "name": "Compressors and blowers",
+    "segment_code": "40000000",
+    "segment_name": "Distribution and Conditioning Systems and Equipment",
+    "level": 3
+  },
+  {
+    "code": "31160000",
+    "name": "Hardware and fasteners",
+    "segment_code": "31000000",
+    "segment_name": "Manufacturing Components and Supplies",
+    "level": 3
+  },
+  {
+    "code": "31170000",
+    "name": "Bearings and bushings",
+    "segment_code": "31000000",
+    "segment_name": "Manufacturing Components and Supplies",
+    "level": 3
+  },
+  {
+    "code": "31200000",
+    "name": "Adhesives and sealants",
+    "segment_code": "31000000",
+    "segment_name": "Manufacturing Components and Supplies",
+    "level": 3
+  },
+  {
+    "code": "31350000",
+    "name": "Machined castings",
+    "segment_code": "31000000",
+    "segment_name": "Manufacturing Components and Supplies",
+    "level": 3
+  },
+  {
+    "code": "39120000",
+    "name": "Electrical wire and cable",
+    "segment_code": "39000000",
+    "segment_name": "Electrical Systems and Lighting and Components",
+    "level": 3
+  },
+  {
+    "code": "39110000",
+    "name": "Lighting fixtures",
+    "segment_code": "39000000",
+    "segment_name": "Electrical Systems and Lighting and Components",
+    "level": 3
+  },
+  {
+    "code": "39130000",
+    "name": "Electrical hardware",
+    "segment_code": "39000000",
+    "segment_name": "Electrical Systems and Lighting and Components",
+    "level": 3
+  },
+  {
+    "code": "27110000",
+    "name": "Hand tools",
+    "segment_code": "27000000",
+    "segment_name": "Tools and General Machinery",
+    "level": 3
+  },
+  {
+    "code": "27130000",
+    "name": "Power tools",
+    "segment_code": "27000000",
+    "segment_name": "Tools and General Machinery",
+    "level": 3
+  },
+  {
+    "code": "27140000",
+    "name": "Hydraulic machinery",
+    "segment_code": "27000000",
+    "segment_name": "Tools and General Machinery",
+    "level": 3
+  },
+  {
+    "code": "43210000",
+    "name": "Computer equipment",
+    "segment_code": "43000000",
+    "segment_name": "Information Technology Broadcasting and Telecommunications",
+    "level": 3
+  },
+  {
+    "code": "43220000",
+    "name": "Networking equipment",
+    "segment_code": "43000000",
+    "segment_name": "Information Technology Broadcasting and Telecommunications",
+    "level": 3
+  },
+  {
+    "code": "43230000",
+    "name": "Software licenses",
+    "segment_code": "43000000",
+    "segment_name": "Information Technology Broadcasting and Telecommunications",
+    "level": 3
+  },
+  {
+    "code": "43190000",
+    "name": "Communications devices",
+    "segment_code": "43000000",
+    "segment_name": "Information Technology Broadcasting and Telecommunications",
+    "level": 3
+  },
+  {
+    "code": "44120000",
+    "name": "Office supplies",
+    "segment_code": "44000000",
+    "segment_name": "Office Equipment and Accessories and Supplies",
+    "level": 3
+  },
+  {
+    "code": "44100000",
+    "name": "Office machines",
+    "segment_code": "44000000",
+    "segment_name": "Office Equipment and Accessories and Supplies",
+    "level": 3
+  },
+  {
+    "code": "44110000",
+    "name": "Desk accessories",
+    "segment_code": "44000000",
+    "segment_name": "Office Equipment and Accessories and Supplies",
+    "level": 3
+  },
+  {
+    "code": "80100000",
+    "name": "Management consulting",
+    "segment_code": "80000000",
+    "segment_name": "Management and Business Professionals and Admin Services",
+    "level": 3
+  },
+  {
+    "code": "80110000",
+    "name": "HR services",
+    "segment_code": "80000000",
+    "segment_name": "Management and Business Professionals and Admin Services",
+    "level": 3
+  },
+  {
+    "code": "80160000",
+    "name": "Business administration services",
+    "segment_code": "80000000",
+    "segment_name": "Management and Business Professionals and Admin Services",
+    "level": 3
+  },
+  {
+    "code": "78100000",
+    "name": "Freight transport",
+    "segment_code": "78000000",
+    "segment_name": "Transportation and Storage and Mail Services",
+    "level": 3
+  },
+  {
+    "code": "78130000",
+    "name": "Warehousing and storage",
+    "segment_code": "78000000",
+    "segment_name": "Transportation and Storage and Mail Services",
+    "level": 3
+  },
+  {
+    "code": "78180000",
+    "name": "Courier and postal services",
+    "segment_code": "78000000",
+    "segment_name": "Transportation and Storage and Mail Services",
+    "level": 3
+  },
+  {
+    "code": "84120000",
+    "name": "Banking and finance services",
+    "segment_code": "84000000",
+    "segment_name": "Financial and Insurance Services",
+    "level": 3
+  },
+  {
+    "code": "84130000",
+    "name": "Insurance",
+    "segment_code": "84000000",
+    "segment_name": "Financial and Insurance Services",
+    "level": 3
+  },
+  {
+    "code": "76110000",
+    "name": "Cleaning services",
+    "segment_code": "76000000",
+    "segment_name": "Industrial Cleaning Services",
+    "level": 3
+  },
+  {
+    "code": "76120000",
+    "name": "Waste management",
+    "segment_code": "76000000",
+    "segment_name": "Industrial Cleaning Services",
+    "level": 3
+  },
+  {
+    "code": "72100000",
+    "name": "Facility maintenance",
+    "segment_code": "72000000",
+    "segment_name": "Building and Facility Maintenance Services",
+    "level": 3
+  },
+  {
+    "code": "72150000",
+    "name": "Building repair services",
+    "segment_code": "72000000",
+    "segment_name": "Building and Facility Maintenance Services",
+    "level": 3
+  },
+  {
+    "code": "47130000",
+    "name": "Cleaning supplies",
+    "segment_code": "47000000",
+    "segment_name": "Cleaning Equipment and Supplies",
+    "level": 3
+  },
+  {
+    "code": "90100000",
+    "name": "Catering and restaurants",
+    "segment_code": "90000000",
+    "segment_name": "Travel and Food and Lodging and Entertainment Services",
+    "level": 3
+  },
+  {
+    "code": "90120000",
+    "name": "Travel services",
+    "segment_code": "90000000",
+    "segment_name": "Travel and Food and Lodging and Entertainment Services",
+    "level": 3
+  },
+  {
+    "code": "25170000",
+    "name": "Vehicle components and accessories",
+    "segment_code": "25000000",
+    "segment_name": "Commercial and Private Vehicles and Components",
+    "level": 3
+  },
+  {
+    "code": "25100000",
+    "name": "Motor vehicles",
+    "segment_code": "25000000",
+    "segment_name": "Commercial and Private Vehicles and Components",
+    "level": 3
+  }
+]

@@ -1,0 +1,302 @@
+[
+  {
+    "gu_id": "GU-0001",
+    "gu_name": "Falcon Systems Industries",
+    "region": "APAC",
+    "n_entities": 6
+  },
+  {
+    "gu_id": "GU-0002",
+    "gu_name": "Frontier Polymers Global",
+    "region": "NAMER",
+    "n_entities": 6
+  },
+  {
+    "gu_id": "GU-0003",
+    "gu_name": "Orion Supply Co International",
+    "region": "APAC",
+    "n_entities": 6
+  },
+  {
+    "gu_id": "GU-0004",
+    "gu_name": "Umbra Fasteners International",
+    "region": "NAMER",
+    "n_entities": 5
+  },
+  {
+    "gu_id": "GU-0005",
+    "gu_name": "Apex Supply Co Global",
+    "region": "EMEA",
+    "n_entities": 1
+  },
+  {
+    "gu_id": "GU-0006",
+    "gu_name": "Orion Polymers Group",
+    "region": "LATAM",
+    "n_entities": 4
+  },
+  {
+    "gu_id": "GU-0007",
+    "gu_name": "Vantage Technologies Inc.",
+    "region": "EMEA",
+    "n_entities": 6
+  },
+  {
+    "gu_id": "GU-0008",
+    "gu_name": "Sequoia Fasteners Holdings",
+    "region": "EMEA",
+    "n_entities": 5
+  },
+  {
+    "gu_id": "GU-0009",
+    "gu_name": "Frontier Solutions Corporation",
+    "region": "LATAM",
+    "n_entities": 2
+  },
+  {
+    "gu_id": "GU-0010",
+    "gu_name": "Zenith Bearings Industries",
+    "region": "LATAM",
+    "n_entities": 5
+  },
+  {
+    "gu_id": "GU-0011",
+    "gu_name": "Halcyon Controls Corporation",
+    "region": "NAMER",
+    "n_entities": 2
+  },
+  {
+    "gu_id": "GU-0012",
+    "gu_name": "Marlin Controls Group",
+    "region": "APAC",
+    "n_entities": 2
+  },
+  {
+    "gu_id": "GU-0013",
+    "gu_name": "Apex Chemicals Corporation",
+    "region": "LATAM",
+    "n_entities": 5
+  },
+  {
+    "gu_id": "GU-0014",
+    "gu_name": "Sequoia Fluid Systems Global",
+    "region": "LATAM",
+    "n_entities": 6
+  },
+  {
+    "gu_id": "GU-0015",
+    "gu_name": "Yellowstone Solutions Global",
+    "region": "LATAM",
+    "n_entities": 4
+  },
+  {
+    "gu_id": "GU-0016",
+    "gu_name": "Harbor Packaging Holdings",
+    "region": "LATAM",
+    "n_entities": 4
+  },
+  {
+    "gu_id": "GU-0017",
+    "gu_name": "Redwood Controls Inc.",
+    "region": "APAC",
+    "n_entities": 2
+  },
+  {
+    "gu_id": "GU-0018",
+    "gu_name": "Everest Bearing Works Inc.",
+    "region": "LATAM",
+    "n_entities": 5
+  },
+  {
+    "gu_id": "GU-0019",
+    "gu_name": "Everest Cloud Services Industries",
+    "region": "EMEA",
+    "n_entities": 5
+  },
+  {
+    "gu_id": "GU-0020",
+    "gu_name": "Silverline Fabrication Industries",
+    "region": "APAC",
+    "n_entities": 3
+  },
+  {
+    "gu_id": "GU-0021",
+    "gu_name": "Orion Automation International",
+    "region": "LATAM",
+    "n_entities": 1
+  },
+  {
+    "gu_id": "GU-0022",
+    "gu_name": "Anchor Manufacturing Global",
+    "region": "APAC",
+    "n_entities": 6
+  },
+  {
+    "gu_id": "GU-0023",
+    "gu_name": "Dynamo Freight Inc.",
+    "region": "EMEA",
+    "n_entities": 2
+  },
+  {
+    "gu_id": "GU-0024",
+    "gu_name": "Copperfield Fabrication Holdings",
+    "region": "APAC",
+    "n_entities": 3
+  },
+  {
+    "gu_id": "GU-0025",
+    "gu_name": "Emerald Energy Industries",
+    "region": "LATAM",
+    "n_entities": 5
+  },
+  {
+    "gu_id": "GU-0026",
+    "gu_name": "Bluepeak Bearing Works Group",
+    "region": "EMEA",
+    "n_entities": 6
+  },
+  {
+    "gu_id": "GU-0027",
+    "gu_name": "Yellowstone Technologies Industries",
+    "region": "NAMER",
+    "n_entities": 4
+  },
+  {
+    "gu_id": "GU-0028",
+    "gu_name": "Northwind Fluid Systems International",
+    "region": "EMEA",
+    "n_entities": 5
+  },
+  {
+    "gu_id": "GU-0029",
+    "gu_name": "Bluepeak Services Holdings",
+    "region": "APAC",
+    "n_entities": 6
+  },
+  {
+    "gu_id": "GU-0030",
+    "gu_name": "Monarch Energy International",
+    "region": "APAC",
+    "n_entities": 4
+  },
+  {
+    "gu_id": "GU-0031",
+    "gu_name": "Westfield Automation Inc.",
+    "region": "APAC",
+    "n_entities": 1
+  },
+  {
+    "gu_id": "GU-0032",
+    "gu_name": "Pioneer Fluid Systems Holdings",
+    "region": "LATAM",
+    "n_entities": 4
+  },
+  {
+    "gu_id": "GU-0033",
+    "gu_name": "Titan Industrial Supply International",
+    "region": "APAC",
+    "n_entities": 4
+  },
+  {
+    "gu_id": "GU-0034",
+    "gu_name": "Redwood Logistics Global",
+    "region": "EMEA",
+    "n_entities": 6
+  },
+  {
+    "gu_id": "GU-0035",
+    "gu_name": "Halcyon Tooling International",
+    "region": "EMEA",
+    "n_entities": 6
+  },
+  {
+    "gu_id": "GU-0036",
+    "gu_name": "Talon Fabrication Inc.",
+    "region": "EMEA",
+    "n_entities": 4
+  },
+  {
+    "gu_id": "GU-0037",
+    "gu_name": "Cobalt Fabrication Holdings",
+    "region": "LATAM",
+    "n_entities": 1
+  },
+  {
+    "gu_id": "GU-0038",
+    "gu_name": "Windward Machinery Group",
+    "region": "APAC",
+    "n_entities": 6
+  },
+  {
+    "gu_id": "GU-0039",
+    "gu_name": "Willow Transport International",
+    "region": "APAC",
+    "n_entities": 5
+  },
+  {
+    "gu_id": "GU-0040",
+    "gu_name": "Umbra Bearing Works Inc.",
+    "region": "EMEA",
+    "n_entities": 4
+  },
+  {
+    "gu_id": "GU-0041",
+    "gu_name": "Highpoint Bearing Works Holdings",
+    "region": "APAC",
+    "n_entities": 1
+  },
+  {
+    "gu_id": "GU-0042",
+    "gu_name": "Kestrel Instruments Industries",
+    "region": "NAMER",
+    "n_entities": 3
+  },
+  {
+    "gu_id": "GU-0043",
+    "gu_name": "Kestrel Controls Holdings",
+    "region": "APAC",
+    "n_entities": 4
+  },
+  {
+    "gu_id": "GU-0044",
+    "gu_name": "Northwind Electricals International",
+    "region": "LATAM",
+    "n_entities": 6
+  },
+  {
+    "gu_id": "GU-0045",
+    "gu_name": "Monarch Electricals Inc.",
+    "region": "APAC",
+    "n_entities": 6
+  },
+  {
+    "gu_id": "GU-0046",
+    "gu_name": "Ridgeway Electricals Industries",
+    "region": "APAC",
+    "n_entities": 5
+  },
+  {
+    "gu_id": "GU-0047",
+    "gu_name": "Bluepeak Manufacturing International",
+    "region": "NAMER",
+    "n_entities": 5
+  },
+  {
+    "gu_id": "GU-0048",
+    "gu_name": "Falcon Consulting Corporation",
+    "region": "NAMER",
+    "n_entities": 1
+  },
+  {
+    "gu_id": "GU-0049",
+    "gu_name": "Windward Automation Corporation",
+    "region": "APAC",
+    "n_entities": 6
+  },
+  {
+    "gu_id": "GU-0050",
+    "gu_name": "Marlin Freight Holdings",
+    "region": "APAC",
+    "n_entities": 3
+  }
+]
