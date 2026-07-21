@@ -20,7 +20,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
   const [filtersVisible, setFiltersVisible] = useState(true);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-slate-50 transition-colors duration-200 ease-in-out dark:bg-slate-950">
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggleCollapsed={() => setSidebarCollapsed((v) => !v)}
@@ -36,7 +36,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
           onToggleFilters={() => setFiltersVisible((v) => !v)}
         />
         <div className="flex">
-          {filtersVisible && <FilterBar />}
+          <FilterBar visible={filtersVisible} />
           <main className="min-w-0 flex-1 px-8 py-8">{children}</main>
         </div>
       </div>

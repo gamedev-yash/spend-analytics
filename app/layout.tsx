@@ -21,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
-      <body className="h-full font-sans antialiased">
+      <body className="h-full font-sans antialiased transition-colors duration-200 ease-in-out">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
           <DashboardShell>{children}</DashboardShell>
         </ThemeProvider>
