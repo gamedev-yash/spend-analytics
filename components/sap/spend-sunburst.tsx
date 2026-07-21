@@ -58,5 +58,5 @@ export function SpendSunburst({ nodes, plantNameToCode }: SpendSunburstProps) {
     },
   ];
 
-  return <PlotlyChart data={data} height={420} onClick={handleClick} />;
+  return <PlotlyChart data={data} onClick={handleClick} layout={{ margin: { t: 8, r: 8, b: 8, l: 8 } }} />;
 }

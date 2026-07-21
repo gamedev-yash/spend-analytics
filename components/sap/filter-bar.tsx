@@ -37,7 +37,7 @@ export function SapFilterBar({ plantOptions, categoryOptions, dateMin, dateMax }
   }
 
   return (
-    <div className="flex flex-wrap items-end gap-4 rounded-lg border bg-muted/20 p-4">
+    <div className="flex shrink-0 flex-wrap items-end gap-3 rounded-md border bg-muted/20 px-3 py-1.5">
       <MultiSelect
         label="Business Unit"
         options={plantOptions.map((p) => ({ value: p.code, label: p.name }))}

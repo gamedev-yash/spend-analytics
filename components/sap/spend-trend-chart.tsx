@@ -91,22 +91,24 @@ export function SpendTrendChart({ trend, spikes }: SpendTrendChartProps) {
   }, [mode, trend, allL1, palette, spikeMonths]);
 
   return (
-    <div className="space-y-3">
-      <Tabs value={mode} onValueChange={(v) => setMode(v as TrendMode)}>
+    <div className="flex h-full flex-col gap-1.5">
+      <Tabs value={mode} onValueChange={(v) => setMode(v as TrendMode)} className="shrink-0">
         <TabsList>
           <TabsTrigger value="stacked" className="text-xs">Stacked Area</TabsTrigger>
           <TabsTrigger value="line" className="text-xs">Line (Total)</TabsTrigger>
           <TabsTrigger value="yoy" className="text-xs">YoY Comparison</TabsTrigger>
         </TabsList>
       </Tabs>
-      <PlotlyChart
-        data={data}
-        height={340}
-        layout={{
-          legend: { orientation: "h", y: -0.15 },
-          xaxis: { type: mode === "yoy" ? "category" : undefined },
-        }}
-      />
+      <div className="min-h-0 flex-1">
+        <PlotlyChart
+          data={data}
+          layout={{
+            legend: { orientation: "h", y: -0.18 },
+            xaxis: { type: mode === "yoy" ? "category" : undefined },
+            margin: { t: 16, r: 24, b: 16, l: 16 },
+          }}
+        />
+      </div>
     </div>
   );
 }

@@ -57,13 +57,12 @@ export function SpendByBuChart({ rows }: SpendByBuChartProps) {
   return (
     <PlotlyChart
       data={barTraces}
-      height={Math.max(280, ordered.length * 44)}
       onClick={handleClick}
       layout={{
         barmode: "stack",
         yaxis: { automargin: true },
-        legend: { orientation: "h", y: -0.12 },
-        margin: { t: 24, r: 56, b: 36, l: 16 },
+        legend: { orientation: "h", y: -0.14 },
+        margin: { t: 16, r: 52, b: 16, l: 16 },
         annotations,
       }}
     />

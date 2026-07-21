@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import type { Layout, Config, PlotMouseEvent } from "plotly.js";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePalette } from "@/hooks/use-palette";
+import { cn } from "@/lib/utils";
 
 const Plot = dynamic(() => import("@/components/sap/plotly-base"), {
   ssr: false,
@@ -23,6 +24,7 @@ export interface PlotlyChartProps {
   layout?: Partial<Layout>;
   config?: Partial<Config>;
   onClick?: (event: Readonly<PlotMouseEvent>) => void;
+  /** Omit to fill the parent container's height instead (the dashboard grid cells define it) — pass a number only for a genuinely intrinsic size. */
   height?: number;
   className?: string;
 }
@@ -33,12 +35,11 @@ export interface PlotlyChartProps {
  * re-deriving them. Plotly is client-only (touches `document`), hence the
  * `ssr:false` dynamic import above.
  */
-export function PlotlyChart({ data, layout, config, onClick, height = 360, className }: PlotlyChartProps) {
+export function PlotlyChart({ data, layout, config, onClick, height, className }: PlotlyChartProps) {
   const palette = usePalette();
 
   const mergedLayout: Partial<Layout> = {
     autosize: true,
-    height,
     paper_bgcolor: "transparent",
     plot_bgcolor: "transparent",
     font: { family: "system-ui, -apple-system, Segoe UI, sans-serif", color: palette.ink.secondary, size: 12 },
@@ -55,7 +56,7 @@ export function PlotlyChart({ data, layout, config, onClick, height = 360, class
   };
 
   return (
-    <div className={className} style={{ height }}>
+    <div className={cn(!height && "h-full", className)} style={height ? { height } : undefined}>
       <Plot
         data={data}
         layout={mergedLayout}

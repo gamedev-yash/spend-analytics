@@ -25,7 +25,7 @@ export function ComplianceTrendChart({ data, targetPercent = 90 }: ComplianceTre
   const palette = usePalette();
 
   return (
-    <ResponsiveContainer width="100%" height={260}>
+    <ResponsiveContainer width="100%" height="100%">
       <LineChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
         <CartesianGrid vertical={false} stroke={palette.ink.grid} />
         <XAxis

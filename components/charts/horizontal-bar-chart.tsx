@@ -64,8 +64,6 @@ export function HorizontalBarChart({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const rowHeight = 34;
-  const chartHeight = height ?? Math.max(160, data.length * rowHeight);
   const formatters: Record<ValueFormat, (v: number) => string> = {
     usd: formatUsdCompact,
     percent: (v) => formatPercent(v),
@@ -104,9 +102,9 @@ export function HorizontalBarChart({
       : [];
 
   return (
-    <div className="space-y-3">
+    <div className="flex h-full flex-col gap-2">
       {legendEntities.length > 1 && (
-        <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+        <div className="flex shrink-0 flex-wrap gap-x-4 gap-y-1.5">
           {legendEntities.map((entity) => {
             const idx = order!.indexOf(entity);
             const color = idx === -1 ? palette.ink.muted : palette.colorForIndex(idx);
@@ -119,7 +117,7 @@ export function HorizontalBarChart({
           })}
         </div>
       )}
-      <ResponsiveContainer width="100%" height={chartHeight}>
+      <ResponsiveContainer width="100%" height={height ?? "100%"} className="min-h-0 flex-1">
         <BarChart
           data={data}
           layout="vertical"

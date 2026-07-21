@@ -69,40 +69,35 @@ export default async function SpendOverviewPage({ searchParams }: PageProps) {
     (filters.categoryPath ? 1 : 0);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <DashboardTabs />
-        <p className="text-xs text-muted-foreground">
+    <div className="flex h-full flex-col gap-2.5">
+      <div className="flex shrink-0 items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <DashboardTabs />
+          <h1 className="hidden text-base font-semibold tracking-tight text-foreground sm:block">
+            Spend Overview — Vedanta
+          </h1>
+        </div>
+        <p className="shrink-0 text-xs text-muted-foreground">
           Initiative 18 · Dashboard 1 of 6{activeFilterCount > 0 ? ` · ${activeFilterCount} filter(s) active` : ""}
-        </p>
-      </div>
-
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">Spend Overview — Vedanta</h1>
-        <p className="text-sm text-muted-foreground">
-          How much are we spending, on what, with whom, and is it going up or down?
         </p>
       </div>
 
       <InsightBox text={insightText} />
 
-      <section className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
-        <KpiCard label="Total Spend" value={formatCr(kpis.totalSpendInr)} icon={<Wallet />} accent="blue" />
-        <KpiCard label="Total PO Count" value={kpis.poCount.toLocaleString()} icon={<FileCheck2 />} />
-        <KpiCard label="Active Suppliers" value={kpis.activeSupplierCount.toLocaleString()} icon={<Users />} />
-        <KpiCard label="Avg. PO Value" value={formatInr(kpis.avgPoValueInr)} icon={<FileCheck2 />} />
+      <section className="grid shrink-0 grid-cols-3 gap-2.5 lg:grid-cols-6">
+        <KpiCard size="compact" label="Total Spend" value={formatCr(kpis.totalSpendInr)} icon={<Wallet />} accent="blue" />
+        <KpiCard size="compact" label="Total PO Count" value={kpis.poCount.toLocaleString()} icon={<FileCheck2 />} />
+        <KpiCard size="compact" label="Active Suppliers" value={kpis.activeSupplierCount.toLocaleString()} icon={<Users />} />
+        <KpiCard size="compact" label="Avg. PO Value" value={formatInr(kpis.avgPoValueInr)} icon={<FileCheck2 />} />
         <KpiCard
+          size="compact"
           label="YoY Spend Change"
           value={formatSignedPercentInr(kpis.yoyChangePercent)}
           icon={kpis.yoyChangePercent > 0 ? <TrendingUp /> : <TrendingDown />}
           accent={kpis.yoyChangePercent > 0 ? "red" : "green"}
-          delta={{
-            value: formatSignedPercentInr(kpis.yoyChangePercent),
-            direction: kpis.yoyChangePercent >= 0 ? "up" : "down",
-            goodDirection: "down",
-          }}
         />
         <KpiCard
+          size="compact"
           label="Off-Contract Spend"
           value={formatPercentInr(kpis.offContractPercent)}
           icon={<ShieldAlert />}
@@ -118,63 +113,26 @@ export default async function SpendOverviewPage({ searchParams }: PageProps) {
         dateMax={filterOptions.dateMax}
       />
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-5">
-        <ChartCard
-          title="Spend by Category"
-          description="L1 → L2 treemap, sized by spend, colored by YoY change — click to drill in"
-          icon={<TrendingUp />}
-          accent="blue"
-          className="xl:col-span-2"
-        >
+      <div className="grid min-h-0 flex-1 grid-cols-3 grid-rows-2 gap-2.5">
+        <ChartCard title="Spend by Category" description="Click to drill in" icon={<TrendingUp />} accent="blue">
           <CategoryTreemap nodes={treemapNodes} />
         </ChartCard>
-        <ChartCard
-          title="Top 20 Suppliers"
-          description="Subsidiaries rolled up to parent group — stacked by category, with a Pareto cumulative line"
-          icon={<Users />}
-          accent="violet"
-          className="xl:col-span-3"
-        >
+        <ChartCard title="Top 20 Suppliers" description="Stacked by category + Pareto line" icon={<Users />} accent="violet">
           <TopSuppliersChart rows={topSuppliers.rows} allL1={topSuppliers.allL1} top5Percent={topSuppliers.top5Percent} />
         </ChartCard>
-      </section>
-
-      <ChartCard
-        title="Spend Trend Over Time"
-        description="Jan 2023 – Dec 2025, always full history regardless of the Time Period filter above"
-        icon={<TrendingUp />}
-        accent="blue"
-      >
-        <SpendTrendChart trend={trend} spikes={spikes} />
-      </ChartCard>
-
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <ChartCard
-          title="Spend by Business Unit"
-          description="Which BU is spending the most, and on what — click a bar to drill in"
-          icon={<Building2 />}
-          accent="orange"
-        >
+        <ChartCard title="Spend Trend" description="Jan 2023 – Dec 2025, full history" icon={<TrendingUp />} accent="blue">
+          <SpendTrendChart trend={trend} spikes={spikes} />
+        </ChartCard>
+        <ChartCard title="Spend by Business Unit" description="Click a bar to drill in" icon={<Building2 />} accent="orange">
           <SpendByBuChart rows={buSpend} />
         </ChartCard>
-        <ChartCard
-          title="Spend Composition"
-          description="Business Unit → Category → Subcategory — click any ring to drill in"
-          icon={<Building2 />}
-          accent="green"
-        >
+        <ChartCard title="Spend Composition" description="BU → Category → Subcategory" icon={<Building2 />} accent="green">
           <SpendSunburst nodes={sunburstNodes} plantNameToCode={plantNameToCode} />
         </ChartCard>
-      </section>
-
-      <ChartCard
-        title="Key Metrics Summary"
-        description="One row per L1 category — sortable, exportable, thresholds flagged in red"
-        icon={<FileCheck2 />}
-        accent="blue"
-      >
-        <MetricsTable rows={metricsRows} />
-      </ChartCard>
+        <ChartCard title="Key Metrics Summary" description="Sortable, exportable" icon={<FileCheck2 />} accent="blue">
+          <MetricsTable rows={metricsRows} />
+        </ChartCard>
+      </div>
     </div>
   );
 }

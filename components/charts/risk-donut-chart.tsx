@@ -26,7 +26,7 @@ export function RiskDonutChart({ data }: RiskDonutChartProps) {
   const palette = usePalette();
 
   return (
-    <ResponsiveContainer width="100%" height={260}>
+    <ResponsiveContainer width="100%" height="100%">
       <PieChart>
         <Pie
           data={data}

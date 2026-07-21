@@ -60,5 +60,5 @@ export function CategoryTreemap({ nodes }: CategoryTreemapProps) {
     },
   ];
 
-  return <PlotlyChart data={data} height={420} onClick={handleClick} />;
+  return <PlotlyChart data={data} onClick={handleClick} />;
 }

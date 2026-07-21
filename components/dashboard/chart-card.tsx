@@ -38,10 +38,10 @@ export function ChartCard({ title, description, icon, accent = "neutral", action
       className={cn("h-full", className)}
     >
       <Card className="h-full">
-        <CardHeader className="flex-row items-center gap-3 space-y-0 border-b">
+        <CardHeader className="shrink-0 flex-row items-center gap-2.5 space-y-0 border-b py-2.5">
           {icon && (
             <span
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg [&_svg]:h-4.5 [&_svg]:w-4.5"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg [&_svg]:h-4 [&_svg]:w-4"
               style={
                 accent !== "neutral"
                   ? { backgroundColor: `${accentColor}1f`, color: accentColor }
@@ -52,12 +52,12 @@ export function ChartCard({ title, description, icon, accent = "neutral", action
             </span>
           )}
           <div className="min-w-0 flex-1">
-            <CardTitle>{title}</CardTitle>
-            {description && <CardDescription>{description}</CardDescription>}
+            <CardTitle className="truncate text-sm">{title}</CardTitle>
+            {description && <CardDescription className="truncate text-xs">{description}</CardDescription>}
           </div>
           {action && <CardAction>{action}</CardAction>}
         </CardHeader>
-        <CardContent className="pt-4">{children}</CardContent>
+        <CardContent className="min-h-0 flex-1 overflow-hidden pt-2">{children}</CardContent>
       </Card>
     </motion.div>
   );

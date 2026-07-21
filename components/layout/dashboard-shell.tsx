@@ -14,13 +14,15 @@ interface DashboardShellProps {
  */
 export function DashboardShell({ children }: DashboardShellProps) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-dvh overflow-hidden bg-background">
       <Sidebar />
-      <div className="pl-64">
+      <div className="flex h-full flex-col pl-64">
         <TopHeader />
-        <div className="flex">
+        <div className="flex min-h-0 flex-1">
           <FilterBar />
-          <main className="min-w-0 flex-1 px-8 py-8">{children}</main>
+          {/* min-h-0 lets a page opt into filling this exactly (no scroll); overflow-y-auto is the
+             safety net for pages/viewports where the content doesn't quite fit. */}
+          <main className="min-h-0 min-w-0 flex-1 overflow-y-auto px-6 py-4">{children}</main>
         </div>
       </div>
     </div>

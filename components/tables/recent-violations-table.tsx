@@ -22,8 +22,9 @@ export function RecentViolationsTable({ data }: RecentViolationsTableProps) {
   }
 
   return (
+    <div className="h-full overflow-y-auto rounded-md border">
     <Table>
-      <TableHeader>
+      <TableHeader className="sticky top-0 z-10 bg-card">
         <TableRow>
           <TableHead>PO</TableHead>
           <TableHead>Date</TableHead>
@@ -50,5 +51,6 @@ export function RecentViolationsTable({ data }: RecentViolationsTableProps) {
         ))}
       </TableBody>
     </Table>
+    </div>
   );
 }

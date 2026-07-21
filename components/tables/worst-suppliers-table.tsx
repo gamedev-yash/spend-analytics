@@ -25,8 +25,9 @@ export function WorstSuppliersTable({ data }: WorstSuppliersTableProps) {
   }
 
   return (
+    <div className="h-full overflow-y-auto rounded-md border">
     <Table>
-      <TableHeader>
+      <TableHeader className="sticky top-0 z-10 bg-card">
         <TableRow>
           <TableHead>Supplier</TableHead>
           <TableHead className="text-right">Transactions</TableHead>
@@ -65,5 +66,6 @@ export function WorstSuppliersTable({ data }: WorstSuppliersTableProps) {
         ))}
       </TableBody>
     </Table>
+    </div>
   );
 }

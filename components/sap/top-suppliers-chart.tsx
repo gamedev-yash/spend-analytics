@@ -63,23 +63,24 @@ export function TopSuppliersChart({ rows, allL1, top5Percent }: TopSuppliersChar
   };
 
   return (
-    <div className="space-y-2">
-      <p className="text-xs text-muted-foreground">
+    <div className="flex h-full flex-col gap-1">
+      <p className="shrink-0 text-xs text-muted-foreground">
         Top 5 suppliers = <span className="font-medium text-foreground">{top5Percent.toFixed(1)}%</span> of total spend
       </p>
-      <PlotlyChart
-        data={[...barTraces, paretoTrace]}
-        height={Math.max(360, ordered.length * 28)}
-        onClick={handleClick}
-        layout={{
-          barmode: "stack",
-          xaxis: { title: { text: "Spend" }, tickformat: undefined },
-          xaxis2: { overlaying: "x", side: "top", range: [0, 100], ticksuffix: "%", showgrid: false, title: { text: "Cumulative %" } },
-          yaxis: { automargin: true },
-          legend: { orientation: "h", y: -0.08 },
-        }}
-        config={{}}
-      />
+      <div className="min-h-0 flex-1">
+        <PlotlyChart
+          data={[...barTraces, paretoTrace]}
+          onClick={handleClick}
+          layout={{
+            barmode: "stack",
+            xaxis: { title: { text: "Spend" } },
+            xaxis2: { overlaying: "x", side: "top", range: [0, 100], ticksuffix: "%", showgrid: false, title: { text: "Cumulative %" } },
+            yaxis: { automargin: true },
+            legend: { orientation: "h", y: -0.12 },
+            margin: { t: 24, r: 24, b: 16, l: 16 },
+          }}
+        />
+      </div>
     </div>
   );
 }

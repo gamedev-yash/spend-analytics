@@ -68,15 +68,16 @@ export function MetricsTable({ rows }: MetricsTableProps) {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex justify-end">
+    <div className="flex h-full flex-col gap-2">
+      <div className="flex shrink-0 justify-end">
         <Button size="sm" variant="outline" onClick={exportCsv}>
           <Download className="h-3.5 w-3.5" />
           Export CSV
         </Button>
       </div>
+      <div className="min-h-0 flex-1 overflow-y-auto rounded-md border">
       <Table>
-        <TableHeader>
+        <TableHeader className="sticky top-0 z-10 bg-card">
           <TableRow>
             <TableHead>Category</TableHead>
             {COLUMNS.map((col) => (
@@ -114,6 +115,7 @@ export function MetricsTable({ rows }: MetricsTableProps) {
           ))}
         </TableBody>
       </Table>
+      </div>
     </div>
   );
 }
