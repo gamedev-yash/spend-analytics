@@ -1,29 +1,26 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { Button } from "@/components/ui/button";
-import { useHasMounted } from "@/hooks/use-has-mounted";
+import { Moon, Sun } from "lucide-react";
 
-/** Simple light/dark toggle. Guarded with a mount flag — resolvedTheme is undefined until hydration. */
+/**
+ * Icon visibility is driven by the `dark:` class variant, not React state —
+ * next-themes sets the `.dark` class on <html> before hydration, so a
+ * state-based mounted-check would just be working around a mismatch that
+ * pure CSS never has in the first place.
+ */
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
-  const mounted = useHasMounted();
 
   return (
-    <Button
+    <button
       type="button"
-      variant="ghost"
-      size="icon"
       aria-label="Toggle theme"
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-      className="rounded-full text-muted-foreground hover:text-foreground"
+      className="rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
     >
-      {mounted && resolvedTheme === "dark" ? (
-        <Sun className="h-4.5 w-4.5" />
-      ) : (
-        <Moon className="h-4.5 w-4.5" />
-      )}
-    </Button>
+      <Sun className="h-5 w-5 dark:hidden" />
+      <Moon className="hidden h-5 w-5 dark:block" />
+    </button>
   );
 }

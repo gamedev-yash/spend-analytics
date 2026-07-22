@@ -1,8 +1,20 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  color-scheme: light;
+}
+
+:root.dark {
+  --background: #020617;
+  --foreground: #f1f5f9;
+  color-scheme: dark;
+}
 
 @theme inline {
   --color-background: var(--background);

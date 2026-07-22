@@ -1,44 +1,33 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { FilterDropdown } from "@/components/filters/filter-dropdown";
+import { useFilterSlotContent } from "@/context/FilterContext";
+import { cn } from "@/lib/utils";
 
-interface FilterConfig {
-  label: string;
-  placeholder: string;
+interface FilterBarProps {
+  visible: boolean;
 }
 
-const GLOBAL_FILTERS: FilterConfig[] = [
-  { label: "Date Range", placeholder: "Last 12 months" },
-  { label: "Category", placeholder: "All categories" },
-  { label: "Supplier (Global Ultimate)", placeholder: "All suppliers" },
-  { label: "Source System", placeholder: "All systems" },
-  { label: "Plant / Site", placeholder: "All plants" },
-];
-
 /**
- * Shared global filter panel rendered by the layout wrapper on every route.
- * Individual pages read filter state from context/query params once wired —
- * this component only owns presentation. Hidden on /spend-overview, which
- * ships its own contextual, functional filter row instead of this inert one.
+ * Pure container slot for the shell's Filter Drawer — owns only the chrome
+ * (width/position/animation/theme), not any specific filter. Pages register
+ * their own filter UI via useFilterSlot() (see context/FilterContext.tsx);
+ * this renders whatever is currently registered, or nothing if no route has
+ * registered anything.
  */
-export function FilterBar() {
-  const pathname = usePathname();
-  if (pathname?.startsWith("/spend-overview")) return null;
+export function FilterBar({ visible }: FilterBarProps) {
+  const content = useFilterSlotContent();
 
   return (
-    <aside className="hidden w-64 shrink-0 border-r border-border bg-muted/30 px-5 py-6 lg:block">
-      <h2 className="mb-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        Global Filters
-      </h2>
-      <div className="space-y-4">
-        {GLOBAL_FILTERS.map((filter) => (
-          <FilterDropdown
-            key={filter.label}
-            label={filter.label}
-            placeholder={filter.placeholder}
-          />
-        ))}
+    <aside
+      aria-hidden={!visible}
+      inert={!visible}
+      className={cn(
+        "hidden shrink-0 overflow-hidden border-slate-200 bg-slate-50/60 transition-all duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-900/40 lg:block",
+        visible ? "w-[280px] border-r opacity-100" : "w-0 border-r-0 opacity-0"
+      )}
+    >
+      <div className="flex h-[calc(100vh-4rem)] w-[280px] flex-col overflow-y-auto px-5 py-6">
+        {content}
       </div>
     </aside>
   );

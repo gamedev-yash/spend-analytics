@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Geist } from "next/font/google";
-import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { ThemeProvider } from "@/components/theme-provider";
+import { DashboardShell } from "@/components/layout/dashboard-shell";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
@@ -23,13 +23,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={cn("h-full", inter.variable, "font-sans", geist.variable)}
-      suppressHydrationWarning
-    >
-      <body className="h-full font-sans antialiased">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
+      <body className="h-full font-sans antialiased transition-colors duration-200 ease-in-out">
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
           <DashboardShell>{children}</DashboardShell>
         </ThemeProvider>
       </body>
