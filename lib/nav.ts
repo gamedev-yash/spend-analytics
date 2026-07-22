@@ -12,6 +12,12 @@ export interface NavItem {
   icon: LucideIcon;
   owner: string;
   description: string;
+  /**
+   * Set when a route renders its own dashboard-specific filter panel
+   * (different filter set, real options) instead of the shared global
+   * FilterBar — see components/layout/filter-bar.tsx.
+   */
+  hasCustomFilterPanel?: boolean;
 }
 
 /**
@@ -34,7 +40,8 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Wallet,
     owner: "Varad",
     description:
-      "Days Payable Outstanding (DPO) tracking and payment term distribution by supplier.",
+      "Spend Assessment: payment term distribution, avg paid cycle days, and term fragmentation by category and supplier.",
+    hasCustomFilterPanel: true,
   },
   {
     label: "Tail Spend",
