@@ -2,7 +2,7 @@ import { Building2, FileCheck2, ShieldAlert, TrendingDown, TrendingUp, Users, Wa
 import { DashboardTabs } from "@/components/dashboard/dashboard-tabs";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { ChartCard } from "@/components/dashboard/chart-card";
-import { SapFilterBar } from "@/components/sap/filter-bar";
+import { SpendOverviewFilters } from "@/components/sap/spend-overview-filters";
 import { InsightBox } from "@/components/sap/insight-box";
 import { CategoryTreemap } from "@/components/sap/category-treemap";
 import { TopSuppliersChart } from "@/components/sap/top-suppliers-chart";
@@ -70,6 +70,13 @@ export default async function SpendOverviewPage({ searchParams }: PageProps) {
 
   return (
     <div className="flex h-full flex-col gap-2.5">
+      <SpendOverviewFilters
+        plantOptions={filterOptions.plants}
+        categoryOptions={filterOptions.categoriesL1}
+        dateMin={filterOptions.dateMin}
+        dateMax={filterOptions.dateMax}
+      />
+
       <div className="flex shrink-0 items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <DashboardTabs />
@@ -105,13 +112,6 @@ export default async function SpendOverviewPage({ searchParams }: PageProps) {
           hint={kpis.offContractPercent > 25 ? "Above 25% threshold" : "Within threshold"}
         />
       </section>
-
-      <SapFilterBar
-        plantOptions={filterOptions.plants}
-        categoryOptions={filterOptions.categoriesL1}
-        dateMin={filterOptions.dateMin}
-        dateMax={filterOptions.dateMax}
-      />
 
       <div className="grid min-h-0 flex-1 grid-cols-3 grid-rows-2 gap-2.5">
         <ChartCard title="Spend by Category" description="Click to drill in" icon={<TrendingUp />} accent="blue">
