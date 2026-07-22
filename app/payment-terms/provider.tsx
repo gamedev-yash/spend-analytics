@@ -8,7 +8,9 @@ import {
   getAvailableEndMonths,
   getCategoryFilterOptions,
   getDefaultEndMonth,
+  getGlobalUltimateFilterOptions,
   getPaymentTermFilterOptions,
+  getPlantFilterOptions,
   getSourceSystemFilterOptions,
   type FilterOption,
 } from "./selectors";
@@ -18,8 +20,10 @@ import type { FilterState, Invoice, LinkedDimension, LinkedSelection } from "./t
 const END_MONTHS = getAvailableEndMonths(invoices);
 const DEFAULT_END_MONTH = getDefaultEndMonth(invoices);
 const CATEGORY_OPTIONS = getCategoryFilterOptions(invoices);
+const GLOBAL_ULTIMATE_OPTIONS = getGlobalUltimateFilterOptions(invoices);
 const PAYMENT_TERM_OPTIONS = getPaymentTermFilterOptions(invoices);
 const SOURCE_SYSTEM_OPTIONS = getSourceSystemFilterOptions(invoices, sourceSystemDims);
+const PLANT_OPTIONS = getPlantFilterOptions(invoices);
 
 interface State {
   filters: FilterState;
@@ -29,7 +33,9 @@ interface State {
 type Action =
   | { type: "SET_END_MONTH"; month: string }
   | { type: "SET_CATEGORY"; code: string | null }
+  | { type: "SET_GLOBAL_ULTIMATE"; id: string | null }
   | { type: "SET_SOURCE_SYSTEM"; id: string | null }
+  | { type: "SET_PLANT"; id: string | null }
   | { type: "SET_PAYMENT_TERM"; code: string | null }
   | { type: "SELECT"; dimension: LinkedDimension; value: string; label: string }
   | { type: "CLEAR_SELECTION" };
@@ -40,8 +46,12 @@ function reducer(state: State, action: Action): State {
       return { filters: { ...state.filters, endMonth: action.month }, selection: null };
     case "SET_CATEGORY":
       return { filters: { ...state.filters, categoryCode: action.code }, selection: null };
+    case "SET_GLOBAL_ULTIMATE":
+      return { filters: { ...state.filters, globalUltimateId: action.id }, selection: null };
     case "SET_SOURCE_SYSTEM":
       return { filters: { ...state.filters, sourceSystemId: action.id }, selection: null };
+    case "SET_PLANT":
+      return { filters: { ...state.filters, plantId: action.id }, selection: null };
     case "SET_PAYMENT_TERM":
       return { filters: { ...state.filters, paymentTermCode: action.code }, selection: null };
     case "SELECT": {
@@ -70,14 +80,18 @@ interface PaymentTermsContextValue {
   scopedInvoices: Invoice[];
   setEndMonth: (month: string) => void;
   setCategory: (code: string | null) => void;
+  setGlobalUltimate: (id: string | null) => void;
   setSourceSystem: (id: string | null) => void;
+  setPlant: (id: string | null) => void;
   setPaymentTerm: (code: string | null) => void;
   select: (dimension: LinkedDimension, value: string, label: string) => void;
   clearSelection: () => void;
   endMonthOptions: string[];
   categoryOptions: FilterOption[];
+  globalUltimateOptions: FilterOption[];
   paymentTermOptions: FilterOption[];
   sourceSystemOptions: FilterOption[];
+  plantOptions: FilterOption[];
 }
 
 const PaymentTermsContext = createContext<PaymentTermsContextValue | null>(null);
@@ -87,7 +101,9 @@ export function PaymentTermsProvider({ children }: { children: ReactNode }) {
     filters: {
       endMonth: DEFAULT_END_MONTH,
       categoryCode: null,
+      globalUltimateId: null,
       sourceSystemId: null,
+      plantId: null,
       paymentTermCode: null,
     },
     selection: null,
@@ -107,14 +123,18 @@ export function PaymentTermsProvider({ children }: { children: ReactNode }) {
       scopedInvoices,
       setEndMonth: (month) => dispatch({ type: "SET_END_MONTH", month }),
       setCategory: (code) => dispatch({ type: "SET_CATEGORY", code }),
+      setGlobalUltimate: (id) => dispatch({ type: "SET_GLOBAL_ULTIMATE", id }),
       setSourceSystem: (id) => dispatch({ type: "SET_SOURCE_SYSTEM", id }),
+      setPlant: (id) => dispatch({ type: "SET_PLANT", id }),
       setPaymentTerm: (code) => dispatch({ type: "SET_PAYMENT_TERM", code }),
       select: (dimension, value, label) => dispatch({ type: "SELECT", dimension, value, label }),
       clearSelection: () => dispatch({ type: "CLEAR_SELECTION" }),
       endMonthOptions: END_MONTHS,
       categoryOptions: CATEGORY_OPTIONS,
+      globalUltimateOptions: GLOBAL_ULTIMATE_OPTIONS,
       paymentTermOptions: PAYMENT_TERM_OPTIONS,
       sourceSystemOptions: SOURCE_SYSTEM_OPTIONS,
+      plantOptions: PLANT_OPTIONS,
     }),
     [state, filteredInvoices, scopedInvoices]
   );

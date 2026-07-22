@@ -46,14 +46,18 @@ export interface SourceSystemDim {
   name: string;
 }
 
-/** Trailing-12-completed-month window + the 3 dropdown filters this dashboard defines. */
+/** Trailing-12-completed-month window + the global/page-option dropdown filters this dashboard defines. */
 export interface FilterState {
   /** "YYYY-MM" — inclusive end of the trailing 12-month window. */
   endMonth: string;
   /** category_code, the NO_VALUE_KEY sentinel, or null for "All Categories". */
   categoryCode: string | null;
+  /** global_ultimate_id, or null for "All Suppliers". */
+  globalUltimateId: string | null;
   /** source_system_id, or null for "All Source Systems". */
   sourceSystemId: string | null;
+  /** plant_id, or null for "All Plants". */
+  plantId: string | null;
   /** payment_term_code, the NO_VALUE_KEY sentinel, or null for "All Payment Terms". */
   paymentTermCode: string | null;
 }

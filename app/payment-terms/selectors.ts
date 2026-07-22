@@ -63,7 +63,9 @@ export function applyFilters(allInvoices: Invoice[], filters: FilterState): Invo
   return allInvoices.filter((inv) => {
     if (!isWithinWindow(inv, filters.endMonth)) return false;
     if (filters.categoryCode !== null && categoryKey(inv) !== filters.categoryCode) return false;
+    if (filters.globalUltimateId !== null && inv.global_ultimate_id !== filters.globalUltimateId) return false;
     if (filters.sourceSystemId !== null && inv.source_system_id !== filters.sourceSystemId) return false;
+    if (filters.plantId !== null && inv.plant_id !== filters.plantId) return false;
     if (filters.paymentTermCode !== null && paymentTermKey(inv) !== filters.paymentTermCode) return false;
     return true;
   });
@@ -275,4 +277,20 @@ export function getSourceSystemFilterOptions(
   return Array.from(usedIds)
     .map((value) => ({ value, label: nameById.get(value) ?? value }))
     .sort((a, b) => a.label.localeCompare(b.label));
+}
+
+export function getGlobalUltimateFilterOptions(allInvoices: Invoice[]): FilterOption[] {
+  const seen = new Map<string, string>();
+  for (const inv of allInvoices) seen.set(inv.global_ultimate_id, inv.global_ultimate_name);
+  return Array.from(seen, ([value, label]) => ({ value, label })).sort((a, b) =>
+    a.label.localeCompare(b.label)
+  );
+}
+
+export function getPlantFilterOptions(allInvoices: Invoice[]): FilterOption[] {
+  const seen = new Map<string, string>();
+  for (const inv of allInvoices) seen.set(inv.plant_id, inv.plant_name);
+  return Array.from(seen, ([value, label]) => ({ value, label })).sort((a, b) =>
+    a.label.localeCompare(b.label)
+  );
 }
