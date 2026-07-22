@@ -37,30 +37,30 @@ export function FeaturePlaceholder({
   return (
     <Card className="max-w-2xl">
       <CardHeader className="flex-row items-center gap-3 space-y-0">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-white">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900">
           <Icon className="h-5 w-5" />
         </span>
         <div>
           <CardTitle>{item.label}</CardTitle>
-          <p className="text-sm text-slate-400">{item.href}</p>
+          <p className="text-sm text-slate-400 dark:text-slate-500">{item.href}</p>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-5">
-        <p className="text-sm leading-relaxed text-slate-600">
+        <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
           {item.description}
         </p>
 
-        <div className="flex items-center justify-between rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-3">
+        <div className="flex items-center justify-between rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800/50">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
               Assigned to
             </p>
-            <p className="text-sm font-semibold text-slate-900">
+            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               {item.owner}
             </p>
           </div>
-          <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">
+          <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700 dark:bg-amber-500/15 dark:text-amber-400">
             {status}
           </span>
         </div>
@@ -70,10 +70,10 @@ export function FeaturePlaceholder({
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className="rounded-lg border border-slate-100 bg-white px-3 py-2"
+                className="rounded-lg border border-slate-100 bg-white px-3 py-2 dark:border-slate-800 dark:bg-slate-800/60"
               >
-                <p className="text-xs text-slate-400">{stat.label}</p>
-                <p className="text-sm font-semibold text-slate-900">
+                <p className="text-xs text-slate-400 dark:text-slate-500">{stat.label}</p>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                   {stat.value}
                 </p>
               </div>
