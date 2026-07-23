@@ -15,15 +15,19 @@ import { FilterGroup, FilterToggle } from "@/components/ui/filter-controls";
 import { DASHBOARD_WIDGET_GROUPS, type WidgetId } from "./dashboardParams";
 
 interface CustomizeDashboardDrawerProps {
-  isVisible: (widgetId: WidgetId) => boolean;
-  onToggleWidget: (widgetId: WidgetId) => void;
+  isWidgetEnabled: (widgetId: WidgetId) => boolean;
+  onToggleWidgetEnabled: (widgetId: WidgetId) => void;
   onResetToDefault: () => void;
 }
 
-/** Trigger button + slide-over drawer for toggling which Tail Spend widgets are shown. */
+/**
+ * Trigger button + slide-over drawer for the advanced widget override. This
+ * is independent of (and layered on top of) the Focus Parameter bar: a
+ * widget still needs an active focus tag to render even if it's enabled here.
+ */
 export function CustomizeDashboardDrawer({
-  isVisible,
-  onToggleWidget,
+  isWidgetEnabled,
+  onToggleWidgetEnabled,
   onResetToDefault,
 }: CustomizeDashboardDrawerProps) {
   return (
@@ -37,7 +41,8 @@ export function CustomizeDashboardDrawer({
         <SheetHeader>
           <SheetTitle>Custom Dashboard Parameters</SheetTitle>
           <SheetDescription>
-            Choose which widgets appear on this dashboard. Your selection is saved on this device.
+            Override which widgets appear, independent of the Focus Parameters bar above. Your
+            selection is saved on this device.
           </SheetDescription>
         </SheetHeader>
 
@@ -48,8 +53,8 @@ export function CustomizeDashboardDrawer({
                 <FilterToggle
                   key={widget.id}
                   label={widget.label}
-                  checked={isVisible(widget.id)}
-                  onChange={() => onToggleWidget(widget.id)}
+                  checked={isWidgetEnabled(widget.id)}
+                  onChange={() => onToggleWidgetEnabled(widget.id)}
                 />
               ))}
             </FilterGroup>

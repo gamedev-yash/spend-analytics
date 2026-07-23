@@ -19,7 +19,9 @@ import { MicroPOAnalysis } from "./components/MicroPOAnalysis";
 import { useFilterSlot } from "@/context/FilterContext";
 import { FilterGroup, FilterSelect, FilterSlider, FilterToggle } from "@/components/ui/filter-controls";
 import { CustomizeDashboardDrawer } from "./components/CustomizeDashboardDrawer";
+import { FocusParameterBar } from "./components/FocusParameterBar";
 import { useDashboardCustomization } from "./components/useDashboardCustomization";
+import { cn } from "@/lib/utils";
 
 const ALL_CATEGORIES = "All Categories";
 const ALL_SUPPLIERS = "All Suppliers";
@@ -57,14 +59,27 @@ function Section({
   );
 }
 
-function Widget({ title, children }: { title: string; children: ReactNode }) {
+function Widget({
+  title,
+  children,
+  className,
+}: {
+  title: string;
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+    <div className={cn("rounded-xl border border-slate-800 bg-slate-900 p-4", className)}>
       <h3 className="mb-3 text-sm font-semibold text-slate-100">{title}</h3>
       {children}
     </div>
   );
 }
+
+// When an odd number of the 4 chart widgets below are visible, the last one
+// would otherwise sit alone in a half-empty row at the xl 2-column
+// breakpoint — this expands it to fill the row instead of leaving a gap.
+const LAST_ODD_SPANS_FULL = "xl:[&:last-child:nth-child(odd)]:col-span-2";
 
 export default function TailSpendPage() {
   const {
@@ -107,7 +122,15 @@ export default function TailSpendPage() {
     setFilters((prev) => ({ ...prev, [key]: value }));
   }
 
-  const { isVisible, toggleWidget, resetToDefault } = useDashboardCustomization();
+  const {
+    activeParameters,
+    toggleParameter,
+    applyPreset,
+    isWidgetEnabled,
+    toggleWidgetEnabled,
+    resetWidgetsToDefault,
+    isWidgetVisible,
+  } = useDashboardCustomization();
 
   useFilterSlot(
     <>
@@ -146,9 +169,9 @@ export default function TailSpendPage() {
 
       <FilterGroup title="Page Options" className="mt-6">
         <CustomizeDashboardDrawer
-          isVisible={isVisible}
-          onToggleWidget={toggleWidget}
-          onResetToDefault={resetToDefault}
+          isWidgetEnabled={isWidgetEnabled}
+          onToggleWidgetEnabled={toggleWidgetEnabled}
+          onResetToDefault={resetWidgetsToDefault}
         />
         <FilterSlider
           label="Micro-PO Threshold"
@@ -267,13 +290,19 @@ export default function TailSpendPage() {
           </p>
         </div>
 
+        <FocusParameterBar
+          activeParameters={activeParameters}
+          onToggleParameter={toggleParameter}
+          onApplyPreset={applyPreset}
+        />
+
         {/* ================= TIER 1: SAP Spend Control Tower ================= */}
 
-        {isVisible("sap-kpi-ribbon") && <SapKpiRibbon kpi={sapKpiRibbon} />}
+        {isWidgetVisible("sap-kpi-ribbon") && <SapKpiRibbon kpi={sapKpiRibbon} />}
 
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-          {isVisible("invoice-value-bucket-chart") && (
-            <Widget title="Invoice Count by Invoice Value">
+          {isWidgetVisible("invoice-value-bucket-chart") && (
+            <Widget title="Invoice Count by Invoice Value" className={LAST_ODD_SPANS_FULL}>
               <InvoiceValueBucketChart
                 buckets={invoiceValueBuckets}
                 selectedBuckets={selectedBuckets}
@@ -282,26 +311,26 @@ export default function TailSpendPage() {
             </Widget>
           )}
 
-          {isVisible("supplier-spend-rank-chart") && (
-            <Widget title="Spend by Supplier (Global Ultimate) for Selected Buckets">
+          {isWidgetVisible("supplier-spend-rank-chart") && (
+            <Widget title="Spend by Supplier (Global Ultimate) for Selected Buckets" className={LAST_ODD_SPANS_FULL}>
               <SupplierSpendRankChart suppliers={scaledSupplierSpendRank} />
             </Widget>
           )}
 
-          {isVisible("spend-by-invoice-value-donut") && (
-            <Widget title="Spend by Invoice Value">
+          {isWidgetVisible("spend-by-invoice-value-donut") && (
+            <Widget title="Spend by Invoice Value" className={LAST_ODD_SPANS_FULL}>
               <SpendByInvoiceValueDonut buckets={invoiceValueBuckets} selectedBuckets={selectedBuckets} />
             </Widget>
           )}
 
-          {isVisible("category-spend-hybrid") && (
-            <Widget title="Spend by Category for Selected Buckets">
+          {isWidgetVisible("category-spend-hybrid") && (
+            <Widget title="Spend by Category for Selected Buckets" className={LAST_ODD_SPANS_FULL}>
               <CategorySpendHybrid categories={scaledCategoryRows} />
             </Widget>
           )}
         </div>
 
-        {isVisible("sap-detail-table") && (
+        {isWidgetVisible("sap-detail-table") && (
           <Section title="Supplier (Global Ultimate) Detail Report">
             <SapDetailTable rows={filteredSupplierReport} />
           </Section>
@@ -318,11 +347,11 @@ export default function TailSpendPage() {
 
         {/* ================= TIER 2: Advanced AI & Tail Spend Optimization ================= */}
 
-        {isVisible("tail-kpi-cards") && (
+        {isWidgetVisible("tail-kpi-cards") && (
           <TailKPICards kpi={kpi} microStats={microStats} threshold={filters.microPOThreshold} />
         )}
 
-        {isVisible("pareto-curve-chart") && (
+        {isWidgetVisible("pareto-curve-chart") && (
           <Section
             title="80/20 Pareto Distribution"
             description="Suppliers ranked by spend, decile by decile — where the tail begins."
@@ -331,7 +360,7 @@ export default function TailSpendPage() {
           </Section>
         )}
 
-        {isVisible("tail-category-chart") && (
+        {isWidgetVisible("tail-category-chart") && (
           <Section
             title="Spend by Category"
             description="Strategic / Core / Tail split per category, ranked by tail-spend share."
@@ -340,7 +369,7 @@ export default function TailSpendPage() {
           </Section>
         )}
 
-        {isVisible("tail-bubble-chart") && (
+        {isWidgetVisible("tail-bubble-chart") && (
           <Section
             title="Supplier Segmentation Matrix"
             description="PO count vs. avg PO value, sized by total spend."
@@ -349,13 +378,13 @@ export default function TailSpendPage() {
           </Section>
         )}
 
-        {isVisible("strategic-comparison") && (
+        {isWidgetVisible("strategic-comparison") && (
           <Section title="Strategic vs. Core vs. Tail" description="How the three segments compare side by side.">
             <StrategicComparison segments={segmentComparison} />
           </Section>
         )}
 
-        {isVisible("tail-trend-chart") && (
+        {isWidgetVisible("tail-trend-chart") && (
           <Section
             title="12-Month Spend Trend"
             description="Tail spend is climbing steadily while strategic/core swing with capex cycles."
@@ -364,7 +393,7 @@ export default function TailSpendPage() {
           </Section>
         )}
 
-        {isVisible("consolidation-table") && (
+        {isWidgetVisible("consolidation-table") && (
           <Section
             title="Consolidation Candidates"
             description="Tail suppliers ranked by consolidation opportunity — highest potential savings first."
@@ -373,7 +402,7 @@ export default function TailSpendPage() {
           </Section>
         )}
 
-        {isVisible("micro-po-analysis") && (
+        {isWidgetVisible("micro-po-analysis") && (
           <Section
             title="Micro-PO Value Distribution"
             description={`${kpi.totalPOCount.toLocaleString("en-IN")} POs bucketed by value — the smallest buckets cost more to process than they're worth.`}

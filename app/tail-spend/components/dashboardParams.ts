@@ -59,5 +59,3 @@ export type WidgetId = (typeof DASHBOARD_WIDGET_GROUPS)[number]["widgets"][numbe
 export const ALL_WIDGET_IDS: WidgetId[] = DASHBOARD_WIDGET_GROUPS.flatMap((group) =>
   group.widgets.map((widget) => widget.id)
 );
-
-export const DASHBOARD_PARAMS_STORAGE_KEY = "tail_spend_visible_params";
