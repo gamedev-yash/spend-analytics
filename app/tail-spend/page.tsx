@@ -18,6 +18,8 @@ import { ConsolidationTable } from "./components/ConsolidationTable";
 import { MicroPOAnalysis } from "./components/MicroPOAnalysis";
 import { useFilterSlot } from "@/context/FilterContext";
 import { FilterGroup, FilterSelect, FilterSlider, FilterToggle } from "@/components/ui/filter-controls";
+import { CustomizeDashboardDrawer } from "./components/CustomizeDashboardDrawer";
+import { useDashboardCustomization } from "./components/useDashboardCustomization";
 
 const ALL_CATEGORIES = "All Categories";
 const ALL_SUPPLIERS = "All Suppliers";
@@ -105,6 +107,8 @@ export default function TailSpendPage() {
     setFilters((prev) => ({ ...prev, [key]: value }));
   }
 
+  const { isVisible, toggleWidget, resetToDefault } = useDashboardCustomization();
+
   useFilterSlot(
     <>
       <FilterGroup title="Global Filters">
@@ -141,6 +145,11 @@ export default function TailSpendPage() {
       </FilterGroup>
 
       <FilterGroup title="Page Options" className="mt-6">
+        <CustomizeDashboardDrawer
+          isVisible={isVisible}
+          onToggleWidget={toggleWidget}
+          onResetToDefault={resetToDefault}
+        />
         <FilterSlider
           label="Micro-PO Threshold"
           min={5_000}
@@ -260,33 +269,43 @@ export default function TailSpendPage() {
 
         {/* ================= TIER 1: SAP Spend Control Tower ================= */}
 
-        <SapKpiRibbon kpi={sapKpiRibbon} />
+        {isVisible("sap-kpi-ribbon") && <SapKpiRibbon kpi={sapKpiRibbon} />}
 
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-          <Widget title="Invoice Count by Invoice Value">
-            <InvoiceValueBucketChart
-              buckets={invoiceValueBuckets}
-              selectedBuckets={selectedBuckets}
-              onToggleBucket={toggleBucket}
-            />
-          </Widget>
+          {isVisible("invoice-value-bucket-chart") && (
+            <Widget title="Invoice Count by Invoice Value">
+              <InvoiceValueBucketChart
+                buckets={invoiceValueBuckets}
+                selectedBuckets={selectedBuckets}
+                onToggleBucket={toggleBucket}
+              />
+            </Widget>
+          )}
 
-          <Widget title="Spend by Supplier (Global Ultimate) for Selected Buckets">
-            <SupplierSpendRankChart suppliers={scaledSupplierSpendRank} />
-          </Widget>
+          {isVisible("supplier-spend-rank-chart") && (
+            <Widget title="Spend by Supplier (Global Ultimate) for Selected Buckets">
+              <SupplierSpendRankChart suppliers={scaledSupplierSpendRank} />
+            </Widget>
+          )}
 
-          <Widget title="Spend by Invoice Value">
-            <SpendByInvoiceValueDonut buckets={invoiceValueBuckets} selectedBuckets={selectedBuckets} />
-          </Widget>
+          {isVisible("spend-by-invoice-value-donut") && (
+            <Widget title="Spend by Invoice Value">
+              <SpendByInvoiceValueDonut buckets={invoiceValueBuckets} selectedBuckets={selectedBuckets} />
+            </Widget>
+          )}
 
-          <Widget title="Spend by Category for Selected Buckets">
-            <CategorySpendHybrid categories={scaledCategoryRows} />
-          </Widget>
+          {isVisible("category-spend-hybrid") && (
+            <Widget title="Spend by Category for Selected Buckets">
+              <CategorySpendHybrid categories={scaledCategoryRows} />
+            </Widget>
+          )}
         </div>
 
-        <Section title="Supplier (Global Ultimate) Detail Report">
-          <SapDetailTable rows={filteredSupplierReport} />
-        </Section>
+        {isVisible("sap-detail-table") && (
+          <Section title="Supplier (Global Ultimate) Detail Report">
+            <SapDetailTable rows={filteredSupplierReport} />
+          </Section>
+        )}
 
         {/* ================= Tier divider ================= */}
         <div className="flex items-center gap-4 py-2">
@@ -299,53 +318,69 @@ export default function TailSpendPage() {
 
         {/* ================= TIER 2: Advanced AI & Tail Spend Optimization ================= */}
 
-        <TailKPICards kpi={kpi} microStats={microStats} threshold={filters.microPOThreshold} />
+        {isVisible("tail-kpi-cards") && (
+          <TailKPICards kpi={kpi} microStats={microStats} threshold={filters.microPOThreshold} />
+        )}
 
-        <Section
-          title="80/20 Pareto Distribution"
-          description="Suppliers ranked by spend, decile by decile — where the tail begins."
-        >
-          <ParetoCurveChart deciles={paretoDeciles} threshold={filters.paretoThreshold} />
-        </Section>
+        {isVisible("pareto-curve-chart") && (
+          <Section
+            title="80/20 Pareto Distribution"
+            description="Suppliers ranked by spend, decile by decile — where the tail begins."
+          >
+            <ParetoCurveChart deciles={paretoDeciles} threshold={filters.paretoThreshold} />
+          </Section>
+        )}
 
-        <Section
-          title="Spend by Category"
-          description="Strategic / Core / Tail split per category, ranked by tail-spend share."
-        >
-          <TailCategoryChart categories={sortedCategories} />
-        </Section>
+        {isVisible("tail-category-chart") && (
+          <Section
+            title="Spend by Category"
+            description="Strategic / Core / Tail split per category, ranked by tail-spend share."
+          >
+            <TailCategoryChart categories={sortedCategories} />
+          </Section>
+        )}
 
-        <Section
-          title="Supplier Segmentation Matrix"
-          description="PO count vs. avg PO value, sized by total spend."
-        >
-          <TailBubbleChart suppliers={filteredBubbles} />
-        </Section>
+        {isVisible("tail-bubble-chart") && (
+          <Section
+            title="Supplier Segmentation Matrix"
+            description="PO count vs. avg PO value, sized by total spend."
+          >
+            <TailBubbleChart suppliers={filteredBubbles} />
+          </Section>
+        )}
 
-        <Section title="Strategic vs. Core vs. Tail" description="How the three segments compare side by side.">
-          <StrategicComparison segments={segmentComparison} />
-        </Section>
+        {isVisible("strategic-comparison") && (
+          <Section title="Strategic vs. Core vs. Tail" description="How the three segments compare side by side.">
+            <StrategicComparison segments={segmentComparison} />
+          </Section>
+        )}
 
-        <Section
-          title="12-Month Spend Trend"
-          description="Tail spend is climbing steadily while strategic/core swing with capex cycles."
-        >
-          <TailTrendChart months={monthlyTrend} />
-        </Section>
+        {isVisible("tail-trend-chart") && (
+          <Section
+            title="12-Month Spend Trend"
+            description="Tail spend is climbing steadily while strategic/core swing with capex cycles."
+          >
+            <TailTrendChart months={monthlyTrend} />
+          </Section>
+        )}
 
-        <Section
-          title="Consolidation Candidates"
-          description="Tail suppliers ranked by consolidation opportunity — highest potential savings first."
-        >
-          <ConsolidationTable candidates={filteredCandidates} />
-        </Section>
+        {isVisible("consolidation-table") && (
+          <Section
+            title="Consolidation Candidates"
+            description="Tail suppliers ranked by consolidation opportunity — highest potential savings first."
+          >
+            <ConsolidationTable candidates={filteredCandidates} />
+          </Section>
+        )}
 
-        <Section
-          title="Micro-PO Value Distribution"
-          description={`${kpi.totalPOCount.toLocaleString("en-IN")} POs bucketed by value — the smallest buckets cost more to process than they're worth.`}
-        >
-          <MicroPOAnalysis buckets={poValueBuckets} threshold={filters.microPOThreshold} />
-        </Section>
+        {isVisible("micro-po-analysis") && (
+          <Section
+            title="Micro-PO Value Distribution"
+            description={`${kpi.totalPOCount.toLocaleString("en-IN")} POs bucketed by value — the smallest buckets cost more to process than they're worth.`}
+          >
+            <MicroPOAnalysis buckets={poValueBuckets} threshold={filters.microPOThreshold} />
+          </Section>
+        )}
       </div>
     </div>
   );
