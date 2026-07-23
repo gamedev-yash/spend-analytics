@@ -69,7 +69,7 @@ export default async function SpendOverviewPage({ searchParams }: PageProps) {
     (filters.categoryPath ? 1 : 0);
 
   return (
-    <div className="flex h-full flex-col gap-2.5">
+    <div className="flex flex-col gap-6">
       <SpendOverviewFilters
         plantOptions={filterOptions.plants}
         categoryOptions={filterOptions.categoriesL1}
@@ -77,21 +77,26 @@ export default async function SpendOverviewPage({ searchParams }: PageProps) {
         dateMax={filterOptions.dateMax}
       />
 
-      <div className="flex shrink-0 items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <DashboardTabs />
-          <h1 className="hidden text-base font-semibold tracking-tight text-foreground sm:block">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
             Spend Overview — Vedanta
-          </h1>
+          </h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Enterprise-wide spend visibility across business units, categories, and suppliers.
+          </p>
         </div>
-        <p className="shrink-0 text-xs text-muted-foreground">
-          Initiative 18 · Dashboard 1 of 6{activeFilterCount > 0 ? ` · ${activeFilterCount} filter(s) active` : ""}
-        </p>
+        <div className="flex shrink-0 flex-wrap items-center gap-3">
+          <DashboardTabs />
+          <p className="text-xs text-muted-foreground">
+            Initiative 18 · Dashboard 1 of 6{activeFilterCount > 0 ? ` · ${activeFilterCount} filter(s) active` : ""}
+          </p>
+        </div>
       </div>
 
       <InsightBox text={insightText} />
 
-      <section className="grid shrink-0 grid-cols-3 gap-2.5 lg:grid-cols-6">
+      <section className="grid grid-cols-3 gap-3 lg:grid-cols-6">
         <KpiCard size="compact" label="Total Spend" value={formatCr(kpis.totalSpendInr)} icon={<Wallet />} accent="blue" />
         <KpiCard size="compact" label="Total PO Count" value={kpis.poCount.toLocaleString()} icon={<FileCheck2 />} />
         <KpiCard size="compact" label="Active Suppliers" value={kpis.activeSupplierCount.toLocaleString()} icon={<Users />} />
@@ -113,23 +118,24 @@ export default async function SpendOverviewPage({ searchParams }: PageProps) {
         />
       </section>
 
-      <div className="grid min-h-0 flex-1 grid-cols-3 grid-rows-2 gap-2.5">
-        <ChartCard title="Spend by Category" description="Click to drill in" icon={<TrendingUp />} accent="blue">
+      {/* Trailing odd child spans the full row so hiding widgets never leaves a gap. */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
+        <ChartCard className="h-[420px]" title="Spend by Category" description="Click to drill in" icon={<TrendingUp />} accent="blue">
           <CategoryTreemap nodes={treemapNodes} />
         </ChartCard>
-        <ChartCard title="Top 20 Suppliers" description="Stacked by category + Pareto line" icon={<Users />} accent="violet">
+        <ChartCard className="h-[420px]" title="Top 20 Suppliers" description="Stacked by category + Pareto line" icon={<Users />} accent="violet">
           <TopSuppliersChart rows={topSuppliers.rows} allL1={topSuppliers.allL1} top5Percent={topSuppliers.top5Percent} />
         </ChartCard>
-        <ChartCard title="Spend Trend" description="Jan 2023 – Dec 2025, full history" icon={<TrendingUp />} accent="blue">
+        <ChartCard className="h-[420px]" title="Spend Trend" description="Jan 2023 – Dec 2025, full history" icon={<TrendingUp />} accent="blue">
           <SpendTrendChart trend={trend} spikes={spikes} />
         </ChartCard>
-        <ChartCard title="Spend by Business Unit" description="Click a bar to drill in" icon={<Building2 />} accent="orange">
+        <ChartCard className="h-[420px]" title="Spend by Business Unit" description="Click a bar to drill in" icon={<Building2 />} accent="orange">
           <SpendByBuChart rows={buSpend} />
         </ChartCard>
-        <ChartCard title="Spend Composition" description="BU → Category → Subcategory" icon={<Building2 />} accent="green">
+        <ChartCard className="h-[420px]" title="Spend Composition" description="BU → Category → Subcategory" icon={<Building2 />} accent="green">
           <SpendSunburst nodes={sunburstNodes} plantNameToCode={plantNameToCode} />
         </ChartCard>
-        <ChartCard title="Key Metrics Summary" description="Sortable, exportable" icon={<FileCheck2 />} accent="blue">
+        <ChartCard className="h-[420px]" title="Key Metrics Summary" description="Sortable, exportable" icon={<FileCheck2 />} accent="blue">
           <MetricsTable rows={metricsRows} />
         </ChartCard>
       </div>

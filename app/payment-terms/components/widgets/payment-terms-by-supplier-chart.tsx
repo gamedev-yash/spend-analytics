@@ -12,6 +12,8 @@ import {
   YAxis,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
+import { usePalette } from "@/hooks/use-palette";
 import { useWidgetInvoices } from "../../provider";
 import { aggregateByGlobalUltimate, type GlobalUltimateAgg } from "../../selectors";
 import { CHART_COLORS, formatCurrencyCompact, formatCurrencyFull } from "../../constants";
@@ -26,24 +28,8 @@ function truncateLabel(label: string): string {
   return label.length > LABEL_MAX_CHARS ? `${label.slice(0, LABEL_MAX_CHARS - 1)}…` : label;
 }
 
-interface SupplierTooltipProps {
-  active?: boolean;
-  payload?: Array<{ payload: GlobalUltimateAgg }>;
-}
-
-function SupplierTooltip({ active, payload }: SupplierTooltipProps) {
-  if (!active || !payload || payload.length === 0) return null;
-  const row = payload[0].payload;
-  return (
-    <div className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs shadow-md">
-      <div className="mb-1 font-semibold text-slate-900">{row.label}</div>
-      <div className="text-slate-600">{formatCurrencyFull(row.spend)}</div>
-      <div className="text-slate-600">Payment Terms Used: {row.distinctTermCount}</div>
-    </div>
-  );
-}
-
 export function PaymentTermsBySupplierChart() {
+  const palette = usePalette();
   const { invoicesForWidget, selectedKey, onBarClick } = useWidgetInvoices("globalUltimate");
 
   const { displayedRows, totalCount } = useMemo(() => {
@@ -61,7 +47,7 @@ export function PaymentTermsBySupplierChart() {
       <CardHeader>
         <CardTitle>Payment Terms by Suppliers (Global Ultimate)</CardTitle>
         {totalCount > TOP_N && (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Showing top {TOP_N} of {totalCount} suppliers by spend.
           </p>
         )}
@@ -73,10 +59,38 @@ export function PaymentTermsBySupplierChart() {
             layout="vertical"
             margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
           >
-            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-            <XAxis type="number" tickFormatter={formatCurrencyCompact} />
-            <YAxis type="category" dataKey="label" width={180} tickFormatter={truncateLabel} />
-            <Tooltip content={<SupplierTooltip />} />
+            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={palette.ink.grid} />
+            <XAxis
+              type="number"
+              tickFormatter={formatCurrencyCompact}
+              stroke={palette.ink.muted}
+              tick={{ fill: palette.ink.muted }}
+            />
+            <YAxis
+              type="category"
+              dataKey="label"
+              width={180}
+              tickFormatter={truncateLabel}
+              stroke={palette.ink.muted}
+              tick={{ fill: palette.ink.muted }}
+            />
+            <Tooltip
+              content={({ active, payload }) => {
+                const row = (payload?.[0]?.payload ?? null) as GlobalUltimateAgg | null;
+                if (!row) return null;
+                return (
+                  <ChartTooltipCard
+                    active={active}
+                    heading={row.label}
+                    rows={[
+                      { label: "Spend", value: formatCurrencyFull(row.spend) },
+                      { label: "Payment Terms Used", value: String(row.distinctTermCount) },
+                    ]}
+                  />
+                );
+              }}
+              cursor={{ fill: palette.isDark ? "rgba(148, 163, 184, 0.08)" : "rgba(15, 23, 42, 0.05)" }}
+            />
             <Bar
               dataKey="spend"
               style={{ cursor: "pointer" }}

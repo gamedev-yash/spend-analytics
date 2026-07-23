@@ -51,22 +51,25 @@ interface InkColors {
   surface: string;
 }
 
+// Slate-family ink, matching the app shell's slate surfaces (bg-slate-50 /
+// dark bg-slate-950, slate-toned cards) so axes and grids sit on-tone in
+// both themes: axis text slate-500/400, grid slate-200 light / slate-700 dark.
 const INK_LIGHT: InkColors = {
-  primary: "#0b0b0b",
-  secondary: "#52514e",
-  muted: "#898781",
-  grid: "#e1e0d9",
-  baseline: "#c3c2b7",
-  surface: "#fcfcfb",
+  primary: "#0f172a",
+  secondary: "#334155",
+  muted: "#64748b",
+  grid: "#e2e8f0",
+  baseline: "#cbd5e1",
+  surface: "#ffffff",
 };
 
 const INK_DARK: InkColors = {
-  primary: "#ffffff",
-  secondary: "#c3c2b7",
-  muted: "#898781",
-  grid: "#2c2c2a",
-  baseline: "#383835",
-  surface: "#1a1a19",
+  primary: "#f1f5f9",
+  secondary: "#cbd5e1",
+  muted: "#94a3b8",
+  grid: "#334155",
+  baseline: "#475569",
+  surface: "#0f172a",
 };
 
 /** Small named accent set for UI chrome (card tints, icon chips) — distinct from chart data-encoding colors. */

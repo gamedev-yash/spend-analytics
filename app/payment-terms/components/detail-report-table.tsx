@@ -88,7 +88,7 @@ export function DetailReportTable() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-sm">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
+              <tr className="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/50">
                 {COLUMNS.map((col) => {
                   const isActive = col.key === sortColumn;
                   return (
@@ -96,7 +96,7 @@ export function DetailReportTable() {
                       key={col.key}
                       onClick={() => handleSort(col.key)}
                       className={cn(
-                        "cursor-pointer select-none px-4 py-2.5 font-semibold text-slate-700",
+                        "cursor-pointer select-none px-4 py-2.5 font-semibold text-slate-700 dark:text-slate-200",
                         col.align === "right" ? "text-right" : "text-left"
                       )}
                     >
@@ -107,7 +107,7 @@ export function DetailReportTable() {
                         )}
                       >
                         {col.label}
-                        <span className="text-slate-400">
+                        <span className="text-slate-400 dark:text-slate-500">
                           {isActive ? (sortDirection === "asc" ? "▲" : "▼") : ""}
                         </span>
                       </span>
@@ -119,19 +119,22 @@ export function DetailReportTable() {
             <tbody>
               {sortedRows.length === 0 ? (
                 <tr>
-                  <td colSpan={COLUMNS.length} className="px-4 py-6 text-center text-slate-500">
+                  <td colSpan={COLUMNS.length} className="px-4 py-6 text-center text-slate-500 dark:text-slate-400">
                     No suppliers match the current filters.
                   </td>
                 </tr>
               ) : (
                 sortedRows.map((row) => (
-                  <tr key={row.globalUltimateId} className="border-b border-slate-100 last:border-b-0">
-                    <td className="px-4 py-2.5 text-left text-slate-900">{row.globalUltimateName}</td>
-                    <td className="px-4 py-2.5 text-right text-slate-700">{row.paymentTermCount}</td>
-                    <td className="px-4 py-2.5 text-right text-slate-700">{row.categoryCount}</td>
-                    <td className="px-4 py-2.5 text-right text-slate-700">{row.plantCount}</td>
-                    <td className="px-4 py-2.5 text-right text-slate-700">{formatDays(row.avgPaidDays)}</td>
-                    <td className="px-4 py-2.5 text-right text-slate-700">{formatCurrencyFull(row.spend)}</td>
+                  <tr
+                    key={row.globalUltimateId}
+                    className="border-b border-slate-100 last:border-b-0 dark:border-slate-800/60"
+                  >
+                    <td className="px-4 py-2.5 text-left text-slate-900 dark:text-slate-100">{row.globalUltimateName}</td>
+                    <td className="px-4 py-2.5 text-right text-slate-700 dark:text-slate-300">{row.paymentTermCount}</td>
+                    <td className="px-4 py-2.5 text-right text-slate-700 dark:text-slate-300">{row.categoryCount}</td>
+                    <td className="px-4 py-2.5 text-right text-slate-700 dark:text-slate-300">{row.plantCount}</td>
+                    <td className="px-4 py-2.5 text-right text-slate-700 dark:text-slate-300">{formatDays(row.avgPaidDays)}</td>
+                    <td className="px-4 py-2.5 text-right text-slate-700 dark:text-slate-300">{formatCurrencyFull(row.spend)}</td>
                   </tr>
                 ))
               )}

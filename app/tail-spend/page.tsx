@@ -19,7 +19,8 @@ import { MicroPOAnalysis } from "./components/MicroPOAnalysis";
 import { useFilterSlot } from "@/context/FilterContext";
 import { FilterGroup, FilterSelect, FilterSlider, FilterToggle } from "@/components/ui/filter-controls";
 import { CustomizeDashboardDrawer } from "./components/CustomizeDashboardDrawer";
-import { FocusParameterBar } from "./components/FocusParameterBar";
+import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
+import { FOCUS_PARAMETERS, FOCUS_PRESETS } from "./components/focusParams";
 import { useDashboardCustomization } from "./components/useDashboardCustomization";
 import { cn } from "@/lib/utils";
 
@@ -291,6 +292,9 @@ export default function TailSpendPage() {
         </div>
 
         <FocusParameterBar
+          variant="dark"
+          parameters={FOCUS_PARAMETERS}
+          presets={FOCUS_PRESETS}
           activeParameters={activeParameters}
           onToggleParameter={toggleParameter}
           onApplyPreset={applyPreset}

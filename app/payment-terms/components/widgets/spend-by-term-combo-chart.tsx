@@ -12,6 +12,8 @@ import {
   Cell,
 } from "recharts";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
+import { usePalette } from "@/hooks/use-palette";
 import { useWidgetInvoices } from "../../provider";
 import { aggregateByPaymentTerm, type PaymentTermAgg } from "../../selectors";
 import { NO_VALUE_KEY, CHART_COLORS, formatCurrencyCompact, formatCurrencyFull, formatDays } from "../../constants";
@@ -22,45 +24,8 @@ function formatDaysAxisTick(value: number): string {
   return `${value}d`;
 }
 
-interface ComboTooltipProps {
-  active?: boolean;
-  payload?: Array<{ payload: PaymentTermAgg }>;
-}
-
-function ComboTooltip({ active, payload }: ComboTooltipProps) {
-  if (!active || !payload || payload.length === 0) return null;
-  const row = payload[0].payload;
-
-  return (
-    <div className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-md">
-      <p className="mb-1.5 font-semibold text-slate-900">{row.label}</p>
-      <dl className="space-y-1">
-        <div className="flex items-center justify-between gap-4">
-          <dt className="text-slate-500">Spend</dt>
-          <dd className="font-medium text-slate-900">{formatCurrencyFull(row.spend)}</dd>
-        </div>
-        <div className="flex items-center justify-between gap-4">
-          <dt className="text-slate-500">Nominal days</dt>
-          <dd className="font-medium text-slate-900">
-            {row.nominalDays === null ? "—" : row.nominalDays}
-          </dd>
-        </div>
-        <div className="flex items-center justify-between gap-4">
-          <dt className="text-slate-500">Avg. paid days</dt>
-          <dd className="font-medium" style={{ color: CHART_COLORS.termAvgDaysLine }}>
-            {formatDays(row.avgPaidDays)}
-          </dd>
-        </div>
-        <div className="flex items-center justify-between gap-4">
-          <dt className="text-slate-500">Invoices</dt>
-          <dd className="font-medium text-slate-900">{row.invoiceCount}</dd>
-        </div>
-      </dl>
-    </div>
-  );
-}
-
 export function SpendByTermComboChart() {
+  const palette = usePalette();
   const { invoicesForWidget, selectedKey, onBarClick } = useWidgetInvoices("paymentTerm");
 
   const allRows = aggregateByPaymentTerm(invoicesForWidget).sort((a, b) => b.spend - a.spend);
@@ -75,7 +40,7 @@ export function SpendByTermComboChart() {
       <CardHeader>
         <CardTitle>Spend by Payment Terms and Average Paid Cycle Days</CardTitle>
         {isCapped && (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Showing top {TOP_N} of {totalCount} payment terms by spend.
           </p>
         )}
@@ -85,7 +50,7 @@ export function SpendByTermComboChart() {
           <div style={{ width: "100%", minWidth: chartWidth }}>
             <ResponsiveContainer width="100%" height={360}>
               <ComposedChart data={rows} margin={{ top: 8, right: 16, bottom: 56, left: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={palette.ink.grid} />
                 <XAxis
                   dataKey="label"
                   type="category"
@@ -93,10 +58,45 @@ export function SpendByTermComboChart() {
                   textAnchor="end"
                   interval={0}
                   height={70}
+                  stroke={palette.ink.muted}
+                  tick={{ fill: palette.ink.muted }}
                 />
-                <YAxis yAxisId="left" tickFormatter={formatCurrencyCompact} />
-                <YAxis yAxisId="right" orientation="right" tickFormatter={formatDaysAxisTick} />
-                <Tooltip content={<ComboTooltip />} />
+                <YAxis
+                  yAxisId="left"
+                  tickFormatter={formatCurrencyCompact}
+                  stroke={palette.ink.muted}
+                  tick={{ fill: palette.ink.muted }}
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  tickFormatter={formatDaysAxisTick}
+                  stroke={palette.ink.muted}
+                  tick={{ fill: palette.ink.muted }}
+                />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    const row = (payload?.[0]?.payload ?? null) as PaymentTermAgg | null;
+                    if (!row) return null;
+                    return (
+                      <ChartTooltipCard
+                        active={active}
+                        heading={row.label}
+                        rows={[
+                          { label: "Spend", value: formatCurrencyFull(row.spend) },
+                          { label: "Nominal days", value: row.nominalDays === null ? "—" : String(row.nominalDays) },
+                          {
+                            label: "Avg. paid days",
+                            value: formatDays(row.avgPaidDays),
+                            color: CHART_COLORS.termAvgDaysLine,
+                          },
+                          { label: "Invoices", value: String(row.invoiceCount) },
+                        ]}
+                      />
+                    );
+                  }}
+                  cursor={{ fill: palette.isDark ? "rgba(148, 163, 184, 0.08)" : "rgba(15, 23, 42, 0.05)" }}
+                />
                 <Bar yAxisId="left" dataKey="spend" fill={CHART_COLORS.termSpendBar}>
                   {rows.map((row) => {
                     const isNoValue = row.key === NO_VALUE_KEY;

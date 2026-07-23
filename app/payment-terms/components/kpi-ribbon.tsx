@@ -9,19 +9,19 @@ export function KpiRibbon() {
   const { distinctPaymentTerms, avgPaidDays } = computeKpis(filteredInvoices);
 
   return (
-    <div className="w-full rounded-xl bg-slate-900 px-6 py-5">
+    <div className="w-full rounded-xl border border-slate-200 bg-white px-6 py-5 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80">
       <div className="flex flex-wrap gap-8">
         <div className="flex flex-col">
-          <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+          <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
             Payment Terms
           </span>
-          <span className="text-3xl font-semibold text-white">{distinctPaymentTerms}</span>
+          <span className="text-3xl font-semibold text-slate-900 dark:text-slate-100">{distinctPaymentTerms}</span>
         </div>
         <div className="flex flex-col">
-          <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+          <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
             Average Number of Paid Days
           </span>
-          <span className="text-3xl font-semibold text-white">{formatDays(avgPaidDays)}</span>
+          <span className="text-3xl font-semibold text-slate-900 dark:text-slate-100">{formatDays(avgPaidDays)}</span>
         </div>
       </div>
     </div>

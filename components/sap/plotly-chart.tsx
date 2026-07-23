@@ -45,7 +45,7 @@ export function PlotlyChart({ data, layout, config, onClick, height, className }
     font: { family: "system-ui, -apple-system, Segoe UI, sans-serif", color: palette.ink.secondary, size: 12 },
     margin: { t: 24, r: 24, b: 36, l: 16 },
     hoverlabel: {
-      bgcolor: palette.isDark ? "#1a1a19" : "#fcfcfb",
+      bgcolor: palette.isDark ? "#1e293b" : "#ffffff",
       bordercolor: palette.ink.grid,
       font: { color: palette.ink.primary, size: 12 },
     },

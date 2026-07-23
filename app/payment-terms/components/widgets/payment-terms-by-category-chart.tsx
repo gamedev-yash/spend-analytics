@@ -2,28 +2,14 @@
 
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
+import { usePalette } from "@/hooks/use-palette";
 import { useWidgetInvoices } from "../../provider";
 import { aggregateByCategory, type CategoryAgg } from "../../selectors";
 import { CHART_COLORS, NO_VALUE_KEY, formatCurrencyFull } from "../../constants";
 
-interface CategoryTooltipProps {
-  active?: boolean;
-  payload?: Array<{ payload: CategoryAgg }>;
-}
-
-function CategoryTooltip({ active, payload }: CategoryTooltipProps) {
-  if (!active || !payload || payload.length === 0) return null;
-  const row = payload[0].payload;
-  return (
-    <div className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs shadow-md">
-      <p className="mb-1 font-semibold text-slate-900">{row.label}</p>
-      <p className="text-slate-600">Spend: {formatCurrencyFull(row.spend)}</p>
-      <p className="text-slate-600">Invoices: {row.invoiceCount.toLocaleString()}</p>
-    </div>
-  );
-}
-
 export function PaymentTermsByCategoryChart() {
+  const palette = usePalette();
   const { invoicesForWidget, selectedKey, onBarClick } = useWidgetInvoices("category");
   const rows = aggregateByCategory(invoicesForWidget).sort(
     (a, b) => b.distinctTermCount - a.distinctTermCount
@@ -40,17 +26,34 @@ export function PaymentTermsByCategoryChart() {
           <div style={{ minWidth: `${chartMinWidth}px`, height: 400 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={rows} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={palette.ink.grid} />
                 <XAxis
                   dataKey="label"
                   angle={-35}
                   textAnchor="end"
                   interval={0}
                   height={80}
-                  tick={{ fontSize: 11 }}
+                  stroke={palette.ink.muted}
+                  tick={{ fontSize: 11, fill: palette.ink.muted }}
                 />
-                <YAxis allowDecimals={false} />
-                <Tooltip content={<CategoryTooltip />} cursor={{ fill: "rgba(15, 23, 42, 0.05)" }} />
+                <YAxis allowDecimals={false} stroke={palette.ink.muted} tick={{ fill: palette.ink.muted }} />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    const row = (payload?.[0]?.payload ?? null) as CategoryAgg | null;
+                    if (!row) return null;
+                    return (
+                      <ChartTooltipCard
+                        active={active}
+                        heading={row.label}
+                        rows={[
+                          { label: "Spend", value: formatCurrencyFull(row.spend) },
+                          { label: "Invoices", value: row.invoiceCount.toLocaleString() },
+                        ]}
+                      />
+                    );
+                  }}
+                  cursor={{ fill: palette.isDark ? "rgba(148, 163, 184, 0.08)" : "rgba(15, 23, 42, 0.05)" }}
+                />
                 <Bar dataKey="distinctTermCount">
                   {rows.map((row) => {
                     const isNoValue = row.key === NO_VALUE_KEY;
