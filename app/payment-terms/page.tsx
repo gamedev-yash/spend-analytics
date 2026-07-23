@@ -1,3 +1,5 @@
+"use client";
+
 import { PaymentTermsProvider } from "./provider";
 import { KpiRibbon } from "./components/kpi-ribbon";
 import { FilterPanel } from "./components/filter-panel";
@@ -6,8 +8,13 @@ import { PaymentTermsBySupplierChart } from "./components/widgets/payment-terms-
 import { SpendByTermComboChart } from "./components/widgets/spend-by-term-combo-chart";
 import { PaymentTermsByInvoiceCountChart } from "./components/widgets/payment-terms-by-invoice-count-chart";
 import { DetailReportTable } from "./components/detail-report-table";
+import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
+import { PT_FOCUS_PARAMETERS, PT_FOCUS_PRESETS } from "./components/focusParams";
+import { usePaymentTermsFocus } from "./components/usePaymentTermsFocus";
 
 export default function PaymentTermsPage() {
+  const { activeParameters, toggleParameter, applyPreset, isWidgetVisible } = usePaymentTermsFocus();
+
   return (
     <PaymentTermsProvider>
       <FilterPanel />
@@ -20,15 +27,23 @@ export default function PaymentTermsPage() {
           </p>
         </div>
 
-        <KpiRibbon />
+        <FocusParameterBar
+          parameters={PT_FOCUS_PARAMETERS}
+          presets={PT_FOCUS_PRESETS}
+          activeParameters={activeParameters}
+          onToggleParameter={toggleParameter}
+          onApplyPreset={applyPreset}
+        />
+
+        {isWidgetVisible("kpi-ribbon") && <KpiRibbon />}
         {/* Trailing odd child spans the full row so hiding/filtering widgets never leaves a gap. */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
-          <PaymentTermsByCategoryChart />
-          <PaymentTermsBySupplierChart />
-          <SpendByTermComboChart />
-          <PaymentTermsByInvoiceCountChart />
+          {isWidgetVisible("category-chart") && <PaymentTermsByCategoryChart />}
+          {isWidgetVisible("supplier-chart") && <PaymentTermsBySupplierChart />}
+          {isWidgetVisible("combo-chart") && <SpendByTermComboChart />}
+          {isWidgetVisible("invoice-count-chart") && <PaymentTermsByInvoiceCountChart />}
         </div>
-        <DetailReportTable />
+        {isWidgetVisible("detail-table") && <DetailReportTable />}
       </div>
     </PaymentTermsProvider>
   );

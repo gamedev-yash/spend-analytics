@@ -3,9 +3,12 @@
 import { useMemo } from "react";
 import { X } from "lucide-react";
 import { FilterGroup, FilterSelect } from "@/components/ui/filter-controls";
+import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
 import { useFilterSlot } from "@/context/FilterContext";
 import { usePaymentTerms } from "../provider";
 import { formatMonthLabel } from "../constants";
+import { PT_WIDGET_GROUPS } from "./focusParams";
+import { usePaymentTermsFocus } from "./usePaymentTermsFocus";
 import type { LinkedDimension } from "../types";
 
 const DIMENSION_LABELS: Record<LinkedDimension, string> = {
@@ -37,6 +40,8 @@ export function FilterPanel() {
     plantOptions,
     paymentTermOptions,
   } = usePaymentTerms();
+
+  const { isWidgetEnabled, toggleWidgetEnabled, resetWidgetsToDefault } = usePaymentTermsFocus();
 
   const node = useMemo(
     () => (
@@ -75,6 +80,12 @@ export function FilterPanel() {
         </FilterGroup>
 
         <FilterGroup title="Page Options">
+          <CustomizeViewDrawer
+            groups={PT_WIDGET_GROUPS}
+            isWidgetEnabled={isWidgetEnabled}
+            onToggleWidgetEnabled={toggleWidgetEnabled}
+            onResetToDefault={resetWidgetsToDefault}
+          />
           <FilterSelect
             label="Payment Term"
             value={filters.paymentTermCode ?? ""}
@@ -116,6 +127,9 @@ export function FilterPanel() {
       setPlant,
       setPaymentTerm,
       clearSelection,
+      isWidgetEnabled,
+      toggleWidgetEnabled,
+      resetWidgetsToDefault,
     ]
   );
 

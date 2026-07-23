@@ -5,6 +5,9 @@ import { useFilterSlot } from "@/context/FilterContext";
 import { FilterGroup } from "@/components/ui/filter-controls";
 import { MultiSelect } from "@/components/sap/multi-select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
+import { SO_WIDGET_GROUPS } from "@/app/spend-overview/components/focusParams";
+import { useSpendOverviewFocus } from "@/app/spend-overview/components/useSpendOverviewFocus";
 import type { SpendType } from "@/lib/sap/types";
 
 interface SpendOverviewFiltersProps {
@@ -44,6 +47,8 @@ export function SpendOverviewFilters({ plantOptions, categoryOptions, dateMin, d
     const query = params.toString();
     router.push(query ? `${pathname}?${query}` : pathname);
   }
+
+  const { isWidgetEnabled, toggleWidgetEnabled, resetWidgetsToDefault } = useSpendOverviewFocus();
 
   useFilterSlot(
     <div className="space-y-6">
@@ -95,6 +100,12 @@ export function SpendOverviewFilters({ plantOptions, categoryOptions, dateMin, d
       </FilterGroup>
 
       <FilterGroup title="Page Options">
+        <CustomizeViewDrawer
+          groups={SO_WIDGET_GROUPS}
+          isWidgetEnabled={isWidgetEnabled}
+          onToggleWidgetEnabled={toggleWidgetEnabled}
+          onResetToDefault={resetWidgetsToDefault}
+        />
         <div className="space-y-1.5">
           <label className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
             Spend Type

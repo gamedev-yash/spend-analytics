@@ -2,53 +2,62 @@
 
 import { Copy, Layers, Target, UserPlus, Users, UserX, type LucideIcon } from "lucide-react";
 import type { SupplierFragmentationData } from "../supplierMock";
+import type { SfWidgetId } from "./focusParams";
 
 interface SupplierKpiCardsProps {
   data: SupplierFragmentationData;
+  isWidgetVisible: (widgetId: SfWidgetId) => boolean;
 }
 
 interface KpiDef {
+  id: SfWidgetId;
   icon: LucideIcon;
   label: string;
   value: string;
   sub: string;
 }
 
-export function SupplierKpiCards({ data }: SupplierKpiCardsProps) {
+export function SupplierKpiCards({ data, isWidgetVisible }: SupplierKpiCardsProps) {
   const singleUsePercent = Math.round((data.singleUseSupplierCount / data.totalActiveSuppliers) * 100);
 
   const cards: KpiDef[] = [
     {
+      id: "kpi-active-suppliers",
       icon: Users,
       label: "Active Suppliers",
       value: data.totalActiveSuppliers.toLocaleString("en-IN"),
       sub: "Across all categories and plants",
     },
     {
+      id: "kpi-single-use",
       icon: UserX,
       label: "Single-Use Suppliers",
       value: data.singleUseSupplierCount.toLocaleString("en-IN"),
       sub: `${singleUsePercent}% of the active base`,
     },
     {
+      id: "kpi-concentration",
       icon: Target,
       label: "Top-10 Concentration",
       value: `${data.top10ConcentrationPercent}%`,
       sub: "Share of spend with top 10 suppliers",
     },
     {
+      id: "kpi-avg-per-category",
       icon: Layers,
       label: "Avg. Suppliers per Category",
       value: data.avgSuppliersPerCategory.toLocaleString("en-IN"),
       sub: "Signals category-level fragmentation",
     },
     {
+      id: "kpi-duplicate-pairs",
       icon: Copy,
       label: "Potential Duplicate Pairs",
       value: data.duplicatePairCount.toLocaleString("en-IN"),
       sub: "Name-similarity matches to review",
     },
     {
+      id: "kpi-new-suppliers",
       icon: UserPlus,
       label: "New Suppliers (12M)",
       value: data.newSuppliersLast12M.toLocaleString("en-IN"),
@@ -56,9 +65,12 @@ export function SupplierKpiCards({ data }: SupplierKpiCardsProps) {
     },
   ];
 
+  const visibleCards = cards.filter((card) => isWidgetVisible(card.id));
+  if (visibleCards.length === 0) return null;
+
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-      {cards.map((card) => (
+      {visibleCards.map((card) => (
         <div
           key={card.label}
           className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80"

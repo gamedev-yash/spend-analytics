@@ -1,5 +1,5 @@
 import { Building2, FileText, PackageX, PiggyBank, Tags, type LucideIcon } from "lucide-react";
-import { type WidgetId } from "./dashboardParams";
+import { ALL_WIDGET_IDS, type WidgetId } from "./dashboardParams";
 
 export interface FocusParameter {
   id: string;
@@ -80,3 +80,13 @@ export const FOCUS_PRESETS: FocusPreset[] = [
   { id: "invoice-focus", label: "Invoice Focus", parameterIds: ["invoices"] },
   { id: "executive-view", label: "Executive View", parameterIds: ["tail-micro-pos", "consolidation-savings"] },
 ];
+
+/** Widget → parameter-tags, inverted from FOCUS_PARAMETERS.widgetIds for useDashboardCustomization. */
+export const WIDGET_TAGS: Record<WidgetId, FocusParameterId[]> = Object.fromEntries(
+  ALL_WIDGET_IDS.map((widgetId) => [
+    widgetId,
+    FOCUS_PARAMETERS.filter((parameter) => (parameter.widgetIds as readonly WidgetId[]).includes(widgetId)).map(
+      (parameter) => parameter.id
+    ),
+  ])
+) as Record<WidgetId, FocusParameterId[]>;

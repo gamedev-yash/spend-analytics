@@ -12,24 +12,41 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { FilterGroup, FilterToggle } from "@/components/ui/filter-controls";
-import { DASHBOARD_WIDGET_GROUPS, type WidgetId } from "./dashboardParams";
 
-interface CustomizeDashboardDrawerProps {
-  isWidgetEnabled: (widgetId: WidgetId) => boolean;
-  onToggleWidgetEnabled: (widgetId: WidgetId) => void;
+export interface CustomizeWidgetDef<Id extends string = string> {
+  id: Id;
+  label: string;
+}
+
+export interface CustomizeWidgetGroupDef<Id extends string = string> {
+  id: string;
+  title: string;
+  widgets: readonly CustomizeWidgetDef<Id>[];
+}
+
+interface CustomizeViewDrawerProps<Id extends string> {
+  groups: readonly CustomizeWidgetGroupDef<Id>[];
+  isWidgetEnabled: (widgetId: Id) => boolean;
+  onToggleWidgetEnabled: (widgetId: Id) => void;
   onResetToDefault: () => void;
+  title?: string;
+  description?: string;
 }
 
 /**
- * Trigger button + slide-over drawer for the advanced widget override. This
- * is independent of (and layered on top of) the Focus Parameter bar: a
- * widget still needs an active focus tag to render even if it's enabled here.
+ * Trigger button + slide-over drawer for the advanced per-widget override,
+ * shared by every dashboard page. Independent of (and layered on top of) a
+ * page's Focus Parameter bar — a widget still needs an active focus tag to
+ * render even if it's enabled here.
  */
-export function CustomizeDashboardDrawer({
+export function CustomizeViewDrawer<Id extends string>({
+  groups,
   isWidgetEnabled,
   onToggleWidgetEnabled,
   onResetToDefault,
-}: CustomizeDashboardDrawerProps) {
+  title = "Custom Dashboard Parameters",
+  description = "Override which widgets appear, independent of the Focus Parameters bar above. Your selection is saved on this device.",
+}: CustomizeViewDrawerProps<Id>) {
   return (
     <Sheet>
       <SheetTrigger className="flex w-full items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-700">
@@ -39,15 +56,12 @@ export function CustomizeDashboardDrawer({
 
       <SheetContent className="w-full max-w-sm sm:max-w-sm">
         <SheetHeader>
-          <SheetTitle>Custom Dashboard Parameters</SheetTitle>
-          <SheetDescription>
-            Override which widgets appear, independent of the Focus Parameters bar above. Your
-            selection is saved on this device.
-          </SheetDescription>
+          <SheetTitle>{title}</SheetTitle>
+          <SheetDescription>{description}</SheetDescription>
         </SheetHeader>
 
         <div className="flex-1 space-y-6 overflow-y-auto px-6">
-          {DASHBOARD_WIDGET_GROUPS.map((group) => (
+          {groups.map((group) => (
             <FilterGroup key={group.id} title={group.title}>
               {group.widgets.map((widget) => (
                 <FilterToggle

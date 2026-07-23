@@ -7,7 +7,7 @@ import { ChartCard } from "@/components/dashboard/chart-card";
 import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
 import { supplierMock } from "./supplierMock";
 import { SF_FOCUS_PARAMETERS, SF_FOCUS_PRESETS } from "./components/focusParams";
-import { useSupplierFocus } from "./components/useSupplierFocus";
+import { useSupplierFragmentationFocus } from "./components/useSupplierFragmentationFocus";
 import { SupplierFragmentationFilters, ALL_CATEGORIES } from "./components/SupplierFragmentationFilters";
 import { SupplierKpiCards } from "./components/SupplierKpiCards";
 import { CategoryFragmentationChart } from "./components/CategoryFragmentationChart";
@@ -42,7 +42,7 @@ export default function SupplierFragmentationPage() {
     setFilters((prev) => ({ ...prev, ...patch }));
   }
 
-  const { activeParameters, toggleParameter, applyPreset, isVisible } = useSupplierFocus();
+  const { activeParameters, toggleParameter, applyPreset, isWidgetVisible } = useSupplierFragmentationFocus();
 
   const filteredCategories = useMemo(
     () => categories.filter((c) => filters.category === ALL_CATEGORIES || c.category === filters.category),
@@ -70,7 +70,7 @@ export default function SupplierFragmentationPage() {
         </p>
       </div>
 
-      <SupplierKpiCards data={supplierMock} />
+      <SupplierKpiCards data={supplierMock} isWidgetVisible={isWidgetVisible} />
 
       <FocusParameterBar
         parameters={SF_FOCUS_PARAMETERS}
@@ -82,7 +82,7 @@ export default function SupplierFragmentationPage() {
 
       {/* Trailing odd child spans the full row so hiding/filtering widgets never leaves a gap. */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
-        {isVisible("category-fragmentation") && (
+        {isWidgetVisible("category-fragmentation") && (
           <ChartCard
             className="h-[420px]"
             title="Supplier Count by Category"
@@ -94,7 +94,7 @@ export default function SupplierFragmentationPage() {
           </ChartCard>
         )}
 
-        {isVisible("category-concentration") && (
+        {isWidgetVisible("category-concentration") && (
           <ChartCard
             className="h-[420px]"
             title="Category Concentration"
@@ -106,7 +106,7 @@ export default function SupplierFragmentationPage() {
           </ChartCard>
         )}
 
-        {isVisible("size-distribution") && (
+        {isWidgetVisible("size-distribution") && (
           <ChartCard
             className="h-[420px]"
             title="Suppliers by Annual Spend"
@@ -118,7 +118,7 @@ export default function SupplierFragmentationPage() {
           </ChartCard>
         )}
 
-        {isVisible("top-supplier-pareto") && (
+        {isWidgetVisible("top-supplier-pareto") && (
           <ChartCard
             className="h-[420px]"
             title="Top 10 Suppliers"
@@ -130,7 +130,7 @@ export default function SupplierFragmentationPage() {
           </ChartCard>
         )}
 
-        {isVisible("onboarding-trend") && (
+        {isWidgetVisible("onboarding-trend") && (
           <ChartCard
             className="h-[420px]"
             title="12-Month Onboarding Trend"
@@ -143,7 +143,7 @@ export default function SupplierFragmentationPage() {
         )}
       </div>
 
-      {isVisible("duplicate-table") && (
+      {isWidgetVisible("duplicate-table") && (
         <Card>
           <CardHeader className="flex-row items-center gap-2.5 space-y-0">
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 [&_svg]:h-4 [&_svg]:w-4">

@@ -18,8 +18,9 @@ import { ConsolidationTable } from "./components/ConsolidationTable";
 import { MicroPOAnalysis } from "./components/MicroPOAnalysis";
 import { useFilterSlot } from "@/context/FilterContext";
 import { FilterGroup, FilterSelect, FilterSlider, FilterToggle } from "@/components/ui/filter-controls";
-import { CustomizeDashboardDrawer } from "./components/CustomizeDashboardDrawer";
+import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
 import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
+import { DASHBOARD_WIDGET_GROUPS } from "./components/dashboardParams";
 import { FOCUS_PARAMETERS, FOCUS_PRESETS } from "./components/focusParams";
 import { useDashboardCustomization } from "./components/useDashboardCustomization";
 import { cn } from "@/lib/utils";
@@ -169,7 +170,8 @@ export default function TailSpendPage() {
       </FilterGroup>
 
       <FilterGroup title="Page Options" className="mt-6">
-        <CustomizeDashboardDrawer
+        <CustomizeViewDrawer
+          groups={DASHBOARD_WIDGET_GROUPS}
           isWidgetEnabled={isWidgetEnabled}
           onToggleWidgetEnabled={toggleWidgetEnabled}
           onResetToDefault={resetWidgetsToDefault}
