@@ -51,10 +51,10 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-slate-800 bg-slate-900 p-5 lg:p-6">
+    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80 lg:p-6">
       <div className="mb-4">
-        <h2 className="text-base font-semibold text-slate-100">{title}</h2>
-        {description && <p className="mt-0.5 text-sm text-slate-500">{description}</p>}
+        <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
+        {description && <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{description}</p>}
       </div>
       {children}
     </section>
@@ -71,8 +71,13 @@ function Widget({
   className?: string;
 }) {
   return (
-    <div className={cn("rounded-xl border border-slate-800 bg-slate-900 p-4", className)}>
-      <h3 className="mb-3 text-sm font-semibold text-slate-100">{title}</h3>
+    <div
+      className={cn(
+        "rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80",
+        className
+      )}
+    >
+      <h3 className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
       {children}
     </div>
   );
@@ -283,18 +288,17 @@ export default function TailSpendPage() {
   );
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] rounded-xl bg-slate-950 p-6 text-slate-100 lg:p-8">
+    <div className="min-h-[calc(100vh-4rem)] rounded-xl bg-slate-50 p-6 text-slate-900 dark:bg-slate-950 dark:text-slate-100 lg:p-8">
       <div className="mx-auto flex max-w-[1400px] flex-col gap-6">
         <div>
-          <h2 className="text-2xl font-semibold text-slate-50">Spend Control Tower</h2>
-          <p className="mt-1 text-sm text-slate-400">
+          <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-50">Spend Control Tower</h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             SAP standard spend visibility for Vedanta&apos;s indirect spend base, extended with proactive
             tail-spend optimization insights.
           </p>
         </div>
 
         <FocusParameterBar
-          variant="dark"
           parameters={FOCUS_PARAMETERS}
           presets={FOCUS_PRESETS}
           activeParameters={activeParameters}
@@ -344,11 +348,11 @@ export default function TailSpendPage() {
 
         {/* ================= Tier divider ================= */}
         <div className="flex items-center gap-4 py-2">
-          <div className="h-px flex-1 bg-slate-800" />
-          <p className="whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
+          <p className="whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
             Extended AI &amp; Value-Add Optimization Insights
           </p>
-          <div className="h-px flex-1 bg-slate-800" />
+          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
         </div>
 
         {/* ================= TIER 2: Advanced AI & Tail Spend Optimization ================= */}

@@ -53,22 +53,22 @@ export function SapDetailTable({ rows }: SapDetailTableProps) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-800">
+    <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
       <table className="w-full min-w-[760px] border-collapse text-sm">
         <thead>
-          <tr className="bg-slate-800/60">
+          <tr className="bg-slate-50 dark:bg-slate-800/60">
             {COLUMNS.map((col) => (
               <th
                 key={col.key}
                 aria-sort={sortKey === col.key ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
-                className={`px-3 py-2.5 text-xs font-medium uppercase tracking-wide text-slate-400 ${
+                className={`px-3 py-2.5 text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400 ${
                   col.align === "right" ? "text-right" : "text-left"
                 }`}
               >
                 <button
                   type="button"
                   onClick={() => toggleSort(col.key)}
-                  className={`inline-flex items-center gap-1 hover:text-slate-200 ${
+                  className={`inline-flex items-center gap-1 hover:text-slate-900 dark:hover:text-slate-200 ${
                     col.align === "right" ? "flex-row-reverse" : ""
                   }`}
                 >
@@ -80,7 +80,7 @@ export function SapDetailTable({ rows }: SapDetailTableProps) {
                       <ArrowDown className="h-3 w-3" />
                     )
                   ) : (
-                    <ArrowUpDown className="h-3 w-3 text-slate-600" />
+                    <ArrowUpDown className="h-3 w-3 text-slate-400 dark:text-slate-600" />
                   )}
                 </button>
               </th>
@@ -90,20 +90,23 @@ export function SapDetailTable({ rows }: SapDetailTableProps) {
         <tbody>
           {sorted.length === 0 ? (
             <tr>
-              <td colSpan={COLUMNS.length} className="px-3 py-8 text-center text-sm text-slate-500">
+              <td colSpan={COLUMNS.length} className="px-3 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
                 No suppliers match these filters.
               </td>
             </tr>
           ) : (
             sorted.map((row) => (
-              <tr key={row.supplierId} className="border-t border-slate-800 hover:bg-slate-800/40">
-                <td className="px-3 py-2.5 font-medium text-slate-100">{row.supplierName}</td>
-                <td className="px-3 py-2.5 text-right tabular-nums text-slate-300">{row.invoiceCount}</td>
-                <td className="px-3 py-2.5 text-right tabular-nums text-slate-300">{row.plantCount}</td>
-                <td className="px-3 py-2.5 text-right tabular-nums text-slate-300">{row.categoryCount}</td>
-                <td className="px-3 py-2.5 text-right tabular-nums text-slate-300">{row.productCount}</td>
-                <td className="px-3 py-2.5 text-right tabular-nums text-slate-300">{row.costCenterCount}</td>
-                <td className="px-3 py-2.5 text-right tabular-nums font-medium text-slate-100">
+              <tr
+                key={row.supplierId}
+                className="border-t border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/50"
+              >
+                <td className="px-3 py-2.5 font-medium text-slate-900 dark:text-slate-100">{row.supplierName}</td>
+                <td className="px-3 py-2.5 text-right tabular-nums text-slate-700 dark:text-slate-300">{row.invoiceCount}</td>
+                <td className="px-3 py-2.5 text-right tabular-nums text-slate-700 dark:text-slate-300">{row.plantCount}</td>
+                <td className="px-3 py-2.5 text-right tabular-nums text-slate-700 dark:text-slate-300">{row.categoryCount}</td>
+                <td className="px-3 py-2.5 text-right tabular-nums text-slate-700 dark:text-slate-300">{row.productCount}</td>
+                <td className="px-3 py-2.5 text-right tabular-nums text-slate-700 dark:text-slate-300">{row.costCenterCount}</td>
+                <td className="px-3 py-2.5 text-right tabular-nums font-medium text-slate-900 dark:text-slate-100">
                   {formatINRFull(row.spend)}
                 </td>
               </tr>

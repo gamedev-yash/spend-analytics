@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { ArrowUp, ArrowDown, ArrowUpDown, Download, Merge, FileSignature, Eye } from "lucide-react";
 import type { ConsolidationCandidate, ConsolidationAction } from "../tailSpendMock";
 import { formatINRFull, formatINR } from "../tailSpendMock";
-import { ACTION_COLOR } from "../theme";
+import { useTailSpendTheme } from "../theme";
 
 interface ConsolidationTableProps {
   candidates: ConsolidationCandidate[];
@@ -81,6 +81,7 @@ function downloadCsv(rows: ConsolidationCandidate[]) {
  * on screen.
  */
 export function ConsolidationTable({ candidates }: ConsolidationTableProps) {
+  const theme = useTailSpendTheme();
   const [sortKey, setSortKey] = useState<SortKey>("potentialSavings");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
@@ -107,37 +108,37 @@ export function ConsolidationTable({ candidates }: ConsolidationTableProps) {
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           {candidates.length} tail supplier{candidates.length === 1 ? "" : "s"} ranked by consolidation opportunity
         </p>
         <button
           type="button"
           onClick={() => downloadCsv(sorted)}
-          className="flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-200 transition-colors hover:border-slate-600 hover:bg-slate-700"
+          className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-700"
         >
           <Download className="h-3.5 w-3.5" />
           Export CSV
         </button>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-slate-800">
+      <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
         <table className="w-full min-w-[880px] border-collapse text-sm">
           <thead>
-            <tr className="bg-slate-800/60">
+            <tr className="bg-slate-50 dark:bg-slate-800/60">
               {COLUMNS.map((col) => (
                 <th
                   key={col.key}
                   aria-sort={
                     sortKey === col.key ? (sortDir === "asc" ? "ascending" : "descending") : "none"
                   }
-                  className={`px-3 py-2.5 text-xs font-medium uppercase tracking-wide text-slate-400 ${
+                  className={`px-3 py-2.5 text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400 ${
                     col.align === "right" ? "text-right" : "text-left"
                   }`}
                 >
                   <button
                     type="button"
                     onClick={() => toggleSort(col.key)}
-                    className={`inline-flex items-center gap-1 hover:text-slate-200 ${
+                    className={`inline-flex items-center gap-1 hover:text-slate-900 dark:hover:text-slate-200 ${
                       col.align === "right" ? "flex-row-reverse" : ""
                     }`}
                   >
@@ -149,12 +150,12 @@ export function ConsolidationTable({ candidates }: ConsolidationTableProps) {
                         <ArrowDown className="h-3 w-3" />
                       )
                     ) : (
-                      <ArrowUpDown className="h-3 w-3 text-slate-600" />
+                      <ArrowUpDown className="h-3 w-3 text-slate-400 dark:text-slate-600" />
                     )}
                   </button>
                 </th>
               ))}
-              <th className="px-3 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-slate-400">
+              <th className="px-3 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Action
               </th>
             </tr>
@@ -162,7 +163,7 @@ export function ConsolidationTable({ candidates }: ConsolidationTableProps) {
           <tbody>
             {sorted.length === 0 ? (
               <tr>
-                <td colSpan={COLUMNS.length + 1} className="px-3 py-8 text-center text-sm text-slate-500">
+                <td colSpan={COLUMNS.length + 1} className="px-3 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
                   No suppliers match these filters.
                 </td>
               </tr>
@@ -170,26 +171,29 @@ export function ConsolidationTable({ candidates }: ConsolidationTableProps) {
               sorted.map((row) => {
               const ActionIcon = ACTION_ICON[row.recommendedAction];
               return (
-                <tr key={row.supplierId} className="border-t border-slate-800 hover:bg-slate-800/40">
-                  <td className="px-3 py-2.5 font-medium text-slate-100">{row.supplierName}</td>
-                  <td className="px-3 py-2.5 text-slate-400">{row.category}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums text-slate-300">{row.poCount}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums text-slate-300">{row.microPOCount}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums text-slate-300">{formatINRFull(row.totalSpend)}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums text-slate-300">{formatINRFull(row.avgPOValue)}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums text-slate-300">{formatINR(row.processingCost)}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums font-medium text-emerald-400">
+                <tr
+                  key={row.supplierId}
+                  className="border-t border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/50"
+                >
+                  <td className="px-3 py-2.5 font-medium text-slate-900 dark:text-slate-100">{row.supplierName}</td>
+                  <td className="px-3 py-2.5 text-slate-500 dark:text-slate-400">{row.category}</td>
+                  <td className="px-3 py-2.5 text-right tabular-nums text-slate-700 dark:text-slate-300">{row.poCount}</td>
+                  <td className="px-3 py-2.5 text-right tabular-nums text-slate-700 dark:text-slate-300">{row.microPOCount}</td>
+                  <td className="px-3 py-2.5 text-right tabular-nums text-slate-700 dark:text-slate-300">{formatINRFull(row.totalSpend)}</td>
+                  <td className="px-3 py-2.5 text-right tabular-nums text-slate-700 dark:text-slate-300">{formatINRFull(row.avgPOValue)}</td>
+                  <td className="px-3 py-2.5 text-right tabular-nums text-slate-700 dark:text-slate-300">{formatINR(row.processingCost)}</td>
+                  <td className="px-3 py-2.5 text-right tabular-nums font-medium text-emerald-600 dark:text-emerald-400">
                     {formatINR(row.potentialSavings)}
                   </td>
                   <td className="px-3 py-2.5 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <span className="tabular-nums text-slate-300">{row.consolidationScore}</span>
-                      <span className="h-1.5 w-12 overflow-hidden rounded-full bg-slate-800">
+                      <span className="tabular-nums text-slate-700 dark:text-slate-300">{row.consolidationScore}</span>
+                      <span className="h-1.5 w-12 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
                         <span
                           className="block h-full rounded-full"
                           style={{
                             width: `${row.consolidationScore}%`,
-                            backgroundColor: ACTION_COLOR[row.recommendedAction],
+                            backgroundColor: theme.actionColor[row.recommendedAction],
                           }}
                         />
                       </span>
@@ -198,7 +202,7 @@ export function ConsolidationTable({ candidates }: ConsolidationTableProps) {
                   <td className="px-3 py-2.5">
                     <span
                       className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-medium"
-                      style={{ color: ACTION_COLOR[row.recommendedAction] }}
+                      style={{ color: theme.actionColor[row.recommendedAction] }}
                     >
                       <ActionIcon className="h-3.5 w-3.5" />
                       {row.recommendedAction}

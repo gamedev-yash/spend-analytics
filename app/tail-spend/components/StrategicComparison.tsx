@@ -1,6 +1,8 @@
+"use client";
+
 import type { SegmentComparison } from "../tailSpendMock";
 import { formatINR, formatCompactNumber } from "../tailSpendMock";
-import { SEGMENT_COLOR } from "../theme";
+import { useTailSpendTheme } from "../theme";
 
 interface StrategicComparisonProps {
   segments: SegmentComparison[];
@@ -44,20 +46,22 @@ const METRICS: MetricRow[] = [
  * faster as a table than as bars once every cell needs its own number.
  */
 export function StrategicComparison({ segments }: StrategicComparisonProps) {
+  const theme = useTailSpendTheme();
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[520px] border-collapse text-sm">
         <thead>
           <tr>
-            <th className="w-40 border-b border-slate-800 pb-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
+            <th className="w-40 border-b border-slate-200 pb-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
               Metric
             </th>
             {segments.map((s) => (
-              <th key={s.segment} className="border-b border-slate-800 pb-3 text-left">
-                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-100">
+              <th key={s.segment} className="border-b border-slate-200 pb-3 text-left dark:border-slate-800">
+                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-900 dark:text-slate-100">
                   <span
                     className="h-2.5 w-2.5 rounded-full"
-                    style={{ backgroundColor: SEGMENT_COLOR[s.segment] }}
+                    style={{ backgroundColor: theme.segmentColor[s.segment] }}
                   />
                   {s.segment}
                 </span>
@@ -67,14 +71,14 @@ export function StrategicComparison({ segments }: StrategicComparisonProps) {
         </thead>
         <tbody>
           {METRICS.map((metric) => (
-            <tr key={metric.label} className="border-b border-slate-800/60 last:border-0">
-              <td className="py-3 text-xs font-medium text-slate-500">{metric.label}</td>
+            <tr key={metric.label} className="border-b border-slate-200/60 last:border-0 dark:border-slate-800/60">
+              <td className="py-3 text-xs font-medium text-slate-500 dark:text-slate-400">{metric.label}</td>
               {segments.map((s) => (
                 <td key={s.segment} className="py-3 pr-4">
-                  <p className="font-mono text-sm font-semibold tabular-nums text-slate-100">
+                  <p className="font-mono text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100">
                     {metric.render(s)}
                   </p>
-                  {metric.sub && <p className="text-xs text-slate-500">{metric.sub(s)}</p>}
+                  {metric.sub && <p className="text-xs text-slate-500 dark:text-slate-400">{metric.sub(s)}</p>}
                 </td>
               ))}
             </tr>
