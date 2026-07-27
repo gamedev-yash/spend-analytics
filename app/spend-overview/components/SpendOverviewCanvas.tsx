@@ -24,6 +24,16 @@ import type {
 import { formatCr, formatInr, formatPercentInr, formatSignedPercentInr } from "@/lib/sap/format-inr";
 import { SO_FOCUS_PARAMETERS, SO_FOCUS_PRESETS } from "./focusParams";
 import { useSpendOverviewFocus } from "./useSpendOverviewFocus";
+import { useThresholds } from "@/context/ThresholdsContext";
+import { thresholdEvaluationTitle } from "@/lib/threshold-format";
+import type { ThresholdStatus } from "@/types/thresholds";
+import type { AccentColor } from "@/lib/chart-colors";
+
+const STATUS_ACCENT: Record<ThresholdStatus, AccentColor> = {
+  success: "green",
+  warning: "orange",
+  danger: "red",
+};
 
 interface SpendOverviewCanvasProps {
   kpis: HeadlineKpis;
@@ -56,6 +66,12 @@ export function SpendOverviewCanvas({
   metricsRows,
 }: SpendOverviewCanvasProps) {
   const { activeParameters, toggleParameter, applyPreset, isWidgetVisible } = useSpendOverviewFocus();
+  const { getThreshold, evaluate } = useThresholds();
+
+  const offContractConfig = getThreshold("spend-overview.off-contract");
+  const offContractStatus = evaluate("spend-overview.off-contract", kpis.offContractPercent);
+  const yoyConfig = getThreshold("spend-overview.yoy-growth");
+  const yoyStatus = evaluate("spend-overview.yoy-growth", kpis.yoyChangePercent);
 
   return (
     <>
@@ -65,6 +81,7 @@ export function SpendOverviewCanvas({
         activeParameters={activeParameters}
         onToggleParameter={toggleParameter}
         onApplyPreset={applyPreset}
+        thresholdsPageKey="spend-overview"
       />
 
       {isWidgetVisible("insight-box") && <InsightBox text={insightText} />}
@@ -81,7 +98,9 @@ export function SpendOverviewCanvas({
               label="YoY Spend Change"
               value={formatSignedPercentInr(kpis.yoyChangePercent)}
               icon={kpis.yoyChangePercent > 0 ? <TrendingUp /> : <TrendingDown />}
-              accent={kpis.yoyChangePercent > 0 ? "red" : "green"}
+              accent={yoyStatus ? STATUS_ACCENT[yoyStatus] : "neutral"}
+              status={yoyStatus}
+              statusTitle={yoyConfig ? thresholdEvaluationTitle(kpis.yoyChangePercent, yoyConfig) : undefined}
             />
           </>
         )}
@@ -91,8 +110,18 @@ export function SpendOverviewCanvas({
             label="Off-Contract Spend"
             value={formatPercentInr(kpis.offContractPercent)}
             icon={<ShieldAlert />}
-            accent={kpis.offContractPercent > 25 ? "red" : "green"}
-            hint={kpis.offContractPercent > 25 ? "Above 25% threshold" : "Within threshold"}
+            accent={offContractStatus ? STATUS_ACCENT[offContractStatus] : "neutral"}
+            status={offContractStatus}
+            statusTitle={
+              offContractConfig
+                ? thresholdEvaluationTitle(kpis.offContractPercent, offContractConfig)
+                : undefined
+            }
+            hint={
+              offContractConfig
+                ? `Target ≤ ${offContractConfig.targetValue.toLocaleString("en-IN", { maximumFractionDigits: 1 })}%`
+                : undefined
+            }
           />
         )}
       </section>

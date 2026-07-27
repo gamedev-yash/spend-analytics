@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Layers,
   PackageX,
@@ -11,6 +13,10 @@ import {
 } from "lucide-react";
 import type { KPISummary } from "../tailSpendMock";
 import { formatINR, formatCompactNumber } from "../tailSpendMock";
+import { useThresholds } from "@/context/ThresholdsContext";
+import { thresholdEvaluationTitle } from "@/lib/threshold-format";
+import { StatusBadge } from "@/components/ui/status-badge";
+import type { ThresholdStatus } from "@/types/thresholds";
 
 interface MicroPOStats {
   poCount: number;
@@ -29,6 +35,16 @@ interface KPICardDef {
   label: string;
   value: string;
   sub: string;
+  badge?: { status: ThresholdStatus; title: string } | null;
+}
+
+/** Evaluate a threshold id against a live value, packaged for a card badge. */
+function useThresholdBadge(id: string, value: number): KPICardDef["badge"] {
+  const { getThreshold, evaluate } = useThresholds();
+  const config = getThreshold(id);
+  const status = evaluate(id, value);
+  if (!config || !status) return null;
+  return { status, title: thresholdEvaluationTitle(value, config) };
 }
 
 export function TailKPICards({ kpi, microStats, threshold }: TailKPICardsProps) {
@@ -36,12 +52,16 @@ export function TailKPICards({ kpi, microStats, threshold }: TailKPICardsProps) 
   const costToValueRatio = (microStats.processingCost / Math.max(microStats.totalValue, 1)) * 100;
   const singleUsePercentOfTail = (kpi.singleUseSupplierCount / kpi.tailSupplierCount) * 100;
 
+  const tailShareBadge = useThresholdBadge("tail-spend.tail-share", kpi.tailSpendPercentOfValue);
+  const savingsBadge = useThresholdBadge("tail-spend.savings-target", kpi.potentialConsolidationSavings);
+
   const cards: KPICardDef[] = [
     {
       icon: Layers,
       label: "Tail Spend Value",
       value: formatINR(kpi.tailSpendValue),
       sub: `${kpi.tailSpendPercentOfValue}% of ₹${(kpi.totalAnnualSpend / 1_00_00_000).toFixed(0)} Cr total spend`,
+      badge: tailShareBadge,
     },
     {
       icon: Gauge,
@@ -84,6 +104,7 @@ export function TailKPICards({ kpi, microStats, threshold }: TailKPICardsProps) 
       label: "Potential Consolidation Savings",
       value: formatINR(kpi.potentialConsolidationSavings),
       sub: "Annualized, via blanket POs & catalogs",
+      badge: savingsBadge,
     },
   ];
 
@@ -100,7 +121,10 @@ export function TailKPICards({ kpi, microStats, threshold }: TailKPICardsProps) 
               {card.label}
             </span>
           </div>
-          <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-50">{card.value}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+            <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50">{card.value}</p>
+            {card.badge && <StatusBadge status={card.badge.status} title={card.badge.title} />}
+          </div>
           <p className="mt-1 text-xs leading-snug text-slate-500 dark:text-slate-400">{card.sub}</p>
         </div>
       ))}

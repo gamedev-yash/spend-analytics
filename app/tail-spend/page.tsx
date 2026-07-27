@@ -20,6 +20,7 @@ import { TailTrendChart } from "./components/TailTrendChart";
 import { ConsolidationTable } from "./components/ConsolidationTable";
 import { MicroPOAnalysis } from "./components/MicroPOAnalysis";
 import { useFilterSlot } from "@/context/FilterContext";
+import { useThresholds } from "@/context/ThresholdsContext";
 import { FilterGroup, FilterSelect, FilterSlider, FilterToggle } from "@/components/ui/filter-controls";
 import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
 import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
@@ -39,7 +40,6 @@ interface TailSpendFilters {
   supplierGlobalUltimate: string;
   sourceSystem: string;
   plantSite: string;
-  microPOThreshold: number;
   paretoThreshold: number;
   microPOOnly: boolean;
 }
@@ -95,11 +95,17 @@ export default function TailSpendPage() {
   const { getDatasetForPage } = useDatasets();
   const dataset = getDatasetForPage("tail-spend");
 
+  // The micro-PO boundary lives in ThresholdsContext so the sidebar slider,
+  // the Thresholds popover, KPI badges, and chart accents all share one live,
+  // localStorage-persisted value.
+  const { getThreshold, setTargetValue } = useThresholds();
+  const microPOThreshold = getThreshold("tail-spend.micro-po-value")?.targetValue ?? 25_000;
+
   // Uploaded CSV (when present and usable) drives the supplier-level widgets;
   // otherwise every widget reads the static mock so the page never goes blank.
   const data = useMemo(
-    () => (dataset ? buildTailSpendFromDataset(dataset) : null) ?? tailSpendMock,
-    [dataset]
+    () => (dataset ? buildTailSpendFromDataset(dataset, microPOThreshold) : null) ?? tailSpendMock,
+    [dataset, microPOThreshold]
   );
 
   const {
@@ -133,7 +139,6 @@ export default function TailSpendPage() {
     supplierGlobalUltimate: ALL_SUPPLIERS,
     sourceSystem: ALL_SOURCE_SYSTEMS,
     plantSite: ALL_PLANTS,
-    microPOThreshold: 25_000,
     paretoThreshold: 80,
     microPOOnly: false,
   }));
@@ -199,8 +204,8 @@ export default function TailSpendPage() {
           min={5_000}
           max={100_000}
           step={5_000}
-          value={filters.microPOThreshold}
-          onChange={(v) => updateFilter("microPOThreshold", v)}
+          value={microPOThreshold}
+          onChange={(v) => setTargetValue("tail-spend.micro-po-value", v)}
           formatValue={formatINR}
         />
         <FilterSlider
@@ -296,8 +301,8 @@ export default function TailSpendPage() {
   );
 
   const microStats = useMemo(
-    () => estimateMicroPOStats(poValueBuckets, filters.microPOThreshold),
-    [poValueBuckets, filters.microPOThreshold]
+    () => estimateMicroPOStats(poValueBuckets, microPOThreshold),
+    [poValueBuckets, microPOThreshold]
   );
 
   return (
@@ -320,6 +325,7 @@ export default function TailSpendPage() {
           activeParameters={activeParameters}
           onToggleParameter={toggleParameter}
           onApplyPreset={applyPreset}
+          thresholdsPageKey="tail-spend"
         />
 
         {/* ================= TIER 1: SAP Spend Control Tower ================= */}
@@ -333,6 +339,7 @@ export default function TailSpendPage() {
                 buckets={invoiceValueBuckets}
                 selectedBuckets={selectedBuckets}
                 onToggleBucket={toggleBucket}
+                microThreshold={microPOThreshold}
               />
             </Widget>
           )}
@@ -374,7 +381,7 @@ export default function TailSpendPage() {
         {/* ================= TIER 2: Advanced AI & Tail Spend Optimization ================= */}
 
         {isWidgetVisible("tail-kpi-cards") && (
-          <TailKPICards kpi={kpi} microStats={microStats} threshold={filters.microPOThreshold} />
+          <TailKPICards kpi={kpi} microStats={microStats} threshold={microPOThreshold} />
         )}
 
         {isWidgetVisible("pareto-curve-chart") && (
@@ -433,7 +440,7 @@ export default function TailSpendPage() {
             title="Micro-PO Value Distribution"
             description={`${kpi.totalPOCount.toLocaleString("en-IN")} POs bucketed by value — the smallest buckets cost more to process than they're worth.`}
           >
-            <MicroPOAnalysis buckets={poValueBuckets} threshold={filters.microPOThreshold} />
+            <MicroPOAnalysis buckets={poValueBuckets} threshold={microPOThreshold} />
           </Section>
         )}
       </div>

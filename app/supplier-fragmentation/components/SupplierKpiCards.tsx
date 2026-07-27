@@ -2,6 +2,9 @@
 
 import { Copy, Layers, Target, UserPlus, Users, UserX, type LucideIcon } from "lucide-react";
 import { KpiCard } from "@/components/dashboard/kpi-card";
+import { useThresholds } from "@/context/ThresholdsContext";
+import { thresholdEvaluationTitle } from "@/lib/threshold-format";
+import type { ThresholdStatus } from "@/types/thresholds";
 import type { SupplierFragmentationData } from "../supplierMock";
 import type { SfWidgetId } from "./focusParams";
 
@@ -16,10 +19,21 @@ interface KpiDef {
   label: string;
   value: string;
   sub: string;
+  status?: ThresholdStatus | null;
+  statusTitle?: string;
 }
 
 export function SupplierKpiCards({ data, isWidgetVisible }: SupplierKpiCardsProps) {
+  const { getThreshold, evaluate } = useThresholds();
   const singleUsePercent = Math.round((data.singleUseSupplierCount / data.totalActiveSuppliers) * 100);
+
+  const singleUseConfig = getThreshold("supplier-fragmentation.single-use-ratio");
+  const singleUseStatus = evaluate("supplier-fragmentation.single-use-ratio", singleUsePercent);
+  const concentrationConfig = getThreshold("supplier-fragmentation.top10-concentration");
+  const concentrationStatus = evaluate(
+    "supplier-fragmentation.top10-concentration",
+    data.top10ConcentrationPercent
+  );
 
   const cards: KpiDef[] = [
     {
@@ -35,6 +49,10 @@ export function SupplierKpiCards({ data, isWidgetVisible }: SupplierKpiCardsProp
       label: "Single-Use Suppliers",
       value: data.singleUseSupplierCount.toLocaleString("en-IN"),
       sub: `${singleUsePercent}% of the active base`,
+      status: singleUseStatus,
+      statusTitle: singleUseConfig
+        ? thresholdEvaluationTitle(singleUsePercent, singleUseConfig)
+        : undefined,
     },
     {
       id: "kpi-concentration",
@@ -42,6 +60,10 @@ export function SupplierKpiCards({ data, isWidgetVisible }: SupplierKpiCardsProp
       label: "Top-10 Concentration",
       value: `${data.top10ConcentrationPercent}%`,
       sub: "Share of spend with top 10 suppliers",
+      status: concentrationStatus,
+      statusTitle: concentrationConfig
+        ? thresholdEvaluationTitle(data.top10ConcentrationPercent, concentrationConfig)
+        : undefined,
     },
     {
       id: "kpi-avg-per-category",
@@ -78,6 +100,8 @@ export function SupplierKpiCards({ data, isWidgetVisible }: SupplierKpiCardsProp
           value={card.value}
           hint={card.sub}
           icon={<card.icon />}
+          status={card.status}
+          statusTitle={card.statusTitle}
         />
       ))}
     </div>

@@ -91,6 +91,7 @@ export default function SupplierFragmentationPage() {
         activeParameters={activeParameters}
         onToggleParameter={toggleParameter}
         onApplyPreset={applyPreset}
+        thresholdsPageKey="supplier-fragmentation"
       />
 
       <SupplierKpiCards data={data} isWidgetVisible={isWidgetVisible} />

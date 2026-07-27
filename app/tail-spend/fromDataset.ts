@@ -43,8 +43,8 @@ import {
 
 /** SAP ECC administrative overhead per PO — same assumption the mock uses. */
 const PO_PROCESSING_COST = tailSpendMock.kpi.avgPOProcessingCost;
-/** Default micro-PO threshold (₹25K), matching the page's slider default. */
-const MICRO_PO_THRESHOLD = 25_000;
+/** Default micro-PO boundary when the caller doesn't pass a live threshold. */
+const DEFAULT_MICRO_PO_THRESHOLD = 25_000;
 /** Estimated annual saving per consolidated micro-PO (~68% of processing cost). */
 const SAVINGS_PER_MICRO_PO = 3_400;
 /** Cumulative-spend-share boundaries for Strategic / Core / Tail segmentation. */
@@ -177,7 +177,7 @@ function resolveColumns(dataset: Dataset) {
 
 type Cols = ReturnType<typeof resolveColumns>;
 
-function parseDataset(dataset: Dataset): ParsedDataset | null {
+function parseDataset(dataset: Dataset, microThreshold: number): ParsedDataset | null {
   const cols = resolveColumns(dataset);
 
   // Without a supplier name and a spend measure there is nothing to build from.
@@ -188,7 +188,7 @@ function parseDataset(dataset: Dataset): ParsedDataset | null {
   const suppliersRepeat = (nameMeta?.distinctCount ?? dataset.rows.length) < dataset.rows.length * 0.9;
   const transactional = Boolean(cols.date || cols.txnId) && suppliersRepeat;
 
-  if (transactional) return parseTransactionGrain(dataset, cols);
+  if (transactional) return parseTransactionGrain(dataset, cols, microThreshold);
   return parseSupplierGrain(dataset, cols);
 }
 
@@ -255,7 +255,7 @@ interface SupplierAccumulator {
   monthly: Map<string, number>;
 }
 
-function parseTransactionGrain(dataset: Dataset, cols: Cols): ParsedDataset | null {
+function parseTransactionGrain(dataset: Dataset, cols: Cols, microThreshold: number): ParsedDataset | null {
   const bySupplier = new Map<string, SupplierAccumulator>();
   const txnValues: number[] = [];
 
@@ -281,7 +281,7 @@ function parseTransactionGrain(dataset: Dataset, cols: Cols): ParsedDataset | nu
 
     acc.totalSpend += value;
     acc.txnCount += 1;
-    if (value < MICRO_PO_THRESHOLD) acc.microCount += 1;
+    if (value < microThreshold) acc.microCount += 1;
 
     const category = cellString(row, cols.category);
     if (category) {
@@ -390,16 +390,15 @@ interface BucketSpec {
   label: string;
   min: number;
   max: number;
-  isMicroPO: boolean;
 }
 
 const PO_VALUE_BUCKETS: BucketSpec[] = [
-  { label: "< ₹5K", min: 0, max: 5_000, isMicroPO: true },
-  { label: "₹5K – ₹25K", min: 5_000, max: 25_000, isMicroPO: true },
-  { label: "₹25K – ₹1L", min: 25_000, max: 100_000, isMicroPO: false },
-  { label: "₹1L – ₹5L", min: 100_000, max: 500_000, isMicroPO: false },
-  { label: "₹5L – ₹25L", min: 500_000, max: 2_500_000, isMicroPO: false },
-  { label: "> ₹25L", min: 2_500_000, max: Infinity, isMicroPO: false },
+  { label: "< ₹5K", min: 0, max: 5_000 },
+  { label: "₹5K – ₹25K", min: 5_000, max: 25_000 },
+  { label: "₹25K – ₹1L", min: 25_000, max: 100_000 },
+  { label: "₹1L – ₹5L", min: 100_000, max: 500_000 },
+  { label: "₹5L – ₹25L", min: 500_000, max: 2_500_000 },
+  { label: "> ₹25L", min: 2_500_000, max: Infinity },
 ];
 
 const INVOICE_VALUE_BUCKETS: { label: string; min: number; max: number }[] = [
@@ -417,7 +416,11 @@ const INVOICE_VALUE_BUCKETS: { label: string; min: number; max: number }[] = [
  * supplier grain approximates by placing each supplier's whole PO volume at
  * its average PO value.
  */
-function derivePoValueBuckets(records: SupplierRecord[], txnValues: number[] | null): POValueBucket[] {
+function derivePoValueBuckets(
+  records: SupplierRecord[],
+  txnValues: number[] | null,
+  microThreshold: number
+): POValueBucket[] {
   const counts = PO_VALUE_BUCKETS.map(() => ({ poCount: 0, totalValue: 0 }));
   if (txnValues) {
     for (const value of txnValues) {
@@ -446,7 +449,7 @@ function derivePoValueBuckets(records: SupplierRecord[], txnValues: number[] | n
     percentOfPOCount: pct(counts[i].poCount, totalCount),
     percentOfTotalValue: pct(counts[i].totalValue, totalValue),
     processingCost: counts[i].poCount * PO_PROCESSING_COST,
-    isMicroPO: spec.isMicroPO,
+    isMicroPO: spec.max <= microThreshold,
   }));
 }
 
@@ -587,8 +590,11 @@ function deriveMonthlyTrend(
  * dataset has no recognizable supplier/spend columns (caller then falls back
  * to the static mock wholesale).
  */
-export function buildTailSpendFromDataset(dataset: Dataset): TailSpendData | null {
-  const parsed = parseDataset(dataset);
+export function buildTailSpendFromDataset(
+  dataset: Dataset,
+  microThreshold: number = DEFAULT_MICRO_PO_THRESHOLD
+): TailSpendData | null {
+  const parsed = parseDataset(dataset, microThreshold);
   if (!parsed) return null;
   const records = parsed.suppliers;
 
@@ -708,7 +714,7 @@ export function buildTailSpendFromDataset(dataset: Dataset): TailSpendData | nul
     tailSpendPercentOfValue: tailSegment.spendPercent,
     tailPOCount: tailSegment.poCount,
     tailSpendPercentOfPOs: tailSegment.poPercent,
-    microPOThreshold: MICRO_PO_THRESHOLD,
+    microPOThreshold: microThreshold,
     microPOCount,
     microPOPercentOfTotalPOs: pct(microPOCount, totals.poCount),
     microPOProcessingCost: microPOCount * PO_PROCESSING_COST,
@@ -739,7 +745,7 @@ export function buildTailSpendFromDataset(dataset: Dataset): TailSpendData | nul
     segmentComparison,
     monthlyTrend: monthlyTrend ?? tailSpendMock.monthlyTrend,
     consolidationCandidates,
-    poValueBuckets: derivePoValueBuckets(records, parsed.txnValues),
+    poValueBuckets: derivePoValueBuckets(records, parsed.txnValues, microThreshold),
     sapKpiRibbon,
     invoiceValueBuckets: deriveInvoiceValueBuckets(records, parsed.txnValues, totals.spend),
     supplierSpendRank,

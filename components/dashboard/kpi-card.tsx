@@ -6,6 +6,8 @@ import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { usePalette } from "@/hooks/use-palette";
 import type { AccentColor } from "@/lib/chart-colors";
+import type { ThresholdStatus } from "@/types/thresholds";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { cn } from "@/lib/utils";
 
 export interface KpiCardProps {
@@ -27,6 +29,12 @@ export interface KpiCardProps {
   accent?: AccentColor;
   /** "compact" is for a secondary stat strip alongside a hero figure — smaller type, tighter padding. */
   size?: "default" | "compact";
+  /** Evaluated threshold status — renders a green/amber/red pill next to the value. */
+  status?: ThresholdStatus | null;
+  /** Pill text; defaults to "On target" / "Near limit" / "Off target". */
+  statusLabel?: string;
+  /** Tooltip on the pill, e.g. "27% vs target ≤ 25%". */
+  statusTitle?: string;
 }
 
 /**
@@ -47,6 +55,9 @@ export function KpiCard({
   sparkline,
   accent = "neutral",
   size = "default",
+  status,
+  statusLabel,
+  statusTitle,
 }: KpiCardProps) {
   const palette = usePalette();
   const isGood = delta ? delta.direction === (delta.goodDirection ?? "up") : true;
@@ -92,14 +103,17 @@ export function KpiCard({
         </div>
 
         <div className="flex items-end justify-between gap-3">
-          <p
-            className={cn(
-              "font-bold text-slate-900 [font-variant-numeric:normal] dark:text-slate-100",
-              isCompact ? "text-xl" : "text-2xl"
-            )}
-          >
-            {value}
-          </p>
+          <div className={cn("flex min-w-0 flex-wrap items-center", isCompact ? "gap-x-2 gap-y-0.5" : "gap-x-2.5 gap-y-1")}>
+            <p
+              className={cn(
+                "font-bold text-slate-900 [font-variant-numeric:normal] dark:text-slate-100",
+                isCompact ? "text-xl" : "text-2xl"
+              )}
+            >
+              {value}
+            </p>
+            {status && <StatusBadge status={status} label={statusLabel} title={statusTitle} />}
+          </div>
           {sparkline && sparkline.length > 1 && !isCompact && (
             <div className="h-8 w-20 shrink-0">
               <ResponsiveContainer width="100%" height="100%">

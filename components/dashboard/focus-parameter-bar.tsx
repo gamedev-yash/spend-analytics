@@ -1,6 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
+import { ThresholdSettings } from "@/components/dashboard/threshold-settings";
 import { cn } from "@/lib/utils";
 
 export interface FocusParameterDef<Id extends string = string> {
@@ -22,6 +23,8 @@ interface FocusParameterBarProps<Id extends string> {
   activeParameters: readonly Id[];
   onToggleParameter: (parameterId: Id) => void;
   onApplyPreset?: (parameterIds: Id[]) => void;
+  /** When set, shows the "Thresholds" editor for that page's alert targets. */
+  thresholdsPageKey?: string;
 }
 
 /**
@@ -35,6 +38,7 @@ export function FocusParameterBar<Id extends string>({
   activeParameters,
   onToggleParameter,
   onApplyPreset,
+  thresholdsPageKey,
 }: FocusParameterBarProps<Id>) {
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80">
@@ -42,20 +46,23 @@ export function FocusParameterBar<Id extends string>({
         <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
           Focus Parameters
         </h3>
-        {presets && onApplyPreset && (
-          <div className="flex flex-wrap gap-2">
-            {presets.map((preset) => (
-              <button
-                key={preset.id}
-                type="button"
-                onClick={() => onApplyPreset([...preset.parameterIds])}
-                className="rounded-full border border-slate-300 px-3 py-1 text-xs font-medium text-slate-500 transition-colors hover:border-slate-400 hover:text-slate-700 dark:border-slate-700 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-200"
-              >
-                {preset.label}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {presets && onApplyPreset && (
+            <div className="flex flex-wrap gap-2">
+              {presets.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => onApplyPreset([...preset.parameterIds])}
+                  className="rounded-full border border-slate-300 px-3 py-1 text-xs font-medium text-slate-500 transition-colors hover:border-slate-400 hover:text-slate-700 dark:border-slate-700 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-200"
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          )}
+          {thresholdsPageKey && <ThresholdSettings pageKey={thresholdsPageKey} />}
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2">

@@ -3,6 +3,7 @@ import { Inter, Geist } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { DatasetsProvider } from "@/context/DatasetsContext";
+import { ThresholdsProvider } from "@/context/ThresholdsContext";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +29,9 @@ export default function RootLayout({
       <body className="h-full font-sans antialiased transition-colors duration-200 ease-in-out">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
           <DatasetsProvider>
-            <DashboardShell>{children}</DashboardShell>
+            <ThresholdsProvider>
+              <DashboardShell>{children}</DashboardShell>
+            </ThresholdsProvider>
           </DatasetsProvider>
         </ThemeProvider>
       </body>

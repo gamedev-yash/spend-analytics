@@ -53,6 +53,7 @@ export default function PaymentTermsPage() {
           activeParameters={activeParameters}
           onToggleParameter={toggleParameter}
           onApplyPreset={applyPreset}
+          thresholdsPageKey="payment-terms"
         />
 
         {isWidgetVisible("kpi-ribbon") && <KpiRibbon />}

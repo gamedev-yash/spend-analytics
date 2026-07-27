@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowUp, ArrowDown, ArrowUpDown, Download, Merge, FileSignature, Eye } from "lucide-react";
+import { ArrowUp, ArrowDown, ArrowUpDown, Download } from "lucide-react";
 import type { ConsolidationCandidate, ConsolidationAction } from "../tailSpendMock";
 import { formatINRFull, formatINR } from "../tailSpendMock";
 import { useTailSpendTheme } from "../theme";
+import { StatusBadge } from "@/components/ui/status-badge";
+import type { ThresholdStatus } from "@/types/thresholds";
 
 interface ConsolidationTableProps {
   candidates: ConsolidationCandidate[];
@@ -27,10 +29,11 @@ const COLUMNS: Array<{ key: SortKey; label: string; align: "left" | "right" }> =
   { key: "consolidationScore", label: "Score", align: "right" },
 ];
 
-const ACTION_ICON: Record<ConsolidationAction, typeof Merge> = {
-  Consolidate: Merge,
-  Contract: FileSignature,
-  Monitor: Eye,
+/** Risk-level pill per recommended action: urgent = rose, review = amber, fine = green. */
+const ACTION_STATUS: Record<ConsolidationAction, ThresholdStatus> = {
+  Consolidate: "danger",
+  Contract: "warning",
+  Monitor: "success",
 };
 
 function toCsv(rows: ConsolidationCandidate[]): string {
@@ -169,7 +172,6 @@ export function ConsolidationTable({ candidates }: ConsolidationTableProps) {
               </tr>
             ) : (
               sorted.map((row) => {
-              const ActionIcon = ACTION_ICON[row.recommendedAction];
               return (
                 <tr
                   key={row.supplierId}
@@ -200,13 +202,11 @@ export function ConsolidationTable({ candidates }: ConsolidationTableProps) {
                     </div>
                   </td>
                   <td className="px-3 py-2.5">
-                    <span
-                      className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-medium"
-                      style={{ color: theme.actionColor[row.recommendedAction] }}
-                    >
-                      <ActionIcon className="h-3.5 w-3.5" />
-                      {row.recommendedAction}
-                    </span>
+                    <StatusBadge
+                      status={ACTION_STATUS[row.recommendedAction]}
+                      label={row.recommendedAction}
+                      title={`Score ${row.consolidationScore} — recommended action: ${row.recommendedAction}`}
+                    />
                   </td>
                 </tr>
               );

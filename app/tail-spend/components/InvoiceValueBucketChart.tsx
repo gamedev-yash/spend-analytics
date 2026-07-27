@@ -13,14 +13,18 @@ import {
   Legend,
 } from "recharts";
 import type { InvoiceValueBucket } from "../tailSpendMock";
-import { formatCompactNumber } from "../tailSpendMock";
+import { formatCompactNumber, formatINR } from "../tailSpendMock";
 import { useTailSpendTheme } from "../theme";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
+import { STATUS_CHART_COLOR } from "@/components/ui/status-badge";
+import { bucketRisk } from "../bucketRisk";
 
 interface InvoiceValueBucketChartProps {
   buckets: InvoiceValueBucket[];
   selectedBuckets: Set<string>;
   onToggleBucket: (bucketLabel: string) => void;
+  /** Micro-PO value boundary — buckets under it get amber/rose risk accents. */
+  microThreshold?: number;
 }
 
 /**
@@ -30,13 +34,27 @@ interface InvoiceValueBucketChartProps {
  * each axis is tinted to its series so the pairing stays legible without a
  * shared scale.
  */
-export function InvoiceValueBucketChart({ buckets, selectedBuckets, onToggleBucket }: InvoiceValueBucketChartProps) {
+export function InvoiceValueBucketChart({
+  buckets,
+  selectedBuckets,
+  onToggleBucket,
+  microThreshold,
+}: InvoiceValueBucketChartProps) {
   const theme = useTailSpendTheme();
 
   return (
     <div>
       <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
         Click a bar to isolate its bucket — click again to restore all.
+        {microThreshold ? (
+          <>
+            {" "}
+            <span className="inline-flex items-center gap-1">
+              <span className="inline-block h-2 w-2 rounded-sm" style={{ backgroundColor: STATUS_CHART_COLOR.danger }} />
+              micro-PO buckets (&lt; {formatINR(microThreshold)})
+            </span>
+          </>
+        ) : null}
       </p>
       <ResponsiveContainer width="100%" height={252}>
       <ComposedChart data={buckets} margin={{ top: 8, right: 8, bottom: 8, left: 0 }} barCategoryGap="24%">
@@ -94,13 +112,16 @@ export function InvoiceValueBucketChart({ buckets, selectedBuckets, onToggleBuck
           cursor="pointer"
           onClick={(_, index) => onToggleBucket(buckets[index].bucketLabel)}
         >
-          {buckets.map((bucket) => (
-            <Cell
-              key={bucket.bucketLabel}
-              fill={theme.paretoBarColor}
-              fillOpacity={selectedBuckets.has(bucket.bucketLabel) ? 1 : 0.25}
-            />
-          ))}
+          {buckets.map((bucket) => {
+            const risk = bucketRisk(bucket.bucketLabel, microThreshold);
+            return (
+              <Cell
+                key={bucket.bucketLabel}
+                fill={risk ? STATUS_CHART_COLOR[risk] : theme.paretoBarColor}
+                fillOpacity={selectedBuckets.has(bucket.bucketLabel) ? 1 : 0.25}
+              />
+            );
+          })}
         </Bar>
         <Line
           yAxisId="right"
