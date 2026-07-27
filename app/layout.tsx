@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Geist } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
+import { DatasetsProvider } from "@/context/DatasetsContext";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +27,9 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
       <body className="h-full font-sans antialiased transition-colors duration-200 ease-in-out">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
-          <DashboardShell>{children}</DashboardShell>
+          <DatasetsProvider>
+            <DashboardShell>{children}</DashboardShell>
+          </DatasetsProvider>
         </ThemeProvider>
       </body>
     </html>

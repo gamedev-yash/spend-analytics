@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useMemo, useReducer, type ReactNode } from "react";
-import { invoices, sourceSystemDims } from "./data";
+import { invoices as staticInvoices, sourceSystemDims } from "./data";
 import {
   applyFilters,
   applyLinkedSelection,
@@ -15,15 +15,6 @@ import {
   type FilterOption,
 } from "./selectors";
 import type { FilterState, Invoice, LinkedDimension, LinkedSelection } from "./types";
-
-// Static option lists — derived once from the full dataset, never change at runtime.
-const END_MONTHS = getAvailableEndMonths(invoices);
-const DEFAULT_END_MONTH = getDefaultEndMonth(invoices);
-const CATEGORY_OPTIONS = getCategoryFilterOptions(invoices);
-const GLOBAL_ULTIMATE_OPTIONS = getGlobalUltimateFilterOptions(invoices);
-const PAYMENT_TERM_OPTIONS = getPaymentTermFilterOptions(invoices);
-const SOURCE_SYSTEM_OPTIONS = getSourceSystemFilterOptions(invoices, sourceSystemDims);
-const PLANT_OPTIONS = getPlantFilterOptions(invoices);
 
 interface State {
   filters: FilterState;
@@ -96,10 +87,34 @@ interface PaymentTermsContextValue {
 
 const PaymentTermsContext = createContext<PaymentTermsContextValue | null>(null);
 
-export function PaymentTermsProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, {
+interface PaymentTermsProviderProps {
+  children: ReactNode;
+  /**
+   * Invoice list to drive the dashboard — an uploaded dataset mapped via
+   * buildInvoicesFromDataset, falling back to the static mock when absent.
+   * Callers should remount the provider (React key) when this changes so
+   * filter state resets against the new data.
+   */
+  invoices?: Invoice[];
+}
+
+export function PaymentTermsProvider({ children, invoices }: PaymentTermsProviderProps) {
+  const invoiceData = invoices ?? staticInvoices;
+
+  // Option lists — derived once per invoice dataset.
+  const endMonthOptions = useMemo(() => getAvailableEndMonths(invoiceData), [invoiceData]);
+  const categoryOptions = useMemo(() => getCategoryFilterOptions(invoiceData), [invoiceData]);
+  const globalUltimateOptions = useMemo(() => getGlobalUltimateFilterOptions(invoiceData), [invoiceData]);
+  const paymentTermOptions = useMemo(() => getPaymentTermFilterOptions(invoiceData), [invoiceData]);
+  const sourceSystemOptions = useMemo(
+    () => getSourceSystemFilterOptions(invoiceData, sourceSystemDims),
+    [invoiceData]
+  );
+  const plantOptions = useMemo(() => getPlantFilterOptions(invoiceData), [invoiceData]);
+
+  const [state, dispatch] = useReducer(reducer, invoiceData, (data) => ({
     filters: {
-      endMonth: DEFAULT_END_MONTH,
+      endMonth: getDefaultEndMonth(data),
       categoryCode: null,
       globalUltimateId: null,
       sourceSystemId: null,
@@ -107,9 +122,9 @@ export function PaymentTermsProvider({ children }: { children: ReactNode }) {
       paymentTermCode: null,
     },
     selection: null,
-  });
+  }));
 
-  const filteredInvoices = useMemo(() => applyFilters(invoices, state.filters), [state.filters]);
+  const filteredInvoices = useMemo(() => applyFilters(invoiceData, state.filters), [invoiceData, state.filters]);
   const scopedInvoices = useMemo(
     () => applyLinkedSelection(filteredInvoices, state.selection),
     [filteredInvoices, state.selection]
@@ -129,14 +144,24 @@ export function PaymentTermsProvider({ children }: { children: ReactNode }) {
       setPaymentTerm: (code) => dispatch({ type: "SET_PAYMENT_TERM", code }),
       select: (dimension, value, label) => dispatch({ type: "SELECT", dimension, value, label }),
       clearSelection: () => dispatch({ type: "CLEAR_SELECTION" }),
-      endMonthOptions: END_MONTHS,
-      categoryOptions: CATEGORY_OPTIONS,
-      globalUltimateOptions: GLOBAL_ULTIMATE_OPTIONS,
-      paymentTermOptions: PAYMENT_TERM_OPTIONS,
-      sourceSystemOptions: SOURCE_SYSTEM_OPTIONS,
-      plantOptions: PLANT_OPTIONS,
+      endMonthOptions,
+      categoryOptions,
+      globalUltimateOptions,
+      paymentTermOptions,
+      sourceSystemOptions,
+      plantOptions,
     }),
-    [state, filteredInvoices, scopedInvoices]
+    [
+      state,
+      filteredInvoices,
+      scopedInvoices,
+      endMonthOptions,
+      categoryOptions,
+      globalUltimateOptions,
+      paymentTermOptions,
+      sourceSystemOptions,
+      plantOptions,
+    ]
   );
 
   return <PaymentTermsContext.Provider value={value}>{children}</PaymentTermsContext.Provider>;

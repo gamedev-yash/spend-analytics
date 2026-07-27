@@ -1,0 +1,52 @@
+supplierId,supplierName,category,segment,poCount,avgPOValue,totalSpend,microPOCount,processingCost,potentialSavings,consolidationScore,recommendedAction,invoiceCount,plantCount,categoryCount,productCount,costCenterCount
+SUP-1001,Shree Balaji Traders,"Office Supplies, Stationery & Misc",Tail,118,8400,991200,,,,,,,,,,
+SUP-1002,Om Sai Enterprises,MRO – Mechanical Consumables,Tail,134,12600,1688400,96,670000,402000,90,Consolidate,134,1,1,8,2
+SUP-1003,Vikas Hardware & Fasteners,MRO – Mechanical Consumables,Tail,96,15200,1459200,71,480000,264000,83,Contract,,,,,
+SUP-1004,National Safety Equipments,Safety & PPE,Tail,108,9800,1058400,92,540000,297000,85,Consolidate,,,,,
+SUP-1005,Kalyan Industrial Supplies,Safety & PPE,Tail,87,11400,991800,,,,,,,,,,
+SUP-1006,Sunrise Office Mart,"Office Supplies, Stationery & Misc",Tail,142,5600,795200,133,710000,461500,95,Consolidate,,,,,
+SUP-1007,Anand Computers & Peripherals,"IT, Electronics & Software",Tail,76,18900,1436400,44,380000,152000,71,Contract,,,,,
+SUP-1008,Raghav Facility Services,"Facility, Housekeeping & Admin",Tail,121,14200,1718200,74,605000,302500,84,Consolidate,121,1,1,6,3
+SUP-1009,Jai Bharat Cleaning Co.,"Facility, Housekeeping & Admin",Tail,99,10500,1039500,68,495000,247500,82,Contract,,,,,
+SUP-1010,Deccan Chemicals Trading,Chemicals & Reagents,Tail,68,22400,1523200,22,340000,88400,58,Monitor,,,,,
+SUP-1011,Metro Fastener House,MRO – Mechanical Consumables,Tail,105,9100,955500,88,525000,315000,88,Consolidate,,,,,
+SUP-1012,Sanman Electricals Trading,Electrical & Instrumentation Spares,Tail,88,24600,2164800,,,,,,88,1,1,11,2
+SUP-1013,Vedika IT Solutions,"IT, Electronics & Software",Tail,63,16800,1058400,32,315000,110250,64,Monitor,,,,,
+SUP-1014,Global Print & Stationers,"Office Supplies, Stationery & Misc",Tail,129,4900,632100,118,645000,419250,93,Consolidate,,,,,
+SUP-1015,Trimurti Pest Control,"Facility, Housekeeping & Admin",Tail,54,13600,734400,29,270000,94500,61,Monitor,,,,,
+SUP-1016,Shivam Safety Gears,Safety & PPE,Tail,91,7900,719900,76,455000,250250,81,Contract,,,,,
+SUP-1017,Ambika Logistics Support,"Logistics, Freight & Handling",Tail,47,28400,1334800,,,,,,,,,,
+SUP-1018,Krishna Lab Chemicals,Chemicals & Reagents,Tail,39,31200,1216800,,,,,,,,,,
+SUP-1019,Patel Engineering Works,MRO – Mechanical Consumables,Tail,82,17300,1418600,39,410000,143500,67,Monitor,,,,,
+SUP-1020,Unique Office Automation,"IT, Electronics & Software",Tail,58,21600,1252800,19,290000,72500,55,Monitor,,,,,
+SUP-1021,Rani Enterprises,"Office Supplies, Stationery & Misc",Tail,136,3800,516800,129,680000,442000,96,Consolidate,,,,,
+SUP-1022,Bhairav Traders,MRO – Mechanical Consumables,Tail,74,19600,1450400,51,370000,166500,75,Contract,,,,,
+SUP-1023,Aarav Electrical Supplies,Electrical & Instrumentation Spares,Tail,61,26800,1634800,,,,,,,,,,
+SUP-1024,Everest Housekeeping Services,"Facility, Housekeeping & Admin",Tail,43,16200,696600,,,,,,,,,,
+SUP-1025,Siddhi Vinayak Traders,Safety & PPE,Tail,79,10900,861100,62,395000,197500,78,Contract,,,,,
+SUP-1026,New India Freight Movers,"Logistics, Freight & Handling",Tail,34,33600,1142400,,,,,,,,,,
+SUP-1027,Gokul Industrial Traders,MRO – Mechanical Consumables,Tail,97,8600,834200,81,485000,242500,80,Contract,,,,,
+SUP-1028,Prime Chemical Distributors,Chemicals & Reagents,Tail,45,27900,1255500,,,,,,,,,,
+SUP-1029,Vaishnavi Print Solutions,"Office Supplies, Stationery & Misc",Tail,112,4200,470400,105,560000,364000,94,Consolidate,,,,,
+SUP-1030,Sanjay Hardware Mart,MRO – Mechanical Consumables,Tail,89,11700,1041300,79,445000,267000,86,Consolidate,,,,,
+SUP-1031,Digital Age Computers,"IT, Electronics & Software",Tail,51,19400,989400,17,255000,63750,52,Monitor,,,,,
+SUP-1032,Mahalaxmi Facility Mgmt,"Facility, Housekeeping & Admin",Tail,66,12800,844800,48,330000,148500,73,Contract,,,,,
+SUP-1033,Sterling Safety Solutions,Safety & PPE,Tail,72,15600,1123200,41,360000,144000,69,Monitor,,,,,
+SUP-1034,Ganesh Transport Co.,"Logistics, Freight & Handling",Tail,41,24800,1016800,,,,,,,,,,
+SUP-2001,Sundaram Spares & Components,Mining Equipment Spares,Core,62,185000,11470000,,,,,,62,3,1,37,5
+SUP-2002,Precision Electricals Ltd.,Electrical & Instrumentation Spares,Core,54,220000,11880000,,,,,,54,3,1,41,6
+SUP-2003,Bharat Mechanical Works,MRO – Mechanical Consumables,Core,71,165000,11715000,,,,,,71,4,2,58,8
+SUP-2004,Continental Chemicals Pvt Ltd,Chemicals & Reagents,Core,48,310000,14880000,,,,,,48,3,1,29,5
+SUP-2005,Krishna Civil Contractors,"Civil, Structural & Construction",Core,39,410000,15990000,,,,,,39,2,1,18,4
+SUP-2006,Reliable Freight Carriers,"Logistics, Freight & Handling",Core,58,195000,11310000,,,,,,,,,,
+SUP-2007,Apex Instrumentation Co.,Electrical & Instrumentation Spares,Core,44,260000,11440000,,,,,,44,2,1,22,4
+SUP-2008,National Mining Spares,Mining Equipment Spares,Core,37,340000,12580000,,,,,,,,,,
+SUP-2009,Vardhman Structural Works,"Civil, Structural & Construction",Core,33,385000,12705000,,,,,,,,,,
+SUP-2010,Orient Chemical Industries,Chemicals & Reagents,Core,29,295000,8555000,,,,,,,,,,
+SUP-3001,Larsen Heavy Equipment Ltd.,Capital Equipment & Capex Contracts,Strategic,12,42500000,510000000,,,,,,58,6,3,142,12
+SUP-3002,Vedanta EPC Partners,Capital Equipment & Capex Contracts,Strategic,9,38200000,343800000,,,,,,44,4,2,96,9
+SUP-3003,Continental Mining Systems,Mining Equipment Spares,Strategic,18,21400000,385200000,,,,,,71,5,2,118,10
+SUP-3004,TransIndia Bulk Logistics,"Logistics, Freight & Handling",Strategic,26,12800000,332800000,,,,,,96,8,1,34,14
+SUP-3005,Apex Civil & Infra Ltd.,"Civil, Structural & Construction",Strategic,15,18600000,279000000,,,,,,39,3,1,27,6
+SUP-3006,Global Process Chemicals,Chemicals & Reagents,Strategic,21,9200000,193200000,,,,,,54,4,2,61,7
+SUP-1035,Sanman Traders (Alt Site),Safety & PPE,Tail,108,9800,1058400,85,540000,324000,89,Consolidate,,,,,

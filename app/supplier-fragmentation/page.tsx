@@ -5,6 +5,9 @@ import { Copy, Layers, Target, TrendingUp, Users } from "lucide-react";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
 import { supplierMock } from "./supplierMock";
+import { buildSupplierFragmentationFromDataset } from "./fromDataset";
+import { useDatasets } from "@/context/DatasetsContext";
+import { DatasetUpload } from "@/components/dashboard/dataset-upload";
 import { SF_FOCUS_PARAMETERS, SF_FOCUS_PRESETS } from "./components/focusParams";
 import { useSupplierFragmentationFocus } from "./components/useSupplierFragmentationFocus";
 import { SupplierFragmentationFilters, ALL_CATEGORIES } from "./components/SupplierFragmentationFilters";
@@ -25,7 +28,17 @@ interface SupplierFragmentationFilterState {
 }
 
 export default function SupplierFragmentationPage() {
-  const { categories, sizeBuckets, topSuppliers, monthlyOnboarding, duplicatePairs, filterOptions } = supplierMock;
+  const { getDatasetForPage } = useDatasets();
+  const dataset = getDatasetForPage("supplier-fragmentation");
+
+  // Uploaded CSV (when present and usable) drives the category-level widgets;
+  // otherwise every widget reads the static mock so the page never goes blank.
+  const data = useMemo(
+    () => (dataset ? buildSupplierFragmentationFromDataset(dataset) : null) ?? supplierMock,
+    [dataset]
+  );
+
+  const { categories, sizeBuckets, topSuppliers, monthlyOnboarding, duplicatePairs, filterOptions } = data;
 
   const categoryNames = useMemo(() => categories.map((c) => c.category), [categories]);
 
@@ -61,12 +74,15 @@ export default function SupplierFragmentationPage() {
         onChange={updateFilters}
       />
 
-      <div>
-        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Supplier Fragmentation</h2>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Where the supplier base is fragmented, concentrated, or carrying duplicate records worth
-          consolidating.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Supplier Fragmentation</h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Where the supplier base is fragmented, concentrated, or carrying duplicate records worth
+            consolidating.
+          </p>
+        </div>
+        <DatasetUpload pageKey="supplier-fragmentation" />
       </div>
 
       <FocusParameterBar
@@ -77,7 +93,7 @@ export default function SupplierFragmentationPage() {
         onApplyPreset={applyPreset}
       />
 
-      <SupplierKpiCards data={supplierMock} isWidgetVisible={isWidgetVisible} />
+      <SupplierKpiCards data={data} isWidgetVisible={isWidgetVisible} />
 
       {/* Trailing odd child spans the full row so hiding/filtering widgets never leaves a gap. */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">

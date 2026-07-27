@@ -2,6 +2,9 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 import { tailSpendMock, estimateMicroPOStats, formatINR } from "./tailSpendMock";
+import { buildTailSpendFromDataset } from "./fromDataset";
+import { useDatasets } from "@/context/DatasetsContext";
+import { DatasetUpload } from "@/components/dashboard/dataset-upload";
 import { SapKpiRibbon } from "./components/SapKpiRibbon";
 import { InvoiceValueBucketChart } from "./components/InvoiceValueBucketChart";
 import { SupplierSpendRankChart } from "./components/SupplierSpendRankChart";
@@ -89,6 +92,16 @@ function Widget({
 const LAST_ODD_SPANS_FULL = "xl:[&:last-child:nth-child(odd)]:col-span-2";
 
 export default function TailSpendPage() {
+  const { getDatasetForPage } = useDatasets();
+  const dataset = getDatasetForPage("tail-spend");
+
+  // Uploaded CSV (when present and usable) drives the supplier-level widgets;
+  // otherwise every widget reads the static mock so the page never goes blank.
+  const data = useMemo(
+    () => (dataset ? buildTailSpendFromDataset(dataset) : null) ?? tailSpendMock,
+    [dataset]
+  );
+
   const {
     kpi,
     paretoDeciles,
@@ -104,7 +117,7 @@ export default function TailSpendPage() {
     sapCategoryRows,
     sapSupplierReport,
     sapFilterOptions,
-  } = tailSpendMock;
+  } = data;
 
   const categoryNames = useMemo(() => categoryBreakdown.map((c) => c.category), [categoryBreakdown]);
   const supplierNames = useMemo(
@@ -290,12 +303,15 @@ export default function TailSpendPage() {
   return (
     <div className="min-h-[calc(100vh-4rem)] rounded-xl bg-slate-50 p-6 text-slate-900 dark:bg-slate-950 dark:text-slate-100 lg:p-8">
       <div className="mx-auto flex max-w-[1400px] flex-col gap-6">
-        <div>
-          <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-50">Spend Control Tower</h2>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            SAP standard spend visibility for Vedanta&apos;s indirect spend base, extended with proactive
-            tail-spend optimization insights.
-          </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-50">Spend Control Tower</h2>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              SAP standard spend visibility for Vedanta&apos;s indirect spend base, extended with proactive
+              tail-spend optimization insights.
+            </p>
+          </div>
+          <DatasetUpload pageKey="tail-spend" />
         </div>
 
         <FocusParameterBar

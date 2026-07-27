@@ -1,6 +1,6 @@
 import { DashboardTabs } from "@/components/dashboard/dashboard-tabs";
 import { SpendOverviewFilters } from "@/components/sap/spend-overview-filters";
-import { SpendOverviewCanvas } from "./components/SpendOverviewCanvas";
+import { SpendOverviewDataBridge } from "./components/SpendOverviewDataBridge";
 import { plants } from "@/lib/sap/raw-data";
 import {
   getFilterOptions,
@@ -84,17 +84,20 @@ export default async function SpendOverviewPage({ searchParams }: PageProps) {
         </div>
       </div>
 
-      <SpendOverviewCanvas
-        kpis={kpis}
-        insightText={insightText}
-        treemapNodes={treemapNodes}
-        topSuppliers={topSuppliers}
-        trend={trend}
-        spikes={spikes}
-        buSpend={buSpend}
-        sunburstNodes={sunburstNodes}
-        plantNameToCode={plantNameToCode}
-        metricsRows={metricsRows}
+      <SpendOverviewDataBridge
+        serverData={{
+          kpis,
+          insightText,
+          treemapNodes,
+          topSuppliers,
+          trend,
+          spikes,
+          buSpend,
+          sunburstNodes,
+          plantNameToCode,
+          metricsRows,
+        }}
+        filters={filters}
       />
     </div>
   );
