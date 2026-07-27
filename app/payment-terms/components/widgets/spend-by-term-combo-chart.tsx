@@ -1,5 +1,6 @@
 "use client";
 
+import { Banknote } from "lucide-react";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -11,12 +12,12 @@ import {
   Tooltip,
   Cell,
 } from "recharts";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { ChartCard } from "@/components/dashboard/chart-card";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import { usePalette } from "@/hooks/use-palette";
 import { useWidgetInvoices } from "../../provider";
 import { aggregateByPaymentTerm, type PaymentTermAgg } from "../../selectors";
-import { NO_VALUE_KEY, CHART_COLORS, formatCurrencyCompact, formatCurrencyFull, formatDays } from "../../constants";
+import { NO_VALUE_KEY, formatCurrencyCompact, formatCurrencyFull, formatDays, usePaymentTermsChartColors } from "../../constants";
 
 const TOP_N = 15;
 
@@ -26,6 +27,7 @@ function formatDaysAxisTick(value: number): string {
 
 export function SpendByTermComboChart() {
   const palette = usePalette();
+  const chartColors = usePaymentTermsChartColors();
   const { invoicesForWidget, selectedKey, onBarClick } = useWidgetInvoices("paymentTerm");
 
   const allRows = aggregateByPaymentTerm(invoicesForWidget).sort((a, b) => b.spend - a.spend);
@@ -36,16 +38,16 @@ export function SpendByTermComboChart() {
   const chartWidth = Math.max(640, rows.length * 90);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Spend by Payment Terms and Average Paid Cycle Days</CardTitle>
-        {isCapped && (
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Showing top {TOP_N} of {totalCount} payment terms by spend.
-          </p>
-        )}
-      </CardHeader>
-      <CardContent>
+    <ChartCard
+      title="Spend by Payment Terms and Average Paid Cycle Days"
+      description={
+        isCapped
+          ? `Showing top ${TOP_N} of ${totalCount} payment terms by spend`
+          : "Spend (bars) vs. average days to pay (line)"
+      }
+      icon={<Banknote />}
+      accent="orange"
+    >
         <div className="overflow-x-auto">
           <div style={{ width: "100%", minWidth: chartWidth }}>
             <ResponsiveContainer width="100%" height={360}>
@@ -88,7 +90,7 @@ export function SpendByTermComboChart() {
                           {
                             label: "Avg. paid days",
                             value: formatDays(row.avgPaidDays),
-                            color: CHART_COLORS.termAvgDaysLine,
+                            color: chartColors.termAvgDaysLine,
                           },
                           { label: "Invoices", value: String(row.invoiceCount) },
                         ]}
@@ -97,7 +99,7 @@ export function SpendByTermComboChart() {
                   }}
                   cursor={{ fill: palette.isDark ? "rgba(148, 163, 184, 0.08)" : "rgba(15, 23, 42, 0.05)" }}
                 />
-                <Bar yAxisId="left" dataKey="spend" fill={CHART_COLORS.termSpendBar}>
+                <Bar yAxisId="left" dataKey="spend" fill={chartColors.termSpendBar}>
                   {rows.map((row) => {
                     const isNoValue = row.key === NO_VALUE_KEY;
                     const isSelected = selectedKey !== null && row.key === selectedKey;
@@ -105,9 +107,9 @@ export function SpendByTermComboChart() {
                     return (
                       <Cell
                         key={row.key}
-                        fill={isNoValue ? CHART_COLORS.noValue : CHART_COLORS.termSpendBar}
-                        fillOpacity={isDimmed ? CHART_COLORS.dimmedOpacity : 1}
-                        stroke={isSelected ? CHART_COLORS.highlightStroke : undefined}
+                        fill={isNoValue ? chartColors.noValue : chartColors.termSpendBar}
+                        fillOpacity={isDimmed ? chartColors.dimmedOpacity : 1}
+                        stroke={isSelected ? chartColors.highlightStroke : undefined}
                         strokeWidth={isSelected ? 2 : 0}
                         style={{ cursor: "pointer" }}
                         onClick={() => onBarClick(row.key, row.label)}
@@ -118,7 +120,7 @@ export function SpendByTermComboChart() {
                 <Line
                   yAxisId="right"
                   dataKey="avgPaidDays"
-                  stroke={CHART_COLORS.termAvgDaysLine}
+                  stroke={chartColors.termAvgDaysLine}
                   strokeWidth={2}
                   dot={{ r: 4 }}
                 />
@@ -126,7 +128,6 @@ export function SpendByTermComboChart() {
             </ResponsiveContainer>
           </div>
         </div>
-      </CardContent>
-    </Card>
+    </ChartCard>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { Copy, Layers, Target, UserPlus, Users, UserX, type LucideIcon } from "lucide-react";
+import { KpiCard } from "@/components/dashboard/kpi-card";
 import type { SupplierFragmentationData } from "../supplierMock";
 import type { SfWidgetId } from "./focusParams";
 
@@ -71,17 +72,13 @@ export function SupplierKpiCards({ data, isWidgetVisible }: SupplierKpiCardsProp
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
       {visibleCards.map((card) => (
-        <div
-          key={card.label}
-          className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80"
-        >
-          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-            <card.icon className="h-4 w-4 shrink-0" />
-            <span className="text-xs font-medium uppercase tracking-wide">{card.label}</span>
-          </div>
-          <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-50">{card.value}</p>
-          <p className="mt-1 text-xs leading-snug text-slate-500 dark:text-slate-400">{card.sub}</p>
-        </div>
+        <KpiCard
+          key={card.id}
+          label={card.label}
+          value={card.value}
+          hint={card.sub}
+          icon={<card.icon />}
+        />
       ))}
     </div>
   );

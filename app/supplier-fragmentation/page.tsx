@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { Copy, Layers, Target, TrendingUp, Users } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
 import { supplierMock } from "./supplierMock";
@@ -70,8 +69,6 @@ export default function SupplierFragmentationPage() {
         </p>
       </div>
 
-      <SupplierKpiCards data={supplierMock} isWidgetVisible={isWidgetVisible} />
-
       <FocusParameterBar
         parameters={SF_FOCUS_PARAMETERS}
         presets={SF_FOCUS_PRESETS}
@@ -79,6 +76,8 @@ export default function SupplierFragmentationPage() {
         onToggleParameter={toggleParameter}
         onApplyPreset={applyPreset}
       />
+
+      <SupplierKpiCards data={supplierMock} isWidgetVisible={isWidgetVisible} />
 
       {/* Trailing odd child spans the full row so hiding/filtering widgets never leaves a gap. */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
@@ -144,22 +143,14 @@ export default function SupplierFragmentationPage() {
       </div>
 
       {isWidgetVisible("duplicate-table") && (
-        <Card>
-          <CardHeader className="flex-row items-center gap-2.5 space-y-0">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 [&_svg]:h-4 [&_svg]:w-4">
-              <Copy />
-            </span>
-            <div>
-              <CardTitle className="text-sm">Potential Duplicate Suppliers</CardTitle>
-              <p className="text-xs text-muted-foreground">
-                {duplicatePairs.length} name-similarity matches ranked highest-confidence first
-              </p>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <DuplicateSupplierTable pairs={duplicatePairs} />
-          </CardContent>
-        </Card>
+        <ChartCard
+          title="Potential Duplicate Suppliers"
+          description={`${duplicatePairs.length} name-similarity matches ranked highest-confidence first`}
+          icon={<Copy />}
+          accent="red"
+        >
+          <DuplicateSupplierTable pairs={duplicatePairs} />
+        </ChartCard>
       )}
     </div>
   );

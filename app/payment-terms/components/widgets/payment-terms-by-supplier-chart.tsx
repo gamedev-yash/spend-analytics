@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { Users } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -11,12 +12,12 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartCard } from "@/components/dashboard/chart-card";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import { usePalette } from "@/hooks/use-palette";
 import { useWidgetInvoices } from "../../provider";
 import { aggregateByGlobalUltimate, type GlobalUltimateAgg } from "../../selectors";
-import { CHART_COLORS, formatCurrencyCompact, formatCurrencyFull } from "../../constants";
+import { formatCurrencyCompact, formatCurrencyFull, usePaymentTermsChartColors } from "../../constants";
 
 const TOP_N = 20;
 const ROW_HEIGHT = 26;
@@ -30,6 +31,7 @@ function truncateLabel(label: string): string {
 
 export function PaymentTermsBySupplierChart() {
   const palette = usePalette();
+  const chartColors = usePaymentTermsChartColors();
   const { invoicesForWidget, selectedKey, onBarClick } = useWidgetInvoices("globalUltimate");
 
   const { displayedRows, totalCount } = useMemo(() => {
@@ -43,17 +45,17 @@ export function PaymentTermsBySupplierChart() {
   );
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Payment Terms by Suppliers (Global Ultimate)</CardTitle>
-        {totalCount > TOP_N && (
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Showing top {TOP_N} of {totalCount} suppliers by spend.
-          </p>
-        )}
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={chartHeight}>
+    <ChartCard
+      title="Payment Terms by Suppliers (Global Ultimate)"
+      description={
+        totalCount > TOP_N
+          ? `Showing top ${TOP_N} of ${totalCount} suppliers by spend`
+          : "Ranked by total spend"
+      }
+      icon={<Users />}
+      accent="violet"
+    >
+      <ResponsiveContainer width="100%" height={chartHeight}>
           <BarChart
             data={displayedRows}
             layout="vertical"
@@ -105,17 +107,16 @@ export function PaymentTermsBySupplierChart() {
                 return (
                   <Cell
                     key={row.key}
-                    fill={CHART_COLORS.supplierBar}
-                    fillOpacity={isDimmed ? CHART_COLORS.dimmedOpacity : 1}
-                    stroke={isSelected ? CHART_COLORS.highlightStroke : undefined}
+                    fill={chartColors.supplierBar}
+                    fillOpacity={isDimmed ? chartColors.dimmedOpacity : 1}
+                    stroke={isSelected ? chartColors.highlightStroke : undefined}
                     strokeWidth={isSelected ? 2 : undefined}
                   />
                 );
               })}
             </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
+      </BarChart>
+      </ResponsiveContainer>
+    </ChartCard>
   );
 }

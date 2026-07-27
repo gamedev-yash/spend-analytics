@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Table2 } from "lucide-react";
+import { ChartCard } from "@/components/dashboard/chart-card";
 import { cn } from "@/lib/utils";
 import { usePaymentTerms } from "../provider";
 import { aggregateForTable, type TableRow } from "../selectors";
@@ -80,11 +81,7 @@ export function DetailReportTable() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Detail Report</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <ChartCard title="Detail Report" description="Sortable by any column" icon={<Table2 />}>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-sm">
             <thead>
@@ -141,7 +138,6 @@ export function DetailReportTable() {
             </tbody>
           </table>
         </div>
-      </CardContent>
-    </Card>
+    </ChartCard>
   );
 }
