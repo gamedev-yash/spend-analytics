@@ -23,7 +23,7 @@ import Papa from "papaparse";
 import { tailSpendMock } from "../app/tail-spend/tailSpendMock";
 import { supplierMock } from "../app/supplier-fragmentation/supplierMock";
 import type { Invoice as PaymentTermsInvoice } from "../app/payment-terms/types";
-import type { Vendor, Category, Plant, PoItem } from "../lib/sap/types";
+import type { Invoice as SapInvoice, Vendor, Category, Plant, PoItem } from "../lib/sap/types";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = join(ROOT, "public", "sample-data");
@@ -197,6 +197,28 @@ function buildSupplierFragmentationRows(): { rows: Record<string, unknown>[]; co
 }
 
 // ---------------------------------------------------------------------------
+// 5. fact_invoices.csv + dim_vendor.csv — the join-demo pair. The fact table
+// deliberately carries only vendor_id (no names); merging in dim_vendor via
+// the Join dialog is what makes it usable on the tail-spend dashboard.
+// ---------------------------------------------------------------------------
+
+function buildFactInvoicesRows(): { rows: Record<string, unknown>[]; columns: string[] } {
+  const invoices = readJson<SapInvoice[]>("data/sap/factInvoices.json");
+  return {
+    rows: invoices as unknown as Record<string, unknown>[],
+    columns: Object.keys(invoices[0]),
+  };
+}
+
+function buildDimVendorRows(): { rows: Record<string, unknown>[]; columns: string[] } {
+  const vendors = readJson<Vendor[]>("data/sap/dimVendor.json");
+  return {
+    rows: vendors as unknown as Record<string, unknown>[],
+    columns: Object.keys(vendors[0]),
+  };
+}
+
+// ---------------------------------------------------------------------------
 
 function main(): void {
   mkdirSync(OUT_DIR, { recursive: true });
@@ -213,6 +235,12 @@ function main(): void {
 
   const supplierFragmentation = buildSupplierFragmentationRows();
   writeCsv("supplier-fragmentation.csv", supplierFragmentation.rows, supplierFragmentation.columns);
+
+  const factInvoices = buildFactInvoicesRows();
+  writeCsv("fact_invoices.csv", factInvoices.rows, factInvoices.columns);
+
+  const dimVendor = buildDimVendorRows();
+  writeCsv("dim_vendor.csv", dimVendor.rows, dimVendor.columns);
 
   console.log("Done.");
 }

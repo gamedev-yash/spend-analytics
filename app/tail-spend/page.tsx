@@ -311,7 +311,7 @@ export default function TailSpendPage() {
               tail-spend optimization insights.
             </p>
           </div>
-          <DatasetUpload pageKey="tail-spend" />
+          <DatasetUpload pageKey="tail-spend" usingFallback={data === tailSpendMock} />
         </div>
 
         <FocusParameterBar

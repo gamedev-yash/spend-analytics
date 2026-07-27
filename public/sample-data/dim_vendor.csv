@@ -1,0 +1,161 @@
+vendor_id,vendor_name,parent_company_group,country,city,account_group,payment_terms_key,is_active
+0000100001,Tata Steel Ltd,,IN,Visakhapatnam,ZDOM,ZN60,true
+0000100002,Larsen & Toubro Ltd,,IN,Udaipur,ZDOM,ZN90,true
+0000100003,Thermax Ltd,,IN,New Delhi,ZDOM,ZN45,true
+0000100004,ABB India Ltd,ADANI-GRP,IN,Korba,ZDOM,ZN90,true
+0000100005,Siemens India Ltd,,IN,Hyderabad,ZDOM,ZN30,true
+0000100006,SKF India Ltd,,IN,Hyderabad,ZDOM,ZN60,true
+0000100007,Timken India Ltd,,IN,Jharsuguda,ZDOM,ZN60,true
+0000100008,Metso Outotec,,DE,Essen,ZIMP,ZN30,true
+0000100009,FLSmidth,SANDVIK-GRP,DE,Essen,ZIMP,ZN45,true
+0000100010,Sandvik Mining,,DE,Essen,ZIMP,ZN90,true
+0000100011,Caterpillar Inc,,US,Houston,ZIMP,ZN90,true
+0000100012,Komatsu Ltd,,JP,Osaka,ZIMP,ZN45,true
+0000100013,Cummins India Ltd,,IN,Korba,ZDOM,ZN90,true
+0000100014,Kirloskar Brothers Ltd,,IN,Nagpur,ZDOM,ZN30,false
+0000100015,Voltas Ltd,,IN,Tuticorin,ZDOM,ZN45,true
+0000100016,BHEL,,IN,Kolkata,ZDOM,ZN45,true
+0000100017,JSW Steel Ltd,,IN,Korba,ZDOM,ZN90,true
+0000100018,Grasim Industries Ltd,,IN,Udaipur,ZDOM,ZN45,true
+0000100019,UltraTech Cement Ltd,,IN,Tuticorin,ZDOM,ZN90,true
+0000100020,Adani Ports & SEZ Ltd,CATERPILLAR-GRP,IN,Hyderabad,ZDOM,ZN60,true
+0000100021,Container Corporation of India,,IN,Hyderabad,ZDOM,ZN60,true
+0000100022,Indian Oil Corporation Ltd,,IN,Ahmedabad,ZDOM,ZN60,true
+0000100023,Bharat Petroleum Corporation Ltd,SIEMENS-GRP,IN,New Delhi,ZDOM,ZN60,true
+0000100024,GAIL India Ltd,,IN,Chennai,ZDOM,ZN45,true
+0000100025,Weir Minerals India,,IN,Pune,ZDOM,ZN60,true
+0000100026,Flowserve India,,IN,Kolkata,ZDOM,ZN90,true
+0000100027,Honeywell Automation India,,IN,New Delhi,ZDOM,ZN45,true
+0000100028,Schneider Electric India,,IN,Jaipur,ZDOM,ZN30,true
+0000100029,Grundfos Pumps India,,IN,Tuticorin,ZDOM,ZN30,true
+0000100030,Tega Industries Ltd,,IN,Nagpur,ZDOM,ZN45,true
+0000100031,Malwa Engineering Works,,IN,Udaipur,ZDOM,ZN90,true
+0000100032,Desert Engineering Works,,CN,Shanghai,ZIMP,ZN60,true
+0000100033,Konkan Trading Co,,IN,New Delhi,ZDOM,ZN90,true
+0000100034,Rajasthan Fabricators,METSO-GRP,IN,Nagpur,ZDOM,ZN90,true
+0000100035,Shree Balaji Equipment Ltd,,IN,Hyderabad,ZDOM,ZN60,true
+0000100036,Nilgiri Engineering Works,,IN,Pune,ZDOM,ZN45,true
+0000100037,Konkan Engineering Works,,DE,Essen,ZIMP,ZN30,true
+0000100038,Sterling Industrial Corporation,,IN,Nagpur,ZDOM,ZN30,true
+0000100039,Desert Enterprises,,IN,Korba,ZIMP,ZN30,true
+0000100040,Krishna Trading Co,,IN,Bengaluru,ZSER,ZN90,true
+0000100041,Shree Balaji Manufacturing Co,,IN,Hyderabad,ZDOM,ZN90,true
+0000100042,Konkan Manufacturing Co,,DE,Essen,ZIMP,ZN90,true
+0000100043,Vindhyachal Suppliers Pvt Ltd,,IN,Ahmedabad,ZIMP,ZN45,true
+0000100044,Apex Suppliers Pvt Ltd,,IN,Mumbai,ZDOM,ZN30,true
+0000100045,Godavari Industrial Corporation,METSO-GRP,IN,Nagpur,ZDOM,ZN90,true
+0000100046,Rajasthan Industrial Corporation,,IN,Bengaluru,ZDOM,ZN45,true
+0000100047,Ganga Industrial Corporation,,IN,Jaipur,ZDOM,ZN90,true
+0000100048,Sahyadri Trading Co,,US,Chicago,ZIMP,ZN60,true
+0000100049,Vindhya Engineering Works,,US,Houston,ZIMP,ZN60,true
+0000100050,Bharat Overseas Pvt Ltd,,IN,Bengaluru,ZDOM,ZN60,true
+0000100051,Orient Equipment Ltd,ABB-GRP,IN,Bengaluru,ZDOM,ZN30,true
+0000100052,Ganga Engineering Works,,IN,Mumbai,ZDOM,ZN45,true
+0000100053,Desert Engineering Works (0053),,IN,Tuticorin,ZDOM,ZN45,true
+0000100054,Narmada Industries,,IN,Bengaluru,ZIMP,ZN45,true
+0000100055,Krishna Industrial Corporation,,CN,Shanghai,ZIMP,ZN90,true
+0000100056,Vindhya Trading Co,,US,Houston,ZIMP,ZN90,true
+0000100057,Sterling Equipment Ltd,CATERPILLAR-GRP,IN,Tuticorin,ZIMP,ZN30,true
+0000100058,Sahyadri Industrial Corporation,,JP,Tokyo,ZIMP,ZN45,true
+0000100059,Deccan Suppliers Pvt Ltd,,IN,Udaipur,ZDOM,ZN30,true
+0000100060,Precision Manufacturing Co,,CN,Shanghai,ZIMP,ZN30,true
+0000100061,Rajasthan Industries,,IN,Ahmedabad,ZDOM,ZN45,true
+0000100062,Malwa Overseas Pvt Ltd,,IN,Bhilwara,ZDOM,ZN45,true
+0000100063,Rajasthan Overseas Pvt Ltd,,IN,New Delhi,ZDOM,ZN90,true
+0000100064,Vindhyachal Overseas Pvt Ltd,SANDVIK-GRP,IN,Visakhapatnam,ZDOM,ZN30,true
+0000100065,Vindhyachal Engineering Works,,IN,Kolkata,ZDOM,ZN90,true
+0000100066,Apex Overseas Pvt Ltd,,IN,Tuticorin,ZIMP,ZN90,true
+0000100067,National Enterprises,,IN,New Delhi,ZDOM,ZN45,false
+0000100068,Precision Industrial Corporation,,IN,New Delhi,ZDOM,ZN60,true
+0000100069,Deccan Overseas Pvt Ltd,,IN,Bengaluru,ZDOM,ZN90,true
+0000100070,Mewar Overseas Pvt Ltd,WEIR-GRP,IN,Chennai,ZDOM,ZN60,true
+0000100071,Godavari Engineering Works,,IN,Jaipur,ZDOM,ZN60,true
+0000100072,Krishna Engineering Works,,IN,New Delhi,ZIMP,ZN30,true
+0000100073,Cauvery Manufacturing Co,,IN,Nagpur,ZDOM,ZN60,true
+0000100074,Rajasthan Technologies Pvt Ltd,,AU,Perth,ZIMP,ZN60,true
+0000100075,Yamuna Fabricators,,DE,Munich,ZIMP,ZN30,true
+0000100076,Bharat Technologies Pvt Ltd,,IN,Bengaluru,ZIMP,ZN90,true
+0000100077,Narmada Engineering Works,,IN,Ahmedabad,ZDOM,ZN60,true
+0000100078,Aravali Engineering Works,ABB-GRP,IN,Ahmedabad,ZDOM,ZN60,true
+0000100079,Vindhyachal Trading Co,WEIR-GRP,IN,Jaipur,ZDOM,ZN60,true
+0000100080,Mewar Fabricators,,KR,Seoul,ZIMP,ZN60,true
+0000100081,Om Sai Suppliers Pvt Ltd,,IN,Tuticorin,ZDOM,ZN30,false
+0000100082,Precision Industries,,IN,Udaipur,ZDOM,ZN60,true
+0000100083,Deccan Technologies Pvt Ltd,,CN,Shanghai,ZIMP,ZN45,true
+0000100084,Shree Balaji Fabricators,,IN,Pune,ZDOM,ZN30,true
+0000100085,Sahyadri Industrial Corporation (0085),METSO-GRP,IN,Tuticorin,ZDOM,ZN60,false
+0000100086,Marwar Engineering Works,,IN,Hyderabad,ZDOM,ZN45,true
+0000100087,Desert Trading Co,,IN,Pune,ZDOM,ZN90,false
+0000100088,Aravali Manufacturing Co,,IN,Hyderabad,ZDOM,ZN30,true
+0000100089,Nilgiri Equipment Ltd,,IN,Jaipur,ZDOM,ZN90,true
+0000100090,Krishna Engineering Works (0090),,IN,Udaipur,ZSER,ZN45,true
+0000100091,Aravali Manufacturing Co (0091),,IN,Ahmedabad,ZDOM,ZN90,false
+0000100092,Cauvery Trading Co,,IN,Chennai,ZIMP,ZN45,true
+0000100093,Konkan Overseas Pvt Ltd,,IN,New Delhi,ZIMP,ZN30,true
+0000100094,Shree Balaji Trading Co,,AU,Perth,ZIMP,ZN30,true
+0000100095,Godavari Manufacturing Co,,IN,Pune,ZDOM,ZN30,true
+0000100096,Krishna Industries,,IN,Korba,ZDOM,ZN30,true
+0000100097,Sterling Industrial Corporation (0097),,IN,Pune,ZSER,ZN60,true
+0000100098,Mewar Industries,,IN,Bhilwara,ZDOM,ZN30,true
+0000100099,Mewar Overseas Pvt Ltd (0099),,IN,Udaipur,ZDOM,ZN90,false
+0000100100,Bharat Fabricators,,IN,Chennai,ZDOM,ZN30,true
+0000100101,Sahyadri Technologies Pvt Ltd,,IN,Mumbai,ZDOM,ZN30,false
+0000100102,Yamuna Industrial Corporation,,DE,Essen,ZIMP,ZN90,true
+0000100103,Ganga Technologies Pvt Ltd,,IN,Jharsuguda,ZDOM,ZN60,true
+0000100104,Vindhya Equipment Ltd,,IN,Jaipur,ZDOM,ZN90,true
+0000100105,Ganga Equipment Ltd,,US,Houston,ZIMP,ZN45,true
+0000100106,Chambal Equipment Ltd,,IN,New Delhi,ZDOM,ZN90,false
+0000100107,Om Sai Enterprises,,IN,Jaipur,ZIMP,ZN30,true
+0000100108,Malwa Fabricators,,IN,Nagpur,ZDOM,ZN60,true
+0000100109,Mewar Suppliers Pvt Ltd,,IN,Nagpur,ZDOM,ZN30,true
+0000100110,Godavari Enterprises,,IN,Jaipur,ZDOM,ZN45,true
+0000100111,Apex Trading Co,METSO-GRP,IN,New Delhi,ZIMP,ZN60,true
+0000100112,Cauvery Trading Co (0112),SCHNEIDER-GRP,IN,Jharsuguda,ZDOM,ZN90,true
+0000100113,Vindhya Engineering Works (0113),,IN,Mumbai,ZDOM,ZN30,true
+0000100114,Yamuna Equipment Ltd,,IN,Kolkata,ZDOM,ZN90,true
+0000100115,Mewar Equipment Ltd,,IN,Bhilwara,ZDOM,ZN90,true
+0000100116,Deccan Industries,,IN,Visakhapatnam,ZSER,ZN60,true
+0000100117,Yamuna Suppliers Pvt Ltd,WEIR-GRP,IN,Ahmedabad,ZDOM,ZN60,true
+0000100118,Malwa Suppliers Pvt Ltd,,IN,Udaipur,ZDOM,ZN60,true
+0000100119,Godavari Manufacturing Co (0119),FLS-GRP,IN,Jharsuguda,ZDOM,ZN30,true
+0000100120,Cauvery Trading Co (0120),,IN,Hyderabad,ZDOM,ZN30,true
+0000100121,Satpura Overseas Pvt Ltd,,IN,Nagpur,ZDOM,ZN45,true
+0000100122,Precision Equipment Ltd,,KR,Seoul,ZIMP,ZN45,false
+0000100123,Satpura Enterprises,,CN,Shenzhen,ZIMP,ZN90,true
+0000100124,Konkan Trading Co (0124),,IN,Kolkata,ZDOM,ZN60,true
+0000100125,Hind Industrial Corporation,,IN,Jharsuguda,ZIMP,ZN60,true
+0000100126,Marwar Equipment Ltd,,IN,Bhilwara,ZSER,ZN45,true
+0000100127,Desert Enterprises (0127),METSO-GRP,IN,Korba,ZDOM,ZN30,true
+0000100128,Sahyadri Industries,,IN,Bengaluru,ZIMP,ZN60,true
+0000100129,Nilgiri Enterprises,,IN,Chennai,ZDOM,ZN90,true
+0000100130,Marwar Industries,,IN,Hyderabad,ZDOM,ZN90,true
+0000100131,Deccan Enterprises,,IN,Visakhapatnam,ZDOM,ZN45,true
+0000100132,Nilgiri Industrial Corporation,,IN,Bengaluru,ZDOM,ZN45,true
+0000100133,Desert Fabricators,,IN,Hyderabad,ZIMP,ZN45,true
+0000100134,Nilgiri Equipment Ltd (0134),,IN,Kolkata,ZDOM,ZN45,true
+0000100135,Krishna Equipment Ltd,,IN,Hyderabad,ZDOM,ZN45,true
+0000100136,Rajasthan Trading Co,ABB-GRP,IN,Nagpur,ZSER,ZN60,true
+0000100137,Sterling Overseas Pvt Ltd,,KR,Seoul,ZIMP,ZN60,false
+0000100138,Aravali Suppliers Pvt Ltd,,US,Houston,ZIMP,ZN45,true
+0000100139,Satpura Manufacturing Co,TATA-GRP,IN,Bhilwara,ZDOM,ZN45,true
+0000100140,Narmada Industries (0140),SANDVIK-GRP,IN,Jharsuguda,ZSER,ZN30,true
+0000100141,Satpura Industrial Corporation,ABB-GRP,IN,Tuticorin,ZSER,ZN60,true
+0000100142,Nilgiri Equipment Ltd (0142),,US,Chicago,ZIMP,ZN45,true
+0000100143,Deccan Overseas Pvt Ltd (0143),,IN,Pune,ZDOM,ZN60,true
+0000100144,Sterling Manufacturing Co,,IN,Bhilwara,ZIMP,ZN60,true
+0000100145,Satpura Trading Co,,IN,Ahmedabad,ZDOM,ZN30,true
+0000100146,Aravali Industries,,IN,Pune,ZDOM,ZN90,true
+0000100147,Vindhyachal Industrial Corporation,,IN,Jaipur,ZDOM,ZN45,true
+0000100148,Shree Balaji Enterprises,WEIR-GRP,IN,Tuticorin,ZDOM,ZN90,true
+0000100149,Krishna Equipment Ltd (0149),,IN,Korba,ZDOM,ZN90,true
+0000100150,Konkan Trading Co (0150),,IN,Kolkata,ZDOM,ZN60,true
+0000100151,National Industrial Corporation,,IN,Nagpur,ZDOM,ZN45,true
+0000100152,Coastal Manufacturing Co,FLS-GRP,IN,Mumbai,ZIMP,ZN30,true
+0000100153,Precision Engineering Works,,IN,New Delhi,ZIMP,ZN60,true
+0000100154,National Trading Co,,IN,Bhilwara,ZDOM,ZN90,true
+0000100155,Narmada Technologies Pvt Ltd,,US,Chicago,ZIMP,ZN30,true
+0000100156,Cauvery Fabricators,,JP,Osaka,ZIMP,ZN90,true
+0000100157,Vindhyachal Suppliers Pvt Ltd (0157),,IN,Udaipur,ZSER,ZN60,true
+0000100158,Apex Fabricators,,IN,Korba,ZSER,ZN45,true
+0000100159,Cauvery Equipment Ltd,,IN,Ahmedabad,ZDOM,ZN45,true
+0000100160,Deccan Fabricators,,IN,Bhilwara,ZDOM,ZN90,false

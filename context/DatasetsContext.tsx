@@ -10,6 +10,7 @@ import {
 } from "react";
 import Papa from "papaparse";
 import { inferColumns, type ColumnMeta } from "@/lib/infer";
+import { joinDatasets } from "@/lib/join";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -27,15 +28,40 @@ export type DashboardPageKey = (typeof DASHBOARD_PAGE_KEYS)[number];
 
 export type DatasetRow = Record<string, unknown>;
 
+/** How a joined (composite) dataset was produced — kept for provenance/UI badges. */
+export interface JoinInfo {
+  leftId: string;
+  rightId: string;
+  leftName: string;
+  rightName: string;
+  leftKey: string;
+  rightKey: string;
+  joinType: "inner" | "left";
+  matchedLeftRows: number;
+}
+
 export interface Dataset {
   id: string;
-  /** Original file name, e.g. "tail-spend.csv". */
+  /** Original file name ("tail-spend.csv") or user-chosen name for joined datasets. */
   name: string;
   /** Dashboard route this dataset feeds; undefined = unassigned. */
   pageKey?: string;
   rows: DatasetRow[];
   columns: ColumnMeta[];
   createdAt: string;
+  /** True for materialized composite datasets produced by createJoinedDataset. */
+  isJoined?: boolean;
+  joinInfo?: JoinInfo;
+}
+
+export interface CreateJoinedDatasetParams {
+  name: string;
+  leftId: string;
+  rightId: string;
+  leftKey: string;
+  rightKey: string;
+  joinType: "inner" | "left";
+  pageTarget?: string;
 }
 
 interface DatasetsState {
@@ -47,6 +73,13 @@ interface DatasetsContextValue extends DatasetsState {
   setActiveDatasetId: (id: string | null) => void;
   /** Parse a CSV file, infer columns, store the dataset, and persist. */
   uploadCsv: (file: File, pageTarget?: string) => Promise<Dataset>;
+  /**
+   * Materialize a composite dataset by joining two stored datasets in memory
+   * (lib/join.ts). The result becomes an ordinary dataset (isJoined: true),
+   * is set active, and persists via the same quota-degrading mechanism.
+   * Throws when the source datasets/keys are invalid or the join is empty.
+   */
+  createJoinedDataset: (params: CreateJoinedDatasetParams) => Dataset;
   /** Newest dataset uploaded for the given page (active one preferred), or null. */
   getDatasetForPage: (pageKey: string) => Dataset | null;
   removeDataset: (id: string) => void;
@@ -201,6 +234,51 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
     return dataset;
   }, []);
 
+  const createJoinedDataset = useCallback(
+    (params: CreateJoinedDatasetParams): Dataset => {
+      const { datasets: current } = getSnapshot();
+      const left = current.find((d) => d.id === params.leftId);
+      const right = current.find((d) => d.id === params.rightId);
+      if (!left) throw new Error("Left dataset not found.");
+      if (!right) throw new Error("Right dataset not found.");
+      if (left.id === right.id) throw new Error("Pick two different datasets to join.");
+
+      const { rows, columns, matchedLeftRows } = joinDatasets(
+        left,
+        right,
+        params.leftKey,
+        params.rightKey,
+        params.joinType
+      );
+
+      const dataset: Dataset = {
+        id: newDatasetId(),
+        name: params.name.trim() || `${left.name} + ${right.name}`,
+        pageKey: params.pageTarget,
+        rows,
+        columns,
+        createdAt: new Date().toISOString(),
+        isJoined: true,
+        joinInfo: {
+          leftId: left.id,
+          rightId: right.id,
+          leftName: left.name,
+          rightName: right.name,
+          leftKey: params.leftKey,
+          rightKey: params.rightKey,
+          joinType: params.joinType,
+          matchedLeftRows,
+        },
+      };
+      updateStore((prev) => ({
+        datasets: [...prev.datasets, dataset],
+        activeDatasetId: dataset.id,
+      }));
+      return dataset;
+    },
+    []
+  );
+
   const removeDataset = useCallback((id: string) => {
     updateStore((prev) => ({
       datasets: prev.datasets.filter((d) => d.id !== id),
@@ -229,10 +307,11 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
       activeDatasetId,
       setActiveDatasetId,
       uploadCsv,
+      createJoinedDataset,
       getDatasetForPage,
       removeDataset,
     }),
-    [datasets, activeDatasetId, setActiveDatasetId, uploadCsv, getDatasetForPage, removeDataset]
+    [datasets, activeDatasetId, setActiveDatasetId, uploadCsv, createJoinedDataset, getDatasetForPage, removeDataset]
   );
 
   return <DatasetsContext.Provider value={value}>{children}</DatasetsContext.Provider>;

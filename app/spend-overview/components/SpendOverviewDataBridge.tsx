@@ -31,7 +31,7 @@ export function SpendOverviewDataBridge({ serverData, filters }: SpendOverviewDa
 
   return (
     <>
-      <DatasetUpload pageKey="spend-overview" />
+      <DatasetUpload pageKey="spend-overview" usingFallback={data === serverData} />
       <SpendOverviewCanvas
         kpis={data.kpis}
         insightText={data.insightText}

@@ -44,7 +44,7 @@ export default function PaymentTermsPage() {
               linked drill-down by category, supplier, and term.
             </p>
           </div>
-          <DatasetUpload pageKey="payment-terms" />
+          <DatasetUpload pageKey="payment-terms" usingFallback={datasetInvoices === null} />
         </div>
 
         <FocusParameterBar

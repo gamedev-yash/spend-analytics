@@ -82,7 +82,7 @@ export default function SupplierFragmentationPage() {
             consolidating.
           </p>
         </div>
-        <DatasetUpload pageKey="supplier-fragmentation" />
+        <DatasetUpload pageKey="supplier-fragmentation" usingFallback={data === supplierMock} />
       </div>
 
       <FocusParameterBar
