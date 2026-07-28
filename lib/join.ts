@@ -1,11 +1,17 @@
 // In-memory relational joins between two uploaded datasets. The output is an
 // ordinary rows+columns pair — materialized by DatasetsContext into a normal
 // Dataset, so every page adapter works on joined data unchanged.
+//
+// Join keys may be a single column or a composite (e.g. SAP EBELN + EBELP):
+// pass a string or an array of column ids on each side (same length).
 
 import { inferColumns, type ColumnMeta } from "@/lib/infer";
 import type { Dataset, DatasetRow } from "@/context/DatasetsContext";
 
 export type JoinType = "inner" | "left";
+
+/** One column id, or an ordered list of ids forming a composite key. */
+export type JoinKeys = string | string[];
 
 export interface JoinOutput {
   rows: DatasetRow[];
@@ -17,17 +23,36 @@ export interface JoinOutput {
 /** Safety cap — a many-to-many key explosion aborts instead of freezing the tab. */
 const MAX_JOIN_ROWS = 200_000;
 
+/** Separator for composite key parts — control char no CSV value will contain. */
+const KEY_PART_SEPARATOR = "";
+
+export function toKeyList(keys: JoinKeys): string[] {
+  return Array.isArray(keys) ? keys : [keys];
+}
+
+/** "EBELN + EBELP" — display form of a (possibly composite) key. */
+export function joinKeysLabel(keys: JoinKeys): string {
+  return toKeyList(keys).join(" + ");
+}
+
 /**
- * Join keys compare as trimmed strings so digit-only ids join cleanly even
- * when PapaParse's dynamicTyping stripped leading zeros on one side
- * ("0000100153" vs 100153 → both "100153" only if BOTH sides were typed the
- * same way; trimming + stringifying at least makes number-vs-string sides
- * agree). Null/undefined/empty keys never match anything.
+ * Key parts compare as trimmed strings, and digit-only parts additionally
+ * drop leading zeros — SAP ids are zero-padded CHAR fields (LIFNR
+ * "0000100153"), while PapaParse's dynamicTyping turns unpadded exports into
+ * plain numbers (100153); both normalize to "100153" so either style joins
+ * cleanly (the ALPHA-conversion equivalence). A key with any
+ * null/undefined/empty part never matches anything.
  */
-function joinKeyOf(value: unknown): string | null {
-  if (value === null || value === undefined) return null;
-  const s = String(value).trim();
-  return s === "" ? null : s;
+function joinKeyOf(row: DatasetRow, keyList: string[]): string | null {
+  const parts: string[] = [];
+  for (const key of keyList) {
+    const value = row[key];
+    if (value === null || value === undefined) return null;
+    const s = String(value).trim();
+    if (s === "") return null;
+    parts.push(/^\d+$/.test(s) ? s.replace(/^0+(?=\d)/, "") : s);
+  }
+  return parts.join(KEY_PART_SEPARATOR);
 }
 
 /** "dim_vendor.csv" -> "dim_vendor" — prefix for right-side column collisions. */
@@ -42,10 +67,10 @@ function collisionPrefix(datasetName: string): string {
 }
 
 /** Index right-side rows by their normalized join key (one-to-many aware). */
-function indexRightRows(rows: DatasetRow[], rightKey: string): Map<string, DatasetRow[]> {
+function indexRightRows(rows: DatasetRow[], keyList: string[]): Map<string, DatasetRow[]> {
   const index = new Map<string, DatasetRow[]>();
   for (const row of rows) {
-    const key = joinKeyOf(row[rightKey]);
+    const key = joinKeyOf(row, keyList);
     if (key === null) continue;
     const bucket = index.get(key);
     if (bucket) bucket.push(row);
@@ -54,32 +79,42 @@ function indexRightRows(rows: DatasetRow[], rightKey: string): Map<string, Datas
   return index;
 }
 
+function assertKeysExist(dataset: Dataset, keyList: string[], side: "Left" | "Right"): void {
+  for (const key of keyList) {
+    if (!dataset.columns.some((c) => c.id === key)) {
+      throw new Error(`${side} key column "${key}" not found in "${dataset.name}".`);
+    }
+  }
+}
+
 /** Left rows with at least one right match — cheap preview for the join dialog. */
 export function countJoinMatches(
   leftDataset: Dataset,
   rightDataset: Dataset,
-  leftKey: string,
-  rightKey: string
+  leftKey: JoinKeys,
+  rightKey: JoinKeys
 ): { matchedLeftRows: number; leftRows: number } {
-  const rightKeys = new Set<string>();
+  const leftKeys = toKeyList(leftKey);
+  const rightKeys = toKeyList(rightKey);
+  const rightIndex = new Set<string>();
   for (const row of rightDataset.rows) {
-    const key = joinKeyOf(row[rightKey]);
-    if (key !== null) rightKeys.add(key);
+    const key = joinKeyOf(row, rightKeys);
+    if (key !== null) rightIndex.add(key);
   }
   let matched = 0;
   for (const row of leftDataset.rows) {
-    const key = joinKeyOf(row[leftKey]);
-    if (key !== null && rightKeys.has(key)) matched += 1;
+    const key = joinKeyOf(row, leftKeys);
+    if (key !== null && rightIndex.has(key)) matched += 1;
   }
   return { matchedLeftRows: matched, leftRows: leftDataset.rows.length };
 }
 
 /**
- * Relational join of two datasets on one key column each.
+ * Relational join of two datasets on one or more key columns per side.
  *
  * - `inner` keeps only left rows with a right match; `left` keeps every left
  *   row, filling right columns with null when unmatched.
- * - The right key column is dropped (its values duplicate the left key); any
+ * - Right key columns are dropped (their values duplicate the left keys); any
  *   other right column whose id collides with a left column id is prefixed
  *   with the right dataset's name ("dim_vendor_created_at").
  * - Output columns are re-inferred over the joined rows via inferColumns().
@@ -87,21 +122,23 @@ export function countJoinMatches(
 export function joinDatasets(
   leftDataset: Dataset,
   rightDataset: Dataset,
-  leftKey: string,
-  rightKey: string,
+  leftKey: JoinKeys,
+  rightKey: JoinKeys,
   joinType: JoinType
 ): JoinOutput {
-  if (!leftDataset.columns.some((c) => c.id === leftKey)) {
-    throw new Error(`Left key column "${leftKey}" not found in "${leftDataset.name}".`);
+  const leftKeys = toKeyList(leftKey);
+  const rightKeys = toKeyList(rightKey);
+  if (leftKeys.length === 0 || leftKeys.length !== rightKeys.length) {
+    throw new Error("Left and right join keys must pair up one-to-one.");
   }
-  if (!rightDataset.columns.some((c) => c.id === rightKey)) {
-    throw new Error(`Right key column "${rightKey}" not found in "${rightDataset.name}".`);
-  }
+  assertKeysExist(leftDataset, leftKeys, "Left");
+  assertKeysExist(rightDataset, rightKeys, "Right");
 
   const leftColumnIds = new Set(leftDataset.columns.map((c) => c.id));
+  const rightKeySet = new Set(rightKeys);
   const prefix = collisionPrefix(rightDataset.name);
   const rightColumnMap = rightDataset.columns
-    .filter((c) => c.id !== rightKey)
+    .filter((c) => !rightKeySet.has(c.id))
     .map((c) => {
       if (!leftColumnIds.has(c.id)) return { srcId: c.id, outId: c.id };
       let outId = `${prefix}_${c.id}`;
@@ -110,12 +147,12 @@ export function joinDatasets(
       return { srcId: c.id, outId };
     });
 
-  const rightIndex = indexRightRows(rightDataset.rows, rightKey);
+  const rightIndex = indexRightRows(rightDataset.rows, rightKeys);
 
   const rows: DatasetRow[] = [];
   let matchedLeftRows = 0;
   for (const leftRow of leftDataset.rows) {
-    const key = joinKeyOf(leftRow[leftKey]);
+    const key = joinKeyOf(leftRow, leftKeys);
     const matches = key !== null ? rightIndex.get(key) : undefined;
     if (matches && matches.length > 0) {
       matchedLeftRows += 1;

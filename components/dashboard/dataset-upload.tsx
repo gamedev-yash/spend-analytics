@@ -1,8 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { FileSpreadsheet, GitMerge, Loader2, Upload, X } from "lucide-react";
-import { useDatasets } from "@/context/DatasetsContext";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { FileSpreadsheet, GitMerge, Loader2, Sparkles, Upload, X } from "lucide-react";
+import { useDatasets, type Dataset } from "@/context/DatasetsContext";
+import { resolveAutoJoin } from "@/lib/auto-join-rules";
+import { joinKeysLabel } from "@/lib/join";
 import { JoinDialog } from "@/components/dataset/JoinDialog";
 import { cn } from "@/lib/utils";
 
@@ -18,28 +21,114 @@ interface DatasetUploadProps {
   className?: string;
 }
 
+function baseName(name: string): string {
+  return name.replace(/\.[^.]+$/, "");
+}
+
+/** Success toast for auto-joins — bottom-right, auto-dismissing. */
+function AutoJoinToast({ message, onDismiss }: { message: string; onDismiss: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(onDismiss, 8000);
+    return () => clearTimeout(timer);
+  }, [onDismiss]);
+
+  return createPortal(
+    <div
+      role="status"
+      className="fixed bottom-4 right-4 z-[60] flex max-w-md items-start gap-2.5 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 shadow-lg dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
+    >
+      <Sparkles className="mt-0.5 h-4 w-4 shrink-0" />
+      <span className="leading-snug">{message}</span>
+      <button
+        type="button"
+        onClick={onDismiss}
+        className="shrink-0 rounded p-0.5 hover:bg-emerald-100 dark:hover:bg-emerald-900"
+        aria-label="Dismiss notification"
+      >
+        <X className="h-3.5 w-3.5" />
+      </button>
+    </div>,
+    document.body
+  );
+}
+
 /**
  * Dataset controls shown on each core dashboard page: upload CSVs (more than
  * one per page is fine), switch between the page's datasets — raw uploads or
- * materialized joins — and open the merge dialog. Widgets fall back to the
- * page's static mock data whenever no usable dataset is selected.
+ * materialized joins — and open the merge dialog. Uploading a second dataset
+ * runs the SAP auto-join engine; a high-confidence match (e.g. fact_invoices
+ * + dim_vendor on vendor_id, or EKKO + EKPO on EBELN) merges automatically
+ * with a toast. Widgets fall back to the page's static mock data whenever no
+ * usable dataset is selected.
  */
 export function DatasetUpload({ pageKey, usingFallback, className }: DatasetUploadProps) {
-  const { datasets, uploadCsv, getDatasetForPage, removeDataset, setActiveDatasetId } = useDatasets();
+  const { datasets, uploadCsv, createJoinedDataset, getDatasetForPage, removeDataset, setActiveDatasetId } =
+    useDatasets();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [joinOpen, setJoinOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const dismissToast = useCallback(() => setToast(null), []);
 
   const dataset = getDatasetForPage(pageKey);
   const pageDatasets = datasets.filter((d) => d.pageKey === pageKey);
+
+  /**
+   * After an upload, look for a high-confidence pre-configured join between
+   * the new dataset and this page's other raw datasets (newest first) and
+   * execute it. Returns the toast message, or null when nothing auto-merged.
+   */
+  function attemptAutoJoin(newDataset: Dataset): string | null {
+    // `datasets` is the pre-upload snapshot from this render, so the new
+    // dataset is never in it — every entry is a candidate partner.
+    const candidates = datasets
+      .filter((d) => !d.isJoined && d.pageKey === pageKey)
+      .reverse();
+    const pairAlreadyJoined = (a: string, b: string) =>
+      datasets.some(
+        (d) =>
+          d.isJoined &&
+          d.joinInfo &&
+          ((d.joinInfo.leftId === a && d.joinInfo.rightId === b) ||
+            (d.joinInfo.leftId === b && d.joinInfo.rightId === a))
+      );
+
+    for (const candidate of candidates) {
+      if (pairAlreadyJoined(candidate.id, newDataset.id)) continue;
+      const resolved = resolveAutoJoin(candidate, newDataset);
+      if (!resolved || resolved.suggestion.confidence !== "high") continue;
+      try {
+        const joined = createJoinedDataset({
+          name: `${baseName(resolved.left.name)} + ${baseName(resolved.right.name)}`,
+          leftId: resolved.left.id,
+          rightId: resolved.right.id,
+          leftKey: resolved.suggestion.leftKeys,
+          rightKey: resolved.suggestion.rightKeys,
+          joinType: resolved.suggestion.joinType,
+          pageTarget: pageKey,
+          auto: true,
+        });
+        const matched = joined.joinInfo?.matchedLeftRows ?? 0;
+        return `Auto-merged ${resolved.left.name} with ${resolved.right.name} via ${joinKeysLabel(
+          resolved.suggestion.leftKeys
+        )} (${matched.toLocaleString()} rows matched)`;
+      } catch {
+        // e.g. the keys share no values after all — try the next candidate.
+        continue;
+      }
+    }
+    return null;
+  }
 
   async function handleFile(file: File | undefined) {
     if (!file) return;
     setBusy(true);
     setError(null);
     try {
-      await uploadCsv(file, pageKey);
+      const newDataset = await uploadCsv(file, pageKey);
+      const toastMessage = attemptAutoJoin(newDataset);
+      if (toastMessage) setToast(toastMessage);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed.");
     } finally {
@@ -79,7 +168,7 @@ export function DatasetUpload({ pageKey, usingFallback, className }: DatasetUplo
           className="inline-flex max-w-full items-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300"
           title={
             dataset.isJoined && dataset.joinInfo
-              ? `Joined: ${dataset.joinInfo.leftName} (${dataset.joinInfo.leftKey}) ${dataset.joinInfo.joinType} join ${dataset.joinInfo.rightName} (${dataset.joinInfo.rightKey})`
+              ? `${dataset.joinInfo.auto ? "Auto-joined" : "Joined"}: ${dataset.joinInfo.leftName} (${dataset.joinInfo.leftKey}) ${dataset.joinInfo.joinType} join ${dataset.joinInfo.rightName} (${dataset.joinInfo.rightKey})`
               : dataset.name
           }
         >
@@ -138,6 +227,7 @@ export function DatasetUpload({ pageKey, usingFallback, className }: DatasetUplo
       )}
 
       <JoinDialog open={joinOpen} onOpenChange={setJoinOpen} pageTarget={pageKey} />
+      {toast && <AutoJoinToast message={toast} onDismiss={dismissToast} />}
     </div>
   );
 }

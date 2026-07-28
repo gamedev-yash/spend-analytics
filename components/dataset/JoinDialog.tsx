@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { Dialog } from "@base-ui/react/dialog";
-import { ArrowLeftRight, GitMerge, X } from "lucide-react";
+import { ArrowLeftRight, GitMerge, Sparkles, Wrench, X } from "lucide-react";
 import { useDatasets, type Dataset } from "@/context/DatasetsContext";
-import { countJoinMatches, type JoinType } from "@/lib/join";
+import { countJoinMatches, joinKeysLabel, type JoinType } from "@/lib/join";
+import { suggestAutoJoins, type ResolvedAutoJoin } from "@/lib/auto-join-rules";
 import { normalizeKey } from "@/lib/dataset-rows";
 import { FilterSelect } from "@/components/ui/filter-controls";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { cn } from "@/lib/utils";
 
 interface JoinDialogProps {
@@ -46,7 +48,97 @@ interface FormState {
   name: string;
 }
 
-function JoinDialogForm({ pageTarget, onDone }: { pageTarget: string; onDone: () => void }) {
+function baseNameOf(name: string): string {
+  return name.replace(/\.[^.]+$/, "");
+}
+
+/**
+ * "Smart Presets" tab — pre-configured SAP/procurement joins detected across
+ * the uploaded datasets, each applying with one click.
+ */
+function SmartPresetsPanel({ pageTarget, onDone }: { pageTarget: string; onDone: () => void }) {
+  const { datasets, createJoinedDataset } = useDatasets();
+  const [error, setError] = useState<string | null>(null);
+
+  const suggestions = useMemo(() => suggestAutoJoins(datasets), [datasets]);
+
+  function apply(resolved: ResolvedAutoJoin) {
+    setError(null);
+    try {
+      createJoinedDataset({
+        name: `${baseNameOf(resolved.left.name)} + ${baseNameOf(resolved.right.name)}`,
+        leftId: resolved.left.id,
+        rightId: resolved.right.id,
+        leftKey: resolved.suggestion.leftKeys,
+        rightKey: resolved.suggestion.rightKeys,
+        joinType: resolved.suggestion.joinType,
+        pageTarget,
+      });
+      onDone();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Join failed.");
+    }
+  }
+
+  if (suggestions.length === 0) {
+    return (
+      <p className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400">
+        No pre-configured SAP or procurement join detected between the uploaded datasets. Use the
+        &quot;Custom Manual Join&quot; tab to pick datasets and key columns yourself.
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-4 space-y-3">
+      {suggestions.map((resolved) => {
+        const { left, right, suggestion } = resolved;
+        const preview = countJoinMatches(left, right, suggestion.leftKeys, suggestion.rightKeys);
+        return (
+          <div
+            key={`${left.id}:${right.id}`}
+            className="rounded-lg border border-slate-200 p-3 dark:border-slate-800"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                {suggestion.presetName}
+              </span>
+              <StatusBadge
+                status={suggestion.confidence === "high" ? "success" : "warning"}
+                label={suggestion.confidence === "high" ? "High confidence" : "Possible match"}
+                title={suggestion.reason}
+              />
+            </div>
+            <p className="mt-1.5 text-sm text-slate-600 dark:text-slate-300">
+              <b>{left.name}</b> ⟕ <b>{right.name}</b> on{" "}
+              <code className="rounded bg-slate-100 px-1 py-0.5 text-xs dark:bg-slate-800">
+                {joinKeysLabel(suggestion.leftKeys)}
+              </code>
+            </p>
+            <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">{suggestion.reason}</p>
+            <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                {preview.matchedLeftRows.toLocaleString()} of {preview.leftRows.toLocaleString()} rows
+                matched · left join
+              </span>
+              <button
+                type="button"
+                onClick={() => apply(resolved)}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                Apply Preset Join
+              </button>
+            </div>
+          </div>
+        );
+      })}
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+    </div>
+  );
+}
+
+function ManualJoinForm({ pageTarget, onDone }: { pageTarget: string; onDone: () => void }) {
   const { datasets, getDatasetForPage, createJoinedDataset } = useDatasets();
   const [error, setError] = useState<string | null>(null);
 
@@ -269,17 +361,64 @@ function JoinDialogForm({ pageTarget, onDone }: { pageTarget: string; onDone: ()
   );
 }
 
+type JoinTab = "presets" | "manual";
+
+/** Tabbed dialog body — remounted on every open, so initializers pick the tab. */
+function JoinDialogBody({ pageTarget, onDone }: { pageTarget: string; onDone: () => void }) {
+  const { datasets } = useDatasets();
+  const [tab, setTab] = useState<JoinTab>(() =>
+    suggestAutoJoins(datasets).length > 0 ? "presets" : "manual"
+  );
+
+  const tabs: Array<{ id: JoinTab; label: string; icon: typeof Sparkles }> = [
+    { id: "presets", label: "Smart Presets (Recommended)", icon: Sparkles },
+    { id: "manual", label: "Custom Manual Join", icon: Wrench },
+  ];
+
+  return (
+    <>
+      <div className="mt-3 flex gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setTab(t.id)}
+            aria-pressed={tab === t.id}
+            className={cn(
+              "flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+              tab === t.id
+                ? "bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-slate-100"
+                : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+            )}
+          >
+            <t.icon className="h-3.5 w-3.5" />
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "presets" ? (
+        <SmartPresetsPanel pageTarget={pageTarget} onDone={onDone} />
+      ) : (
+        <ManualJoinForm pageTarget={pageTarget} onDone={onDone} />
+      )}
+    </>
+  );
+}
+
 /**
- * Modal for merging two uploaded CSVs into a materialized composite dataset.
- * On "Merge & Apply" the joined output is stored in DatasetsContext, tagged
- * to `pageTarget`, and made the active dataset so the page re-renders on it.
+ * Hybrid modal for merging two uploaded CSVs into a materialized composite
+ * dataset: "Smart Presets" lists detected SAP/procurement joins for one-click
+ * apply, "Custom Manual Join" keeps the full manual mapping controls. Either
+ * way the joined output is stored in DatasetsContext, tagged to `pageTarget`,
+ * and made the active dataset so the page re-renders on it.
  */
 export function JoinDialog({ open, onOpenChange, pageTarget }: JoinDialogProps) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px] data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
-        <Dialog.Popup className="fixed top-1/2 left-1/2 z-50 w-[min(40rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-slate-200 bg-white p-6 shadow-xl outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 dark:border-slate-800 dark:bg-slate-900">
+        <Dialog.Popup className="fixed top-1/2 left-1/2 z-50 max-h-[calc(100vh-3rem)] w-[min(40rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-slate-200 bg-white p-6 shadow-xl outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-start justify-between gap-4">
             <Dialog.Title className="text-lg font-semibold text-slate-900 dark:text-slate-100">
               Merge datasets
@@ -291,7 +430,7 @@ export function JoinDialog({ open, onOpenChange, pageTarget }: JoinDialogProps) 
               <X className="h-4 w-4" />
             </Dialog.Close>
           </div>
-          <JoinDialogForm pageTarget={pageTarget} onDone={() => onOpenChange(false)} />
+          <JoinDialogBody pageTarget={pageTarget} onDone={() => onOpenChange(false)} />
         </Dialog.Popup>
       </Dialog.Portal>
     </Dialog.Root>

@@ -10,7 +10,7 @@ import {
 } from "react";
 import Papa from "papaparse";
 import { inferColumns, type ColumnMeta } from "@/lib/infer";
-import { joinDatasets } from "@/lib/join";
+import { joinDatasets, joinKeysLabel, type JoinKeys } from "@/lib/join";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -34,10 +34,13 @@ export interface JoinInfo {
   rightId: string;
   leftName: string;
   rightName: string;
+  /** Display label — composite keys render as "EBELN + EBELP". */
   leftKey: string;
   rightKey: string;
   joinType: "inner" | "left";
   matchedLeftRows: number;
+  /** True when the join was executed automatically by the SAP auto-join engine. */
+  auto?: boolean;
 }
 
 export interface Dataset {
@@ -58,10 +61,13 @@ export interface CreateJoinedDatasetParams {
   name: string;
   leftId: string;
   rightId: string;
-  leftKey: string;
-  rightKey: string;
+  /** One column id or an ordered composite (["EBELN", "EBELP"]) per side. */
+  leftKey: JoinKeys;
+  rightKey: JoinKeys;
   joinType: "inner" | "left";
   pageTarget?: string;
+  /** Marks the join as auto-executed by the SAP auto-join engine. */
+  auto?: boolean;
 }
 
 interface DatasetsState {
@@ -264,10 +270,11 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
           rightId: right.id,
           leftName: left.name,
           rightName: right.name,
-          leftKey: params.leftKey,
-          rightKey: params.rightKey,
+          leftKey: joinKeysLabel(params.leftKey),
+          rightKey: joinKeysLabel(params.rightKey),
           joinType: params.joinType,
           matchedLeftRows,
+          auto: params.auto,
         },
       };
       updateStore((prev) => ({
