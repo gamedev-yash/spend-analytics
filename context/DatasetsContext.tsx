@@ -8,9 +8,12 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import Papa from "papaparse";
-import { inferColumns, type ColumnMeta } from "@/lib/infer";
+import { ClientCsvAdapter } from "@/lib/adapters/client-csv-adapter";
 import { joinDatasets, joinKeysLabel, type JoinKeys } from "@/lib/join";
+import type { IDataProvider } from "@/types/data-provider";
+import type { Dataset } from "@/types/dataset";
+
+export type { Dataset, DatasetRow, JoinInfo } from "@/types/dataset";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -25,37 +28,6 @@ export const DASHBOARD_PAGE_KEYS = [
 ] as const;
 
 export type DashboardPageKey = (typeof DASHBOARD_PAGE_KEYS)[number];
-
-export type DatasetRow = Record<string, unknown>;
-
-/** How a joined (composite) dataset was produced — kept for provenance/UI badges. */
-export interface JoinInfo {
-  leftId: string;
-  rightId: string;
-  leftName: string;
-  rightName: string;
-  /** Display label — composite keys render as "EBELN + EBELP". */
-  leftKey: string;
-  rightKey: string;
-  joinType: "inner" | "left";
-  matchedLeftRows: number;
-  /** True when the join was executed automatically by the SAP auto-join engine. */
-  auto?: boolean;
-}
-
-export interface Dataset {
-  id: string;
-  /** Original file name ("tail-spend.csv") or user-chosen name for joined datasets. */
-  name: string;
-  /** Dashboard route this dataset feeds; undefined = unassigned. */
-  pageKey?: string;
-  rows: DatasetRow[];
-  columns: ColumnMeta[];
-  createdAt: string;
-  /** True for materialized composite datasets produced by createJoinedDataset. */
-  isJoined?: boolean;
-  joinInfo?: JoinInfo;
-}
 
 export interface CreateJoinedDatasetParams {
   name: string;
@@ -76,6 +48,12 @@ interface DatasetsState {
 }
 
 interface DatasetsContextValue extends DatasetsState {
+  /**
+   * Where every widget reads its numbers from. Defaults to the in-memory CSV
+   * adapter; pass a different one to DatasetsProvider to move aggregation to a
+   * server without touching a single widget.
+   */
+  activeProvider: IDataProvider;
   setActiveDatasetId: (id: string | null) => void;
   /** Parse a CSV file, infer columns, store the dataset, and persist. */
   uploadCsv: (file: File, pageTarget?: string) => Promise<Dataset>;
@@ -181,38 +159,20 @@ function updateStore(update: (prev: DatasetsState) => DatasetsState): void {
   for (const listener of listeners) listener();
 }
 
-// ---------------------------------------------------------------------------
-// CSV parsing
-// ---------------------------------------------------------------------------
-
 function newDatasetId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
   return `ds-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-function parseCsvFile(file: File): Promise<DatasetRow[]> {
-  return new Promise((resolve, reject) => {
-    Papa.parse<DatasetRow>(file, {
-      header: true,
-      dynamicTyping: true,
-      skipEmptyLines: "greedy",
-      transformHeader: (h) => h.trim(),
-      complete: (result) => {
-        const fatal = result.errors.find((e) => e.type === "Delimiter" || e.code === "UndetectableDelimiter");
-        if (fatal) {
-          reject(new Error(`Could not parse "${file.name}": ${fatal.message}`));
-          return;
-        }
-        if (result.data.length === 0) {
-          reject(new Error(`"${file.name}" contains no data rows.`));
-          return;
-        }
-        resolve(result.data);
-      },
-      error: (err) => reject(new Error(`Could not read "${file.name}": ${err.message}`)),
-    });
-  });
-}
+// ---------------------------------------------------------------------------
+// Data provider
+//
+// The default provider reads the store above through a getter rather than a
+// captured value, so it always aggregates over the live datasets. It is a module
+// singleton because it is stateless — nothing about it changes per render.
+// ---------------------------------------------------------------------------
+
+const clientCsvAdapter = new ClientCsvAdapter(() => getSnapshot().datasets);
 
 // ---------------------------------------------------------------------------
 // Context
@@ -220,17 +180,24 @@ function parseCsvFile(file: File): Promise<DatasetRow[]> {
 
 const DatasetsContext = createContext<DatasetsContextValue | null>(null);
 
-export function DatasetsProvider({ children }: { children: ReactNode }) {
+export function DatasetsProvider({
+  children,
+  provider = clientCsvAdapter,
+}: {
+  children: ReactNode;
+  /** Override the data provider — e.g. a server-backed adapter. */
+  provider?: IDataProvider;
+}) {
   const { datasets, activeDatasetId } = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   const uploadCsv = useCallback(async (file: File, pageTarget?: string): Promise<Dataset> => {
-    const rows = await parseCsvFile(file);
+    const { rows, columns } = await clientCsvAdapter.parseCsv(file);
     const dataset: Dataset = {
       id: newDatasetId(),
       name: file.name,
       pageKey: pageTarget,
       rows,
-      columns: inferColumns(rows),
+      columns,
       createdAt: new Date().toISOString(),
     };
     updateStore((prev) => ({
@@ -312,13 +279,14 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
     () => ({
       datasets,
       activeDatasetId,
+      activeProvider: provider,
       setActiveDatasetId,
       uploadCsv,
       createJoinedDataset,
       getDatasetForPage,
       removeDataset,
     }),
-    [datasets, activeDatasetId, setActiveDatasetId, uploadCsv, createJoinedDataset, getDatasetForPage, removeDataset]
+    [datasets, activeDatasetId, provider, setActiveDatasetId, uploadCsv, createJoinedDataset, getDatasetForPage, removeDataset]
   );
 
   return <DatasetsContext.Provider value={value}>{children}</DatasetsContext.Provider>;
@@ -328,4 +296,9 @@ export function useDatasets(): DatasetsContextValue {
   const ctx = useContext(DatasetsContext);
   if (!ctx) throw new Error("useDatasets must be used within a DatasetsProvider");
   return ctx;
+}
+
+/** The provider every widget query goes through. */
+export function useDataProvider(): IDataProvider {
+  return useDatasets().activeProvider;
 }

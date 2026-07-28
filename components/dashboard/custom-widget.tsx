@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import {
   Bar,
   BarChart,
@@ -16,10 +15,10 @@ import {
   YAxis,
 } from "recharts";
 import { usePalette } from "@/hooks/use-palette";
+import { useWidgetQuery } from "@/hooks/use-widget-query";
+import { useWidgetFilters } from "@/context/WidgetFiltersContext";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import {
-  computeKpiValue,
-  computeSeries,
   formatAxisValue,
   formatWidgetValue,
   isWidgetRenderable,
@@ -53,11 +52,18 @@ function EmptyNote({ message }: { message: string }) {
   );
 }
 
+/** Placeholder for the first query only — a refetch keeps the previous data on screen. */
+function LoadingNote() {
+  return <div className="h-full min-h-24 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800/60" />;
+}
+
 /**
  * Renders one WidgetConfig against its dataset — KPI tile, bar/line/pie/donut
  * chart, or data table — using the app's theme-aware palette and the shared
- * ChartTooltipCard. Missing or stale column references degrade to an
- * explanatory note rather than an error.
+ * ChartTooltipCard. Numbers come from the active IDataProvider via
+ * useWidgetQuery, narrowed by whatever filters the surrounding dashboard has
+ * set. Missing or stale column references degrade to an explanatory note rather
+ * than an error.
  */
 export function CustomWidget({ dataset, config, preview = false }: CustomWidgetProps) {
   const palette = usePalette();
@@ -66,18 +72,17 @@ export function CustomWidget({ dataset, config, preview = false }: CustomWidgetP
   const groupName = columnName(dataset, config.xAxisColumn);
 
   const renderable = isWidgetRenderable(dataset, config);
-
-  const series = useMemo<SeriesPoint[]>(
-    () => (renderable && config.chartType !== "kpi" ? computeSeries(dataset, config) : []),
-    [dataset, config, renderable]
-  );
-  const kpiValue = useMemo(
-    () => (renderable && config.chartType === "kpi" ? computeKpiValue(dataset, config) : 0),
-    [dataset, config, renderable]
-  );
+  const filters = useWidgetFilters();
+  const { series, kpiValue, totalMatchingRows, ready, error } = useWidgetQuery(dataset, config, filters);
 
   if (!renderable) {
     return <EmptyNote message={widgetIssue(dataset, config) ?? "This widget is not configured."} />;
+  }
+  if (error) {
+    return <EmptyNote message={error} />;
+  }
+  if (!ready) {
+    return <LoadingNote />;
   }
   if (config.chartType !== "kpi" && series.length === 0) {
     return <EmptyNote message="No rows to plot for this column selection." />;
@@ -98,7 +103,7 @@ export function CustomWidget({ dataset, config, preview = false }: CustomWidgetP
           </span>
         </p>
         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-          {valueLabel} · {dataset.rows.length.toLocaleString("en-IN")} rows
+          {valueLabel} · {totalMatchingRows.toLocaleString("en-IN")} rows
         </p>
       </div>
     );

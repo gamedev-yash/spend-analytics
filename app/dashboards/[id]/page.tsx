@@ -12,7 +12,9 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import { useDatasets, type Dataset } from "@/context/DatasetsContext";
+import { useDatasets } from "@/context/DatasetsContext";
+import { WidgetFiltersProvider } from "@/context/WidgetFiltersContext";
+import { useRowCount } from "@/hooks/use-widget-query";
 import {
   addWidget,
   moveWidget,
@@ -31,7 +33,7 @@ import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-but
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
 import type { WidgetConfig } from "@/types/custom-dashboard";
 import {
-  applyDashboardFilters,
+  dashboardFiltersToQuery,
   DashboardFilters,
   type DashboardFilterState,
 } from "./dashboard-filters";
@@ -70,12 +72,10 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
 
   const sourceDataset = datasets.find((d) => d.id === dashboard?.datasetId) ?? null;
 
-  // Widgets read a filtered view of the dataset — same shape, fewer rows.
-  const viewDataset = useMemo<Dataset | null>(() => {
-    if (!sourceDataset) return null;
-    const rows = applyDashboardFilters(sourceDataset.rows, filters);
-    return rows.length === sourceDataset.rows.length ? sourceDataset : { ...sourceDataset, rows };
-  }, [sourceDataset, filters]);
+  // Filters are pushed into each widget's query rather than applied to a copy of
+  // the rows, so the work happens wherever the active provider lives.
+  const queryFilters = useMemo(() => dashboardFiltersToQuery(filters), [filters]);
+  const rowCount = useRowCount(sourceDataset?.id ?? null, queryFilters);
 
   // Store hydrates on the client, so "not found" is only real once ready.
   if (!ready) return null;
@@ -91,7 +91,7 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
     );
   }
 
-  if (!sourceDataset || !viewDataset) {
+  if (!sourceDataset) {
     return (
       <div className="flex flex-col gap-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -163,9 +163,9 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
               )}
               {sourceDataset.name}
               <span className="text-emerald-600 dark:text-emerald-400">
-                {viewDataset.rows.length.toLocaleString("en-IN")}
-                {viewDataset.rows.length !== sourceDataset.rows.length &&
-                  ` of ${sourceDataset.rows.length.toLocaleString("en-IN")}`}{" "}
+                {rowCount.matching.toLocaleString("en-IN")}
+                {rowCount.matching !== rowCount.total &&
+                  ` of ${rowCount.total.toLocaleString("en-IN")}`}{" "}
                 rows
               </span>
             </span>
@@ -198,98 +198,102 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
 
       <AiSuggestionsBar dashboard={dashboard} dataset={sourceDataset} />
 
-      <div id={DASHBOARD_CANVAS_ID} className="flex flex-col gap-6">
-        <DashboardFilters dataset={sourceDataset} filters={filters} onChange={setFilters} />
+      {/* Every widget below — grid and configurator preview alike — folds these
+          filters into its own provider query. */}
+      <WidgetFiltersProvider filters={queryFilters}>
+        <div id={DASHBOARD_CANVAS_ID} className="flex flex-col gap-6">
+          <DashboardFilters dataset={sourceDataset} filters={filters} onChange={setFilters} />
 
-        {dashboard.widgets.length === 0 ? (
-          <EmptyShell
-            title="No widgets yet"
-            message="Add your first widget to start visualizing this dataset."
-          >
-            <button
-              type="button"
-              onClick={openAddWidget}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
+          {dashboard.widgets.length === 0 ? (
+            <EmptyShell
+              title="No widgets yet"
+              message="Add your first widget to start visualizing this dataset."
             >
-              <Plus className="h-4 w-4" />
-              Add Widget
-            </button>
-          </EmptyShell>
-        ) : (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {dashboard.widgets.map((widget, index) => (
-              <div
-                key={widget.id}
-                className={cn(
-                  "flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80",
-                  widget.gridSpan === 2 && "lg:col-span-2"
-                )}
+              <button
+                type="button"
+                onClick={openAddWidget}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
               >
-                <div className="flex shrink-0 items-center gap-2 border-b border-slate-200 bg-slate-100/50 px-4 py-2.5 dark:border-slate-800/80 dark:bg-slate-900/90">
-                  <p className="min-w-0 flex-1 truncate text-sm font-bold text-slate-900 dark:text-slate-100">
-                    {widget.title}
-                  </p>
-                  <div className="flex shrink-0 items-center gap-0.5 text-slate-400 dark:text-slate-500">
-                    <button
-                      type="button"
-                      onClick={() => moveWidget(dashboard.id, widget.id, -1)}
-                      disabled={index === 0}
-                      aria-label={`Move ${widget.title} earlier`}
-                      title="Move earlier"
-                      className="rounded p-1 transition-colors hover:bg-slate-200 hover:text-slate-700 disabled:opacity-30 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                    >
-                      <ChevronLeft className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => moveWidget(dashboard.id, widget.id, 1)}
-                      disabled={index === dashboard.widgets.length - 1}
-                      aria-label={`Move ${widget.title} later`}
-                      title="Move later"
-                      className="rounded p-1 transition-colors hover:bg-slate-200 hover:text-slate-700 disabled:opacity-30 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                    >
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => openEditWidget(widget)}
-                      aria-label={`Edit ${widget.title}`}
-                      title="Edit widget"
-                      className="rounded p-1 transition-colors hover:bg-slate-200 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => removeWidget(dashboard.id, widget.id)}
-                      aria-label={`Remove ${widget.title}`}
-                      title="Remove widget"
-                      className="rounded p-1 transition-colors hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-950 dark:hover:text-rose-400"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+                <Plus className="h-4 w-4" />
+                Add Widget
+              </button>
+            </EmptyShell>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              {dashboard.widgets.map((widget, index) => (
+                <div
+                  key={widget.id}
+                  className={cn(
+                    "flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80",
+                    widget.gridSpan === 2 && "lg:col-span-2"
+                  )}
+                >
+                  <div className="flex shrink-0 items-center gap-2 border-b border-slate-200 bg-slate-100/50 px-4 py-2.5 dark:border-slate-800/80 dark:bg-slate-900/90">
+                    <p className="min-w-0 flex-1 truncate text-sm font-bold text-slate-900 dark:text-slate-100">
+                      {widget.title}
+                    </p>
+                    <div className="flex shrink-0 items-center gap-0.5 text-slate-400 dark:text-slate-500">
+                      <button
+                        type="button"
+                        onClick={() => moveWidget(dashboard.id, widget.id, -1)}
+                        disabled={index === 0}
+                        aria-label={`Move ${widget.title} earlier`}
+                        title="Move earlier"
+                        className="rounded p-1 transition-colors hover:bg-slate-200 hover:text-slate-700 disabled:opacity-30 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                      >
+                        <ChevronLeft className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveWidget(dashboard.id, widget.id, 1)}
+                        disabled={index === dashboard.widgets.length - 1}
+                        aria-label={`Move ${widget.title} later`}
+                        title="Move later"
+                        className="rounded p-1 transition-colors hover:bg-slate-200 hover:text-slate-700 disabled:opacity-30 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                      >
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openEditWidget(widget)}
+                        aria-label={`Edit ${widget.title}`}
+                        title="Edit widget"
+                        className="rounded p-1 transition-colors hover:bg-slate-200 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeWidget(dashboard.id, widget.id)}
+                        aria-label={`Remove ${widget.title}`}
+                        title="Remove widget"
+                        className="rounded p-1 transition-colors hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-950 dark:hover:text-rose-400"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="min-h-0 flex-1 p-4">
+                    <CustomWidget dataset={sourceDataset} config={widget} />
                   </div>
                 </div>
-                <div className="min-h-0 flex-1 p-4">
-                  <CustomWidget dataset={viewDataset} config={widget} />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-      <WidgetConfigurator
-        open={configuratorOpen}
-        onOpenChange={setConfiguratorOpen}
-        dataset={viewDataset}
-        widget={editingWidget}
-        defaults={defaultWidgetForDataset(sourceDataset)}
-        onSave={(widget) => {
-          if (editingWidget) updateWidget(dashboard.id, widget);
-          else addWidget(dashboard.id, widget);
-        }}
-      />
+        <WidgetConfigurator
+          open={configuratorOpen}
+          onOpenChange={setConfiguratorOpen}
+          dataset={sourceDataset}
+          widget={editingWidget}
+          defaults={defaultWidgetForDataset(sourceDataset)}
+          onSave={(widget) => {
+            if (editingWidget) updateWidget(dashboard.id, widget);
+            else addWidget(dashboard.id, widget);
+          }}
+        />
+      </WidgetFiltersProvider>
       <DeleteDashboardDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}

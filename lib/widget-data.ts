@@ -1,10 +1,10 @@
-// Aggregation layer behind custom-dashboard widgets: turns a WidgetConfig +
-// dataset rows into either a single KPI scalar or a sorted series of
-// {label, value} points. Date groupings bucket by month so trends stay
-// readable regardless of row grain.
+// Display side of custom-dashboard widgets: the point shape they plot, the
+// guards that decide whether a WidgetConfig can render at all, and the value
+// formatters. The aggregation that produces the points now lives behind
+// IDataProvider (lib/adapters/client-csv-adapter), reached via
+// lib/widget-query + hooks/use-widget-query.
 
-import { toNumber } from "@/lib/infer";
-import type { Dataset, DatasetRow } from "@/context/DatasetsContext";
+import type { Dataset } from "@/types/dataset";
 import type { Aggregation, WidgetConfig } from "@/types/custom-dashboard";
 
 export interface SeriesPoint {
@@ -14,112 +14,10 @@ export interface SeriesPoint {
   count: number;
 }
 
-const EMPTY_LABEL = "(No value)";
-
-function cellLabel(value: unknown): string {
-  if (value === null || value === undefined) return EMPTY_LABEL;
-  const s = String(value).trim();
-  return s === "" ? EMPTY_LABEL : s;
-}
-
-/** "2025-03-14" / "14/03/2025" → "2025-03"; non-dates pass through unchanged. */
-function monthBucket(raw: string): string {
-  if (/^\d{4}-\d{2}/.test(raw)) return raw.slice(0, 7);
-  const parsed = new Date(raw);
-  if (Number.isNaN(parsed.getTime())) return raw;
-  return parsed.toISOString().slice(0, 7);
-}
-
-interface Accumulator {
-  sum: number;
-  count: number;
-  distinct: Set<string>;
-}
-
-function newAccumulator(): Accumulator {
-  return { sum: 0, count: 0, distinct: new Set<string>() };
-}
-
-function accumulate(acc: Accumulator, row: DatasetRow, measureColumn: string | undefined): void {
-  acc.count += 1;
-  if (!measureColumn) return;
-  const raw = row[measureColumn];
-  const numeric = toNumber(raw);
-  if (numeric !== null) acc.sum += numeric;
-  if (raw !== null && raw !== undefined && String(raw).trim() !== "") {
-    acc.distinct.add(String(raw).trim());
-  }
-}
-
-function finalize(acc: Accumulator, aggregation: Aggregation): number {
-  switch (aggregation) {
-    case "sum":
-      return acc.sum;
-    case "avg":
-      return acc.count > 0 ? acc.sum / acc.count : 0;
-    case "count":
-      return acc.count;
-    case "distinct":
-      return acc.distinct.size;
-  }
-}
-
 /** Column ids that actually exist on this dataset (guards deleted/renamed columns). */
-function resolveColumn(dataset: Dataset, columnId: string | undefined): string | undefined {
+export function resolveColumn(dataset: Dataset, columnId: string | undefined): string | undefined {
   if (!columnId) return undefined;
   return dataset.columns.some((c) => c.id === columnId) ? columnId : undefined;
-}
-
-/** Single scalar for a KPI tile. */
-export function computeKpiValue(dataset: Dataset, config: WidgetConfig): number {
-  const aggregation = config.aggregation ?? "sum";
-  const measure = resolveColumn(dataset, config.yAxisColumn);
-  const acc = newAccumulator();
-  for (const row of dataset.rows) accumulate(acc, row, measure);
-  return finalize(acc, aggregation);
-}
-
-/**
- * Grouped series for bar/line/pie/donut/table widgets.
- *
- * Date groupings bucket by month and sort chronologically (a trend must read
- * left-to-right in time); every other grouping sorts by value descending so
- * the Top-N `limit` keeps the largest contributors.
- */
-export function computeSeries(dataset: Dataset, config: WidgetConfig): SeriesPoint[] {
-  const groupColumn = resolveColumn(dataset, config.xAxisColumn);
-  if (!groupColumn) return [];
-
-  const aggregation = config.aggregation ?? "sum";
-  const measure = resolveColumn(dataset, config.yAxisColumn);
-  const isDate = dataset.columns.find((c) => c.id === groupColumn)?.type === "date";
-
-  const groups = new Map<string, Accumulator>();
-  for (const row of dataset.rows) {
-    const raw = cellLabel(row[groupColumn]);
-    const key = isDate && raw !== EMPTY_LABEL ? monthBucket(raw) : raw;
-    let acc = groups.get(key);
-    if (!acc) {
-      acc = newAccumulator();
-      groups.set(key, acc);
-    }
-    accumulate(acc, row, measure);
-  }
-
-  const points: SeriesPoint[] = Array.from(groups.entries()).map(([label, acc]) => ({
-    label,
-    value: finalize(acc, aggregation),
-    count: acc.count,
-  }));
-
-  if (isDate) {
-    points.sort((a, b) => a.label.localeCompare(b.label));
-    // For trends the limit means "most recent N", not "largest N".
-    return config.limit && points.length > config.limit ? points.slice(-config.limit) : points;
-  }
-
-  points.sort((a, b) => b.value - a.value);
-  return config.limit ? points.slice(0, config.limit) : points;
 }
 
 /** True when the widget has everything it needs to render real data. */
