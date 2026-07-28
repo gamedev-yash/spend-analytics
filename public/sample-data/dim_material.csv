@@ -1,0 +1,601 @@
+material_number,material_description,material_type,category_code
+00200001,Frother MIBC - Spec B64,HIBE,M030
+00200002,Rail Freight Wagon Booking - Spec C71,DIEN,M042
+00200003,Civil Foundation Works - Spec D84,DIEN,M026
+00200004,AC Motor 75kW Spares - Spec E29,ERSA,M007
+00200005,Site Security Service - Spec F14,DIEN,M024
+00200006,Structural Steel Section - Spec A98,HIBE,M052
+00200007,Mechanical Seal Type 21 - Spec B24,ERSA,M011
+00200008,Shutdown Maintenance Contract - Spec C43,DIEN,M026
+00200009,Shutdown Maintenance Contract - Spec D84,DIEN,M022
+00200010,Conveyor Idler Roller - Spec E40,ERSA,M009
+00200011,Ocean Freight Forwarding - Spec F26,DIEN,M042
+00200012,Quick Lime CaO - Spec A58,HIBE,M029
+00200013,Zinc Concentrate 52% Zn - Spec B36,ROH,M001
+00200014,Grinding Media Ball 90mm - Spec C40,ERSA,M012
+00200015,Technical Consulting Engagement - Spec D71,DIEN,M026
+00200016,Mechanical Seal Type 21 - Spec E57,ERSA,M007
+00200017,Server Hardware Unit - Spec F63,HIBE,M044
+00200018,Gasket Set Spiral Wound - Spec A80,ERSA,M009
+00200019,AC Motor 75kW Spares - Spec B62,ERSA,M012
+00200020,Petroleum Coke (Calcined) - Spec C78,HIBE,M036
+00200021,Xanthate Collector SIBX - Spec D89,HIBE,M031
+00200022,Inbound Logistics Service - Spec E69,DIEN,M026
+00200023,Lead Concentrate 60% Pb - Spec F94,ROH,M003
+00200024,AC Motor 75kW Spares - Spec A24,ERSA,M012
+00200025,Iron Ore Fines 62% Fe - Spec B30,ROH,M003
+00200026,Bauxite Ore Grade A - Spec C26,ROH,M001
+00200027,Calcined Alumina - Spec D72,ROH,M002
+00200028,Road Transport Contract - Spec E38,DIEN,M040
+00200029,Ocean Freight Forwarding - Spec F39,DIEN,M039
+00200030,Ready Mix Concrete M30 - Spec A12,HIBE,M052
+00200031,Mechanical Seal Type 21 - Spec B37,ERSA,M007
+00200032,Rotary Drilling Rig - Spec C39,ERSA,M016
+00200033,Copper Concentrate 28% Cu - Spec D99,ROH,M004
+00200034,Copper Concentrate 28% Cu - Spec E91,ROH,M003
+00200035,Iron Ore Fines 62% Fe - Spec F26,ROH,M006
+00200036,Safety Helmet Class E - Spec A49,HIBE,M050
+00200037,Steel Toe Safety Boots - Spec B89,HIBE,M048
+00200038,AC Motor 75kW Spares - Spec C32,ERSA,M010
+00200039,Wooden Pallet Standard - Spec D84,HIBE,M064
+00200040,Furnace Oil - Spec E67,HIBE,M038
+00200041,Rotary Drilling Rig - Spec F15,ERSA,M018
+00200042,Xanthate Collector SIBX - Spec A28,HIBE,M029
+00200043,Gasket Set Spiral Wound - Spec B60,ERSA,M011
+00200044,Variable Frequency Drive 110kW - Spec C30,ERSA,M055
+00200045,Safety Helmet Class E - Spec D40,HIBE,M049
+00200046,Xanthate Collector SIBX - Spec E68,HIBE,M031
+00200047,Plant Housekeeping Service - Spec F52,DIEN,M025
+00200048,Flotation Cell Rotor - Spec A24,ERSA,M007
+00200049,AC Motor 75kW Spares - Spec B63,ERSA,M009
+00200050,Civil Foundation Works - Spec C57,DIEN,M025
+00200051,Iron Ore Fines 62% Fe - Spec D40,ROH,M006
+00200052,Server Hardware Unit - Spec E80,HIBE,M046
+00200053,Grinding Media Ball 90mm - Spec F15,ERSA,M013
+00200054,Zinc Concentrate 52% Zn - Spec A21,ROH,M003
+00200055,Copper Concentrate 28% Cu - Spec B32,ROH,M006
+00200056,Calcined Alumina - Spec C62,ROH,M003
+00200057,Natural Gas (PNG) - Spec D81,HIBE,M035
+00200058,Copper Concentrate 28% Cu - Spec E78,ROH,M004
+00200059,Ball Bearing 6205-2RS - Spec F73,ERSA,M010
+00200060,Port Handling Service - Spec A55,DIEN,M039
+00200061,High Speed Diesel - Spec B83,HIBE,M034
+00200062,High Speed Diesel - Spec C98,HIBE,M038
+00200063,Site Security Service - Spec D70,DIEN,M025
+00200064,Structural Steel Section - Spec E84,HIBE,M051
+00200065,Copper Concentrate 28% Cu - Spec F50,ROH,M001
+00200066,AC Motor 75kW Spares - Spec A99,ERSA,M009
+00200067,Technical Consulting Engagement - Spec B90,DIEN,M025
+00200068,Furnace Oil - Spec C98,HIBE,M036
+00200069,Xanthate Collector SIBX - Spec D17,HIBE,M032
+00200070,Lead Concentrate 60% Pb - Spec E26,ROH,M005
+00200071,Plant Housekeeping Service - Spec F55,DIEN,M021
+00200072,Petroleum Coke (Calcined) - Spec A30,HIBE,M033
+00200073,Xanthate Collector SIBX - Spec B15,HIBE,M030
+00200074,Quick Lime CaO - Spec C11,HIBE,M032
+00200075,SAG Mill Complete Unit - Spec D37,ERSA,M016
+00200076,Leased Line Telecom Service - Spec E71,HIBE,M043
+00200077,Copper Concentrate 28% Cu - Spec F97,ROH,M005
+00200078,Furnace Oil - Spec A52,HIBE,M037
+00200079,Rotary Drilling Rig - Spec B36,ERSA,M015
+00200080,Sulphuric Acid 98% - Spec C67,HIBE,M030
+00200081,Slurry Pump Impeller - Spec D38,ERSA,M009
+00200082,Iron Ore Fines 62% Fe - Spec E42,ROH,M003
+00200083,Ball Bearing 6205-2RS - Spec F92,ERSA,M008
+00200084,Thermal Coal Grade B - Spec A27,HIBE,M036
+00200085,Overland Conveyor System - Spec B72,ERSA,M017
+00200086,Network Switch Enterprise - Spec C92,HIBE,M044
+00200087,Lead Concentrate 60% Pb - Spec D94,ROH,M002
+00200088,Slurry Pump Impeller - Spec E14,ERSA,M011
+00200089,Control Valve Globe Type - Spec F64,ERSA,M059
+00200090,ERP Software License - Spec A77,HIBE,M045
+00200091,Flotation Cell Rotor - Spec B16,ERSA,M008
+00200092,Road Transport Contract - Spec C66,DIEN,M040
+00200093,Variable Frequency Drive 110kW - Spec D40,ERSA,M056
+00200094,Safety Helmet Class E - Spec E41,HIBE,M049
+00200095,Portable Gas Detector - Spec F62,HIBE,M048
+00200096,AC Motor 75kW Spares - Spec A32,ERSA,M008
+00200097,Grinding Media Ball 90mm - Spec B29,ERSA,M010
+00200098,Bauxite Ore Grade A - Spec C80,ROH,M006
+00200099,Road Transport Contract - Spec D13,DIEN,M042
+00200100,Zinc Concentrate 52% Zn - Spec E59,ROH,M006
+00200101,Plant Housekeeping Service - Spec F77,DIEN,M023
+00200102,Polyacrylamide Flocculant - Spec A43,HIBE,M029
+00200103,Bauxite Ore Grade A - Spec B18,ROH,M002
+00200104,Rail Freight Wagon Booking - Spec C31,DIEN,M041
+00200105,Quick Lime CaO - Spec D32,HIBE,M032
+00200106,Overland Conveyor System - Spec E70,ERSA,M017
+00200107,Road Transport Contract - Spec F95,DIEN,M039
+00200108,Rotary Drilling Rig - Spec A19,ERSA,M017
+00200109,Conveyor Idler Roller - Spec B49,ERSA,M011
+00200110,Fire Extinguisher CO2 Type - Spec C49,HIBE,M049
+00200111,Conveyor Idler Roller - Spec D70,ERSA,M010
+00200112,Server Hardware Unit - Spec E58,HIBE,M045
+00200113,High Speed Diesel - Spec F86,HIBE,M036
+00200114,Iron Ore Fines 62% Fe - Spec A34,ROH,M002
+00200115,Technical Consulting Engagement - Spec B73,DIEN,M023
+00200116,XLPE Power Cable 11kV - Spec C93,ERSA,M056
+00200117,Server Hardware Unit - Spec D87,HIBE,M044
+00200118,Rotary Drilling Rig - Spec E27,ERSA,M019
+00200119,Lead Concentrate 60% Pb - Spec F77,ROH,M005
+00200120,ERP Software License - Spec A67,HIBE,M045
+00200121,Natural Gas (PNG) - Spec B99,HIBE,M035
+00200122,Zinc Concentrate 52% Zn - Spec C23,ROH,M004
+00200123,Technical Consulting Engagement - Spec D46,DIEN,M026
+00200124,OPC 53 Grade Cement - Spec E95,HIBE,M053
+00200125,Distribution Transformer 500kVA - Spec F31,ERSA,M058
+00200126,XLPE Power Cable 11kV - Spec A20,ERSA,M057
+00200127,Iron Ore Fines 62% Fe - Spec B37,ROH,M005
+00200128,OPC 53 Grade Cement - Spec C96,HIBE,M054
+00200129,Frother MIBC - Spec D39,HIBE,M027
+00200130,HT Switchgear Panel - Spec E89,ERSA,M057
+00200131,Flotation Cell Rotor - Spec F77,ERSA,M014
+00200132,Safety Helmet Class E - Spec A15,HIBE,M048
+00200133,Ball Bearing 6205-2RS - Spec B11,ERSA,M008
+00200134,Gasket Set Spiral Wound - Spec C24,ERSA,M010
+00200135,Road Transport Contract - Spec D16,DIEN,M042
+00200136,Grinding Media Ball 90mm - Spec E29,ERSA,M014
+00200137,Grinding Media Ball 90mm - Spec F31,ERSA,M014
+00200138,PLC Rack Assembly - Spec A26,ERSA,M060
+00200139,Gasket Set Spiral Wound - Spec B49,ERSA,M014
+00200140,Port Handling Service - Spec C13,DIEN,M042
+00200141,Ocean Freight Forwarding - Spec D43,DIEN,M042
+00200142,Civil Foundation Works - Spec E82,DIEN,M021
+00200143,Copper Concentrate 28% Cu - Spec F62,ROH,M001
+00200144,Xanthate Collector SIBX - Spec A12,HIBE,M031
+00200145,Port Handling Service - Spec B90,DIEN,M039
+00200146,Mechanical Seal Type 21 - Spec C58,ERSA,M013
+00200147,Rotary Drilling Rig - Spec D32,ERSA,M016
+00200148,Site Security Service - Spec E88,DIEN,M022
+00200149,Portable Gas Detector - Spec F63,HIBE,M047
+00200150,Portable Gas Detector - Spec A56,HIBE,M050
+00200151,Calcined Alumina - Spec B76,ROH,M004
+00200152,Rotary Drilling Rig - Spec C22,ERSA,M016
+00200153,Ball Bearing 6205-2RS - Spec D13,ERSA,M009
+00200154,Steel Toe Safety Boots - Spec E29,HIBE,M047
+00200155,Lead Concentrate 60% Pb - Spec F54,ROH,M001
+00200156,Inbound Logistics Service - Spec A88,DIEN,M026
+00200157,Civil Construction Package - Spec B78,HIBE,M052
+00200158,Electricity Purchase Agreement - Spec C90,HIBE,M037
+00200159,Steel Drum 200L - Spec D29,HIBE,M064
+00200160,Zinc Concentrate 52% Zn - Spec E42,ROH,M006
+00200161,Iron Ore Fines 62% Fe - Spec F27,ROH,M001
+00200162,Electricity Purchase Agreement - Spec A20,HIBE,M037
+00200163,Conveyor Idler Roller - Spec B18,ERSA,M012
+00200164,Road Transport Contract - Spec C23,DIEN,M041
+00200165,Rail Freight Wagon Booking - Spec D41,DIEN,M041
+00200166,Road Transport Contract - Spec E65,DIEN,M040
+00200167,Zinc Concentrate 52% Zn - Spec F79,ROH,M001
+00200168,Iron Ore Fines 62% Fe - Spec A34,ROH,M006
+00200169,Quick Lime CaO - Spec B49,HIBE,M027
+00200170,Thermal Coal Grade B - Spec C44,HIBE,M035
+00200171,Portable Gas Detector - Spec D75,HIBE,M049
+00200172,Server Hardware Unit - Spec E16,HIBE,M043
+00200173,Lead Concentrate 60% Pb - Spec F85,ROH,M005
+00200174,Frother MIBC - Spec A28,HIBE,M027
+00200175,Grinding Media Ball 90mm - Spec B73,ERSA,M009
+00200176,XLPE Power Cable 11kV - Spec C98,ERSA,M055
+00200177,Copper Concentrate 28% Cu - Spec D78,ROH,M003
+00200178,Flotation Cell Rotor - Spec E94,ERSA,M009
+00200179,Electromagnetic Flow Meter - Spec F64,ERSA,M060
+00200180,Bauxite Ore Grade A - Spec A32,ROH,M002
+00200181,Petroleum Coke (Calcined) - Spec B64,HIBE,M036
+00200182,Ball Bearing 6205-2RS - Spec C55,ERSA,M014
+00200183,Slurry Pump Impeller - Spec D88,ERSA,M011
+00200184,Electricity Purchase Agreement - Spec E19,HIBE,M038
+00200185,Thermal Coal Grade B - Spec F96,HIBE,M033
+00200186,Slurry Pump Impeller - Spec A17,ERSA,M011
+00200187,Bauxite Ore Grade A - Spec B72,ROH,M005
+00200188,Electromagnetic Flow Meter - Spec C98,ERSA,M059
+00200189,Leased Line Telecom Service - Spec D99,HIBE,M045
+00200190,Civil Foundation Works - Spec E67,DIEN,M023
+00200191,Quick Lime CaO - Spec F75,HIBE,M028
+00200192,Grinding Media Ball 90mm - Spec A13,ERSA,M010
+00200193,Site Security Service - Spec B42,DIEN,M024
+00200194,AC Motor 75kW Spares - Spec C99,ERSA,M008
+00200195,Natural Gas (PNG) - Spec D44,HIBE,M034
+00200196,Leased Line Telecom Service - Spec E32,HIBE,M043
+00200197,Ocean Freight Forwarding - Spec F92,DIEN,M041
+00200198,Fire Extinguisher CO2 Type - Spec A75,HIBE,M050
+00200199,Conveyor Idler Roller - Spec B42,ERSA,M009
+00200200,Flotation Cell Rotor - Spec C42,ERSA,M014
+00200201,Gasket Set Spiral Wound - Spec D77,ERSA,M012
+00200202,Iron Ore Fines 62% Fe - Spec E56,ROH,M004
+00200203,HT Switchgear Panel - Spec F86,ERSA,M058
+00200204,Grinding Media Ball 90mm - Spec A68,ERSA,M012
+00200205,Natural Gas (PNG) - Spec B82,HIBE,M037
+00200206,Site Security Service - Spec C18,DIEN,M025
+00200207,Furnace Oil - Spec D56,HIBE,M037
+00200208,Rail Freight Wagon Booking - Spec E57,DIEN,M041
+00200209,Safety Helmet Class E - Spec F31,HIBE,M047
+00200210,Grinding Media Ball 90mm - Spec A30,ERSA,M011
+00200211,Road Transport Contract - Spec B70,DIEN,M042
+00200212,Online Process Analyzer - Spec C60,ERSA,M061
+00200213,Plant Housekeeping Service - Spec D34,DIEN,M022
+00200214,Control Valve Globe Type - Spec E47,ERSA,M062
+00200215,Rail Freight Wagon Booking - Spec F66,DIEN,M042
+00200216,Ocean Freight Forwarding - Spec A32,DIEN,M040
+00200217,Grinding Media Ball 90mm - Spec B33,ERSA,M007
+00200218,Server Hardware Unit - Spec C85,HIBE,M044
+00200219,Petroleum Coke (Calcined) - Spec D38,HIBE,M037
+00200220,Ball Bearing 6205-2RS - Spec E35,ERSA,M013
+00200221,Site Security Service - Spec F88,DIEN,M021
+00200222,Ocean Freight Forwarding - Spec A41,DIEN,M040
+00200223,Road Transport Contract - Spec B45,DIEN,M041
+00200224,Port Handling Service - Spec C63,DIEN,M039
+00200225,Furnace Oil - Spec D44,HIBE,M035
+00200226,Copper Concentrate 28% Cu - Spec E88,ROH,M001
+00200227,XLPE Power Cable 11kV - Spec F65,ERSA,M057
+00200228,Electricity Purchase Agreement - Spec A98,HIBE,M034
+00200229,Ocean Freight Forwarding - Spec B27,DIEN,M040
+00200230,Lead Concentrate 60% Pb - Spec C45,ROH,M003
+00200231,Electricity Purchase Agreement - Spec D65,HIBE,M035
+00200232,Steel Toe Safety Boots - Spec E70,HIBE,M047
+00200233,Steel Toe Safety Boots - Spec F18,HIBE,M049
+00200234,Iron Ore Fines 62% Fe - Spec A33,ROH,M004
+00200235,Control Valve Globe Type - Spec B63,ERSA,M062
+00200236,Ball Bearing 6205-2RS - Spec C52,ERSA,M010
+00200237,Petroleum Coke (Calcined) - Spec D98,HIBE,M037
+00200238,Calcined Alumina - Spec E94,ROH,M003
+00200239,Thermal Coal Grade B - Spec F24,HIBE,M033
+00200240,Ocean Freight Forwarding - Spec A50,DIEN,M041
+00200241,Thermal Coal Grade B - Spec B61,HIBE,M033
+00200242,Lead Concentrate 60% Pb - Spec C78,ROH,M004
+00200243,Electricity Purchase Agreement - Spec D92,HIBE,M036
+00200244,Zinc Concentrate 52% Zn - Spec E88,ROH,M002
+00200245,SAG Mill Complete Unit - Spec F61,ERSA,M020
+00200246,Inbound Logistics Service - Spec A46,DIEN,M024
+00200247,Road Transport Contract - Spec B20,DIEN,M042
+00200248,Port Handling Service - Spec C99,DIEN,M041
+00200249,Iron Ore Fines 62% Fe - Spec D30,ROH,M001
+00200250,Flotation Cell Rotor - Spec E18,ERSA,M009
+00200251,Ball Bearing 6205-2RS - Spec F23,ERSA,M012
+00200252,HT Switchgear Panel - Spec A63,ERSA,M055
+00200253,Inbound Logistics Service - Spec B19,DIEN,M021
+00200254,Ocean Freight Forwarding - Spec C54,DIEN,M040
+00200255,Distribution Transformer 500kVA - Spec D76,ERSA,M056
+00200256,Conveyor Idler Roller - Spec E69,ERSA,M010
+00200257,Reverberatory Furnace - Spec F16,ERSA,M015
+00200258,Port Handling Service - Spec A31,DIEN,M041
+00200259,Ocean Freight Forwarding - Spec B14,DIEN,M040
+00200260,Zinc Concentrate 52% Zn - Spec C86,ROH,M006
+00200261,Conveyor Idler Roller - Spec D63,ERSA,M011
+00200262,Bauxite Ore Grade A - Spec E59,ROH,M003
+00200263,Mechanical Seal Type 21 - Spec F70,ERSA,M008
+00200264,Slurry Pump Impeller - Spec A94,ERSA,M014
+00200265,Server Hardware Unit - Spec B59,HIBE,M043
+00200266,Steel Toe Safety Boots - Spec C16,HIBE,M050
+00200267,Roller Bearing 22218 - Spec D51,ERSA,M010
+00200268,Structural Steel Section - Spec E75,HIBE,M052
+00200269,Distribution Transformer 500kVA - Spec F86,ERSA,M055
+00200270,PLC Rack Assembly - Spec A52,ERSA,M062
+00200271,Lead Concentrate 60% Pb - Spec B60,ROH,M005
+00200272,Lead Concentrate 60% Pb - Spec C97,ROH,M002
+00200273,Rotary Drilling Rig - Spec D76,ERSA,M019
+00200274,Gasket Set Spiral Wound - Spec E13,ERSA,M011
+00200275,Mechanical Seal Type 21 - Spec F68,ERSA,M007
+00200276,Port Handling Service - Spec A27,DIEN,M039
+00200277,XLPE Power Cable 11kV - Spec B35,ERSA,M055
+00200278,Zinc Concentrate 52% Zn - Spec C18,ROH,M006
+00200279,Mechanical Seal Type 21 - Spec D95,ERSA,M007
+00200280,HT Switchgear Panel - Spec E56,ERSA,M058
+00200281,Ocean Freight Forwarding - Spec F68,DIEN,M039
+00200282,Plant Housekeeping Service - Spec A61,DIEN,M025
+00200283,Fire Extinguisher CO2 Type - Spec B85,HIBE,M050
+00200284,HT Switchgear Panel - Spec C89,ERSA,M055
+00200285,Gasket Set Spiral Wound - Spec D81,ERSA,M013
+00200286,Zinc Concentrate 52% Zn - Spec E18,ROH,M005
+00200287,Rail Freight Wagon Booking - Spec F87,DIEN,M040
+00200288,Fire Extinguisher CO2 Type - Spec A26,HIBE,M048
+00200289,HDPE Woven Sack 50kg - Spec B84,HIBE,M063
+00200290,Ocean Freight Forwarding - Spec C18,DIEN,M042
+00200291,Mechanical Seal Type 21 - Spec D41,ERSA,M007
+00200292,Civil Foundation Works - Spec E78,DIEN,M026
+00200293,Conveyor Idler Roller - Spec F71,ERSA,M011
+00200294,Calcined Alumina - Spec A83,ROH,M003
+00200295,Flotation Cell Rotor - Spec B90,ERSA,M013
+00200296,Port Handling Service - Spec C17,DIEN,M039
+00200297,Technical Consulting Engagement - Spec D72,DIEN,M024
+00200298,Flotation Cell Rotor - Spec E24,ERSA,M010
+00200299,Lead Concentrate 60% Pb - Spec F74,ROH,M002
+00200300,High Speed Diesel - Spec A88,HIBE,M035
+00200301,Technical Consulting Engagement - Spec B89,DIEN,M025
+00200302,Portable Gas Detector - Spec C43,HIBE,M050
+00200303,Conveyor Idler Roller - Spec D89,ERSA,M011
+00200304,Site Security Service - Spec E47,DIEN,M023
+00200305,Jaw Crusher Liner Plate - Spec F14,ERSA,M008
+00200306,Iron Ore Fines 62% Fe - Spec A44,ROH,M004
+00200307,Online Process Analyzer - Spec B27,ERSA,M062
+00200308,Roller Bearing 22218 - Spec C90,ERSA,M008
+00200309,Variable Frequency Drive 110kW - Spec D24,ERSA,M058
+00200310,Technical Consulting Engagement - Spec E48,DIEN,M022
+00200311,ERP Software License - Spec F52,HIBE,M043
+00200312,Jaw Crusher Liner Plate - Spec A86,ERSA,M010
+00200313,Jaw Crusher Liner Plate - Spec B93,ERSA,M010
+00200314,Conveyor Idler Roller - Spec C14,ERSA,M010
+00200315,Conveyor Idler Roller - Spec D63,ERSA,M011
+00200316,Furnace Oil - Spec E37,HIBE,M037
+00200317,Safety Helmet Class E - Spec F60,HIBE,M049
+00200318,Electricity Purchase Agreement - Spec A65,HIBE,M033
+00200319,Lead Concentrate 60% Pb - Spec B97,ROH,M002
+00200320,Civil Construction Package - Spec C35,HIBE,M051
+00200321,Portable Gas Detector - Spec D56,HIBE,M048
+00200322,Conveyor Idler Roller - Spec E34,ERSA,M013
+00200323,Grinding Media Ball 90mm - Spec F22,ERSA,M007
+00200324,Xanthate Collector SIBX - Spec A66,HIBE,M029
+00200325,Xanthate Collector SIBX - Spec B50,HIBE,M031
+00200326,Zinc Concentrate 52% Zn - Spec C95,ROH,M001
+00200327,Civil Foundation Works - Spec D15,DIEN,M022
+00200328,Roller Bearing 22218 - Spec E30,ERSA,M014
+00200329,Mechanical Seal Type 21 - Spec F92,ERSA,M011
+00200330,Site Security Service - Spec A83,DIEN,M023
+00200331,Safety Helmet Class E - Spec B42,HIBE,M050
+00200332,Flotation Cell Rotor - Spec C79,ERSA,M009
+00200333,Steel Toe Safety Boots - Spec D45,HIBE,M049
+00200334,Roller Bearing 22218 - Spec E86,ERSA,M008
+00200335,Conveyor Idler Roller - Spec F41,ERSA,M012
+00200336,Fire Extinguisher CO2 Type - Spec A62,HIBE,M049
+00200337,Zinc Concentrate 52% Zn - Spec B81,ROH,M003
+00200338,ERP Software License - Spec C70,HIBE,M043
+00200339,Ocean Freight Forwarding - Spec D19,DIEN,M041
+00200340,Sulphuric Acid 98% - Spec E30,HIBE,M032
+00200341,Safety Helmet Class E - Spec F56,HIBE,M047
+00200342,Ocean Freight Forwarding - Spec A19,DIEN,M041
+00200343,AC Motor 75kW Spares - Spec B63,ERSA,M009
+00200344,Grinding Media Ball 90mm - Spec C53,ERSA,M009
+00200345,Electromagnetic Flow Meter - Spec D96,ERSA,M062
+00200346,Electromagnetic Flow Meter - Spec E28,ERSA,M059
+00200347,Xanthate Collector SIBX - Spec F68,HIBE,M032
+00200348,OPC 53 Grade Cement - Spec A43,HIBE,M054
+00200349,Roller Bearing 22218 - Spec B64,ERSA,M008
+00200350,Road Transport Contract - Spec C50,DIEN,M041
+00200351,Reverberatory Furnace - Spec D38,ERSA,M015
+00200352,Polyacrylamide Flocculant - Spec E77,HIBE,M032
+00200353,Quick Lime CaO - Spec F62,HIBE,M031
+00200354,Gasket Set Spiral Wound - Spec A21,ERSA,M014
+00200355,Jaw Crusher Liner Plate - Spec B90,ERSA,M012
+00200356,Xanthate Collector SIBX - Spec C32,HIBE,M027
+00200357,Online Process Analyzer - Spec D63,ERSA,M061
+00200358,Grinding Media Ball 90mm - Spec E11,ERSA,M007
+00200359,Iron Ore Fines 62% Fe - Spec F76,ROH,M006
+00200360,Conveyor Idler Roller - Spec A53,ERSA,M014
+00200361,High Speed Diesel - Spec B14,HIBE,M036
+00200362,High Speed Diesel - Spec C94,HIBE,M037
+00200363,Shutdown Maintenance Contract - Spec D43,DIEN,M024
+00200364,Slurry Pump Impeller - Spec E24,ERSA,M011
+00200365,Iron Ore Fines 62% Fe - Spec F46,ROH,M004
+00200366,Bauxite Ore Grade A - Spec A45,ROH,M003
+00200367,Slurry Pump Impeller - Spec B77,ERSA,M007
+00200368,HDPE Woven Sack 50kg - Spec C77,HIBE,M063
+00200369,Conveyor Idler Roller - Spec D16,ERSA,M011
+00200370,Site Security Service - Spec E12,DIEN,M026
+00200371,Conveyor Idler Roller - Spec F71,ERSA,M013
+00200372,Shutdown Maintenance Contract - Spec A68,DIEN,M022
+00200373,Ball Bearing 6205-2RS - Spec B59,ERSA,M007
+00200374,Calcined Alumina - Spec C74,ROH,M005
+00200375,Xanthate Collector SIBX - Spec D20,HIBE,M029
+00200376,Sodium Cyanide Technical Grade - Spec E80,HIBE,M032
+00200377,Natural Gas (PNG) - Spec F21,HIBE,M036
+00200378,Site Security Service - Spec A54,DIEN,M026
+00200379,Civil Foundation Works - Spec B16,DIEN,M024
+00200380,Road Transport Contract - Spec C73,DIEN,M039
+00200381,Server Hardware Unit - Spec D92,HIBE,M045
+00200382,Mechanical Seal Type 21 - Spec E60,ERSA,M011
+00200383,Lead Concentrate 60% Pb - Spec F69,ROH,M001
+00200384,Leased Line Telecom Service - Spec A40,HIBE,M045
+00200385,Gasket Set Spiral Wound - Spec B88,ERSA,M008
+00200386,Quick Lime CaO - Spec C89,HIBE,M030
+00200387,Conveyor Idler Roller - Spec D92,ERSA,M007
+00200388,Technical Consulting Engagement - Spec E39,DIEN,M025
+00200389,High Speed Diesel - Spec F78,HIBE,M037
+00200390,Leased Line Telecom Service - Spec A36,HIBE,M045
+00200391,Port Handling Service - Spec B41,DIEN,M042
+00200392,Lead Concentrate 60% Pb - Spec C28,ROH,M003
+00200393,Bauxite Ore Grade A - Spec D92,ROH,M003
+00200394,Structural Steel Section - Spec E82,HIBE,M053
+00200395,Rail Freight Wagon Booking - Spec F96,DIEN,M040
+00200396,Road Transport Contract - Spec A25,DIEN,M042
+00200397,Conveyor Idler Roller - Spec B68,ERSA,M014
+00200398,Copper Concentrate 28% Cu - Spec C39,ROH,M003
+00200399,Road Transport Contract - Spec D35,DIEN,M041
+00200400,Bauxite Ore Grade A - Spec E16,ROH,M001
+00200401,Jaw Crusher Liner Plate - Spec F69,ERSA,M009
+00200402,Control Valve Globe Type - Spec A32,ERSA,M062
+00200403,Variable Frequency Drive 110kW - Spec B70,ERSA,M056
+00200404,Petroleum Coke (Calcined) - Spec C78,HIBE,M033
+00200405,Inbound Logistics Service - Spec D87,DIEN,M025
+00200406,Ball Bearing 6205-2RS - Spec E78,ERSA,M009
+00200407,Rotary Drilling Rig - Spec F36,ERSA,M019
+00200408,Iron Ore Fines 62% Fe - Spec A62,ROH,M003
+00200409,Petroleum Coke (Calcined) - Spec B44,HIBE,M033
+00200410,Civil Foundation Works - Spec C12,DIEN,M025
+00200411,Flotation Cell Rotor - Spec D69,ERSA,M008
+00200412,Civil Foundation Works - Spec E46,DIEN,M023
+00200413,Corrugated Crate - Spec F70,HIBE,M063
+00200414,Road Transport Contract - Spec A31,DIEN,M039
+00200415,AC Motor 75kW Spares - Spec B96,ERSA,M008
+00200416,Quick Lime CaO - Spec C33,HIBE,M030
+00200417,Road Transport Contract - Spec D32,DIEN,M040
+00200418,Thermal Coal Grade B - Spec E12,HIBE,M034
+00200419,Copper Concentrate 28% Cu - Spec F96,ROH,M002
+00200420,Sodium Cyanide Technical Grade - Spec A13,HIBE,M029
+00200421,Xanthate Collector SIBX - Spec B73,HIBE,M029
+00200422,Plant Housekeeping Service - Spec C18,DIEN,M023
+00200423,Conveyor Idler Roller - Spec D85,ERSA,M012
+00200424,Polyacrylamide Flocculant - Spec E88,HIBE,M032
+00200425,Calcined Alumina - Spec F48,ROH,M004
+00200426,Sulphuric Acid 98% - Spec A63,HIBE,M031
+00200427,Calcined Alumina - Spec B63,ROH,M005
+00200428,Leased Line Telecom Service - Spec C53,HIBE,M046
+00200429,Sodium Cyanide Technical Grade - Spec D74,HIBE,M031
+00200430,Xanthate Collector SIBX - Spec E29,HIBE,M032
+00200431,Bauxite Ore Grade A - Spec F32,ROH,M006
+00200432,Sulphuric Acid 98% - Spec A22,HIBE,M031
+00200433,OPC 53 Grade Cement - Spec B79,HIBE,M054
+00200434,Flotation Cell Rotor - Spec C44,ERSA,M011
+00200435,Roller Bearing 22218 - Spec D97,ERSA,M010
+00200436,High Speed Diesel - Spec E46,HIBE,M034
+00200437,Leased Line Telecom Service - Spec F64,HIBE,M045
+00200438,Conveyor Idler Roller - Spec A73,ERSA,M011
+00200439,HT Switchgear Panel - Spec B94,ERSA,M055
+00200440,Calcined Alumina - Spec C59,ROH,M001
+00200441,Shutdown Maintenance Contract - Spec D21,DIEN,M025
+00200442,Inbound Logistics Service - Spec E62,DIEN,M026
+00200443,Ready Mix Concrete M30 - Spec F92,HIBE,M053
+00200444,Calcined Alumina - Spec A29,ROH,M003
+00200445,Civil Foundation Works - Spec B83,DIEN,M024
+00200446,Natural Gas (PNG) - Spec C27,HIBE,M038
+00200447,Road Transport Contract - Spec D90,DIEN,M040
+00200448,Sodium Cyanide Technical Grade - Spec E82,HIBE,M027
+00200449,Plant Housekeeping Service - Spec F89,DIEN,M022
+00200450,Plant Housekeeping Service - Spec A77,DIEN,M022
+00200451,Civil Construction Package - Spec B20,HIBE,M051
+00200452,ERP Software License - Spec C29,HIBE,M044
+00200453,Mechanical Seal Type 21 - Spec D53,ERSA,M013
+00200454,Safety Helmet Class E - Spec E80,HIBE,M048
+00200455,Site Security Service - Spec F98,DIEN,M023
+00200456,Civil Foundation Works - Spec A34,DIEN,M023
+00200457,Portable Gas Detector - Spec B11,HIBE,M048
+00200458,SAG Mill Complete Unit - Spec C12,ERSA,M017
+00200459,Reverberatory Furnace - Spec D57,ERSA,M017
+00200460,Port Handling Service - Spec E29,DIEN,M040
+00200461,Natural Gas (PNG) - Spec F80,HIBE,M034
+00200462,Network Switch Enterprise - Spec A21,HIBE,M044
+00200463,Zinc Concentrate 52% Zn - Spec B98,ROH,M006
+00200464,Zinc Concentrate 52% Zn - Spec C17,ROH,M005
+00200465,Portable Gas Detector - Spec D98,HIBE,M047
+00200466,Calcined Alumina - Spec E54,ROH,M006
+00200467,Bauxite Ore Grade A - Spec F43,ROH,M002
+00200468,SAG Mill Complete Unit - Spec A19,ERSA,M018
+00200469,Grinding Media Ball 90mm - Spec B12,ERSA,M009
+00200470,Portable Gas Detector - Spec C44,HIBE,M050
+00200471,Polyacrylamide Flocculant - Spec D76,HIBE,M027
+00200472,Plant Housekeeping Service - Spec E73,DIEN,M025
+00200473,Inbound Logistics Service - Spec F32,DIEN,M026
+00200474,Calcined Alumina - Spec A71,ROH,M001
+00200475,Mechanical Seal Type 21 - Spec B19,ERSA,M013
+00200476,Server Hardware Unit - Spec C44,HIBE,M043
+00200477,Overland Conveyor System - Spec D55,ERSA,M018
+00200478,Control Valve Globe Type - Spec E76,ERSA,M062
+00200479,Inbound Logistics Service - Spec F42,DIEN,M022
+00200480,Mechanical Seal Type 21 - Spec A43,ERSA,M008
+00200481,Quick Lime CaO - Spec B78,HIBE,M028
+00200482,Road Transport Contract - Spec C17,DIEN,M041
+00200483,Thermal Coal Grade B - Spec D20,HIBE,M035
+00200484,Ocean Freight Forwarding - Spec E88,DIEN,M041
+00200485,Calcined Alumina - Spec F83,ROH,M004
+00200486,Portable Gas Detector - Spec A36,HIBE,M049
+00200487,AC Motor 75kW Spares - Spec B51,ERSA,M013
+00200488,Server Hardware Unit - Spec C52,HIBE,M046
+00200489,Iron Ore Fines 62% Fe - Spec D70,ROH,M002
+00200490,Ball Bearing 6205-2RS - Spec E26,ERSA,M012
+00200491,Grinding Media Ball 90mm - Spec F32,ERSA,M009
+00200492,Copper Concentrate 28% Cu - Spec A64,ROH,M004
+00200493,Grinding Media Ball 90mm - Spec B93,ERSA,M010
+00200494,Bauxite Ore Grade A - Spec C50,ROH,M001
+00200495,Roller Bearing 22218 - Spec D64,ERSA,M010
+00200496,Technical Consulting Engagement - Spec E92,DIEN,M025
+00200497,Gasket Set Spiral Wound - Spec F87,ERSA,M011
+00200498,PLC Rack Assembly - Spec A50,ERSA,M060
+00200499,Grinding Media Ball 90mm - Spec B53,ERSA,M014
+00200500,Online Process Analyzer - Spec C84,ERSA,M061
+00200501,Fire Extinguisher CO2 Type - Spec D67,HIBE,M050
+00200502,Copper Concentrate 28% Cu - Spec E82,ROH,M003
+00200503,Lead Concentrate 60% Pb - Spec F36,ROH,M004
+00200504,Slurry Pump Impeller - Spec A64,ERSA,M010
+00200505,Lead Concentrate 60% Pb - Spec B29,ROH,M003
+00200506,Grinding Media Ball 90mm - Spec C98,ERSA,M011
+00200507,Civil Construction Package - Spec D30,HIBE,M052
+00200508,Mechanical Seal Type 21 - Spec E53,ERSA,M013
+00200509,Furnace Oil - Spec F26,HIBE,M035
+00200510,Conveyor Idler Roller - Spec A53,ERSA,M010
+00200511,Grinding Media Ball 90mm - Spec B97,ERSA,M008
+00200512,Quick Lime CaO - Spec C58,HIBE,M032
+00200513,Grinding Media Ball 90mm - Spec D66,ERSA,M008
+00200514,Port Handling Service - Spec E13,DIEN,M042
+00200515,Lead Concentrate 60% Pb - Spec F62,ROH,M002
+00200516,OPC 53 Grade Cement - Spec A23,HIBE,M053
+00200517,Civil Foundation Works - Spec B88,DIEN,M022
+00200518,Ball Bearing 6205-2RS - Spec C80,ERSA,M009
+00200519,Lead Concentrate 60% Pb - Spec D13,ROH,M003
+00200520,Distribution Transformer 500kVA - Spec E27,ERSA,M056
+00200521,Calcined Alumina - Spec F65,ROH,M006
+00200522,Shutdown Maintenance Contract - Spec A74,DIEN,M021
+00200523,Portable Gas Detector - Spec B94,HIBE,M047
+00200524,Flotation Cell Rotor - Spec C47,ERSA,M010
+00200525,Xanthate Collector SIBX - Spec D95,HIBE,M027
+00200526,Flotation Cell Rotor - Spec E37,ERSA,M012
+00200527,Port Handling Service - Spec F64,DIEN,M040
+00200528,Bauxite Ore Grade A - Spec A43,ROH,M006
+00200529,Distribution Transformer 500kVA - Spec B48,ERSA,M057
+00200530,Polyacrylamide Flocculant - Spec C80,HIBE,M030
+00200531,Road Transport Contract - Spec D74,DIEN,M042
+00200532,Plant Housekeeping Service - Spec E19,DIEN,M022
+00200533,Sodium Cyanide Technical Grade - Spec F77,HIBE,M031
+00200534,Structural Steel Section - Spec A21,HIBE,M054
+00200535,Shutdown Maintenance Contract - Spec B90,DIEN,M025
+00200536,Natural Gas (PNG) - Spec C15,HIBE,M037
+00200537,Grinding Media Ball 90mm - Spec D97,ERSA,M014
+00200538,Technical Consulting Engagement - Spec E70,DIEN,M021
+00200539,Calcined Alumina - Spec F60,ROH,M004
+00200540,HT Switchgear Panel - Spec A29,ERSA,M055
+00200541,Inbound Logistics Service - Spec B57,DIEN,M022
+00200542,Grinding Media Ball 90mm - Spec C89,ERSA,M013
+00200543,Electromagnetic Flow Meter - Spec D86,ERSA,M062
+00200544,Copper Concentrate 28% Cu - Spec E19,ROH,M001
+00200545,Site Security Service - Spec F35,DIEN,M023
+00200546,Plant Housekeeping Service - Spec A24,DIEN,M021
+00200547,Civil Foundation Works - Spec B76,DIEN,M022
+00200548,Conveyor Idler Roller - Spec C13,ERSA,M009
+00200549,Portable Gas Detector - Spec D35,HIBE,M047
+00200550,Rail Freight Wagon Booking - Spec E65,DIEN,M042
+00200551,Overland Conveyor System - Spec F23,ERSA,M020
+00200552,Steel Toe Safety Boots - Spec A31,HIBE,M050
+00200553,Rail Freight Wagon Booking - Spec B30,DIEN,M040
+00200554,Calcined Alumina - Spec C61,ROH,M006
+00200555,XLPE Power Cable 11kV - Spec D49,ERSA,M058
+00200556,Sodium Cyanide Technical Grade - Spec E61,HIBE,M028
+00200557,Slurry Pump Impeller - Spec F41,ERSA,M011
+00200558,Electricity Purchase Agreement - Spec A66,HIBE,M033
+00200559,High Speed Diesel - Spec B86,HIBE,M036
+00200560,Lead Concentrate 60% Pb - Spec C19,ROH,M005
+00200561,Iron Ore Fines 62% Fe - Spec D82,ROH,M002
+00200562,Sulphuric Acid 98% - Spec E18,HIBE,M032
+00200563,Ball Bearing 6205-2RS - Spec F93,ERSA,M014
+00200564,OPC 53 Grade Cement - Spec A46,HIBE,M052
+00200565,Site Security Service - Spec B55,DIEN,M025
+00200566,Distribution Transformer 500kVA - Spec C13,ERSA,M058
+00200567,Site Security Service - Spec D87,DIEN,M024
+00200568,AC Motor 75kW Spares - Spec E60,ERSA,M009
+00200569,Road Transport Contract - Spec F67,DIEN,M039
+00200570,Civil Foundation Works - Spec A12,DIEN,M026
+00200571,Xanthate Collector SIBX - Spec B84,HIBE,M029
+00200572,Thermal Coal Grade B - Spec C48,HIBE,M036
+00200573,Electromagnetic Flow Meter - Spec D31,ERSA,M061
+00200574,Iron Ore Fines 62% Fe - Spec E11,ROH,M003
+00200575,Electricity Purchase Agreement - Spec F73,HIBE,M035
+00200576,Mechanical Seal Type 21 - Spec A49,ERSA,M010
+00200577,Network Switch Enterprise - Spec B60,HIBE,M044
+00200578,Online Process Analyzer - Spec C79,ERSA,M060
+00200579,Mechanical Seal Type 21 - Spec D52,ERSA,M007
+00200580,Grinding Media Ball 90mm - Spec E27,ERSA,M009
+00200581,OPC 53 Grade Cement - Spec F64,HIBE,M053
+00200582,Roller Bearing 22218 - Spec A59,ERSA,M010
+00200583,Jaw Crusher Liner Plate - Spec B12,ERSA,M013
+00200584,Rail Freight Wagon Booking - Spec C18,DIEN,M040
+00200585,Gasket Set Spiral Wound - Spec D28,ERSA,M013
+00200586,Gasket Set Spiral Wound - Spec E45,ERSA,M013
+00200587,Port Handling Service - Spec F75,DIEN,M041
+00200588,Jaw Crusher Liner Plate - Spec A24,ERSA,M007
+00200589,Slurry Pump Impeller - Spec B29,ERSA,M010
+00200590,Quick Lime CaO - Spec C34,HIBE,M027
+00200591,Rail Freight Wagon Booking - Spec D60,DIEN,M039
+00200592,Steel Toe Safety Boots - Spec E45,HIBE,M048
+00200593,Safety Helmet Class E - Spec F48,HIBE,M049
+00200594,Plant Housekeeping Service - Spec A67,DIEN,M024
+00200595,Quick Lime CaO - Spec B58,HIBE,M030
+00200596,Mechanical Seal Type 21 - Spec C87,ERSA,M007
+00200597,Fire Extinguisher CO2 Type - Spec D53,HIBE,M050
+00200598,Electricity Purchase Agreement - Spec E78,HIBE,M034
+00200599,Portable Gas Detector - Spec F78,HIBE,M048
+00200600,Electrolytic Cell Assembly - Spec A93,ERSA,M020

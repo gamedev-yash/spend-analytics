@@ -23,7 +23,7 @@ import Papa from "papaparse";
 import { tailSpendMock } from "../app/tail-spend/tailSpendMock";
 import { supplierMock } from "../app/supplier-fragmentation/supplierMock";
 import type { Invoice as PaymentTermsInvoice } from "../app/payment-terms/types";
-import type { Invoice as SapInvoice, Vendor, Category, Plant, PoItem } from "../lib/sap/types";
+import type { Invoice as SapInvoice, Vendor, Category, Material, Plant, PoItem } from "../lib/sap/types";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = join(ROOT, "public", "sample-data");
@@ -218,6 +218,15 @@ function buildDimVendorRows(): { rows: Record<string, unknown>[]; columns: strin
   };
 }
 
+/** Extra dimension export — handy as a standalone dataset for custom dashboards. */
+function buildDimMaterialRows(): { rows: Record<string, unknown>[]; columns: string[] } {
+  const materials = readJson<Material[]>("data/sap/dimMaterial.json");
+  return {
+    rows: materials as unknown as Record<string, unknown>[],
+    columns: Object.keys(materials[0]),
+  };
+}
+
 // ---------------------------------------------------------------------------
 
 function main(): void {
@@ -241,6 +250,9 @@ function main(): void {
 
   const dimVendor = buildDimVendorRows();
   writeCsv("dim_vendor.csv", dimVendor.rows, dimVendor.columns);
+
+  const dimMaterial = buildDimMaterialRows();
+  writeCsv("dim_material.csv", dimMaterial.rows, dimMaterial.columns);
 
   console.log("Done.");
 }

@@ -3,8 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { PanelLeft, PanelLeftClose } from "lucide-react";
+import { LayoutDashboard, PanelLeft, PanelLeftClose } from "lucide-react";
 import { NAV_ITEMS } from "@/lib/nav";
+import { useCustomDashboards } from "@/lib/custom-dashboards-store";
+import { NewDashboardButton } from "@/components/dashboard/new-dashboard-dialog";
 import { cn } from "@/lib/utils";
 
 const PEEK_DELAY_MS = 350;
@@ -23,6 +25,7 @@ interface SidebarProps {
  */
 export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
   const pathname = usePathname();
+  const customDashboards = useCustomDashboards();
   const [peeking, setPeeking] = useState(false);
   const peekTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -141,7 +144,7 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
       <nav
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className="flex-1 space-y-1 px-3 py-4"
+        className="flex-1 space-y-1 overflow-y-auto px-3 py-4"
       >
         {NAV_ITEMS.map((item) => {
           const isActive = pathname?.startsWith(item.href) ?? false;
@@ -165,6 +168,39 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
             </Link>
           );
         })}
+
+        {/* User-built dashboards, then the create entry point. */}
+        <div className="pt-3">
+          {showExpanded && (
+            <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              My Dashboards
+            </p>
+          )}
+          <div className="space-y-1">
+            {customDashboards.map((dashboard) => {
+              const href = `/dashboards/${dashboard.id}`;
+              const isActive = pathname === href;
+              return (
+                <Link
+                  key={dashboard.id}
+                  href={href}
+                  title={!showExpanded ? dashboard.title : undefined}
+                  className={cn(
+                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                    !showExpanded && "justify-center px-0",
+                    isActive
+                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                  )}
+                >
+                  <LayoutDashboard className="h-4 w-4 shrink-0" />
+                  {showExpanded && <span className="truncate">{dashboard.title}</span>}
+                </Link>
+              );
+            })}
+            <NewDashboardButton variant="nav" collapsed={!showExpanded} />
+          </div>
+        </div>
       </nav>
 
       {/*
