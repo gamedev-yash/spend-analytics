@@ -101,10 +101,22 @@ function normalizeAction(raw: string, score: number | null): ConsolidationAction
   return "Monitor";
 }
 
-/** "MRO – Mechanical Consumables" -> "MRO", "Safety & PPE" -> "SAFETY". */
-function categoryCode(category: string): string {
+/**
+ * "MRO – Mechanical Consumables" -> "MRO", "Safety & PPE" -> "SAFETY".
+ *
+ * Truncating to the first word collides for real category sets ("Cleaning
+ * Supplies" and "Cleaning Equipment" both yield "CLEANIN"), and the SAP
+ * category table keys its rows on this code — so `taken` disambiguates with a
+ * numeric suffix, keeping every emitted code unique.
+ */
+function categoryCode(category: string, taken: Set<string>): string {
   const word = category.split(/[\s,&–-]+/).find(Boolean) ?? category;
-  return word.slice(0, 7).toUpperCase();
+  const base = word.slice(0, 7).toUpperCase() || "CAT";
+  let code = base;
+  let n = 2;
+  while (taken.has(code)) code = `${base.slice(0, 6)}${n++}`;
+  taken.add(code);
+  return code;
 }
 
 function pct(part: number, whole: number): number {
@@ -634,10 +646,24 @@ export function buildTailSpendFromDataset(
     }))
     .sort((a, b) => b.spend - a.spend);
 
-  const supplierSpendRank: SupplierSpendRank[] = [...records]
+  // Ranked by DISPLAY NAME, not id: this chart plots supplierName, and real
+  // extracts routinely carry several ids under one name (per-plant entities of
+  // the same vendor). Summing them keeps one bar per supplier — and avoids
+  // duplicate chart keys, which React rejects.
+  const spendBySupplierName = new Map<string, SupplierSpendRank>();
+  for (const r of records) {
+    const existing = spendBySupplierName.get(r.supplierName);
+    if (existing) existing.totalSpend += r.totalSpend;
+    else
+      spendBySupplierName.set(r.supplierName, {
+        supplierId: r.supplierId,
+        supplierName: r.supplierName,
+        totalSpend: r.totalSpend,
+      });
+  }
+  const supplierSpendRank: SupplierSpendRank[] = Array.from(spendBySupplierName.values())
     .sort((a, b) => b.totalSpend - a.totalSpend)
-    .slice(0, 10)
-    .map((r) => ({ supplierId: r.supplierId, supplierName: r.supplierName, totalSpend: r.totalSpend }));
+    .slice(0, 10);
 
   // --- Category / segment aggregations -------------------------------------
 
@@ -692,8 +718,9 @@ export function buildTailSpendFromDataset(
     };
   });
 
+  const usedCategoryCodes = new Set<string>();
   const sapCategoryRows: SapCategoryRow[] = categoryBreakdown.map((c) => ({
-    code: categoryCode(c.category),
+    code: categoryCode(c.category, usedCategoryCodes),
     category: c.category,
     supplierCount: c.supplierCount,
     spend: c.totalSpend,

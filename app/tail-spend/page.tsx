@@ -127,9 +127,18 @@ export default function TailSpendPage() {
     sapFilterOptions,
   } = data;
 
-  const categoryNames = useMemo(() => categoryBreakdown.map((c) => c.category), [categoryBreakdown]);
+  const categoryNames = useMemo(
+    () => Array.from(new Set(categoryBreakdown.map((c) => c.category))),
+    [categoryBreakdown]
+  );
+  // De-duplicated: real extracts carry several supplier ids under one display
+  // name, and the filter matches on the name — listing it twice would give the
+  // dropdown duplicate option keys and two identical-looking choices.
   const supplierNames = useMemo(
-    () => sapSupplierReport.map((s) => s.supplierName).sort((a, b) => a.localeCompare(b)),
+    () =>
+      Array.from(new Set(sapSupplierReport.map((s) => s.supplierName))).sort((a, b) =>
+        a.localeCompare(b)
+      ),
     [sapSupplierReport]
   );
 

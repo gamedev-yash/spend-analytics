@@ -35,6 +35,7 @@ import {
   DashboardFilters,
   type DashboardFilterState,
 } from "./dashboard-filters";
+import { AiSuggestionsBar } from "./ai-suggestions-bar";
 import { cn } from "@/lib/utils";
 
 function EmptyShell({
@@ -194,6 +195,8 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
           </button>
         </div>
       </div>
+
+      <AiSuggestionsBar dashboard={dashboard} dataset={sourceDataset} />
 
       <div id={DASHBOARD_CANVAS_ID} className="flex flex-col gap-6">
         <DashboardFilters dataset={sourceDataset} filters={filters} onChange={setFilters} />
