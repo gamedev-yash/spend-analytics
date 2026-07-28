@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Database,
-  Download,
   GitMerge,
   LayoutDashboard,
   Pencil,
@@ -24,10 +23,12 @@ import {
   useDashboardsReady,
 } from "@/lib/custom-dashboards-store";
 import { defaultWidgetForDataset } from "@/lib/suggest";
-import { computeKpiValue, computeSeries } from "@/lib/widget-data";
 import { CustomWidget } from "@/components/dashboard/custom-widget";
 import { WidgetConfigurator } from "@/components/dashboard/WidgetConfigurator";
 import { NewDashboardButton } from "@/components/dashboard/new-dashboard-dialog";
+import { DeleteDashboardDialog } from "@/components/dashboard/delete-dashboard-dialog";
+import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
+import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
 import type { WidgetConfig } from "@/types/custom-dashboard";
 import {
   applyDashboardFilters,
@@ -55,39 +56,6 @@ function EmptyShell({
   );
 }
 
-/** Download the dashboard definition plus each widget's computed data as JSON. */
-function exportSnapshot(
-  dashboardTitle: string,
-  dataset: Dataset,
-  widgets: WidgetConfig[],
-  filters: DashboardFilterState
-): void {
-  const snapshot = {
-    dashboard: dashboardTitle,
-    dataset: { id: dataset.id, name: dataset.name, rows: dataset.rows.length },
-    filters,
-    exportedAt: new Date().toISOString(),
-    widgets: widgets.map((widget) => ({
-      title: widget.title,
-      chartType: widget.chartType,
-      xAxisColumn: widget.xAxisColumn,
-      yAxisColumn: widget.yAxisColumn,
-      aggregation: widget.aggregation,
-      data:
-        widget.chartType === "kpi"
-          ? computeKpiValue(dataset, widget)
-          : computeSeries(dataset, widget),
-    })),
-  };
-  const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `${dashboardTitle.replace(/[^a-z0-9]+/gi, "-").toLowerCase() || "dashboard"}-snapshot.json`;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
 export default function CustomDashboardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const dashboard = useCustomDashboard(id);
@@ -97,6 +65,7 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
   const [filters, setFilters] = useState<DashboardFilterState>({});
   const [configuratorOpen, setConfiguratorOpen] = useState(false);
   const [editingWidget, setEditingWidget] = useState<WidgetConfig | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const sourceDataset = datasets.find((d) => d.id === dashboard?.datasetId) ?? null;
 
@@ -124,7 +93,17 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
   if (!sourceDataset || !viewDataset) {
     return (
       <div className="flex flex-col gap-6">
-        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{dashboard.title}</h1>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{dashboard.title}</h1>
+          <button
+            type="button"
+            onClick={() => setDeleteOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-rose-300 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 shadow-sm transition-colors hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-950"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete Dashboard
+          </button>
+        </div>
         <EmptyShell
           title="Bound dataset is missing"
           message="The CSV this dashboard was built from has been removed. Upload it again from any dashboard page, or create a new dashboard against a dataset you still have."
@@ -139,6 +118,13 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
             <NewDashboardButton label="New dashboard" />
           </div>
         </EmptyShell>
+        <DeleteDashboardDialog
+          open={deleteOpen}
+          onOpenChange={setDeleteOpen}
+          dashboardId={dashboard.id}
+          dashboardTitle={dashboard.title}
+          redirectAfterDelete
+        />
       </div>
     );
   }
@@ -197,95 +183,98 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
             <Plus className="h-3.5 w-3.5" />
             Add Widget
           </button>
+          <ExportSnapshotButton targetId={DASHBOARD_CANVAS_ID} dashboardTitle={dashboard.title} />
           <button
             type="button"
-            onClick={() => exportSnapshot(dashboard.title, viewDataset, dashboard.widgets, filters)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            onClick={() => setDeleteOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-rose-300 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 shadow-sm transition-colors hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-950"
           >
-            <Download className="h-3.5 w-3.5" />
-            Export Snapshot
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete Dashboard
           </button>
         </div>
       </div>
 
-      <DashboardFilters dataset={sourceDataset} filters={filters} onChange={setFilters} />
+      <div id={DASHBOARD_CANVAS_ID} className="flex flex-col gap-6">
+        <DashboardFilters dataset={sourceDataset} filters={filters} onChange={setFilters} />
 
-      {dashboard.widgets.length === 0 ? (
-        <EmptyShell
-          title="No widgets yet"
-          message="Add your first widget to start visualizing this dataset."
-        >
-          <button
-            type="button"
-            onClick={openAddWidget}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
+        {dashboard.widgets.length === 0 ? (
+          <EmptyShell
+            title="No widgets yet"
+            message="Add your first widget to start visualizing this dataset."
           >
-            <Plus className="h-4 w-4" />
-            Add Widget
-          </button>
-        </EmptyShell>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {dashboard.widgets.map((widget, index) => (
-            <div
-              key={widget.id}
-              className={cn(
-                "flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80",
-                widget.gridSpan === 2 && "lg:col-span-2"
-              )}
+            <button
+              type="button"
+              onClick={openAddWidget}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
             >
-              <div className="flex shrink-0 items-center gap-2 border-b border-slate-200 bg-slate-100/50 px-4 py-2.5 dark:border-slate-800/80 dark:bg-slate-900/90">
-                <p className="min-w-0 flex-1 truncate text-sm font-bold text-slate-900 dark:text-slate-100">
-                  {widget.title}
-                </p>
-                <div className="flex shrink-0 items-center gap-0.5 text-slate-400 dark:text-slate-500">
-                  <button
-                    type="button"
-                    onClick={() => moveWidget(dashboard.id, widget.id, -1)}
-                    disabled={index === 0}
-                    aria-label={`Move ${widget.title} earlier`}
-                    title="Move earlier"
-                    className="rounded p-1 transition-colors hover:bg-slate-200 hover:text-slate-700 disabled:opacity-30 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                  >
-                    <ChevronLeft className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => moveWidget(dashboard.id, widget.id, 1)}
-                    disabled={index === dashboard.widgets.length - 1}
-                    aria-label={`Move ${widget.title} later`}
-                    title="Move later"
-                    className="rounded p-1 transition-colors hover:bg-slate-200 hover:text-slate-700 disabled:opacity-30 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                  >
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => openEditWidget(widget)}
-                    aria-label={`Edit ${widget.title}`}
-                    title="Edit widget"
-                    className="rounded p-1 transition-colors hover:bg-slate-200 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => removeWidget(dashboard.id, widget.id)}
-                    aria-label={`Remove ${widget.title}`}
-                    title="Remove widget"
-                    className="rounded p-1 transition-colors hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-950 dark:hover:text-rose-400"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+              <Plus className="h-4 w-4" />
+              Add Widget
+            </button>
+          </EmptyShell>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {dashboard.widgets.map((widget, index) => (
+              <div
+                key={widget.id}
+                className={cn(
+                  "flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80",
+                  widget.gridSpan === 2 && "lg:col-span-2"
+                )}
+              >
+                <div className="flex shrink-0 items-center gap-2 border-b border-slate-200 bg-slate-100/50 px-4 py-2.5 dark:border-slate-800/80 dark:bg-slate-900/90">
+                  <p className="min-w-0 flex-1 truncate text-sm font-bold text-slate-900 dark:text-slate-100">
+                    {widget.title}
+                  </p>
+                  <div className="flex shrink-0 items-center gap-0.5 text-slate-400 dark:text-slate-500">
+                    <button
+                      type="button"
+                      onClick={() => moveWidget(dashboard.id, widget.id, -1)}
+                      disabled={index === 0}
+                      aria-label={`Move ${widget.title} earlier`}
+                      title="Move earlier"
+                      className="rounded p-1 transition-colors hover:bg-slate-200 hover:text-slate-700 disabled:opacity-30 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                    >
+                      <ChevronLeft className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveWidget(dashboard.id, widget.id, 1)}
+                      disabled={index === dashboard.widgets.length - 1}
+                      aria-label={`Move ${widget.title} later`}
+                      title="Move later"
+                      className="rounded p-1 transition-colors hover:bg-slate-200 hover:text-slate-700 disabled:opacity-30 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                    >
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openEditWidget(widget)}
+                      aria-label={`Edit ${widget.title}`}
+                      title="Edit widget"
+                      className="rounded p-1 transition-colors hover:bg-slate-200 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeWidget(dashboard.id, widget.id)}
+                      aria-label={`Remove ${widget.title}`}
+                      title="Remove widget"
+                      className="rounded p-1 transition-colors hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-950 dark:hover:text-rose-400"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+                <div className="min-h-0 flex-1 p-4">
+                  <CustomWidget dataset={viewDataset} config={widget} />
                 </div>
               </div>
-              <div className="min-h-0 flex-1 p-4">
-                <CustomWidget dataset={viewDataset} config={widget} />
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
 
       <WidgetConfigurator
         open={configuratorOpen}
@@ -297,6 +286,13 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
           if (editingWidget) updateWidget(dashboard.id, widget);
           else addWidget(dashboard.id, widget);
         }}
+      />
+      <DeleteDashboardDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        dashboardId={dashboard.id}
+        dashboardTitle={dashboard.title}
+        redirectAfterDelete
       />
     </div>
   );

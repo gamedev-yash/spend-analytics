@@ -5,6 +5,8 @@ import { PaymentTermsProvider } from "./provider";
 import { buildInvoicesFromDataset } from "./fromDataset";
 import { useDatasets } from "@/context/DatasetsContext";
 import { DatasetUpload } from "@/components/dashboard/dataset-upload";
+import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
+import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
 import { KpiRibbon } from "./components/kpi-ribbon";
 import { FilterPanel } from "./components/filter-panel";
 import { PaymentTermsByCategoryChart } from "./components/widgets/payment-terms-by-category-chart";
@@ -44,27 +46,32 @@ export default function PaymentTermsPage() {
               linked drill-down by category, supplier, and term.
             </p>
           </div>
-          <DatasetUpload pageKey="payment-terms" usingFallback={datasetInvoices === null} />
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <DatasetUpload pageKey="payment-terms" usingFallback={datasetInvoices === null} />
+            <ExportSnapshotButton targetId={DASHBOARD_CANVAS_ID} dashboardTitle="Payment Terms" />
+          </div>
         </div>
 
-        <FocusParameterBar
-          parameters={PT_FOCUS_PARAMETERS}
-          presets={PT_FOCUS_PRESETS}
-          activeParameters={activeParameters}
-          onToggleParameter={toggleParameter}
-          onApplyPreset={applyPreset}
-          thresholdsPageKey="payment-terms"
-        />
+        <div id={DASHBOARD_CANVAS_ID} className="flex flex-col gap-6">
+          <FocusParameterBar
+            parameters={PT_FOCUS_PARAMETERS}
+            presets={PT_FOCUS_PRESETS}
+            activeParameters={activeParameters}
+            onToggleParameter={toggleParameter}
+            onApplyPreset={applyPreset}
+            thresholdsPageKey="payment-terms"
+          />
 
-        {isWidgetVisible("kpi-ribbon") && <KpiRibbon />}
-        {/* Trailing odd child spans the full row so hiding/filtering widgets never leaves a gap. */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
-          {isWidgetVisible("category-chart") && <PaymentTermsByCategoryChart />}
-          {isWidgetVisible("supplier-chart") && <PaymentTermsBySupplierChart />}
-          {isWidgetVisible("combo-chart") && <SpendByTermComboChart />}
-          {isWidgetVisible("invoice-count-chart") && <PaymentTermsByInvoiceCountChart />}
+          {isWidgetVisible("kpi-ribbon") && <KpiRibbon />}
+          {/* Trailing odd child spans the full row so hiding/filtering widgets never leaves a gap. */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
+            {isWidgetVisible("category-chart") && <PaymentTermsByCategoryChart />}
+            {isWidgetVisible("supplier-chart") && <PaymentTermsBySupplierChart />}
+            {isWidgetVisible("combo-chart") && <SpendByTermComboChart />}
+            {isWidgetVisible("invoice-count-chart") && <PaymentTermsByInvoiceCountChart />}
+          </div>
+          {isWidgetVisible("detail-table") && <DetailReportTable />}
         </div>
-        {isWidgetVisible("detail-table") && <DetailReportTable />}
       </div>
     </PaymentTermsProvider>
   );

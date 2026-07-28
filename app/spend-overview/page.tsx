@@ -1,6 +1,8 @@
 import { DashboardTabs } from "@/components/dashboard/dashboard-tabs";
 import { SpendOverviewFilters } from "@/components/sap/spend-overview-filters";
 import { SpendOverviewDataBridge } from "./components/SpendOverviewDataBridge";
+import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
+import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
 import { plants } from "@/lib/sap/raw-data";
 import {
   getFilterOptions,
@@ -78,27 +80,30 @@ export default async function SpendOverviewPage({ searchParams }: PageProps) {
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-3">
           <DashboardTabs />
+          <ExportSnapshotButton targetId={DASHBOARD_CANVAS_ID} dashboardTitle="Spend Overview" />
           <p className="text-xs text-muted-foreground">
             Initiative 18 · Dashboard 1 of 6{activeFilterCount > 0 ? ` · ${activeFilterCount} filter(s) active` : ""}
           </p>
         </div>
       </div>
 
-      <SpendOverviewDataBridge
-        serverData={{
-          kpis,
-          insightText,
-          treemapNodes,
-          topSuppliers,
-          trend,
-          spikes,
-          buSpend,
-          sunburstNodes,
-          plantNameToCode,
-          metricsRows,
-        }}
-        filters={filters}
-      />
+      <div id={DASHBOARD_CANVAS_ID} className="flex flex-col gap-6">
+        <SpendOverviewDataBridge
+          serverData={{
+            kpis,
+            insightText,
+            treemapNodes,
+            topSuppliers,
+            trend,
+            spikes,
+            buSpend,
+            sunburstNodes,
+            plantNameToCode,
+            metricsRows,
+          }}
+          filters={filters}
+        />
+      </div>
     </div>
   );
 }
