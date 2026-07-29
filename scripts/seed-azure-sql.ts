@@ -33,16 +33,12 @@ import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import Papa from "papaparse";
 
+// Shared with the query API's no-database fallback so both produce identical
+// numbers from the same CSVs.
+import { FX_TO_INR, fiscalParts, fxRate as fxRateFor, humanizeGroupName } from "../lib/server/sap-transforms";
+
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_PATH = process.env.SEED_OUT ?? join(ROOT, "db", "seed-data.sql");
-
-/** Document-currency → INR. The sample amounts are already INR, so the ETL
- *  divides by these to recover the document-currency figure. */
-const FX_TO_INR: Record<string, number> = {
-  INR: 1,
-  USD: Number(process.env.USD_INR_RATE ?? 83.5),
-  EUR: Number(process.env.EUR_INR_RATE ?? 90),
-};
 
 /** dim_date coverage. Wider than the fact window so late arrivals still resolve. */
 const DATE_FROM = "2023-01-01";
@@ -140,31 +136,11 @@ function truthy(value: string | undefined): boolean {
   return t === "true" || t === "1" || t === "x" || t === "yes";
 }
 
-/** "CATERPILLAR-GRP" → "Caterpillar Group" — the source carries only a code. */
-function humanizeGroup(code: string): string {
-  return code
-    .replace(/-GRP$/i, "")
-    .split(/[-_\s]+/)
-    .filter(Boolean)
-    .map((word) =>
-      word.length <= 3 && word === word.toUpperCase()
-        ? word
-        : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-    )
-    .join(" ")
-    .concat(" Group");
-}
+const unknownCurrencies = new Set<string>();
 
 function fxRate(currency: string): number {
-  const rate = FX_TO_INR[currency.toUpperCase()];
-  if (rate === undefined) {
-    unknownCurrencies.add(currency);
-    return 1;
-  }
-  return rate;
+  return fxRateFor(currency, (code) => unknownCurrencies.add(code));
 }
-
-const unknownCurrencies = new Set<string>();
 
 // ---------------------------------------------------------------------------
 // T-SQL literal rendering
@@ -214,20 +190,6 @@ interface DateDim {
   fiscalYear: number;
   fiscalQuarter: number;
   fiscalPeriod: number;
-}
-
-/**
- * Fiscal attributes for a calendar month. April is period 1 of the year that
- * starts it, so January–March belong to the previous fiscal year:
- * 25 Jan 2024 → FY 2023-24, quarter 4, period 10.
- */
-function fiscalParts(year: number, month: number) {
-  const fiscalPeriod = month >= 4 ? month - 3 : month + 9;
-  return {
-    fiscalYear: month >= 4 ? year : year - 1,
-    fiscalQuarter: Math.ceil(fiscalPeriod / 3),
-    fiscalPeriod,
-  };
 }
 
 function buildDateDimension(from: string, to: string): DateDim[] {
@@ -290,7 +252,7 @@ function buildVendors(rows: Row[]): VendorDim[] {
       vendorId,
       vendorName: text(row.vendor_name) || vendorId,
       parentGroupKey: group || null,
-      parentCompanyName: group ? humanizeGroup(group) : null,
+      parentCompanyName: group ? humanizeGroupName(group) : null,
       country: text(row.country) || null,
       city: text(row.city) || null,
       // Not present in the supplier extract; left NULL rather than fabricated.

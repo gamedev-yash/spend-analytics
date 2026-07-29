@@ -14,6 +14,12 @@ export type QueryAggregation = "sum" | "avg" | "count" | "distinct";
 export type QueryOperator = "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "in";
 
 /**
+ * Bucket width for a date dimension. Labels are identical across providers:
+ * month "2025-03", quarter "2025-Q1", year "FY2025-26" (Indian fiscal year).
+ */
+export type TimeGrain = "month" | "quarter" | "year";
+
+/**
  * Measure field meaning "every row in the group", i.e. SQL `COUNT(*)`. Only
  * `count` accepts it — the other aggregations need a column to read.
  */
@@ -51,6 +57,12 @@ export interface QueryPayload {
   dimensions?: string[];
   measures?: QueryMeasure[];
   filters?: QueryFilter[];
+  /**
+   * Bucket width for date dimensions; defaults to "month". When set with no
+   * date dimension listed, the provider groups by the dataset's own date at
+   * this grain.
+   */
+  timeGrain?: TimeGrain;
   /** Applied before `limit`, so the two together express Top-N. */
   sort?: QuerySort;
   limit?: number;

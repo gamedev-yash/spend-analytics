@@ -13,6 +13,7 @@ import {
   type QueryMeasure,
   type QueryPayload,
   type QueryResult,
+  type TimeGrain,
 } from "@/types/data-provider";
 import type { Dataset, DatasetRow } from "@/types/dataset";
 
@@ -166,11 +167,30 @@ function monthBucket(raw: string): string {
   return parsed.toISOString().slice(0, 7);
 }
 
-/** Grouping value for one cell: trimmed text (month-bucketed for dates), or null when empty. */
-function dimensionValue(cell: unknown, isDate: boolean): string | null {
+/**
+ * Bucket label for a date cell at the requested grain. Coarser grains build on
+ * the month bucket, so anything monthBucket can't parse falls through as-is.
+ * Labels match lib/server/query-builder exactly — the same payload has to read
+ * the same whichever provider answers it.
+ */
+function dateBucket(raw: string, grain: TimeGrain): string {
+  const month = monthBucket(raw);
+  if (grain === "month") return month;
+  const parts = /^(\d{4})-(\d{2})$/.exec(month);
+  if (!parts) return month;
+  const year = Number(parts[1]);
+  const monthNumber = Number(parts[2]);
+  if (grain === "quarter") return `${year}-Q${Math.ceil(monthNumber / 3)}`;
+  // Indian fiscal year, April–March: January–March belong to the year before.
+  const fiscalYear = monthNumber >= 4 ? year : year - 1;
+  return `FY${fiscalYear}-${String((fiscalYear + 1) % 100).padStart(2, "0")}`;
+}
+
+/** Grouping value for one cell: trimmed text (bucketed for dates), or null when empty. */
+function dimensionValue(cell: unknown, grain: TimeGrain | null): string | null {
   const text = cellText(cell);
   if (text === "") return null;
-  return isDate ? monthBucket(text) : text;
+  return grain === null ? text : dateBucket(text, grain);
 }
 
 interface FieldAccumulator {
@@ -264,7 +284,10 @@ function aggregateRows(
   const measureFields = Array.from(
     new Set(measures.map((m) => m.field).filter((field) => field !== COUNT_ALL))
   );
-  const dateDimensions = dimensions.map((field) => isDateColumn(dataset, field));
+  // null for anything that isn't a date column; date columns bucket at the
+  // requested grain, month by default.
+  const grain = payload.timeGrain ?? "month";
+  const dimensionGrains = dimensions.map((field) => (isDateColumn(dataset, field) ? grain : null));
 
   const groups = new Map<string, GroupAccumulator>();
   const groupFor = (mapKey: string, key: (string | null)[]): GroupAccumulator => {
@@ -285,7 +308,7 @@ function aggregateRows(
       accumulateRow(groupFor("", []), row, measureFields);
       continue;
     }
-    const key = dimensions.map((field, index) => dimensionValue(row[field], dateDimensions[index]));
+    const key = dimensions.map((field, index) => dimensionValue(row[field], dimensionGrains[index]));
     accumulateRow(groupFor(JSON.stringify(key), key), row, measureFields);
   }
 
