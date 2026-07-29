@@ -81,7 +81,11 @@ function NewDashboardForm({ onDone }: { onDone: () => void }) {
           onChange={selectDataset}
           options={datasets.map((d) => ({
             value: d.id,
-            label: `${d.isJoined ? "⋈ " : ""}${d.name} · ${d.rows.length.toLocaleString("en-IN")} rows · ${d.columns.length} cols`,
+            // A server-backed dataset holds no rows here — its row count is a
+            // query, and the dashboard header shows it once bound.
+            label: `${d.isJoined ? "⋈ " : ""}${d.name} · ${
+              d.source === "server" ? "Azure SQL" : `${d.rows.length.toLocaleString("en-IN")} rows`
+            } · ${d.columns.length} cols`,
           }))}
         />
 

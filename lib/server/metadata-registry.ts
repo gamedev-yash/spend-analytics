@@ -20,6 +20,16 @@ export interface ColumnDefinition {
   sqlExpression: string;
   /** Key in the dataset's allowedJoins that must be joined to read this. */
   requiresJoin?: string;
+  /**
+   * Rough distinct-value count, surfaced as ColumnMeta.distinctCount.
+   *
+   * Only ever drives UI affordances — which columns become filter dropdowns
+   * (`filterableColumns`) and how widget suggestions rank (`lib/suggest`) — never
+   * a query result, so an estimate that drifts is harmless. Declared rather than
+   * measured because a live COUNT(DISTINCT) per column on every metadata load
+   * would scan the fact table dozens of times.
+   */
+  distinctCountHint?: number;
 }
 
 export interface DatasetDefinition {
@@ -46,9 +56,10 @@ function column(
   type: ColumnDefinition["type"],
   table: string,
   expression: string,
-  requiresJoin?: string
+  requiresJoin?: string,
+  distinctCountHint?: number
 ): ColumnDefinition {
-  return { id, name, type, table, sqlExpression: expression, requiresJoin };
+  return { id, name, type, table, sqlExpression: expression, requiresJoin, distinctCountHint };
 }
 
 function indexById(columns: ColumnDefinition[]): Record<string, ColumnDefinition> {
@@ -86,28 +97,30 @@ const PO_ITEMS: DatasetDefinition = {
       on: ["fact_po_items.po_date_key", "dim_date.date_key"],
     },
   },
+  // Headline grouping dimensions come first: declaration order is what the
+  // frontend's column pickers and filter heuristic walk.
   columns: indexById([
-    // Vendor
-    column("vendor_id", "Vendor ID", "category", "dim_vendor", "dim_vendor.vendor_id", "dim_vendor"),
-    column("vendor_name", "Vendor", "category", "dim_vendor", "dim_vendor.vendor_name", "dim_vendor"),
-    column("parent_company_name", "Supplier Group", "category", "dim_vendor", "dim_vendor.parent_company_name", "dim_vendor"),
-    column("vendor_country", "Vendor Country", "category", "dim_vendor", "dim_vendor.country", "dim_vendor"),
-    column("vendor_city", "Vendor City", "category", "dim_vendor", "dim_vendor.city", "dim_vendor"),
     // Category
-    column("material_group_id", "Material Group", "category", "dim_material_category", "dim_material_category.material_group_id", "dim_material_category"),
-    column("category_l1_name", "Category L1", "category", "dim_material_category", "dim_material_category.category_l1_name", "dim_material_category"),
-    column("category_l2_name", "Category L2", "category", "dim_material_category", "dim_material_category.category_l2_name", "dim_material_category"),
+    column("category_l1_name", "Category L1", "category", "dim_material_category", "dim_material_category.category_l1_name", "dim_material_category", 13),
+    column("category_l2_name", "Category L2", "category", "dim_material_category", "dim_material_category.category_l2_name", "dim_material_category", 65),
+    column("material_group_id", "Material Group", "category", "dim_material_category", "dim_material_category.material_group_id", "dim_material_category", 65),
     // Plant / company
-    column("plant_code", "Plant Code", "category", "dim_plant", "dim_plant.plant_code", "dim_plant"),
-    column("plant_name", "Plant", "category", "dim_plant", "dim_plant.plant_name", "dim_plant"),
-    column("company_code", "Company Code", "category", "dim_company", "dim_company.company_code", "dim_company"),
-    column("company_name", "Company", "category", "dim_company", "dim_company.company_name", "dim_company"),
+    column("plant_name", "Plant", "category", "dim_plant", "dim_plant.plant_name", "dim_plant", 7),
+    column("plant_code", "Plant Code", "category", "dim_plant", "dim_plant.plant_code", "dim_plant", 7),
+    column("company_name", "Company", "category", "dim_company", "dim_company.company_name", "dim_company", 7),
+    column("company_code", "Company Code", "category", "dim_company", "dim_company.company_code", "dim_company", 7),
+    // Vendor
+    column("vendor_name", "Vendor", "category", "dim_vendor", "dim_vendor.vendor_name", "dim_vendor", 160),
+    column("vendor_id", "Vendor ID", "category", "dim_vendor", "dim_vendor.vendor_id", "dim_vendor", 160),
+    column("parent_company_name", "Supplier Group", "category", "dim_vendor", "dim_vendor.parent_company_name", "dim_vendor", 10),
+    column("vendor_country", "Vendor Country", "category", "dim_vendor", "dim_vendor.country", "dim_vendor", 7),
+    column("vendor_city", "Vendor City", "category", "dim_vendor", "dim_vendor.city", "dim_vendor", 26),
     // Date
-    column("po_date", "PO Date", "date", "dim_date", "dim_date.full_date", "dim_date"),
+    column("po_date", "PO Date", "date", "dim_date", "dim_date.full_date", "dim_date", 1035),
     // Degenerate dimensions
-    column("po_number", "PO Number", "category", "fact_po_items", "fact_po_items.po_number"),
-    column("currency_code", "Currency", "category", "fact_po_items", "fact_po_items.currency_code"),
-    column("is_contract_backed", "Contract Backed", "category", "fact_po_items", "fact_po_items.is_contract_backed"),
+    column("currency_code", "Currency", "category", "fact_po_items", "fact_po_items.currency_code", undefined, 3),
+    column("is_contract_backed", "Contract Backed", "category", "fact_po_items", "fact_po_items.is_contract_backed", undefined, 2),
+    column("po_number", "PO Number", "category", "fact_po_items", "fact_po_items.po_number", undefined, 3316),
     // Measures
     column("net_order_value_inr", "Net Order Value (INR)", "number", "fact_po_items", "fact_po_items.net_order_value_inr"),
     column("net_order_value_doc", "Net Order Value (Doc Currency)", "number", "fact_po_items", "fact_po_items.net_order_value_doc"),
@@ -159,33 +172,33 @@ const INVOICES: DatasetDefinition = {
     },
   },
   columns: indexById([
-    // Vendor
-    column("vendor_id", "Vendor ID", "category", "dim_vendor", "dim_vendor.vendor_id", "dim_vendor"),
-    column("vendor_name", "Vendor", "category", "dim_vendor", "dim_vendor.vendor_name", "dim_vendor"),
-    column("parent_company_name", "Supplier Group", "category", "dim_vendor", "dim_vendor.parent_company_name", "dim_vendor"),
-    column("vendor_country", "Vendor Country", "category", "dim_vendor", "dim_vendor.country", "dim_vendor"),
     // Category
-    column("material_group_id", "Material Group", "category", "dim_material_category", "dim_material_category.material_group_id", "dim_material_category"),
-    column("category_l1_name", "Category L1", "category", "dim_material_category", "dim_material_category.category_l1_name", "dim_material_category"),
-    column("category_l2_name", "Category L2", "category", "dim_material_category", "dim_material_category.category_l2_name", "dim_material_category"),
+    column("category_l1_name", "Category L1", "category", "dim_material_category", "dim_material_category.category_l1_name", "dim_material_category", 13),
+    column("category_l2_name", "Category L2", "category", "dim_material_category", "dim_material_category.category_l2_name", "dim_material_category", 65),
+    column("material_group_id", "Material Group", "category", "dim_material_category", "dim_material_category.material_group_id", "dim_material_category", 65),
     // Plant / company
-    column("plant_code", "Plant Code", "category", "dim_plant", "dim_plant.plant_code", "dim_plant"),
-    column("plant_name", "Plant", "category", "dim_plant", "dim_plant.plant_name", "dim_plant"),
-    column("company_name", "Company", "category", "dim_company", "dim_company.company_name", "dim_company"),
+    column("plant_name", "Plant", "category", "dim_plant", "dim_plant.plant_name", "dim_plant", 7),
+    column("plant_code", "Plant Code", "category", "dim_plant", "dim_plant.plant_code", "dim_plant", 7),
+    column("company_name", "Company", "category", "dim_company", "dim_company.company_name", "dim_company", 7),
     // Payment terms
-    column("payment_term_code", "Payment Term", "category", "dim_payment_terms", "dim_payment_terms.term_code", "dim_payment_terms"),
-    column("payment_term_description", "Payment Term Description", "category", "dim_payment_terms", "dim_payment_terms.term_description", "dim_payment_terms"),
-    column("net_due_days", "Net Due Days", "number", "dim_payment_terms", "dim_payment_terms.net_due_days", "dim_payment_terms"),
+    column("payment_term_code", "Payment Term", "category", "dim_payment_terms", "dim_payment_terms.term_code", "dim_payment_terms", 51),
+    column("payment_term_description", "Payment Term Description", "category", "dim_payment_terms", "dim_payment_terms.term_description", "dim_payment_terms", 51),
+    column("net_due_days", "Net Due Days", "number", "dim_payment_terms", "dim_payment_terms.net_due_days", "dim_payment_terms", 28),
+    // Vendor
+    column("vendor_name", "Vendor", "category", "dim_vendor", "dim_vendor.vendor_name", "dim_vendor", 160),
+    column("vendor_id", "Vendor ID", "category", "dim_vendor", "dim_vendor.vendor_id", "dim_vendor", 160),
+    column("parent_company_name", "Supplier Group", "category", "dim_vendor", "dim_vendor.parent_company_name", "dim_vendor", 10),
+    column("vendor_country", "Vendor Country", "category", "dim_vendor", "dim_vendor.country", "dim_vendor", 7),
     // Dates, one per role
-    column("posting_date", "Posting Date", "date", "dim_date", "dim_date.full_date", "dim_date"),
-    column("invoice_date", "Invoice Date", "date", "dim_invoice_date", "dim_invoice_date.full_date", "dim_invoice_date"),
+    column("posting_date", "Posting Date", "date", "dim_date", "dim_date.full_date", "dim_date", 1081),
+    column("invoice_date", "Invoice Date", "date", "dim_invoice_date", "dim_invoice_date.full_date", "dim_invoice_date", 1081),
     // Degenerate dimensions
-    column("invoice_number", "Invoice Number", "category", "fact_invoices", "fact_invoices.invoice_number"),
-    column("po_number", "PO Number", "category", "fact_invoices", "fact_invoices.po_number"),
-    column("currency_code", "Currency", "category", "fact_invoices", "fact_invoices.currency_code"),
-    column("fiscal_year", "Fiscal Year", "number", "fact_invoices", "fact_invoices.fiscal_year"),
-    column("is_credit_memo", "Credit Memo", "category", "fact_invoices", "fact_invoices.is_credit_memo"),
-    column("payment_block_flag", "Payment Blocked", "category", "fact_invoices", "fact_invoices.payment_block_flag"),
+    column("currency_code", "Currency", "category", "fact_invoices", "fact_invoices.currency_code", undefined, 3),
+    column("is_credit_memo", "Credit Memo", "category", "fact_invoices", "fact_invoices.is_credit_memo", undefined, 2),
+    column("payment_block_flag", "Payment Blocked", "category", "fact_invoices", "fact_invoices.payment_block_flag", undefined, 2),
+    column("fiscal_year", "Fiscal Year", "number", "fact_invoices", "fact_invoices.fiscal_year", undefined, 4),
+    column("invoice_number", "Invoice Number", "category", "fact_invoices", "fact_invoices.invoice_number", undefined, 8779),
+    column("po_number", "PO Number", "category", "fact_invoices", "fact_invoices.po_number", undefined, 3068),
     // Measures
     column("gross_amount_inr", "Gross Amount (INR)", "number", "fact_invoices", "fact_invoices.gross_amount_inr"),
     column("gross_amount_doc", "Gross Amount (Doc Currency)", "number", "fact_invoices", "fact_invoices.gross_amount_doc"),

@@ -29,6 +29,13 @@ export interface Dataset {
   id: string;
   /** Original file name ("tail-spend.csv") or user-chosen name for joined datasets. */
   name: string;
+  /**
+   * Where the rows live. "upload" (the default when absent, so datasets
+   * persisted before this field keep working) means a CSV parsed in this
+   * browser; "server" means a warehouse table answered over the query API, with
+   * `rows` left empty.
+   */
+  source?: "upload" | "server";
   /** Dashboard route this dataset feeds; undefined = unassigned. */
   pageKey?: string;
   /**

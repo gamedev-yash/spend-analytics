@@ -218,9 +218,11 @@ function ManualJoinForm({ pageTarget, onDone }: { pageTarget: string; onDone: ()
     }
   }
 
+  // Joins are executed row-by-row in memory (lib/join.ts), so only datasets
+  // whose rows live in this browser can take part.
   const datasetOptions = (excludeId: string) =>
     datasets
-      .filter((d) => d.id !== excludeId)
+      .filter((d) => d.id !== excludeId && d.source !== "server")
       .map((d) => ({
         value: d.id,
         label: `${d.name}${d.isJoined ? " (joined)" : ""} · ${d.rows.length.toLocaleString()} rows`,

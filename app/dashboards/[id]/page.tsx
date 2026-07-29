@@ -63,7 +63,7 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
   const { id } = use(params);
   const dashboard = useCustomDashboard(id);
   const ready = useDashboardsReady();
-  const { datasets } = useDatasets();
+  const { datasets, providerType, setProviderType } = useDatasets();
 
   const [filters, setFilters] = useState<DashboardFilterState>({});
   const [configuratorOpen, setConfiguratorOpen] = useState(false);
@@ -105,11 +105,27 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
             Delete Dashboard
           </button>
         </div>
+        {/* In CSV mode a warehouse-backed dashboard is not "deleted" — its table
+            simply is not reachable from this provider, so offer the switch
+            rather than telling the user their upload is gone. */}
         <EmptyShell
           title="Bound dataset is missing"
-          message="The CSV this dashboard was built from has been removed. Upload it again from any dashboard page, or create a new dashboard against a dataset you still have."
+          message={
+            providerType === "client-csv"
+              ? `"${dashboard.title}" is bound to a dataset CSV Mode cannot reach. If it reads a warehouse table, switch to Azure SQL Mode in the header; if it was an uploaded CSV, upload it again.`
+              : "The CSV this dashboard was built from has been removed. Upload it again from any dashboard page, or create a new dashboard against a dataset you still have."
+          }
         >
           <div className="flex flex-wrap justify-center gap-2">
+            {providerType === "client-csv" && (
+              <button
+                type="button"
+                onClick={() => setProviderType("azure-sql")}
+                className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
+              >
+                Switch to Azure SQL Mode
+              </button>
+            )}
             <Link
               href="/tail-spend"
               className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
