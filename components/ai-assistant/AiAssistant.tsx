@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import {
+  ArrowRight,
   Bot,
   Check,
   Database,
@@ -14,18 +15,19 @@ import {
   X,
 } from "lucide-react";
 import { useDatasets, type Dataset } from "@/context/DatasetsContext";
+import { DASHBOARD_REGISTRY } from "@/lib/ai/dashboard-registry";
 import { addWidget, useCustomDashboards } from "@/lib/custom-dashboards-store";
 import {
   askAssistant,
   generatePermutationSuggestions,
   AssistantError,
 } from "@/lib/ai/widget-parser";
+import type { OtherDashboardInfo } from "@/types/assistant";
 import {
   CHART_TYPE_LABELS,
   type CustomDashboard,
   type WidgetConfig,
 } from "@/types/custom-dashboard";
-import { FilterSelect } from "@/components/ui/filter-controls";
 import { cn } from "@/lib/utils";
 
 interface ChatEntry {
@@ -33,11 +35,14 @@ interface ChatEntry {
   content: string;
   /** Widget the assistant produced for this turn, once injected. */
   addedWidget?: string;
+  /** Set when the assistant redirected instead of answering — renders a "Go to X" link. */
+  redirect?: { id: string; title: string; route: string };
   isError?: boolean;
 }
 
-const WELCOME =
-  "Hi! Ask me anything about your active dataset — row counts, totals, which columns are numeric — or just describe a chart (\"add a donut chart of spend by category\") and I'll build it into your dashboard.";
+function welcomeFor(dashboardTitle: string): string {
+  return `Hi! I'm grounded in "${dashboardTitle}"'s own data only — ask me about what's on this dashboard, or describe a chart to add. If your question belongs to a different dashboard, I'll point you there instead of guessing.`;
+}
 
 const STARTERS = [
   "What is the row count and total spend in this dataset?",
@@ -73,58 +78,83 @@ function AssistantToast({ message, onDismiss }: { message: string; onDismiss: ()
 }
 
 /**
- * Floating AI Assistant. Two tabs: a grounded chat that can also emit widgets,
- * and a grid of locally-computed chart permutations that inject with one
- * click. Both write into whichever custom dashboard is selected below —
- * defaulting to the one you're currently viewing.
+ * Floating AI Assistant, scoped to exactly one custom dashboard — whichever
+ * /dashboards/[id] you're currently viewing, the same isolation model
+ * DashboardAssistant uses for the four core dashboards. It never reads or
+ * writes any other dashboard: a question about data that lives elsewhere
+ * gets a redirect link instead of a guess or a cross-dashboard write.
  */
 export function AiAssistant() {
   const pathname = usePathname();
-  const { datasets, getDatasetForPage } = useDatasets();
+  const router = useRouter();
+  const { datasets } = useDatasets();
   const dashboards = useCustomDashboards();
 
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<"chat" | "permutations">("chat");
-  const [messages, setMessages] = useState<ChatEntry[]>([
-    { role: "assistant", content: WELCOME },
-  ]);
+  const [messages, setMessages] = useState<ChatEntry[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const [targetDashboardId, setTargetDashboardId] = useState<string>("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const dismissToast = useCallback(() => setToast(null), []);
 
-  // The dashboard being viewed is the natural default target; otherwise the
-  // most recently created one.
-  const routeDashboardId = pathname?.startsWith("/dashboards/")
-    ? pathname.split("/")[2]
-    : undefined;
-  const activeDashboard: CustomDashboard | null =
-    dashboards.find((d) => d.id === targetDashboardId) ??
-    dashboards.find((d) => d.id === routeDashboardId) ??
-    dashboards[dashboards.length - 1] ??
-    null;
+  // Strictly the dashboard whose page this is — no fallback to "newest" and
+  // no way to target a different one from here.
+  const routeDashboardId = pathname?.startsWith("/dashboards/") ? pathname.split("/")[2] : undefined;
+  const activeDashboard: CustomDashboard | null = dashboards.find((d) => d.id === routeDashboardId) ?? null;
 
-  // Dataset context: the bound dataset of the target dashboard, else this
-  // page's uploaded dataset, else the newest upload.
-  const pageKey = pathname?.split("/")[1] ?? "";
-  const dataset: Dataset | null =
-    (activeDashboard
-      ? datasets.find((d) => d.id === activeDashboard.datasetId) ?? null
-      : null) ??
-    getDatasetForPage(pageKey) ??
-    datasets[datasets.length - 1] ??
-    null;
+  const dataset: Dataset | null = activeDashboard
+    ? datasets.find((d) => d.id === activeDashboard.datasetId) ?? null
+    : null;
+
+  // Every other dashboard that exists — core pages plus other custom
+  // dashboards — named only so the model can redirect there, never to answer
+  // from. Their data never enters this request.
+  const otherDashboards = useMemo<OtherDashboardInfo[]>(() => {
+    const core = DASHBOARD_REGISTRY.map((d) => ({
+      id: d.key,
+      title: d.label,
+      route: d.route,
+      summary: d.description,
+    }));
+    const otherCustom = dashboards
+      .filter((d) => d.id !== activeDashboard?.id)
+      .map((d) => {
+        const bound = datasets.find((x) => x.id === d.datasetId);
+        const columns = bound ? bound.columns.map((c) => c.name).join(", ") : "unknown columns";
+        return {
+          id: d.id,
+          title: d.title,
+          route: `/dashboards/${d.id}`,
+          summary: `Custom dashboard bound to "${bound?.name ?? "a dataset"}" — columns: ${columns}`,
+        };
+      });
+    return [...core, ...otherCustom];
+  }, [dashboards, datasets, activeDashboard]);
 
   const permutations = useMemo(
     () => (dataset ? generatePermutationSuggestions(dataset.columns) : []),
     [dataset]
   );
 
+  // Reset the conversation whenever the dashboard changes — an exchange
+  // grounded in one dashboard's data would be misleading once the assistant
+  // is answering for a different one. Depends on id/title specifically
+  // (not the activeDashboard object) so an unrelated widgets-array change
+  // doesn't wipe the conversation.
+  useEffect(() => {
+    if (activeDashboard) setMessages([{ role: "assistant", content: welcomeFor(activeDashboard.title) }]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeDashboard?.id, activeDashboard?.title]);
+
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, busy, open, tab]);
+
+  // No dashboard resolved for this route — nothing for this assistant to be
+  // grounded in, so it doesn't render at all (matches DashboardAssistant).
+  if (!activeDashboard) return null;
 
   function injectWidget(widget: WidgetConfig): boolean {
     if (!activeDashboard) return false;
@@ -146,22 +176,21 @@ export function AiAssistant() {
     setInput("");
     setBusy(true);
     try {
-      const result = await askAssistant(message, dataset, history);
+      const result = await askAssistant(message, dataset, history, otherDashboards);
       let addedWidget: string | undefined;
-      if (result.validatedWidget) {
+      if (result.validatedWidget && !result.redirect) {
         if (injectWidget(result.validatedWidget)) addedWidget = result.validatedWidget.title;
       }
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content:
-            result.reply ||
-            (addedWidget ? `Added "${addedWidget}".` : "Done."),
+          content: result.reply || (addedWidget ? `Added "${addedWidget}".` : "Done."),
           addedWidget,
+          redirect: result.redirect ?? undefined,
         },
       ]);
-      if (result.validatedWidget && !addedWidget) {
+      if (result.validatedWidget && !addedWidget && !result.redirect) {
         setMessages((prev) => [
           ...prev,
           {
@@ -214,30 +243,20 @@ export function AiAssistant() {
           <div className="shrink-0 border-b border-slate-200 px-4 py-3 dark:border-slate-800">
             <div className="flex items-center gap-2">
               <Bot className="h-4 w-4 text-slate-500 dark:text-slate-400" />
-              <p className="flex-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
-                Procurement BI Assistant
+              <p className="flex-1 truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                {activeDashboard.title}
               </p>
             </div>
             <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
               <Database className="h-3 w-3 shrink-0" />
               {dataset ? (
                 <span className="truncate">
-                  {dataset.name} · {dataset.rows.length.toLocaleString("en-IN")} rows
+                  Grounded in {dataset.name} · {dataset.rows.length.toLocaleString("en-IN")} rows — no other dashboard
                 </span>
               ) : (
-                <span>No dataset — upload a CSV to ground answers</span>
+                <span>Bound dataset is missing — upload it again to ground answers</span>
               )}
             </p>
-            {dashboards.length > 0 && (
-              <div className="mt-2">
-                <FilterSelect
-                  label="Add widgets to"
-                  value={activeDashboard?.id ?? ""}
-                  onChange={setTargetDashboardId}
-                  options={dashboards.map((d) => ({ value: d.id, label: d.title }))}
-                />
-              </div>
-            )}
           </div>
 
           {/* Tabs */}
@@ -288,6 +307,19 @@ export function AiAssistant() {
                         <Check className="h-3 w-3" />
                         Added &quot;{m.addedWidget}&quot;
                       </span>
+                    )}
+                    {m.redirect && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOpen(false);
+                          router.push(m.redirect!.route);
+                        }}
+                        className="mt-2 flex w-full items-center justify-between gap-2 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                      >
+                        Go to {m.redirect.title}
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </button>
                     )}
                   </div>
                 ))}

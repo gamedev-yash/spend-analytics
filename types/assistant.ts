@@ -27,12 +27,24 @@ export interface AssistantChatMessage {
   content: string;
 }
 
+/** A dashboard the model does NOT have data for — named only so it can redirect there. */
+export interface OtherDashboardInfo {
+  /** Dashboard-registry key for a core dashboard, or a custom dashboard's id. */
+  id: string;
+  title: string;
+  route: string;
+  /** One-line description of what this dashboard covers. */
+  summary: string;
+}
+
 export interface AssistantRequest {
   /** "chat" answers questions; "parse" forces a create_widget tool call. */
   mode: "chat" | "parse";
   message: string;
   history?: AssistantChatMessage[];
   dataset?: DatasetContext | null;
+  /** Other dashboards that exist, for redirecting — never used to answer directly. */
+  otherDashboards?: OtherDashboardInfo[];
 }
 
 export interface AssistantResponse {
@@ -40,6 +52,8 @@ export interface AssistantResponse {
   reply: string;
   /** Set when the model called create_widget (no id — the client assigns one). */
   widget?: Omit<WidgetConfig, "id"> | null;
+  /** Set when the model called redirect_to_dashboard instead of answering. */
+  redirect?: { id: string; title: string; route: string } | null;
   /** True when the server had no API key and answered from local data only. */
   offline?: boolean;
 }

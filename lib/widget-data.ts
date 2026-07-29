@@ -122,6 +122,114 @@ export function computeSeries(dataset: Dataset, config: WidgetConfig): SeriesPoi
   return config.limit ? points.slice(0, config.limit) : points;
 }
 
+/**
+ * Grouped-and-stacked series for 'stackedBar': one point per outer group
+ * (xAxisColumn), each holding a value per series key (seriesColumn). Series
+ * keys are ranked by total contribution and capped at MAX_STACK_SERIES — the
+ * rest fold into a single "Other" key, mirroring the categorical palette's
+ * own fixed-order-then-fold-to-neutral rule (lib/chart-colors.ts
+ * colorForIndex folds at the same count) so the stack never needs more
+ * distinguishable hues than the palette actually has.
+ */
+export interface StackedSeriesPoint {
+  label: string;
+  values: Record<string, number>;
+  /** Sum of this point's segment values — the stack's rendered height. */
+  total: number;
+  count: number;
+}
+
+export interface StackedSeriesResult {
+  points: StackedSeriesPoint[];
+  /** Display/color order — real series ranked by contribution, "Other" last if present. */
+  seriesKeys: string[];
+}
+
+const OTHER_KEY = "Other";
+const MAX_STACK_SERIES = 7;
+
+function mergeInto(target: Accumulator, source: Accumulator): void {
+  target.sum += source.sum;
+  target.count += source.count;
+  for (const v of source.distinct) target.distinct.add(v);
+}
+
+export function computeStackedSeries(dataset: Dataset, config: WidgetConfig): StackedSeriesResult {
+  const groupColumn = resolveColumn(dataset, config.xAxisColumn);
+  const seriesColumn = resolveColumn(dataset, config.seriesColumn);
+  if (!groupColumn || !seriesColumn || groupColumn === seriesColumn) return { points: [], seriesKeys: [] };
+
+  const aggregation = config.aggregation ?? "sum";
+  const measure = resolveColumn(dataset, config.yAxisColumn);
+  const isDate = dataset.columns.find((c) => c.id === groupColumn)?.type === "date";
+
+  // Pass 1: nested accumulators, plus each series key's global contribution (for ranking).
+  const nested = new Map<string, Map<string, Accumulator>>();
+  const globalRank = new Map<string, number>();
+  for (const row of dataset.rows) {
+    const rawGroup = cellLabel(row[groupColumn]);
+    const groupKey = isDate && rawGroup !== EMPTY_LABEL ? monthBucket(rawGroup) : rawGroup;
+    const seriesKey = cellLabel(row[seriesColumn]);
+
+    let inner = nested.get(groupKey);
+    if (!inner) {
+      inner = new Map<string, Accumulator>();
+      nested.set(groupKey, inner);
+    }
+    let acc = inner.get(seriesKey);
+    if (!acc) {
+      acc = newAccumulator();
+      inner.set(seriesKey, acc);
+    }
+    accumulate(acc, row, measure);
+
+    const contribution = measure ? (toNumber(row[measure]) ?? 0) : 1;
+    globalRank.set(seriesKey, (globalRank.get(seriesKey) ?? 0) + contribution);
+  }
+
+  // Rank series keys by contribution, keep the top MAX_STACK_SERIES, fold the rest into "Other".
+  const rankedKeys = Array.from(globalRank.entries()).sort((a, b) => b[1] - a[1]).map(([key]) => key);
+  const keptKeys = rankedKeys.slice(0, MAX_STACK_SERIES);
+  const keptSet = new Set(keptKeys);
+  const hasOther = rankedKeys.length > keptKeys.length;
+  const seriesKeys = hasOther ? [...keptKeys, OTHER_KEY] : keptKeys;
+
+  const points: StackedSeriesPoint[] = Array.from(nested.entries()).map(([label, inner]) => {
+    const values: Record<string, number> = {};
+    const otherAcc = newAccumulator();
+    let rowCount = 0;
+    for (const [seriesKey, acc] of inner) {
+      rowCount += acc.count;
+      if (keptSet.has(seriesKey)) {
+        values[seriesKey] = finalize(acc, aggregation);
+      } else {
+        mergeInto(otherAcc, acc);
+      }
+    }
+    if (hasOther) values[OTHER_KEY] = finalize(otherAcc, aggregation);
+    const total = Object.values(values).reduce((sum, v) => sum + v, 0);
+    // Zero-fill series absent from this group so every stacked Bar segment
+    // gets a value at every point — a missing key would otherwise render as
+    // a gap instead of a zero-height segment.
+    for (const key of seriesKeys) values[key] ??= 0;
+    return { label, values, total, count: rowCount };
+  });
+
+  if (isDate) {
+    points.sort((a, b) => a.label.localeCompare(b.label));
+    return {
+      points: config.limit && points.length > config.limit ? points.slice(-config.limit) : points,
+      seriesKeys,
+    };
+  }
+
+  points.sort((a, b) => b.total - a.total);
+  return {
+    points: config.limit ? points.slice(0, config.limit) : points,
+    seriesKeys,
+  };
+}
+
 /** True when the widget has everything it needs to render real data. */
 export function isWidgetRenderable(dataset: Dataset, config: WidgetConfig): boolean {
   const aggregation = config.aggregation ?? "sum";
@@ -129,7 +237,12 @@ export function isWidgetRenderable(dataset: Dataset, config: WidgetConfig): bool
   const hasMeasure = resolveColumn(dataset, config.yAxisColumn) !== undefined;
   if (needsMeasure && !hasMeasure) return false;
   if (config.chartType === "kpi") return true;
-  return resolveColumn(dataset, config.xAxisColumn) !== undefined;
+  if (!resolveColumn(dataset, config.xAxisColumn)) return false;
+  if (config.chartType === "stackedBar") {
+    const series = resolveColumn(dataset, config.seriesColumn);
+    return series !== undefined && series !== config.xAxisColumn;
+  }
+  return true;
 }
 
 /** Human explanation of what a widget is missing, for the empty-state note. */
@@ -141,6 +254,11 @@ export function widgetIssue(dataset: Dataset, config: WidgetConfig): string | nu
   }
   if ((config.aggregation ?? "sum") !== "count" && !resolveColumn(dataset, config.yAxisColumn)) {
     missing.push(config.yAxisColumn ? `metric column "${config.yAxisColumn}"` : "a metric column");
+  }
+  if (config.chartType === "stackedBar") {
+    const series = resolveColumn(dataset, config.seriesColumn);
+    if (!series) missing.push(config.seriesColumn ? `stack-by column "${config.seriesColumn}"` : "a stack-by column");
+    else if (series === config.xAxisColumn) missing.push("a stack-by column different from the grouping column");
   }
   return `This widget needs ${missing.join(" and ")}. Edit it to pick columns from this dataset.`;
 }

@@ -16,6 +16,7 @@ import { newId } from "@/lib/custom-dashboards-store";
 import { normalizeKey } from "@/lib/dataset-rows";
 import {
   needsMeasure,
+  needsSeriesColumn,
   needsXAxis,
   type Aggregation,
   type ChartType,
@@ -133,6 +134,26 @@ export function generatePermutationSuggestions(columns: ColumnMeta[]): WidgetCon
         gridSpan: 1,
       });
     }
+  }
+
+  // Two dimensions × Measure — a stacked breakdown, when a low-cardinality
+  // second dimension exists to stack by (date preferred as the outer axis,
+  // same as the plain trend below, so a stack reads as "trend, split by").
+  const seriesCandidate = dimensions.find(
+    (d) => d.distinctCount <= MAX_SLICE_CARDINALITY && d.id !== dimension?.id
+  );
+  const stackOuter = date ?? dimensions.find((d) => d.id !== seriesCandidate?.id);
+  if (measure && seriesCandidate && stackOuter && stackOuter.id !== seriesCandidate.id) {
+    widgets.push({
+      title: `${titleCase(measure.name)} by ${titleCase(stackOuter.name)}, Split by ${titleCase(seriesCandidate.name)}`,
+      chartType: "stackedBar",
+      xAxisColumn: stackOuter.id,
+      yAxisColumn: measure.id,
+      seriesColumn: seriesCandidate.id,
+      aggregation: defaultAggregation(measure),
+      limit: date && stackOuter.id === date.id ? undefined : DEFAULT_LIMIT,
+      gridSpan: 2,
+    });
   }
 
   // Date × Measure — the trend.
@@ -278,7 +299,7 @@ export function validateWidgetAgainstColumns(
   proposed: Omit<WidgetConfig, "id">,
   columns: ColumnMeta[]
 ): WidgetConfig | null {
-  const chartType: ChartType = proposed.chartType;
+  let chartType: ChartType = proposed.chartType;
   let aggregation: Aggregation = proposed.aggregation ?? "sum";
 
   let yAxisColumn = resolveColumn(columns, proposed.yAxisColumn);
@@ -309,15 +330,31 @@ export function validateWidgetAgainstColumns(
     xAxisColumn = undefined;
   }
 
+  // stackedBar needs a second, distinct grouping column. If the model didn't
+  // name one or named the same column twice, degrade to a plain bar rather
+  // than guessing a second dimension the request never asked for.
+  let seriesColumn: string | undefined;
+  if (needsSeriesColumn(chartType)) {
+    const resolved = resolveColumn(columns, proposed.seriesColumn);
+    if (resolved && resolved !== xAxisColumn) {
+      seriesColumn = resolved;
+    } else {
+      const fallback = dimensionColumns(columns).find((d) => d.id !== xAxisColumn);
+      if (fallback) seriesColumn = fallback.id;
+      else chartType = "bar"; // no second dimension available anywhere — can't stack
+    }
+  }
+
   return {
     id: newId("w"),
     title: proposed.title?.trim() || "New widget",
     chartType,
     xAxisColumn,
     yAxisColumn,
+    seriesColumn,
     aggregation,
     limit: proposed.limit && proposed.limit > 0 ? Math.floor(proposed.limit) : undefined,
-    gridSpan: proposed.gridSpan === 2 ? 2 : 1,
+    gridSpan: proposed.gridSpan === 2 ? 2 : chartType === "stackedBar" ? 2 : 1,
   };
 }
 
@@ -348,13 +385,15 @@ async function callAssistant(payload: AssistantRequest): Promise<AssistantRespon
 export async function askAssistant(
   message: string,
   dataset: Dataset | null,
-  history: AssistantRequest["history"] = []
+  history: AssistantRequest["history"] = [],
+  otherDashboards: AssistantRequest["otherDashboards"] = []
 ): Promise<AssistantResponse & { validatedWidget: WidgetConfig | null }> {
   const response = await callAssistant({
     mode: "chat",
     message,
     history,
     dataset: dataset ? buildDatasetContext(dataset) : null,
+    otherDashboards,
   });
   const validatedWidget =
     response.widget && dataset
