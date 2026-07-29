@@ -4,6 +4,8 @@ import { useMemo, useState, type ReactNode } from "react";
 import { tailSpendMock, estimateMicroPOStats, formatINR } from "./tailSpendMock";
 import { buildTailSpendFromDataset } from "./fromDataset";
 import { useDatasets } from "@/context/DatasetsContext";
+import { useProviderPageData } from "@/hooks/use-provider-page-data";
+import { loadTailSpendFromProvider } from "@/lib/page-data/tail-spend-from-provider";
 import { DatasetUpload } from "@/components/dashboard/dataset-upload";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
@@ -94,7 +96,7 @@ function Widget({
 const LAST_ODD_SPANS_FULL = "xl:[&:last-child:nth-child(odd)]:col-span-2";
 
 export default function TailSpendPage() {
-  const { getDatasetForPage } = useDatasets();
+  const { getDatasetForPage, providerType } = useDatasets();
   const dataset = getDatasetForPage("tail-spend");
 
   // The micro-PO boundary lives in ThresholdsContext so the sidebar slider,
@@ -103,11 +105,22 @@ export default function TailSpendPage() {
   const { getThreshold, setTargetValue } = useThresholds();
   const microPOThreshold = getThreshold("tail-spend.micro-po-value")?.targetValue ?? 25_000;
 
-  // Uploaded CSV (when present and usable) drives the supplier-level widgets;
-  // otherwise every widget reads the static mock so the page never goes blank.
+  // In Azure SQL mode the page reads fact_po_items through IDataProvider; the
+  // threshold is part of the key because it changes the micro-PO query.
+  const warehouse = useProviderPageData(
+    (provider) => loadTailSpendFromProvider(provider, microPOThreshold),
+    providerType === "azure-sql",
+    `tail-spend:${microPOThreshold}`
+  );
+
+  // Precedence: warehouse in Azure SQL mode, else an uploaded CSV, else the
+  // static mock — so a widget never renders blank.
   const data = useMemo(
-    () => (dataset ? buildTailSpendFromDataset(dataset, microPOThreshold) : null) ?? tailSpendMock,
-    [dataset, microPOThreshold]
+    () =>
+      warehouse.data?.data ??
+      (dataset ? buildTailSpendFromDataset(dataset, microPOThreshold) : null) ??
+      tailSpendMock,
+    [warehouse.data, dataset, microPOThreshold]
   );
 
   const {

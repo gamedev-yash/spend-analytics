@@ -12,10 +12,10 @@
 //   503 { success: false, error }   database configured but unreachable
 //   500 { success: false, error }   anything else
 
-import { buildQuery, QueryValidationError } from "@/lib/server/query-builder";
+import { QueryValidationError } from "@/lib/server/query-builder";
+import { buildAndExecuteQuery } from "@/lib/server/query-engine";
 import { getDataset, listColumns, listDatasets } from "@/lib/server/metadata-registry";
-import { sampleDataProvider } from "@/lib/server/sample-data-source";
-import { executeQuery, isDatabaseConfigured, SqlUnavailableError } from "@/lib/server/sql-client";
+import { SqlUnavailableError } from "@/lib/server/sql-client";
 import type { QueryPayload, QueryResult } from "@/types/data-provider";
 
 export const runtime = "nodejs";
@@ -166,30 +166,13 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
-    // Compiled either way: it is what validates the payload against the
-    // registry, so a bad field is a 400 whether or not a database is attached.
-    const built = buildQuery(payload);
-
-    if (!isDatabaseConfigured()) {
-      const result = await sampleDataProvider.queryWidgetData(payload);
-      return Response.json({
-        success: true,
-        source: "sample-csv",
-        data: {
-          rows: result.rows,
-          totalMatchingRows: result.totalMatchingRows,
-          executionTimeMs: round(performance.now() - startedAt),
-        },
-      } satisfies QuerySuccess);
-    }
-
-    const { rows, totalMatchingRows } = await executeQuery(built);
+    const { source, ...result } = await buildAndExecuteQuery(payload);
     return Response.json({
       success: true,
-      source: "azure-sql",
+      source,
       data: {
-        rows,
-        totalMatchingRows,
+        ...result,
+        // Measured at the route boundary, so it includes parsing and validation.
         executionTimeMs: round(performance.now() - startedAt),
       },
     } satisfies QuerySuccess);

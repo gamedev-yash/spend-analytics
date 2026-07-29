@@ -7,14 +7,32 @@
 //             "bar chart of top 10 vendors by net spend" comes back as a
 //             validated WidgetConfig.
 //
-// The model never sees raw rows — only the inferred ColumnMeta plus summary
-// statistics the client computed. That keeps payloads small and answers
-// grounded in the user's real uploaded data rather than invented numbers.
+// Two grounding strategies, picked by which dataset is in play:
+//
+//   Uploaded CSV — the model never sees raw rows, only inferred ColumnMeta plus
+//   summary statistics the client computed. Cheap, and enough to answer from.
+//
+//   Warehouse (registryDatasetId set) — statistics would be useless, since the
+//   rows are not in the browser. Instead the model composes a QueryPayload with
+//   query_warehouse, the route executes it through the same engine
+//   /api/v1/query uses, and the resulting rows are fed back for it to answer
+//   from. Its prose is therefore grounded in a query that actually ran.
 
 import Anthropic from "@anthropic-ai/sdk";
 import { CHART_TYPE_LABELS } from "@/types/custom-dashboard";
+import { getDataset } from "@/lib/server/metadata-registry";
+import { buildAndExecuteQuery } from "@/lib/server/query-engine";
+import { QueryValidationError } from "@/lib/server/query-builder";
+import {
+  createWidgetTool,
+  queryWarehouseTool,
+  renderQueryResult,
+  renderRegistryContext,
+  toQueryPayload,
+} from "@/lib/server/assistant-tools";
 import type { Aggregation, ChartType, WidgetConfig } from "@/types/custom-dashboard";
 import type {
+  AssistantQuery,
   AssistantRequest,
   AssistantResponse,
   DatasetContext,
@@ -26,7 +44,7 @@ export const runtime = "nodejs";
 const MODEL = "claude-opus-5";
 const MAX_TOKENS = 8_000;
 
-const SYSTEM_PROMPT = `You are the Procurement BI Assistant embedded in a Vedanta spend-analytics dashboard app.
+const CSV_SYSTEM_PROMPT = `You are the Procurement BI Assistant embedded in a Vedanta spend-analytics dashboard app.
 
 You help procurement analysts understand their uploaded spend data and build dashboard widgets from it.
 
@@ -40,48 +58,24 @@ When the user asks for a chart, table, or KPI, call the create_widget tool with 
 
 Keep prose answers short and concrete — a few sentences, no preamble, no markdown headers.`;
 
-/** Tool schema mirrors WidgetConfig (minus the client-assigned id). */
-const CREATE_WIDGET_TOOL: Anthropic.Tool = {
-  name: "create_widget",
-  description:
-    "Create a dashboard widget from the active dataset. Call this whenever the user asks to see, add, plot, chart, or visualize something.",
-  strict: true,
-  input_schema: {
-    type: "object",
-    properties: {
-      title: { type: "string", description: "Short human-readable widget title." },
-      chartType: {
-        type: "string",
-        enum: Object.keys(CHART_TYPE_LABELS),
-        description: "kpi for a single number; table for a detail list; otherwise the chart form.",
-      },
-      xAxisColumn: {
-        type: ["string", "null"],
-        description: "Grouping column id (a category or date column). Omit/null for kpi.",
-      },
-      yAxisColumn: {
-        type: ["string", "null"],
-        description: "Metric column id (a numeric column). Omit/null when aggregation is count.",
-      },
-      aggregation: {
-        type: ["string", "null"],
-        enum: ["sum", "avg", "count", "distinct", null],
-        description: "How to aggregate the metric column.",
-      },
-      limit: {
-        type: ["integer", "null"],
-        description: "Top-N cap for grouped charts, e.g. 10 for 'top 10 vendors'.",
-      },
-      gridSpan: {
-        type: ["integer", "null"],
-        enum: [1, 2, null],
-        description: "1 = half width (default), 2 = full width. Use 2 for line trends and tables.",
-      },
-    },
-    required: ["title", "chartType", "xAxisColumn", "yAxisColumn", "aggregation", "limit", "gridSpan"],
-    additionalProperties: false,
-  },
-};
+const WAREHOUSE_SYSTEM_PROMPT = `You are the Procurement BI Assistant embedded in a Vedanta spend-analytics dashboard app, connected to a spend data warehouse.
+
+Grounding rules — these are absolute:
+- To state any figure, first call query_warehouse and read the number off the result. Never estimate, never recall a figure from a previous turn as if it were fresh, never fabricate.
+- Use only the column names in the schema block below. There are no others.
+- If a question needs data the schema does not carry, say exactly which column is missing instead of substituting a proxy.
+- If a query returns no rows, say so — do not soften it into an approximation.
+- The warehouse holds a fixed window of history. If the user asks about a period the data does not cover, query it, report that it is empty, and say which periods do have data.
+
+Choosing the query:
+- fact_po_items is committed spend (purchase orders). fact_invoices is actual spend (supplier invoices). Pick the one the question is about; say which you used.
+- Amounts in columns ending _inr are Indian rupees. Report them in Cr (10,000,000) or L (100,000) as the dashboards do.
+- "top N" means a descending sort on the measure alias plus limit N.
+- timeGrain "year" buckets by the Indian fiscal year (April-March), so FY2025-26 covers April 2025 to March 2026.
+
+When the user asks to see, add, plot, chart, or visualize something, also call create_widget so it lands on their canvas. Query first, so your prose matches the widget.
+
+Keep prose answers short and concrete — a few sentences, no preamble, no markdown headers.`;
 
 /** Compact, token-cheap rendering of the dataset the model must reason over. */
 function renderDatasetContext(dataset: DatasetContext | null | undefined): string {
@@ -146,6 +140,27 @@ function toWidget(input: Record<string, unknown>): Omit<WidgetConfig, "id"> | nu
   };
 }
 
+/**
+ * Run one query_warehouse call. A rejected payload is not an error to the caller
+ * — it is fed back to the model as a tool_result so it can correct itself, which
+ * is why the failure is captured rather than thrown.
+ */
+async function runAssistantQuery(input: Record<string, unknown>): Promise<AssistantQuery> {
+  const payload = toQueryPayload(input);
+  try {
+    const { source, ...result } = await buildAndExecuteQuery(payload);
+    return { payload, result, source };
+  } catch (err) {
+    const error =
+      err instanceof QueryValidationError
+        ? err.message
+        : err instanceof Error
+          ? err.message
+          : "Query failed.";
+    return { payload, result: { rows: [] }, source: "none", error };
+  }
+}
+
 export async function POST(request: Request): Promise<Response> {
   let body: AssistantRequest;
   try {
@@ -171,6 +186,18 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
+  // Warehouse mode when the client names a registry dataset; otherwise the
+  // original uploaded-CSV behaviour, unchanged.
+  const registryDatasetId =
+    typeof body.registryDatasetId === "string" && getDataset(body.registryDatasetId)
+      ? body.registryDatasetId
+      : null;
+  const warehouseMode = registryDatasetId !== null;
+
+  const context = warehouseMode
+    ? renderRegistryContext(registryDatasetId)
+    : renderDatasetContext(body.dataset);
+
   const history = Array.isArray(body.history) ? body.history.slice(-10) : [];
   const messages: Anthropic.MessageParam[] = [
     ...history
@@ -178,36 +205,71 @@ export async function POST(request: Request): Promise<Response> {
       .map((m) => ({ role: m.role, content: m.content })),
     {
       role: "user" as const,
-      content: `${renderDatasetContext(body.dataset)}\n\n---\n\nUSER: ${message}`,
+      content: `${context}\n\n---\n\nUSER: ${message}`,
     },
   ];
 
+  const widgetTool = createWidgetTool(registryDatasetId);
+  const tools = warehouseMode ? [queryWarehouseTool(), widgetTool] : [widgetTool];
+
   try {
-    const response = await client.messages.create({
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
-      system: SYSTEM_PROMPT,
-      tools: [CREATE_WIDGET_TOOL],
-      // "parse" must produce a widget; "chat" decides for itself.
-      tool_choice: mode === "parse" ? { type: "tool", name: "create_widget" } : { type: "auto" },
-      messages,
-    });
-
-    if (response.stop_reason === "refusal") {
-      return Response.json(
-        { error: "The assistant declined to answer that request." },
-        { status: 422 }
-      );
-    }
-
     let reply = "";
     let widget: AssistantResponse["widget"] = null;
-    for (const block of response.content) {
-      if (block.type === "text") {
-        reply += block.text;
-      } else if (block.type === "tool_use" && block.name === "create_widget") {
-        widget = toWidget(block.input as Record<string, unknown>);
+    let query: AssistantQuery | null = null;
+
+    // Two passes at most: one where the model may query, one where it reads the
+    // rows back and answers. A single extra round trip is enough because every
+    // question here resolves to one aggregate.
+    for (let pass = 0; pass < 2; pass += 1) {
+      const response = await client.messages.create({
+        model: MODEL,
+        max_tokens: MAX_TOKENS,
+        system: warehouseMode ? WAREHOUSE_SYSTEM_PROMPT : CSV_SYSTEM_PROMPT,
+        tools,
+        // "parse" must produce a widget; "chat" decides for itself. Forcing the
+        // tool on the second pass would stop the model from answering in prose.
+        tool_choice:
+          mode === "parse" && pass === 0 && !warehouseMode
+            ? { type: "tool", name: "create_widget" }
+            : { type: "auto" },
+        messages,
+      });
+
+      if (response.stop_reason === "refusal") {
+        return Response.json(
+          { error: "The assistant declined to answer that request." },
+          { status: 422 }
+        );
       }
+
+      const queryCalls: Anthropic.ToolUseBlock[] = [];
+      for (const block of response.content) {
+        if (block.type === "text") {
+          reply += block.text;
+        } else if (block.type === "tool_use" && block.name === "create_widget") {
+          widget = toWidget(block.input as Record<string, unknown>);
+        } else if (block.type === "tool_use" && block.name === "query_warehouse") {
+          queryCalls.push(block);
+        }
+      }
+
+      if (queryCalls.length === 0) break;
+
+      // Execute each query through the same engine /api/v1/query uses, so a
+      // payload the model composed is validated identically to a widget's.
+      messages.push({ role: "assistant", content: response.content });
+      const results: Anthropic.ToolResultBlockParam[] = [];
+      for (const call of queryCalls) {
+        const executed = await runAssistantQuery(call.input as Record<string, unknown>);
+        query = executed;
+        results.push({
+          type: "tool_result",
+          tool_use_id: call.id,
+          is_error: executed.error !== undefined,
+          content: renderQueryResult(executed),
+        });
+      }
+      messages.push({ role: "user", content: results });
     }
 
     if (mode === "parse" && !widget) {
@@ -220,6 +282,7 @@ export async function POST(request: Request): Promise<Response> {
     const payload: AssistantResponse = {
       reply: reply.trim() || (widget ? `Added "${widget.title}".` : ""),
       widget,
+      query,
     };
     return Response.json(payload);
   } catch (err) {

@@ -18,9 +18,32 @@ import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
 import { PT_FOCUS_PARAMETERS, PT_FOCUS_PRESETS } from "./components/focusParams";
 import { usePaymentTermsFocus } from "./components/usePaymentTermsFocus";
 
+/**
+ * This page is the one core dashboard the warehouse cannot yet feed. Its
+ * headline metrics — average paid days and standard-terms adherence — need a
+ * settlement date per invoice, and fact_invoices carries only the document and
+ * posting dates. Rather than derive a paid date that does not exist, the page
+ * stays on its invoice-list source and says so.
+ */
+function WarehouseGapNote() {
+  return (
+    <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+      <p className="font-medium">Showing sample data, not Azure SQL.</p>
+      <p className="mt-1 leading-snug text-amber-800 dark:text-amber-300">
+        Paid-cycle metrics need a settlement date per invoice. Migrating this page requires{" "}
+        <code className="rounded bg-amber-100 px-1 py-0.5 text-xs dark:bg-amber-900/60">paid_date_key</code> and{" "}
+        <code className="rounded bg-amber-100 px-1 py-0.5 text-xs dark:bg-amber-900/60">paid_days</code> on{" "}
+        <code className="rounded bg-amber-100 px-1 py-0.5 text-xs dark:bg-amber-900/60">fact_invoices</code>, plus
+        global-ultimate and source-system attributes on the vendor dimension. Every other core dashboard reads
+        the warehouse in this mode.
+      </p>
+    </div>
+  );
+}
+
 export default function PaymentTermsPage() {
   const { activeParameters, toggleParameter, applyPreset, isWidgetVisible } = usePaymentTermsFocus();
-  const { getDatasetForPage } = useDatasets();
+  const { getDatasetForPage, providerType } = useDatasets();
   const dataset = getDatasetForPage("payment-terms");
 
   // Uploaded CSV (when present and usable) replaces the mock invoice list —
@@ -61,6 +84,8 @@ export default function PaymentTermsPage() {
             onApplyPreset={applyPreset}
             thresholdsPageKey="payment-terms"
           />
+
+          {providerType === "azure-sql" && datasetInvoices === null && <WarehouseGapNote />}
 
           {isWidgetVisible("kpi-ribbon") && <KpiRibbon />}
           {/* Trailing odd child spans the full row so hiding/filtering widgets never leaves a gap. */}

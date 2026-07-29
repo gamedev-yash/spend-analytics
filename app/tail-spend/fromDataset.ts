@@ -51,7 +51,7 @@ const SAVINGS_PER_MICRO_PO = 3_400;
 const STRATEGIC_SHARE = 0.5;
 const CORE_SHARE = 0.8;
 
-interface SupplierRecord {
+export interface SupplierRecord {
   supplierId: string;
   supplierName: string;
   category: string;
@@ -71,7 +71,13 @@ interface SupplierRecord {
   costCenterCount: number | null;
 }
 
-interface ParsedDataset {
+/**
+ * Supplier-grain intermediate every widget on this page derives from. Producing
+ * one of these is the whole job of an input adapter — lib/page-data builds it
+ * from provider aggregates, parseDataset below builds it from CSV rows, and
+ * buildTailSpendFromParsed turns either into the page's data.
+ */
+export interface ParsedDataset {
   suppliers: SupplierRecord[];
   /** Individual transaction values — only for transaction-grain datasets. */
   txnValues: number[] | null;
@@ -80,6 +86,8 @@ interface ParsedDataset {
   /** True when consolidation fields came from real columns (supplier grain). */
   consolidationFromColumns: boolean;
 }
+
+export { DEFAULT_MICRO_PO_THRESHOLD };
 
 function normalizeSegment(raw: string): SpendSegment | null {
   const s = raw.trim().toLowerCase();
@@ -109,7 +117,7 @@ function normalizeAction(raw: string, score: number | null): ConsolidationAction
  * category table keys its rows on this code — so `taken` disambiguates with a
  * numeric suffix, keeping every emitted code unique.
  */
-function categoryCode(category: string, taken: Set<string>): string {
+export function categoryCode(category: string, taken: Set<string>): string {
   const word = category.split(/[\s,&–-]+/).find(Boolean) ?? category;
   const base = word.slice(0, 7).toUpperCase() || "CAT";
   let code = base;
@@ -608,7 +616,20 @@ export function buildTailSpendFromDataset(
 ): TailSpendData | null {
   const parsed = parseDataset(dataset, microThreshold);
   if (!parsed) return null;
+  return buildTailSpendFromParsed(parsed, microThreshold);
+}
+
+/**
+ * Derive the full page shape from the supplier-grain intermediate, whichever
+ * adapter produced it. Anything the intermediate cannot supply keeps its static
+ * mock value, so a partial source still renders a complete page.
+ */
+export function buildTailSpendFromParsed(
+  parsed: ParsedDataset,
+  microThreshold: number = DEFAULT_MICRO_PO_THRESHOLD
+): TailSpendData | null {
   const records = parsed.suppliers;
+  if (records.length === 0) return null;
 
   // --- Supplier-grain tables (direct projections) --------------------------
 

@@ -344,17 +344,28 @@ async function callAssistant(payload: AssistantRequest): Promise<AssistantRespon
   return data as AssistantResponse;
 }
 
+/**
+ * A warehouse dataset carries no rows in the browser, so summary statistics are
+ * meaningless for it. Naming it instead switches the route into warehouse mode,
+ * where the model composes a real query against the metadata registry.
+ */
+function registryDatasetId(dataset: Dataset | null): string | null {
+  return dataset?.source === "server" ? dataset.id : null;
+}
+
 /** Chat turn: prose answer, plus a widget when the user asked for one. */
 export async function askAssistant(
   message: string,
   dataset: Dataset | null,
   history: AssistantRequest["history"] = []
 ): Promise<AssistantResponse & { validatedWidget: WidgetConfig | null }> {
+  const serverDatasetId = registryDatasetId(dataset);
   const response = await callAssistant({
     mode: "chat",
     message,
     history,
-    dataset: dataset ? buildDatasetContext(dataset) : null,
+    dataset: serverDatasetId || !dataset ? null : buildDatasetContext(dataset),
+    registryDatasetId: serverDatasetId,
   });
   const validatedWidget =
     response.widget && dataset
@@ -374,11 +385,17 @@ export async function parseUserPromptToWidget(
   columns: ColumnMeta[],
   dataset?: Dataset | null
 ): Promise<WidgetConfig | null> {
+  const serverDatasetId = registryDatasetId(dataset ?? null);
   const context: DatasetContext = dataset
     ? buildDatasetContext(dataset)
     : { name: "active dataset", rowCount: 0, columns, stats: [] };
 
-  const response = await callAssistant({ mode: "parse", message: prompt, dataset: context });
+  const response = await callAssistant({
+    mode: "parse",
+    message: prompt,
+    dataset: serverDatasetId ? null : context,
+    registryDatasetId: serverDatasetId,
+  });
   if (!response.widget) return null;
   return validateWidgetAgainstColumns(response.widget, columns);
 }
