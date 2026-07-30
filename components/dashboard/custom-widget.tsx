@@ -5,6 +5,7 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  Legend,
   Line,
   LineChart,
   Pie,
@@ -15,7 +16,7 @@ import {
   YAxis,
 } from "recharts";
 import { usePalette } from "@/hooks/use-palette";
-import { useWidgetQuery } from "@/hooks/use-widget-query";
+import { useStackedWidgetQuery, useWidgetQuery } from "@/hooks/use-widget-query";
 import { useWidgetFilters } from "@/context/WidgetFiltersContext";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import {
@@ -24,6 +25,7 @@ import {
   isWidgetRenderable,
   widgetIssue,
   type SeriesPoint,
+  type StackedSeriesPoint,
 } from "@/lib/widget-data";
 import { AGGREGATION_LABELS, type WidgetConfig } from "@/types/custom-dashboard";
 import type { Dataset } from "@/context/DatasetsContext";
@@ -38,6 +40,22 @@ interface CustomWidgetProps {
 function columnName(dataset: Dataset, columnId: string | undefined): string | undefined {
   return dataset.columns.find((c) => c.id === columnId)?.name;
 }
+
+/**
+ * Handed to whichever widget-query hook does not apply to this chart type. Both
+ * hooks must be called on every render (hook rules), so the inactive one gets a
+ * config both payload builders decline: a non-`count` aggregation with no measure
+ * column makes each return null, and a null payload issues no request at all.
+ *
+ * `aggregation: "count"` would *not* work here — it needs no measure column, so it
+ * would build a valid KPI payload and cost a wasted round trip per widget.
+ */
+const NO_QUERY_CONFIG: WidgetConfig = {
+  id: "__inactive__",
+  title: "",
+  chartType: "bar",
+  aggregation: "sum",
+};
 
 /** Long category labels truncate on the axis; the tooltip shows them in full. */
 function shortLabel(label: string, max = 18): string {
@@ -72,8 +90,18 @@ export function CustomWidget({ dataset, config, preview = false }: CustomWidgetP
   const groupName = columnName(dataset, config.xAxisColumn);
 
   const renderable = isWidgetRenderable(dataset, config);
+  const isStacked = config.chartType === "stackedBar";
   const filters = useWidgetFilters();
-  const { series, kpiValue, totalMatchingRows, ready, error } = useWidgetQuery(dataset, config, filters);
+
+  // Both hooks run unconditionally (hook rules); each declines to query when its
+  // payload doesn't apply, so only one round trip is actually issued per widget.
+  const flat = useWidgetQuery(dataset, isStacked ? NO_QUERY_CONFIG : config, filters);
+  const stackedQuery = useStackedWidgetQuery(dataset, isStacked ? config : NO_QUERY_CONFIG, filters);
+
+  const { series, kpiValue, totalMatchingRows } = flat;
+  const stacked = stackedQuery.stacked;
+  const ready = isStacked ? stackedQuery.ready : flat.ready;
+  const error = isStacked ? stackedQuery.error : flat.error;
 
   if (!renderable) {
     return <EmptyNote message={widgetIssue(dataset, config) ?? "This widget is not configured."} />;
@@ -84,7 +112,7 @@ export function CustomWidget({ dataset, config, preview = false }: CustomWidgetP
   if (!ready) {
     return <LoadingNote />;
   }
-  if (config.chartType !== "kpi" && series.length === 0) {
+  if (isStacked ? stacked.points.length === 0 : config.chartType !== "kpi" && series.length === 0) {
     return <EmptyNote message="No rows to plot for this column selection." />;
   }
 
@@ -226,6 +254,80 @@ export function CustomWidget({ dataset, config, preview = false }: CustomWidgetP
             isAnimationActive={false}
           />
         </LineChart>
+      </ResponsiveContainer>
+    );
+  }
+
+  // --- Stacked bar -----------------------------------------------------------
+  if (isStacked) {
+    const { points, seriesKeys } = stacked;
+    const stackedTooltip = (
+      <Tooltip
+        cursor={{ fill: palette.isDark ? "rgba(148,163,184,0.12)" : "rgba(15,23,42,0.05)" }}
+        content={({ active, payload, label }) => {
+          const point = payload?.[0]?.payload as StackedSeriesPoint | undefined;
+          if (!active || !point) return null;
+          return (
+            <ChartTooltipCard
+              active={active}
+              heading={String(label)}
+              rows={[
+                ...seriesKeys
+                  .filter((key) => point.values[key] > 0)
+                  .map((key) => ({
+                    label: key,
+                    value: formatWidgetValue(point.values[key], aggregation, measureName),
+                    color: palette.colorForIndex(seriesKeys.indexOf(key)),
+                  })),
+                { label: "Total", value: formatWidgetValue(point.total, aggregation, measureName) },
+              ]}
+            />
+          );
+        }}
+      />
+    );
+
+    return (
+      <ResponsiveContainer width="100%" height={chartHeight}>
+        <BarChart data={points} margin={{ top: 8, right: 12, bottom: 4, left: 0 }} barCategoryGap="22%">
+          <CartesianGrid vertical={false} stroke={palette.ink.grid} />
+          <XAxis
+            dataKey="label"
+            stroke={palette.ink.baseline}
+            tick={{ fill: palette.ink.muted, fontSize: 11 }}
+            tickLine={false}
+            interval={0}
+            angle={points.length > 6 ? -25 : 0}
+            textAnchor={points.length > 6 ? "end" : "middle"}
+            height={points.length > 6 ? 56 : 28}
+            tickFormatter={(value: string) => shortLabel(value)}
+          />
+          <YAxis
+            stroke={palette.ink.baseline}
+            tick={{ fill: palette.ink.muted, fontSize: 11 }}
+            tickLine={false}
+            width={52}
+            tickFormatter={formatAxisValue}
+          />
+          {stackedTooltip}
+          {seriesKeys.length > 1 && (
+            <Legend wrapperStyle={{ fontSize: 11, color: palette.ink.secondary }} iconType="square" iconSize={8} />
+          )}
+          {seriesKeys.map((key, index) => (
+            <Bar
+              key={key}
+              dataKey={`values.${key}`}
+              name={key}
+              stackId="stack"
+              fill={palette.colorForIndex(index)}
+              stroke={palette.ink.surface}
+              strokeWidth={2}
+              radius={index === seriesKeys.length - 1 ? [4, 4, 0, 0] : 0}
+              maxBarSize={44}
+              isAnimationActive={false}
+            />
+          ))}
+        </BarChart>
       </ResponsiveContainer>
     );
   }

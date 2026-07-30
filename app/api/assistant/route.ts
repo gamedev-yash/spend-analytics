@@ -19,6 +19,7 @@
 //   from. Its prose is therefore grounded in a query that actually ran.
 
 import Anthropic from "@anthropic-ai/sdk";
+import { resolveAnthropicClient, NO_KEY_ERROR } from "@/lib/ai/anthropic-client";
 import { CHART_TYPE_LABELS } from "@/types/custom-dashboard";
 import { getDataset } from "@/lib/server/metadata-registry";
 import { buildAndExecuteQuery } from "@/lib/server/query-engine";
@@ -36,18 +37,25 @@ import type {
   AssistantRequest,
   AssistantResponse,
   DatasetContext,
+  OtherDashboardInfo,
 } from "@/types/assistant";
 
 export const runtime = "nodejs";
 
-/**
- * Claude model powering the assistant. Overridable so an Azure AI Foundry
- * deployment (identified by a deployment name, not an Anthropic model id) can
- * point at itself without a code change.
- */
-const MODEL = process.env.AZURE_FOUNDRY_MODEL || "claude-opus-5";
 const MAX_TOKENS = 8_000;
 
+// The model id comes from resolveAnthropicClient(), which honours
+// AZURE_FOUNDRY_MODEL so a Foundry deployment name routes correctly.
+
+// Mirrors .claude/skills/chart-generation/SKILL.md — keep both in sync. That
+// skill governs how *we* (Claude Code) hand-build dashboard charts for this
+// repo; this constant is the same rules loaded into the live create_widget
+// tool call so end users' generated widgets follow the identical form,
+// aggregation, column, limit, and title rules.
+//
+// Used for an uploaded CSV, where the model answers from column statistics.
+// WAREHOUSE_SYSTEM_PROMPT below replaces it when the question is about a
+// registry dataset, whose rows are only reachable by querying.
 const CSV_SYSTEM_PROMPT = `You are the Procurement BI Assistant embedded in a Vedanta spend-analytics dashboard app.
 
 You help procurement analysts understand their uploaded spend data and build dashboard widgets from it.
@@ -56,9 +64,30 @@ Grounding rules — these are absolute:
 - Answer ONLY from the dataset context provided in the user message. It lists the real columns (with inferred types and distinct counts) and summary statistics for the user's currently active CSV.
 - Never invent column names, row counts, or figures. If a number isn't in the provided statistics and can't be derived from them, say what you'd need instead of guessing.
 - If no dataset is attached, say so plainly and tell the user to upload a CSV.
-- Cite the actual column names when you reference them.
+- Cite the actual column names when you reference them, using the exact \`id\` shown in the dataset context — never a display label or a guessed variant.
 
-When the user asks for a chart, table, or KPI, call the create_widget tool with columns that exist in the dataset. Pick the aggregation that makes the metric meaningful: sum for money and countable quantities, avg for rates/percentages/durations (summing "paid days" across invoices is meaningless), count when no measure applies. Use limit for "top N" requests.
+Call create_widget when the request is to SEE something (show/plot/chart/graph/add/visualize/break down/compare/rank/trend/top N). Answer in prose when it's a QUESTION about the data (how many rows, which columns are numeric, what's the total). Don't do both for one intent.
+
+Chart form — first match wins:
+- Single number, no breakdown → kpi (no xAxisColumn).
+- A measure over time AND a real date column exists → line (no limit unless a window is requested).
+- Composition/share of total AND the dimension has ≤12 distinct values → donut (prefer donut over pie; only use pie if the user says "pie").
+- Ranked comparison across one category → bar (the default when ambiguous). limit 10 by default.
+- One measure broken down by TWO category/date dimensions at once ("by X, split by Y") → stackedBar, with xAxisColumn as the outer grouping (usually the date, or the dimension with more distinct values) and seriesColumn as the stack-by dimension (usually the lower-cardinality one, ideally ≤8 distinct values). xAxisColumn and seriesColumn must be different columns. Only use stackedBar when the request genuinely names two groupings — never guess a second column for a single-dimension request. gridSpan 2, limit 10 on a category axis (omit on a date axis unless a window is requested).
+- Row-level detail ("list", "show the records", "which ones") → table, limit 25, gridSpan 2.
+- "Trend" with no date column → emit bar instead and say why in your reply.
+
+Aggregation: sum for money/countable quantities. avg for rates, percentages, ratios, scores, AND durations (any *_days/*_age/*_cycle/*_rate/*_pct/*_percent/*_ratio/*_share/*_score/*_margin column) — summing "paid days" across invoices is meaningless, never optional. count when no measure applies (leave yAxisColumn null). distinct for "how many different X".
+
+Columns: yAxisColumn must be a number column that is a real quantity — never an identifier/code column (id/no/nr/num/number/code/key/zip/pin/year/gjahr/belnr/ebeln/ebelp/lifnr/matnr; summing those is always a bug). xAxisColumn/seriesColumn must be category or date columns with roughly 2–200 distinct values; prefer a name-reading column over a code-reading one, and lower cardinality when both are names.
+
+Title: "{Top N} {Dimension} by {Aggregation} {Measure}", title case, humanized column names — not the raw id. Two identical requests must produce the same title; no commentary, dates, or dataset name in it.
+
+gridSpan: 2 for line, table, and stackedBar (trends, tables, and a stack's legend need horizontal room); 1 for kpi, bar, donut, pie.
+
+Every create_widget field is required by the schema — seriesColumn is null on every chart type except stackedBar, the same way xAxisColumn is null on kpi.
+
+You have DATA ACCESS ONLY for the dashboard whose dataset is in DATASET CONTEXT below. Other dashboards exist in this app — OTHER DASHBOARDS lists their names and scope only, never their data, so you can redirect the user there instead of guessing. If the request needs data that belongs to one of those instead, call redirect_to_dashboard with its id — even if you could plausibly guess the answer. Never answer using data you don't have.
 
 Keep prose answers short and concrete — a few sentences, no preamble, no markdown headers.`;
 
@@ -80,6 +109,37 @@ Choosing the query:
 When the user asks to see, add, plot, chart, or visualize something, also call create_widget so it lands on their canvas. Query first, so your prose matches the widget.
 
 Keep prose answers short and concrete — a few sentences, no preamble, no markdown headers.`;
+
+const REDIRECT_TOOL: Anthropic.Tool = {
+  name: "redirect_to_dashboard",
+  description:
+    "Call this INSTEAD of create_widget or a prose answer when the request needs data that belongs to a different dashboard than the one whose dataset you were given in DATASET CONTEXT. Never guess using data you don't have.",
+  strict: true,
+  input_schema: {
+    type: "object",
+    properties: {
+      dashboardId: {
+        type: "string",
+        description: "The id of the dashboard (from the OTHER DASHBOARDS list) that actually covers this request.",
+      },
+      reason: {
+        type: "string",
+        description: "One short, specific sentence on why that dashboard covers it.",
+      },
+    },
+    required: ["dashboardId", "reason"],
+    additionalProperties: false,
+  },
+};
+
+/** Compact, token-cheap rendering of the other dashboards the model may redirect to, never answer from. */
+function renderOtherDashboards(others: OtherDashboardInfo[] | undefined): string {
+  if (!others || others.length === 0) return "OTHER DASHBOARDS: none — this is the only dashboard that exists right now.";
+  return [
+    "OTHER DASHBOARDS (you do NOT have their data — redirect there with redirect_to_dashboard, never answer from them):",
+    ...others.map((d) => `- id: ${d.id} — "${d.title}" (${d.route}): ${d.summary}`),
+  ].join("\n");
+}
 
 /** Compact, token-cheap rendering of the dataset the model must reason over. */
 function renderDatasetContext(dataset: DatasetContext | null | undefined): string {
@@ -106,33 +166,9 @@ function renderDatasetContext(dataset: DatasetContext | null | undefined): strin
   ].join("\n");
 }
 
-/**
- * Credentials, in priority order: an Azure-hosted Anthropic gateway, direct
- * Anthropic, then Azure AI Foundry — so an existing AZURE_ANTHROPIC_API_KEY or
- * ANTHROPIC_API_KEY deployment is untouched by adding Foundry variables
- * alongside it, and a Foundry-only environment still works.
- *
- * AZURE_FOUNDRY_API_VERSION is assumed to be a REST query parameter, the same
- * contract Azure OpenAI uses — appended as `?api-version=...` on every request.
- * If your Foundry deployment expects it somewhere else (a header, the URL
- * path), adjust the `defaultQuery` line below accordingly.
- */
-function resolveClient(): Anthropic | null {
-  const apiKey =
-    process.env.AZURE_ANTHROPIC_API_KEY ??
-    process.env.ANTHROPIC_API_KEY ??
-    process.env.AZURE_FOUNDRY_API_KEY;
-  if (!apiKey) return null;
-
-  // AZURE_ENDPOINT / AZURE_FOUNDRY_ENDPOINT route through an Azure-hosted
-  // gateway that speaks the Anthropic Messages API; unset = Anthropic's own API.
-  const baseURL = process.env.AZURE_ENDPOINT || process.env.AZURE_FOUNDRY_ENDPOINT || undefined;
-
-  const apiVersion = process.env.AZURE_FOUNDRY_API_VERSION;
-  const defaultQuery = apiVersion ? { "api-version": apiVersion } : undefined;
-
-  return new Anthropic({ apiKey, baseURL, defaultQuery });
-}
+// Credential resolution (including the AZURE_FOUNDRY_* fallbacks) lives in
+// lib/ai/anthropic-client.ts, shared with the dashboard-chat route so both
+// resolve the same key, endpoint, and model.
 
 const AGGREGATIONS: Aggregation[] = ["sum", "avg", "count", "distinct"];
 
@@ -154,6 +190,7 @@ function toWidget(input: Record<string, unknown>): Omit<WidgetConfig, "id"> | nu
     chartType: chartType as ChartType,
     xAxisColumn: str(input.xAxisColumn),
     yAxisColumn: str(input.yAxisColumn),
+    seriesColumn: str(input.seriesColumn),
     aggregation: AGGREGATIONS.find((a) => a === input.aggregation),
     limit:
       typeof input.limit === "number" && Number.isFinite(input.limit) && input.limit > 0
@@ -198,16 +235,16 @@ export async function POST(request: Request): Promise<Response> {
   }
   const mode = body.mode === "parse" ? "parse" : "chat";
 
-  const client = resolveClient();
-  if (!client) {
+  const resolved = resolveAnthropicClient();
+  if (!resolved) {
     return Response.json(
-      {
-        error:
-          "The AI Assistant needs an API key. Set AZURE_ANTHROPIC_API_KEY or ANTHROPIC_API_KEY in the server environment (optionally AZURE_ENDPOINT for a gateway), then restart the dev server.",
-      },
+      { error: NO_KEY_ERROR },
       { status: 503 }
     );
   }
+  const { client, model } = resolved;
+
+  const otherDashboards = Array.isArray(body.otherDashboards) ? body.otherDashboards : [];
 
   // Warehouse mode when the client names a registry dataset; otherwise the
   // original uploaded-CSV behaviour, unchanged.
@@ -228,16 +265,26 @@ export async function POST(request: Request): Promise<Response> {
       .map((m) => ({ role: m.role, content: m.content })),
     {
       role: "user" as const,
-      content: `${context}\n\n---\n\nUSER: ${message}`,
+      // `context` is the warehouse schema in Azure SQL mode and the uploaded
+      // CSV's column statistics otherwise; the redirect list applies to both.
+      content: `${context}\n\n${renderOtherDashboards(otherDashboards)}\n\n---\n\nUSER: ${message}`,
     },
   ];
 
   const widgetTool = createWidgetTool(registryDatasetId);
-  const tools = warehouseMode ? [queryWarehouseTool(), widgetTool] : [widgetTool];
+  // "parse" must produce a widget, so it never sees the redirect escape hatch;
+  // "chat" also gets redirect_to_dashboard, and in warehouse mode query_warehouse.
+  const tools: Anthropic.Tool[] =
+    mode === "parse"
+      ? [widgetTool]
+      : warehouseMode
+        ? [queryWarehouseTool(), widgetTool, REDIRECT_TOOL]
+        : [widgetTool, REDIRECT_TOOL];
 
   try {
     let reply = "";
     let widget: AssistantResponse["widget"] = null;
+    let redirect: AssistantResponse["redirect"] = null;
     let query: AssistantQuery | null = null;
 
     // Two passes at most: one where the model may query, one where it reads the
@@ -245,7 +292,7 @@ export async function POST(request: Request): Promise<Response> {
     // question here resolves to one aggregate.
     for (let pass = 0; pass < 2; pass += 1) {
       const response = await client.messages.create({
-        model: MODEL,
+        model,
         max_tokens: MAX_TOKENS,
         system: warehouseMode ? WAREHOUSE_SYSTEM_PROMPT : CSV_SYSTEM_PROMPT,
         tools,
@@ -273,6 +320,13 @@ export async function POST(request: Request): Promise<Response> {
           widget = toWidget(block.input as Record<string, unknown>);
         } else if (block.type === "tool_use" && block.name === "query_warehouse") {
           queryCalls.push(block);
+        } else if (block.type === "tool_use" && block.name === "redirect_to_dashboard") {
+          const input = block.input as { dashboardId: string; reason: string };
+          const target = otherDashboards.find((d) => d.id === input.dashboardId);
+          if (target) {
+            redirect = { id: target.id, title: target.title, route: target.route };
+            if (!reply.trim()) reply = `That's on the "${target.title}" dashboard — ${input.reason}`;
+          }
         }
       }
 
@@ -306,6 +360,7 @@ export async function POST(request: Request): Promise<Response> {
       reply: reply.trim() || (widget ? `Added "${widget.title}".` : ""),
       widget,
       query,
+      redirect,
     };
     return Response.json(payload);
   } catch (err) {

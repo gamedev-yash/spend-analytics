@@ -162,6 +162,12 @@ export function createWidgetTool(registryDatasetId: string | null): Anthropic.To
           measureIds,
           "Metric column id (a numeric column). Omit/null when aggregation is count."
         ),
+        // Stacked bars group by two dimensions, so the stack-by column is
+        // constrained to the same grouping set as the x-axis.
+        seriesColumn: axis(
+          groupingIds,
+          "Stack-by dimension column id — only for chartType 'stackedBar', a second category/date column distinct from xAxisColumn (ideally ≤ 8 distinct values). Null for every other chart type."
+        ),
         aggregation: {
           type: ["string", "null"],
           enum: ["sum", "avg", "count", "distinct", null],
@@ -169,7 +175,8 @@ export function createWidgetTool(registryDatasetId: string | null): Anthropic.To
         },
         limit: {
           type: ["integer", "null"],
-          description: "Top-N cap for grouped charts, e.g. 10 for 'top 10 vendors'.",
+          description:
+            "Top-N cap for grouped charts, e.g. 10 for 'top 10 vendors'. On a date axis, most-recent-N instead.",
         },
         gridSpan: {
           type: ["integer", "null"],
@@ -177,7 +184,16 @@ export function createWidgetTool(registryDatasetId: string | null): Anthropic.To
           description: "1 = half width (default), 2 = full width. Use 2 for line trends and tables.",
         },
       },
-      required: ["title", "chartType", "xAxisColumn", "yAxisColumn", "aggregation", "limit", "gridSpan"],
+      required: [
+        "title",
+        "chartType",
+        "xAxisColumn",
+        "yAxisColumn",
+        "seriesColumn",
+        "aggregation",
+        "limit",
+        "gridSpan",
+      ],
       additionalProperties: false,
     },
   };

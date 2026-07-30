@@ -28,6 +28,16 @@ export interface AssistantChatMessage {
   content: string;
 }
 
+/** A dashboard the model does NOT have data for — named only so it can redirect there. */
+export interface OtherDashboardInfo {
+  /** Dashboard-registry key for a core dashboard, or a custom dashboard's id. */
+  id: string;
+  title: string;
+  route: string;
+  /** One-line description of what this dashboard covers. */
+  summary: string;
+}
+
 export interface AssistantRequest {
   /** "chat" answers questions; "parse" forces a widget tool call. */
   mode: "chat" | "parse";
@@ -41,6 +51,8 @@ export interface AssistantRequest {
    * a real query result rather than in summary statistics.
    */
   registryDatasetId?: string | null;
+  /** Other dashboards that exist, for redirecting — never used to answer directly. */
+  otherDashboards?: OtherDashboardInfo[];
 }
 
 /** A query the model composed, executed against the registry, with its rows. */
@@ -63,6 +75,8 @@ export interface AssistantResponse {
    * grounded in, and the client can render them without re-querying.
    */
   query?: AssistantQuery | null;
+  /** Set when the model called redirect_to_dashboard instead of answering. */
+  redirect?: { id: string; title: string; route: string } | null;
   /** True when the server had no API key and answered from local data only. */
   offline?: boolean;
 }

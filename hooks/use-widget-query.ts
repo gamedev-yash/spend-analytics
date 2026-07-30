@@ -5,18 +5,21 @@
 // above these hooks touches dataset rows, so the same components work against a
 // browser-side CSV or a database.
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDataProvider } from "@/context/DatasetsContext";
 import {
   buildDistinctValuesPayload,
   buildRowCountPayload,
+  buildStackedWidgetPayload,
   buildWidgetPayload,
   distinctValuesFromResult,
   kpiValueFromResult,
+  limitStackedPoints,
   rowCountFromResult,
   seriesFromResult,
+  stackedSeriesFromResult,
 } from "@/lib/widget-query";
-import type { SeriesPoint } from "@/lib/widget-data";
+import type { SeriesPoint, StackedSeriesResult } from "@/lib/widget-data";
 import type { QueryFilter, QueryPayload, QueryResult } from "@/types/data-provider";
 import type { WidgetConfig } from "@/types/custom-dashboard";
 import type { Dataset } from "@/types/dataset";
@@ -141,6 +144,40 @@ export function useWidgetQuery(
     EMPTY_WIDGET_DATA
   );
   return { ...data, loading, ready, error };
+}
+
+export interface StackedWidgetQueryState {
+  stacked: StackedSeriesResult;
+  loading: boolean;
+  ready: boolean;
+  error: string | null;
+}
+
+const EMPTY_STACKED: StackedSeriesResult = { points: [], seriesKeys: [] };
+
+/**
+ * A 'stackedBar' widget's data: one two-dimension provider query, folded into
+ * stacked points. Separate from useWidgetQuery because the payload carries a
+ * second dimension and the result needs the series ranking / "Other" fold rather
+ * than a flat SeriesPoint[].
+ *
+ * The Top-N cap is applied here rather than inside the mapper, so the mapper
+ * stays a module-level function that useProviderQuery can key its effect on.
+ */
+export function useStackedWidgetQuery(
+  dataset: Dataset,
+  config: WidgetConfig,
+  filters: QueryFilter[] = NO_FILTERS
+): StackedWidgetQueryState {
+  const payload = buildStackedWidgetPayload(dataset, config, filters);
+  const { data, loading, ready, error } = useProviderQuery(
+    payload,
+    stackedSeriesFromResult,
+    EMPTY_STACKED
+  );
+  const limit = config.limit;
+  const stacked = useMemo(() => limitStackedPoints(data, limit), [data, limit]);
+  return { stacked, loading, ready, error };
 }
 
 export interface RowCountState {

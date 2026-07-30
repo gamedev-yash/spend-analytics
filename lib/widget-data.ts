@@ -20,6 +20,43 @@ export function resolveColumn(dataset: Dataset, columnId: string | undefined): s
   return dataset.columns.some((c) => c.id === columnId) ? columnId : undefined;
 }
 
+/**
+ * A stacked series point: one outer group holding a value per series key.
+ *
+ * The shape is display-side, so it lives here beside SeriesPoint. It is now
+ * produced by lib/widget-query.stackedSeriesFromResult from a two-dimension
+ * provider result rather than by a local pass over dataset.rows, so stacked
+ * bars work against Azure SQL as well as an uploaded CSV.
+ */
+export interface StackedSeriesPoint {
+  label: string;
+  values: Record<string, number>;
+  /** Sum of this point's segment values — the stack's rendered height. */
+  total: number;
+  count: number;
+}
+
+export interface StackedSeriesResult {
+  points: StackedSeriesPoint[];
+  /** Display/color order — real series ranked by contribution, "Other" last if present. */
+  seriesKeys: string[];
+  /**
+   * True when the outer axis is a date, so points read chronologically and a
+   * Top-N limit means "most recent N" rather than "largest N".
+   */
+  dateAxis?: boolean;
+}
+
+/**
+ * Series keys beyond this count fold into a single "Other" bucket, mirroring the
+ * categorical palette's own fixed-order-then-fold-to-neutral rule
+ * (lib/chart-colors.ts colorForIndex folds at the same count) so a stack never
+ * needs more distinguishable hues than the palette actually has.
+ */
+export const MAX_STACK_SERIES = 7;
+
+export const OTHER_SERIES_KEY = "Other";
+
 /** True when the widget has everything it needs to render real data. */
 export function isWidgetRenderable(dataset: Dataset, config: WidgetConfig): boolean {
   const aggregation = config.aggregation ?? "sum";
@@ -27,7 +64,12 @@ export function isWidgetRenderable(dataset: Dataset, config: WidgetConfig): bool
   const hasMeasure = resolveColumn(dataset, config.yAxisColumn) !== undefined;
   if (needsMeasure && !hasMeasure) return false;
   if (config.chartType === "kpi") return true;
-  return resolveColumn(dataset, config.xAxisColumn) !== undefined;
+  if (!resolveColumn(dataset, config.xAxisColumn)) return false;
+  if (config.chartType === "stackedBar") {
+    const series = resolveColumn(dataset, config.seriesColumn);
+    return series !== undefined && series !== config.xAxisColumn;
+  }
+  return true;
 }
 
 /** Human explanation of what a widget is missing, for the empty-state note. */
@@ -39,6 +81,11 @@ export function widgetIssue(dataset: Dataset, config: WidgetConfig): string | nu
   }
   if ((config.aggregation ?? "sum") !== "count" && !resolveColumn(dataset, config.yAxisColumn)) {
     missing.push(config.yAxisColumn ? `metric column "${config.yAxisColumn}"` : "a metric column");
+  }
+  if (config.chartType === "stackedBar") {
+    const series = resolveColumn(dataset, config.seriesColumn);
+    if (!series) missing.push(config.seriesColumn ? `stack-by column "${config.seriesColumn}"` : "a stack-by column");
+    else if (series === config.xAxisColumn) missing.push("a stack-by column different from the grouping column");
   }
   return `This widget needs ${missing.join(" and ")}. Edit it to pick columns from this dataset.`;
 }

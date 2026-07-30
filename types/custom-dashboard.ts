@@ -2,7 +2,7 @@
 // dataset. Widgets are declarative — each names the columns, aggregation, and
 // chart form to render, so a dashboard is pure JSON that survives a reload.
 
-export type ChartType = "kpi" | "bar" | "line" | "pie" | "donut" | "table";
+export type ChartType = "kpi" | "bar" | "line" | "pie" | "donut" | "stackedBar" | "table";
 
 export type Aggregation = "sum" | "avg" | "count" | "distinct";
 
@@ -15,6 +15,11 @@ export interface WidgetConfig {
   /** Measure column. Optional for 'count' aggregations, which need no measure. */
   yAxisColumn?: string;
   aggregation?: Aggregation;
+  /**
+   * Stack-by dimension for 'stackedBar' only — a second category/date column,
+   * distinct from xAxisColumn. Unused by every other chart type.
+   */
+  seriesColumn?: string;
   /** Top-N cap on grouped results, e.g. 10. */
   limit?: number;
   /** 1 = half width, 2 = full width. */
@@ -36,6 +41,7 @@ export const CHART_TYPE_LABELS: Record<ChartType, string> = {
   line: "Line Chart",
   pie: "Pie Chart",
   donut: "Donut Chart",
+  stackedBar: "Stacked Bar Chart",
   table: "Data Table",
 };
 
@@ -49,6 +55,11 @@ export const AGGREGATION_LABELS: Record<Aggregation, string> = {
 /** Chart types that plot a grouping dimension against a measure. */
 export function needsXAxis(chartType: ChartType): boolean {
   return chartType !== "kpi";
+}
+
+/** Only 'stackedBar' takes a second, stack-by dimension. */
+export function needsSeriesColumn(chartType: ChartType): boolean {
+  return chartType === "stackedBar";
 }
 
 /** Whether this aggregation reads values from a measure column. */

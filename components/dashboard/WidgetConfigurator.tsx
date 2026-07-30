@@ -16,6 +16,7 @@ import {
   AGGREGATION_LABELS,
   CHART_TYPE_LABELS,
   needsMeasure,
+  needsSeriesColumn,
   needsXAxis,
   type Aggregation,
   type ChartType,
@@ -66,6 +67,7 @@ function ConfiguratorForm({
     chartType: widget?.chartType ?? defaults?.chartType ?? "bar",
     xAxisColumn: widget?.xAxisColumn ?? defaults?.xAxisColumn,
     yAxisColumn: widget?.yAxisColumn ?? defaults?.yAxisColumn,
+    seriesColumn: widget?.seriesColumn ?? defaults?.seriesColumn,
     aggregation: widget?.aggregation ?? defaults?.aggregation ?? "sum",
     limit: widget?.limit ?? defaults?.limit ?? 10,
     gridSpan: widget?.gridSpan ?? defaults?.gridSpan ?? 1,
@@ -98,7 +100,10 @@ function ConfiguratorForm({
 
   const showXAxis = needsXAxis(draft.chartType);
   const showMeasure = needsMeasure(draft.aggregation);
-  const canSave = draft.title.trim().length > 0;
+  const showSeries = needsSeriesColumn(draft.chartType);
+  const canSave =
+    draft.title.trim().length > 0 &&
+    (!showSeries || (!!draft.seriesColumn && draft.seriesColumn !== draft.xAxisColumn));
 
   return (
     <>
@@ -129,6 +134,22 @@ function ConfiguratorForm({
             options={groupingOptions}
             onChange={(v) => patch({ xAxisColumn: v === NONE ? undefined : v })}
           />
+        )}
+
+        {showSeries && (
+          <label className="block space-y-1.5">
+            <FilterSelect
+              label="Stack by (series) column"
+              value={draft.seriesColumn ?? NONE}
+              options={groupingOptions}
+              onChange={(v) => patch({ seriesColumn: v === NONE ? undefined : v })}
+            />
+            {draft.seriesColumn && draft.seriesColumn === draft.xAxisColumn && (
+              <span className="block text-xs text-red-600 dark:text-red-400">
+                Pick a different column than the X-axis — a stack needs two distinct dimensions.
+              </span>
+            )}
+          </label>
         )}
 
         <FilterSelect
