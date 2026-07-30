@@ -10,7 +10,24 @@ import "server-only";
 // AZURE_SQL_CONNECTION_STRING (the seed script's writable credential) is only a
 // fallback, and using it is logged.
 
+import { createRequire } from "node:module";
+import { join } from "node:path";
 import { STATEMENT_TIMEOUT_MS, type BuiltQuery } from "@/lib/server/query-builder";
+
+/**
+ * Loader for the optional driver.
+ *
+ * `await import("mssql")` cannot be used here: the bundler constant-folds the
+ * specifier, tries to resolve it at build time, and emits a "Module not found"
+ * warning on every compile when the driver is not installed — even though the
+ * import only ever runs inside a try/catch. A require obtained from
+ * `node:module` is opaque to that analysis, so resolution happens where it
+ * belongs: at runtime, on the machine that has (or has not) installed it.
+ *
+ * Resolved from the project root rather than `import.meta.url`, which is not
+ * dependable across Next's server output formats.
+ */
+const requireOptional = createRequire(join(process.cwd(), "next.config.ts"));
 
 /** Minimal surface of the `mssql` driver this module uses. */
 interface MssqlRequest {
@@ -60,13 +77,13 @@ let poolPromise: Promise<MssqlPool> | null = null;
 
 async function getPool(connectionString: string): Promise<MssqlPool> {
   if (poolPromise) return poolPromise;
-  // Resolved at runtime: `mssql` is an optional peer, so a missing driver must
-  // not break the sample-data path (nor `tsc`).
+  // Kept in a variable so nothing can fold this into a static specifier and
+  // reintroduce the build-time resolution (see requireOptional above).
   const specifier = "mssql";
   poolPromise = (async () => {
     let driver: MssqlModule;
     try {
-      driver = (await import(specifier)) as MssqlModule;
+      driver = requireOptional(specifier) as MssqlModule;
     } catch {
       throw new SqlUnavailableError(
         "A connection string is set but the `mssql` driver is not installed. Run `npm i mssql`, or unset the connection string to serve the bundled sample data."

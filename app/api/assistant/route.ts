@@ -40,8 +40,12 @@ import type {
 
 export const runtime = "nodejs";
 
-/** Claude model powering the assistant. */
-const MODEL = "claude-opus-5";
+/**
+ * Claude model powering the assistant. Overridable so an Azure AI Foundry
+ * deployment (identified by a deployment name, not an Anthropic model id) can
+ * point at itself without a code change.
+ */
+const MODEL = process.env.AZURE_FOUNDRY_MODEL || "claude-opus-5";
 const MAX_TOKENS = 8_000;
 
 const CSV_SYSTEM_PROMPT = `You are the Procurement BI Assistant embedded in a Vedanta spend-analytics dashboard app.
@@ -102,13 +106,32 @@ function renderDatasetContext(dataset: DatasetContext | null | undefined): strin
   ].join("\n");
 }
 
+/**
+ * Credentials, in priority order: an Azure-hosted Anthropic gateway, direct
+ * Anthropic, then Azure AI Foundry — so an existing AZURE_ANTHROPIC_API_KEY or
+ * ANTHROPIC_API_KEY deployment is untouched by adding Foundry variables
+ * alongside it, and a Foundry-only environment still works.
+ *
+ * AZURE_FOUNDRY_API_VERSION is assumed to be a REST query parameter, the same
+ * contract Azure OpenAI uses — appended as `?api-version=...` on every request.
+ * If your Foundry deployment expects it somewhere else (a header, the URL
+ * path), adjust the `defaultQuery` line below accordingly.
+ */
 function resolveClient(): Anthropic | null {
-  const apiKey = process.env.AZURE_ANTHROPIC_API_KEY ?? process.env.ANTHROPIC_API_KEY;
+  const apiKey =
+    process.env.AZURE_ANTHROPIC_API_KEY ??
+    process.env.ANTHROPIC_API_KEY ??
+    process.env.AZURE_FOUNDRY_API_KEY;
   if (!apiKey) return null;
-  // AZURE_ENDPOINT lets the deployment route through an Azure-hosted gateway
-  // that speaks the Anthropic Messages API; unset = Anthropic's own API.
-  const baseURL = process.env.AZURE_ENDPOINT || undefined;
-  return new Anthropic({ apiKey, baseURL });
+
+  // AZURE_ENDPOINT / AZURE_FOUNDRY_ENDPOINT route through an Azure-hosted
+  // gateway that speaks the Anthropic Messages API; unset = Anthropic's own API.
+  const baseURL = process.env.AZURE_ENDPOINT || process.env.AZURE_FOUNDRY_ENDPOINT || undefined;
+
+  const apiVersion = process.env.AZURE_FOUNDRY_API_VERSION;
+  const defaultQuery = apiVersion ? { "api-version": apiVersion } : undefined;
+
+  return new Anthropic({ apiKey, baseURL, defaultQuery });
 }
 
 const AGGREGATIONS: Aggregation[] = ["sum", "avg", "count", "distinct"];
