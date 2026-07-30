@@ -6,6 +6,7 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  Legend,
   Line,
   LineChart,
   Pie,
@@ -20,11 +21,13 @@ import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import {
   computeKpiValue,
   computeSeries,
+  computeStackedSeries,
   formatAxisValue,
   formatWidgetValue,
   isWidgetRenderable,
   widgetIssue,
   type SeriesPoint,
+  type StackedSeriesPoint,
 } from "@/lib/widget-data";
 import { AGGREGATION_LABELS, type WidgetConfig } from "@/types/custom-dashboard";
 import type { Dataset } from "@/context/DatasetsContext";
@@ -66,10 +69,15 @@ export function CustomWidget({ dataset, config, preview = false }: CustomWidgetP
   const groupName = columnName(dataset, config.xAxisColumn);
 
   const renderable = isWidgetRenderable(dataset, config);
+  const isStacked = config.chartType === "stackedBar";
 
   const series = useMemo<SeriesPoint[]>(
-    () => (renderable && config.chartType !== "kpi" ? computeSeries(dataset, config) : []),
-    [dataset, config, renderable]
+    () => (renderable && config.chartType !== "kpi" && !isStacked ? computeSeries(dataset, config) : []),
+    [dataset, config, renderable, isStacked]
+  );
+  const stacked = useMemo(
+    () => (renderable && isStacked ? computeStackedSeries(dataset, config) : { points: [], seriesKeys: [] }),
+    [dataset, config, renderable, isStacked]
   );
   const kpiValue = useMemo(
     () => (renderable && config.chartType === "kpi" ? computeKpiValue(dataset, config) : 0),
@@ -79,7 +87,10 @@ export function CustomWidget({ dataset, config, preview = false }: CustomWidgetP
   if (!renderable) {
     return <EmptyNote message={widgetIssue(dataset, config) ?? "This widget is not configured."} />;
   }
-  if (config.chartType !== "kpi" && series.length === 0) {
+  if (config.chartType !== "kpi" && !isStacked && series.length === 0) {
+    return <EmptyNote message="No rows to plot for this column selection." />;
+  }
+  if (isStacked && stacked.points.length === 0) {
     return <EmptyNote message="No rows to plot for this column selection." />;
   }
 
@@ -221,6 +232,80 @@ export function CustomWidget({ dataset, config, preview = false }: CustomWidgetP
             isAnimationActive={false}
           />
         </LineChart>
+      </ResponsiveContainer>
+    );
+  }
+
+  // --- Stacked bar -----------------------------------------------------------
+  if (isStacked) {
+    const { points, seriesKeys } = stacked;
+    const stackedTooltip = (
+      <Tooltip
+        cursor={{ fill: palette.isDark ? "rgba(148,163,184,0.12)" : "rgba(15,23,42,0.05)" }}
+        content={({ active, payload, label }) => {
+          const point = payload?.[0]?.payload as StackedSeriesPoint | undefined;
+          if (!active || !point) return null;
+          return (
+            <ChartTooltipCard
+              active={active}
+              heading={String(label)}
+              rows={[
+                ...seriesKeys
+                  .filter((key) => point.values[key] > 0)
+                  .map((key) => ({
+                    label: key,
+                    value: formatWidgetValue(point.values[key], aggregation, measureName),
+                    color: palette.colorForIndex(seriesKeys.indexOf(key)),
+                  })),
+                { label: "Total", value: formatWidgetValue(point.total, aggregation, measureName) },
+              ]}
+            />
+          );
+        }}
+      />
+    );
+
+    return (
+      <ResponsiveContainer width="100%" height={chartHeight}>
+        <BarChart data={points} margin={{ top: 8, right: 12, bottom: 4, left: 0 }} barCategoryGap="22%">
+          <CartesianGrid vertical={false} stroke={palette.ink.grid} />
+          <XAxis
+            dataKey="label"
+            stroke={palette.ink.baseline}
+            tick={{ fill: palette.ink.muted, fontSize: 11 }}
+            tickLine={false}
+            interval={0}
+            angle={points.length > 6 ? -25 : 0}
+            textAnchor={points.length > 6 ? "end" : "middle"}
+            height={points.length > 6 ? 56 : 28}
+            tickFormatter={(value: string) => shortLabel(value)}
+          />
+          <YAxis
+            stroke={palette.ink.baseline}
+            tick={{ fill: palette.ink.muted, fontSize: 11 }}
+            tickLine={false}
+            width={52}
+            tickFormatter={formatAxisValue}
+          />
+          {stackedTooltip}
+          {seriesKeys.length > 1 && (
+            <Legend wrapperStyle={{ fontSize: 11, color: palette.ink.secondary }} iconType="square" iconSize={8} />
+          )}
+          {seriesKeys.map((key, index) => (
+            <Bar
+              key={key}
+              dataKey={`values.${key}`}
+              name={key}
+              stackId="stack"
+              fill={palette.colorForIndex(index)}
+              stroke={palette.ink.surface}
+              strokeWidth={2}
+              radius={index === seriesKeys.length - 1 ? [4, 4, 0, 0] : 0}
+              maxBarSize={44}
+              isAnimationActive={false}
+            />
+          ))}
+        </BarChart>
       </ResponsiveContainer>
     );
   }
