@@ -17,10 +17,7 @@ export const DASHBOARD_WIDGET_GROUPS = [
   {
     id: "executive-kpis",
     title: "Executive KPIs",
-    widgets: [
-      { id: "sap-kpi-ribbon", label: "SAP KPI Ribbon" },
-      { id: "tail-kpi-cards", label: "Top KPIs" },
-    ],
+    widgets: [{ id: "kpi-ribbon", label: "KPI Ribbon" }],
   },
   {
     id: "spend-control-tower",
@@ -29,7 +26,7 @@ export const DASHBOARD_WIDGET_GROUPS = [
       { id: "invoice-value-bucket-chart", label: "Invoice Count by Invoice Value" },
       { id: "supplier-spend-rank-chart", label: "Supplier Ranking" },
       { id: "spend-by-invoice-value-donut", label: "Spend by Invoice Value" },
-      { id: "category-spend-hybrid", label: "Category Spend by Bucket" },
+      { id: "category-spend-chart", label: "Spend by Category" },
     ],
   },
   {
@@ -37,19 +34,8 @@ export const DASHBOARD_WIDGET_GROUPS = [
     title: "Tail Risk Charts",
     widgets: [
       { id: "pareto-curve-chart", label: "Pareto Distribution" },
-      { id: "tail-category-chart", label: "Category Split" },
-      { id: "tail-bubble-chart", label: "Supplier Matrix" },
       { id: "strategic-comparison", label: "Strategic vs. Core vs. Tail" },
       { id: "tail-trend-chart", label: "12-Month Spend Trend" },
-      { id: "micro-po-analysis", label: "Micro-PO Distribution" },
-    ],
-  },
-  {
-    id: "detailed-tables",
-    title: "Detailed Tables",
-    widgets: [
-      { id: "sap-detail-table", label: "Supplier Detail Report" },
-      { id: "consolidation-table", label: "Consolidation Candidates Table" },
     ],
   },
 ] as const satisfies DashboardWidgetGroup[];

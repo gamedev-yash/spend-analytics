@@ -8,14 +8,6 @@ import { usePalette } from "@/hooks/use-palette";
 import type { ChartPalette } from "@/lib/chart-colors";
 import type { SpendSegment } from "./tailSpendMock";
 
-// SAP Spend Control Tower ribbon — fixed SAP-brand navy chrome, not a
-// data-encoding color. Intentionally the same in both themes (like a fixed
-// brand header bar), independent of the rest of the page's theming.
-export const SAP_NAVY = "#0a1f44";
-export const SAP_NAVY_BORDER = "#16305e";
-
-export const CHART_MARGIN = { top: 8, right: 16, bottom: 8, left: 8 };
-
 function hexToRgb(hex: string): [number, number, number] {
   const n = parseInt(hex.slice(1), 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
