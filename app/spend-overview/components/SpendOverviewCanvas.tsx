@@ -5,8 +5,8 @@ import { KpiCard } from "@/components/dashboard/kpi-card";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
 import { InsightBox } from "@/components/sap/insight-box";
-import { CategoryTreemap } from "@/components/sap/category-treemap";
-import { TopSuppliersChart } from "@/components/sap/top-suppliers-chart";
+import { CategorySpendList } from "@/components/sap/category-spend-list";
+import { SupplierSpendList } from "@/components/sap/supplier-spend-list";
 import { SpendTrendChart } from "@/components/sap/spend-trend-chart";
 import { SpendByBuChart } from "@/components/sap/spend-by-bu-chart";
 import { SpendSunburst } from "@/components/sap/spend-sunburst";
@@ -15,7 +15,6 @@ import type {
   HeadlineKpis,
   TreemapNode,
   MonthlyTrendPoint,
-  SpikeMarker,
   BuSpendRow,
   SunburstNode,
   MetricsTableRow,
@@ -41,7 +40,7 @@ interface SpendOverviewCanvasProps {
   treemapNodes: TreemapNode[];
   topSuppliers: ReturnType<typeof getTopSuppliersData>;
   trend: MonthlyTrendPoint[];
-  spikes: SpikeMarker[];
+  invoiceCountByMonth: Record<string, number>;
   buSpend: BuSpendRow[];
   sunburstNodes: SunburstNode[];
   plantNameToCode: Record<string, string>;
@@ -59,7 +58,7 @@ export function SpendOverviewCanvas({
   treemapNodes,
   topSuppliers,
   trend,
-  spikes,
+  invoiceCountByMonth,
   buSpend,
   sunburstNodes,
   plantNameToCode,
@@ -107,22 +106,22 @@ export function SpendOverviewCanvas({
       {/* Trailing odd child spans the full row so hiding widgets never leaves a gap. */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
         {isWidgetVisible("category-treemap") && (
-          <ChartCard className="h-[420px]" title="Spend by Category" description="Click to drill in" icon={<TrendingUp />} accent="blue">
-            <CategoryTreemap nodes={treemapNodes} />
+          <ChartCard className="h-[420px]" title="Spend by Category" description="Top categories by spend" icon={<TrendingUp />} accent="blue">
+            <CategorySpendList nodes={treemapNodes} />
           </ChartCard>
         )}
         {isWidgetVisible("top-suppliers-chart") && (
-          <ChartCard className="h-[420px]" title="Top 20 Suppliers" description="Stacked by category + Pareto line" icon={<Users />} accent="violet">
-            <TopSuppliersChart rows={topSuppliers.rows} allL1={topSuppliers.allL1} top5Percent={topSuppliers.top5Percent} />
+          <ChartCard className="h-[420px]" title="Spend by Suppliers" description="All suppliers, scroll for more" icon={<Users />} accent="violet">
+            <SupplierSpendList rows={topSuppliers.rows} top5Percent={topSuppliers.top5Percent} />
           </ChartCard>
         )}
         {isWidgetVisible("spend-trend-chart") && (
-          <ChartCard className="h-[420px]" title="Spend Trend" description="Jan 2023 – Dec 2025, full history" icon={<TrendingUp />} accent="blue">
-            <SpendTrendChart trend={trend} spikes={spikes} />
+          <ChartCard className="h-[420px]" title="Spend Trend" description="Trailing 12 months, YoY change per bar" icon={<TrendingUp />} accent="blue">
+            <SpendTrendChart trend={trend} invoiceCountByMonth={invoiceCountByMonth} />
           </ChartCard>
         )}
         {isWidgetVisible("spend-by-bu-chart") && (
-          <ChartCard className="h-[420px]" title="Spend by Business Unit" description="Click a bar to drill in" icon={<Building2 />} accent="orange">
+          <ChartCard className="h-[420px]" title="Spend by Business Unit" description="Total spend per BU" icon={<Building2 />} accent="orange">
             <SpendByBuChart rows={buSpend} />
           </ChartCard>
         )}

@@ -91,7 +91,7 @@ export const SO_WIDGET_GROUPS: CustomizeWidgetGroupDef<SpendOverviewWidgetId>[] 
     widgets: [
       { id: "insight-box", label: "Auto-Generated Insight" },
       { id: "category-treemap", label: "Spend by Category" },
-      { id: "top-suppliers-chart", label: "Top 20 Suppliers" },
+      { id: "top-suppliers-chart", label: "Spend by Suppliers" },
       { id: "spend-trend-chart", label: "Spend Trend" },
       { id: "spend-by-bu-chart", label: "Spend by Business Unit" },
       { id: "spend-sunburst", label: "Spend Composition" },

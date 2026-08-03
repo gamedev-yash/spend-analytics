@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useDatasets } from "@/context/DatasetsContext";
 import { useProviderPageData } from "@/hooks/use-provider-page-data";
-import { loadSpendOverviewFromProvider } from "@/lib/page-data/spend-overview-from-provider";
+import { loadSpendOverviewFromProvider } from "../loadFromProvider";
 import { DatasetUpload } from "@/components/dashboard/dataset-upload";
 import { WidgetGridSkeleton } from "@/components/dashboard/widget-grid-skeleton";
 import { RevalidatingSection } from "@/components/dashboard/revalidating-section";
@@ -32,7 +32,14 @@ export function SpendOverviewDataBridge({ serverData, filters }: SpendOverviewDa
   const dataset = getDatasetForPage("spend-overview");
   const isAzureSqlMode = providerType === "azure-sql";
 
-  const warehouse = useProviderPageData(loadSpendOverviewFromProvider, isAzureSqlMode, "spend-overview");
+  // Keying on the serialized filters (not a constant string) is what makes a
+  // BU/Category/Date/vendor change actually trigger a new warehouse fetch —
+  // useProviderPageData only refetches when this key changes.
+  const warehouse = useProviderPageData(
+    (provider) => loadSpendOverviewFromProvider(provider, filters),
+    isAzureSqlMode,
+    `spend-overview:${JSON.stringify(filters)}`
+  );
 
   // True only until the very first Azure SQL fetch of the session settles —
   // useProviderPageData's `ready` is sticky, so it never re-triggers once
@@ -69,7 +76,7 @@ export function SpendOverviewDataBridge({ serverData, filters }: SpendOverviewDa
           treemapNodes={data.treemapNodes}
           topSuppliers={data.topSuppliers}
           trend={data.trend}
-          spikes={data.spikes}
+          invoiceCountByMonth={data.invoiceCountByMonth ?? {}}
           buSpend={data.buSpend}
           sunburstNodes={data.sunburstNodes}
           plantNameToCode={data.plantNameToCode}

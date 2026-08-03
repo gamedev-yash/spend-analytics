@@ -28,6 +28,13 @@ export interface SpendOverviewData {
   treemapNodes: TreemapNode[];
   topSuppliers: { rows: TopSupplierRow[]; top5Percent: number; allL1: string[] };
   trend: MonthlyTrendPoint[];
+  /**
+   * Invoice (row) counts per month ("YYYY-MM"), for the Spend Trend chart's
+   * invoice line. Optional so lib/page-data/spend-overview-from-provider.ts
+   * (an unused, unmodified predecessor of loadFromProvider.ts, kept only
+   * because tests/page-data.test.ts still targets it) doesn't need updating.
+   */
+  invoiceCountByMonth?: Record<string, number>;
   spikes: SpikeMarker[];
   buSpend: BuSpendRow[];
   sunburstNodes: SunburstNode[];
@@ -261,7 +268,7 @@ export function buildSpendOverviewFromDataset(dataset: Dataset, filters: SapFilt
       byL1: Object.fromEntries(Array.from(v.byL1.entries()).map(([l1, val]) => [l1, round2(val)])),
     }))
     .sort((a, b) => b.totalValue - a.totalValue)
-    .slice(0, 20);
+    .slice(0, 500);
   let cumulative = 0;
   const topSupplierRows: TopSupplierRow[] = sortedSuppliers.map((s) => {
     cumulative += s.totalValue;
@@ -291,13 +298,14 @@ export function buildSpendOverviewFromDataset(dataset: Dataset, filters: SapFilt
       idx += 1;
     }
   }
-  const trendBuckets = new Map<string, { total: number; byL1: Map<string, number> }>();
-  for (const month of months) trendBuckets.set(month, { total: 0, byL1: new Map() });
+  const trendBuckets = new Map<string, { total: number; byL1: Map<string, number>; count: number }>();
+  for (const month of months) trendBuckets.set(month, { total: 0, byL1: new Map(), count: 0 });
   for (const r of trendRecords) {
     const bucket = trendBuckets.get(r.date.slice(0, 7));
     if (!bucket) continue;
     bucket.total += r.value;
     bucket.byL1.set(r.l1, (bucket.byL1.get(r.l1) ?? 0) + r.value);
+    bucket.count += 1;
   }
   const trend: MonthlyTrendPoint[] = months.map((month) => {
     const b = trendBuckets.get(month)!;
@@ -307,6 +315,13 @@ export function buildSpendOverviewFromDataset(dataset: Dataset, filters: SapFilt
       byL1: Object.fromEntries(Array.from(b.byL1.entries()).map(([l1, v]) => [l1, round2(v)])),
     };
   });
+  // This flat model doesn't distinguish invoice rows from PO rows (see the
+  // file header), so the same per-month record count stands in for "invoice
+  // count" here — matching how the KPI ribbon's Invoices count already does
+  // the same thing above.
+  const invoiceCountByMonth: Record<string, number> = Object.fromEntries(
+    months.map((month) => [month, trendBuckets.get(month)!.count])
+  );
 
   // Spike detection — same rolling 3-month, 2-sigma rule as the server path.
   const spikes: SpikeMarker[] = [];
@@ -407,6 +422,7 @@ export function buildSpendOverviewFromDataset(dataset: Dataset, filters: SapFilt
     treemapNodes,
     topSuppliers,
     trend,
+    invoiceCountByMonth,
     spikes,
     buSpend,
     sunburstNodes,

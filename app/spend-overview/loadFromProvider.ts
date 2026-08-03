@@ -1,4 +1,9 @@
-// Spend-overview metrics from provider aggregates.
+// Spend-overview metrics from provider aggregates, filtered.
+//
+// This is an in-route fork of the original lib/page-data/spend-overview-from-provider.ts
+// (kept there, unmodified, and no longer used by this page) — recreated here so every
+// change needed to make BU/Category/Date/Vendor filters actually reach the warehouse
+// query stays inside app/spend-overview/.
 //
 // Unlike tail-spend there is no row-grain intermediate to reuse: the CSV adapter
 // builds a Record_[] and aggregates it eight different ways. So each widget gets
@@ -22,13 +27,16 @@ import type {
   TreemapNode,
 } from "@/lib/sap/aggregate";
 import type { SpendOverviewData } from "@/app/spend-overview/fromDataset";
+import type { SapFilters } from "@/lib/sap/types";
 import {
+  INVOICES_DATASET,
   PO_ITEMS_DATASET,
   ROWS,
   SUPPLIERS,
   VALUE,
   createRunner,
   grouped,
+  inFilter,
   nest,
   percent,
   round2,
@@ -48,11 +56,109 @@ function contractFilter(backed: boolean): QueryFilter {
   return { field: "is_contract_backed", operator: "eq", value: backed ? 1 : 0 };
 }
 
+/**
+ * Translates the same SapFilters the mock (lib/sap/aggregate.ts) and
+ * CSV-upload (fromDataset.ts) paths apply into QueryFilter clauses for the
+ * warehouse query API, so all three data sources honor plant/category/date/
+ * vendor filters identically.
+ *
+ * `includeDateRange: false` mirrors getSpendTrendData's intentional choice
+ * to ignore the date filter — the trend view always shows full history.
+ */
+function buildProviderFilters(filters: SapFilters, { includeDateRange = true } = {}): QueryFilter[] {
+  const clauses: QueryFilter[] = [];
+  if (filters.plants?.length) clauses.push(inFilter("plant_code", filters.plants));
+  if (filters.categoriesL1?.length) clauses.push(inFilter("category_l1_name", filters.categoriesL1));
+  if (includeDateRange) {
+    if (filters.dateFrom) clauses.push({ field: "po_date", operator: "gte", value: filters.dateFrom });
+    if (filters.dateTo) clauses.push({ field: "po_date", operator: "lte", value: filters.dateTo });
+  }
+  if (filters.vendorId) clauses.push({ field: "vendor_name", operator: "eq", value: filters.vendorId });
+  if (filters.categoryPath) {
+    const [l1, l2] = filters.categoryPath.split("|");
+    clauses.push({ field: "category_l1_name", operator: "eq", value: l1 });
+    if (l2) clauses.push({ field: "category_l2_name", operator: "eq", value: l2 });
+  }
+  return clauses;
+}
+
+/**
+ * fact_po_items exposes both plant_code and plant_name on the same row, so a
+ * single cheap grouped query (~7 rows) gives a code -> name lookup without
+ * this client-side module importing the server-only raw dimension data.
+ */
+async function loadPlantCodeToName(runner: QueryRunner): Promise<Map<string, string>> {
+  const rows = await runner.run(
+    grouped({
+      datasetId: PO_ITEMS_DATASET,
+      dimensions: ["plant_code", "plant_name"],
+      measures: { [ROWS]: [COUNT_ALL, "count"] },
+      limit: 200,
+    })
+  );
+  const map = new Map<string, string>();
+  for (const row of rows) map.set(toLabel(row.plant_code), toLabel(row.plant_name));
+  return map;
+}
+
+/**
+ * fact_invoices exposes plant_name but not plant_code (see metadata-registry.ts),
+ * unlike fact_po_items — so the invoice-count query needs its own filter
+ * builder that translates SapFilters.plants (codes) to plant names first.
+ */
+async function buildInvoiceFilters(runner: QueryRunner, filters: SapFilters): Promise<QueryFilter[]> {
+  const clauses: QueryFilter[] = [];
+  if (filters.plants?.length) {
+    const codeToName = await loadPlantCodeToName(runner);
+    const names = filters.plants.map((code) => codeToName.get(code)).filter((n): n is string => Boolean(n));
+    if (names.length) clauses.push(inFilter("plant_name", names));
+  }
+  if (filters.categoriesL1?.length) clauses.push(inFilter("category_l1_name", filters.categoriesL1));
+  if (filters.vendorId) clauses.push({ field: "vendor_name", operator: "eq", value: filters.vendorId });
+  if (filters.categoryPath) {
+    const [l1, l2] = filters.categoryPath.split("|");
+    clauses.push({ field: "category_l1_name", operator: "eq", value: l1 });
+    if (l2) clauses.push({ field: "category_l2_name", operator: "eq", value: l2 });
+  }
+  return clauses;
+}
+
+/**
+ * Invoice counts per month ("YYYY-MM"), for the Spend Trend chart's invoice
+ * line. Ignores the date-range filter on purpose, same as loadTrend below.
+ */
+async function loadMonthlyInvoiceCounts(
+  runner: QueryRunner,
+  filters: SapFilters
+): Promise<Record<string, number>> {
+  const invoiceFilters = await buildInvoiceFilters(runner, filters);
+  const rows = await runner.run(
+    grouped({
+      datasetId: INVOICES_DATASET,
+      dimensions: ["invoice_date"],
+      measures: { [ROWS]: [COUNT_ALL, "count"] },
+      filters: invoiceFilters,
+      timeGrain: "month",
+      limit: 1000,
+    })
+  );
+  const counts: Record<string, number> = {};
+  for (const row of rows) {
+    const month = toLabel(row.invoice_date);
+    if (/^\d{4}-\d{2}$/.test(month)) counts[month] = toNumber(row[ROWS]);
+  }
+  return counts;
+}
+
 // ---------------------------------------------------------------------------
 // KPIs
 // ---------------------------------------------------------------------------
 
-async function loadKpis(runner: QueryRunner): Promise<{ kpis: HeadlineKpis; total: number }> {
+async function loadKpis(
+  runner: QueryRunner,
+  filters: SapFilters
+): Promise<{ kpis: HeadlineKpis; total: number }> {
+  const baseFilters = buildProviderFilters(filters);
   const [totals, offContract, byYear] = await Promise.all([
     runner.run(
       grouped({
@@ -62,21 +168,25 @@ async function loadKpis(runner: QueryRunner): Promise<{ kpis: HeadlineKpis; tota
           [ROWS]: [COUNT_ALL, "count"],
           [SUPPLIERS]: ["vendor_id", "distinct"],
         },
+        filters: baseFilters,
       })
     ),
     runner.run(
       grouped({
         datasetId: PO_ITEMS_DATASET,
         measures: { [VALUE]: ["net_order_value_inr", "sum"] },
-        filters: [contractFilter(false)],
+        filters: [...baseFilters, contractFilter(false)],
       })
     ),
-    // Fiscal-year totals give year-on-year without a second date window.
+    // Fiscal-year totals give year-on-year without a second date window; the
+    // comparison itself needs full history, so this ignores the date range
+    // the same way loadTrend does, but keeps the other filters.
     runner.run(
       grouped({
         datasetId: PO_ITEMS_DATASET,
         dimensions: ["po_date"],
         measures: { [VALUE]: ["net_order_value_inr", "sum"] },
+        filters: buildProviderFilters(filters, { includeDateRange: false }),
         timeGrain: "year",
         sortBy: "po_date",
         direction: "asc",
@@ -118,7 +228,8 @@ interface CategoryAggregates {
   offContractByL1: Map<string, number>;
 }
 
-async function loadCategories(runner: QueryRunner): Promise<CategoryAggregates> {
+async function loadCategories(runner: QueryRunner, filters: SapFilters): Promise<CategoryAggregates> {
+  const baseFilters = buildProviderFilters(filters);
   const [l1Rows, l2Rows, offContractRows] = await Promise.all([
     runner.run(
       grouped({
@@ -129,6 +240,7 @@ async function loadCategories(runner: QueryRunner): Promise<CategoryAggregates> 
           [ROWS]: [COUNT_ALL, "count"],
           [SUPPLIERS]: ["vendor_id", "distinct"],
         },
+        filters: baseFilters,
         sortBy: VALUE,
         limit: 100,
       })
@@ -142,6 +254,7 @@ async function loadCategories(runner: QueryRunner): Promise<CategoryAggregates> 
           [ROWS]: [COUNT_ALL, "count"],
           [SUPPLIERS]: ["vendor_id", "distinct"],
         },
+        filters: baseFilters,
         sortBy: VALUE,
         limit: 500,
       })
@@ -151,7 +264,7 @@ async function loadCategories(runner: QueryRunner): Promise<CategoryAggregates> 
         datasetId: PO_ITEMS_DATASET,
         dimensions: ["category_l1_name"],
         measures: { [VALUE]: ["net_order_value_inr", "sum"] },
-        filters: [contractFilter(false)],
+        filters: [...baseFilters, contractFilter(false)],
         sortBy: VALUE,
         limit: 100,
       })
@@ -258,7 +371,8 @@ function buildMetricsRows(aggregates: CategoryAggregates, total: number): Metric
 
 async function loadTopSuppliers(
   runner: QueryRunner,
-  total: number
+  total: number,
+  filters: SapFilters
 ): Promise<{ rows: TopSupplierRow[]; top5Percent: number; allL1: string[] }> {
   // Single query, one row per supplier — the chart no longer stacks by category,
   // so there's no need for a second per-L1 breakdown pass.
@@ -267,6 +381,7 @@ async function loadTopSuppliers(
       datasetId: PO_ITEMS_DATASET,
       dimensions: ["vendor_name"],
       measures: { [VALUE]: ["net_order_value_inr", "sum"] },
+      filters: buildProviderFilters(filters),
       sortBy: VALUE,
       limit: SUPPLIER_ROW_LIMIT,
     })
@@ -291,12 +406,18 @@ async function loadTopSuppliers(
   return { rows, top5Percent: percent(top5, total), allL1: [] };
 }
 
-async function loadTrend(runner: QueryRunner): Promise<{ trend: MonthlyTrendPoint[]; spikes: SpikeMarker[] }> {
+async function loadTrend(
+  runner: QueryRunner,
+  filters: SapFilters
+): Promise<{ trend: MonthlyTrendPoint[]; spikes: SpikeMarker[] }> {
+  // Trend always shows full history — the date range filter is intentionally
+  // excluded here, matching getSpendTrendData's documented behavior.
   const rows = await runner.run(
     grouped({
       datasetId: PO_ITEMS_DATASET,
       dimensions: ["po_date", "category_l1_name"],
       measures: { [VALUE]: ["net_order_value_inr", "sum"] },
+      filters: buildProviderFilters(filters, { includeDateRange: false }),
       timeGrain: "month",
       sortBy: VALUE,
       limit: 1000,
@@ -328,14 +449,17 @@ async function loadTrend(runner: QueryRunner): Promise<{ trend: MonthlyTrendPoin
 
 async function loadBuSpend(
   runner: QueryRunner,
-  total: number
+  total: number,
+  filters: SapFilters
 ): Promise<{ buSpend: BuSpendRow[]; plantNameToCode: Record<string, string> }> {
+  const baseFilters = buildProviderFilters(filters);
   const [plantRows, breakdown] = await Promise.all([
     runner.run(
       grouped({
         datasetId: PO_ITEMS_DATASET,
         dimensions: ["plant_name", "plant_code"],
         measures: { [VALUE]: ["net_order_value_inr", "sum"] },
+        filters: baseFilters,
         sortBy: VALUE,
         limit: 200,
       })
@@ -345,6 +469,7 @@ async function loadBuSpend(
         datasetId: PO_ITEMS_DATASET,
         dimensions: ["plant_name", "category_l1_name"],
         measures: { [VALUE]: ["net_order_value_inr", "sum"] },
+        filters: baseFilters,
         sortBy: VALUE,
         limit: 1000,
       })
@@ -391,22 +516,26 @@ function buildInsight(kpis: HeadlineKpis, metricsRows: MetricsTableRow[], buSpen
 }
 
 /**
- * Load the spend-overview page from a warehouse dataset, or null when the
- * dataset is empty (caller falls back to the server-aggregated mock).
+ * Load the spend-overview page from a warehouse dataset, filtered by the same
+ * SapFilters the URL-driven filter bar and cross-filter clicks produce — or
+ * null when the filtered dataset is empty (caller falls back to the
+ * server-aggregated mock).
  */
 export async function loadSpendOverviewFromProvider(
-  provider: IDataProvider
+  provider: IDataProvider,
+  filters: SapFilters
 ): Promise<SpendOverviewData | null> {
   const runner = createRunner(provider);
 
-  const { kpis, total } = await loadKpis(runner);
+  const { kpis, total } = await loadKpis(runner, filters);
   if (total <= 0 && kpis.poCount === 0) return null;
 
-  const [categories, topSuppliers, trendData, buData] = await Promise.all([
-    loadCategories(runner),
-    loadTopSuppliers(runner, total),
-    loadTrend(runner),
-    loadBuSpend(runner, total),
+  const [categories, topSuppliers, trendData, buData, invoiceCountByMonth] = await Promise.all([
+    loadCategories(runner, filters),
+    loadTopSuppliers(runner, total, filters),
+    loadTrend(runner, filters),
+    loadBuSpend(runner, total, filters),
+    loadMonthlyInvoiceCounts(runner, filters),
   ]);
 
   const metricsRows = buildMetricsRows(categories, total);
@@ -417,6 +546,7 @@ export async function loadSpendOverviewFromProvider(
     treemapNodes: buildTreemap(categories, total, kpis.activeSupplierCount, kpis.poCount),
     topSuppliers,
     trend: trendData.trend,
+    invoiceCountByMonth,
     spikes: trendData.spikes,
     buSpend: buData.buSpend,
     sunburstNodes: buildSunburst(categories),

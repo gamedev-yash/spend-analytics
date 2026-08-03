@@ -1,5 +1,5 @@
 import { DashboardTabs } from "@/components/dashboard/dashboard-tabs";
-import { SpendOverviewFilters } from "@/components/sap/spend-overview-filters";
+import { SpendOverviewFilters } from "./components/SpendOverviewFilters";
 import { SpendOverviewDataBridge } from "./components/SpendOverviewDataBridge";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
@@ -16,6 +16,7 @@ import {
   getMetricsTableData,
   generateInsightText,
 } from "@/lib/sap/aggregate";
+import { getMonthlyInvoiceCounts } from "./monthlyInvoiceCounts";
 import type { SapFilters } from "@/lib/sap/types";
 
 interface PageProps {
@@ -52,8 +53,9 @@ export default async function SpendOverviewPage({ searchParams }: PageProps) {
 
   const kpis = getHeadlineKpis(filters);
   const treemapNodes = getCategoryTreemapData(filters);
-  const topSuppliers = getTopSuppliersData(filters, 20);
+  const topSuppliers = getTopSuppliersData(filters, 500);
   const trend = getSpendTrendData(filters);
+  const invoiceCountByMonth = getMonthlyInvoiceCounts(filters);
   const spikes = getSpikeMarkers(trend);
   const buSpend = getSpendByBuData(filters);
   const sunburstNodes = getSunburstData(filters);
@@ -104,6 +106,7 @@ export default async function SpendOverviewPage({ searchParams }: PageProps) {
             treemapNodes,
             topSuppliers,
             trend,
+            invoiceCountByMonth,
             spikes,
             buSpend,
             sunburstNodes,
