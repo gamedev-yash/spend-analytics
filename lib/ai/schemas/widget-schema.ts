@@ -1,0 +1,148 @@
+// Anthropic Messages API "structured outputs" JSON Schema for the widget
+// planning call. This is passed as `output_config: { format: { type:
+// "json_schema", schema: WIDGET_SCHEMA } }` — NOT a tool-calling schema. Field
+// shapes must match types/generated-dashboard.ts's `WidgetSpec` exactly. Root
+// is an object wrapping the widget array (structured outputs require an
+// object at the top level, not a bare array).
+
+const MEASURE_REF_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    column: {
+      type: "string",
+      description: "Source column name this measure is computed from.",
+    },
+    aggregation: {
+      type: "string",
+      enum: ["sum", "avg", "count", "distinct", "min", "max"],
+      description: "Aggregation function applied to the column.",
+    },
+    label: {
+      type: "string",
+      description: "Human-readable label for this measure, shown in legends/tooltips.",
+    },
+  },
+  required: ["column", "aggregation", "label"],
+} as const;
+
+const SERIES_SCHEMA = {
+  anyOf: [
+    {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        type: { type: "string", const: "measures" },
+        items: {
+          type: "array",
+          description: "One or more measures to plot, e.g. a KPI row or a multi-measure bar chart.",
+          items: MEASURE_REF_SCHEMA,
+        },
+      },
+      required: ["type", "items"],
+    },
+    {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        type: { type: "string", const: "pivot" },
+        dimension: {
+          type: "string",
+          description: "Column whose distinct values become the pivoted series (e.g. one line/bar per value).",
+        },
+        values: {
+          type: "array",
+          description: "The specific distinct values of `dimension` to pivot into series.",
+          items: { type: "string" },
+        },
+        measure: MEASURE_REF_SCHEMA,
+      },
+      required: ["type", "dimension", "values", "measure"],
+    },
+  ],
+} as const;
+
+const WIDGET_ITEM_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    id: {
+      type: "string",
+      description: "Stable, unique, kebab-case identifier for this widget.",
+    },
+    sectionId: {
+      type: "string",
+      description: "Id of the DashboardPlan section this widget belongs to.",
+    },
+    title: {
+      type: "string",
+      description: "Widget title shown in its card header.",
+    },
+    kind: {
+      type: "string",
+      enum: [
+        "kpi",
+        "bar",
+        "stackedBar",
+        "groupedBar",
+        "line",
+        "area",
+        "stackedBarWithTotalLine",
+        "donut",
+        "table",
+      ],
+      description: "Chart kind to render.",
+    },
+    dimension: {
+      type: ["string", "null"],
+      description: "Grouping column along the category/x axis. Null for 'kpi' and any widget with no grouping axis.",
+    },
+    series: SERIES_SCHEMA,
+    sort: {
+      type: ["string", "null"],
+      enum: ["value-desc", "value-asc", "label-asc", "temporal", null],
+      description: "How to sort the widget's categories/rows, or null for no explicit sort.",
+    },
+    limit: {
+      type: ["integer", "null"],
+      description: "Maximum number of categories/rows to show, or null for no limit.",
+    },
+    colSpan: {
+      type: "integer",
+      enum: [3, 4, 6, 8, 12],
+      description: "Grid column span out of a 12-column layout.",
+    },
+    formatHint: {
+      type: ["string", "null"],
+      enum: ["currency", "percent", "count", "number", null],
+      description: "Value formatting hint for axes/labels/tooltips, or null to infer.",
+    },
+  },
+  required: [
+    "id",
+    "sectionId",
+    "title",
+    "kind",
+    "dimension",
+    "series",
+    "sort",
+    "limit",
+    "colSpan",
+    "formatHint",
+  ],
+} as const;
+
+export const WIDGET_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    widgets: {
+      type: "array",
+      description: "The concrete widget specs that realize the dashboard plan's sections.",
+      items: WIDGET_ITEM_SCHEMA,
+    },
+  },
+  required: ["widgets"],
+} as const;
+
+export type { WidgetSpec } from "@/types/generated-dashboard";
