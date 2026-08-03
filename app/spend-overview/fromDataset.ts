@@ -170,6 +170,7 @@ export function buildSpendOverviewFromDataset(dataset: Dataset, filters: SapFilt
   const flaggedValue = records.filter((r) => r.flagged).reduce((s, r) => s + r.value, 0);
   const kpis: HeadlineKpis = {
     totalSpendInr: round2(total),
+    invoiceCount: records.length,
     poCount: records.length,
     activeSupplierCount: new Set(records.map((r) => r.vendorId)).size,
     avgPoValueInr: records.length ? round2(total / records.length) : 0,

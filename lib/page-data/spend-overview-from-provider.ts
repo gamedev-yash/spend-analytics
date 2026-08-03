@@ -98,6 +98,7 @@ async function loadKpis(runner: QueryRunner): Promise<{ kpis: HeadlineKpis; tota
     total,
     kpis: {
       totalSpendInr: round2(total),
+      invoiceCount: poCount,
       poCount,
       activeSupplierCount: toNumber(row[SUPPLIERS]),
       avgPoValueInr: poCount > 0 ? round2(total / poCount) : 0,

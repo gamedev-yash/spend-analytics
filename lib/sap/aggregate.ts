@@ -129,6 +129,7 @@ function shiftYear(dateStr: string, years: number): string {
 
 export interface HeadlineKpis {
   totalSpendInr: number;
+  invoiceCount: number;
   poCount: number;
   activeSupplierCount: number;
   avgPoValueInr: number;
@@ -140,6 +141,7 @@ export function getHeadlineKpis(filters: SapFilters): HeadlineKpis {
   const records = getActiveRecords(filters);
   const totalSpendInr = records.reduce((s, r) => s + r.value, 0);
   const poRecords = records.filter((r) => r.source === "po");
+  const invoiceCount = getFilteredInvoices(filters).length;
   const activeSupplierCount = new Set(records.map((r) => r.vendorId)).size;
   const avgPoValueInr = records.length ? totalSpendInr / records.length : 0;
 
@@ -160,6 +162,7 @@ export function getHeadlineKpis(filters: SapFilters): HeadlineKpis {
 
   return {
     totalSpendInr: round2(totalSpendInr),
+    invoiceCount,
     poCount: poRecords.length || records.length,
     activeSupplierCount,
     avgPoValueInr: round2(avgPoValueInr),

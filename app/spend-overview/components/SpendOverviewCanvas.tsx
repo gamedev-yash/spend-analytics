@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, FileCheck2, ShieldAlert, TrendingDown, TrendingUp, Users, Wallet } from "lucide-react";
+import { Building2, FileCheck2, Receipt, TrendingDown, TrendingUp, Users, Wallet } from "lucide-react";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
@@ -21,7 +21,7 @@ import type {
   MetricsTableRow,
   getTopSuppliersData,
 } from "@/lib/sap/aggregate";
-import { formatCr, formatInr, formatPercentInr, formatSignedPercentInr } from "@/lib/sap/format-inr";
+import { formatCr, formatSignedPercentInr } from "@/lib/sap/format-inr";
 import { SO_FOCUS_PARAMETERS, SO_FOCUS_PRESETS } from "./focusParams";
 import { useSpendOverviewFocus } from "./useSpendOverviewFocus";
 import { useThresholds } from "@/context/ThresholdsContext";
@@ -68,8 +68,6 @@ export function SpendOverviewCanvas({
   const { activeParameters, toggleParameter, applyPreset, isWidgetVisible } = useSpendOverviewFocus();
   const { getThreshold, evaluate } = useThresholds();
 
-  const offContractConfig = getThreshold("spend-overview.off-contract");
-  const offContractStatus = evaluate("spend-overview.off-contract", kpis.offContractPercent);
   const yoyConfig = getThreshold("spend-overview.yoy-growth");
   const yoyStatus = evaluate("spend-overview.yoy-growth", kpis.yoyChangePercent);
 
@@ -90,9 +88,9 @@ export function SpendOverviewCanvas({
         {isWidgetVisible("kpi-spend-trends") && (
           <>
             <KpiCard size="compact" label="Total Spend" value={formatCr(kpis.totalSpendInr)} icon={<Wallet />} accent="blue" />
-            <KpiCard size="compact" label="Total PO Count" value={kpis.poCount.toLocaleString()} icon={<FileCheck2 />} />
+            <KpiCard size="compact" label="Invoices" value={kpis.invoiceCount.toLocaleString()} icon={<Receipt />} />
+            <KpiCard size="compact" label="Purchase Orders" value={kpis.poCount.toLocaleString()} icon={<FileCheck2 />} />
             <KpiCard size="compact" label="Active Suppliers" value={kpis.activeSupplierCount.toLocaleString()} icon={<Users />} />
-            <KpiCard size="compact" label="Avg. PO Value" value={formatInr(kpis.avgPoValueInr)} icon={<FileCheck2 />} />
             <KpiCard
               size="compact"
               label="YoY Spend Change"
@@ -103,26 +101,6 @@ export function SpendOverviewCanvas({
               statusTitle={yoyConfig ? thresholdEvaluationTitle(kpis.yoyChangePercent, yoyConfig) : undefined}
             />
           </>
-        )}
-        {isWidgetVisible("kpi-off-contract") && (
-          <KpiCard
-            size="compact"
-            label="Off-Contract Spend"
-            value={formatPercentInr(kpis.offContractPercent)}
-            icon={<ShieldAlert />}
-            accent={offContractStatus ? STATUS_ACCENT[offContractStatus] : "neutral"}
-            status={offContractStatus}
-            statusTitle={
-              offContractConfig
-                ? thresholdEvaluationTitle(kpis.offContractPercent, offContractConfig)
-                : undefined
-            }
-            hint={
-              offContractConfig
-                ? `Target ≤ ${offContractConfig.targetValue.toLocaleString("en-IN", { maximumFractionDigits: 1 })}%`
-                : undefined
-            }
-          />
         )}
       </section>
 

@@ -46,7 +46,6 @@ export const SO_FOCUS_PRESETS: FocusPresetDef<SpendOverviewFocusId>[] = [
  */
 export type SpendOverviewWidgetId =
   | "kpi-spend-trends"
-  | "kpi-off-contract"
   | "insight-box"
   | "category-treemap"
   | "top-suppliers-chart"
@@ -64,7 +63,6 @@ export type SpendOverviewWidgetId =
 
 export const SO_WIDGET_TAGS: Record<SpendOverviewWidgetId, SpendOverviewFocusId[]> = {
   "kpi-spend-trends": ["spend-trends"],
-  "kpi-off-contract": ["compliance"],
   "insight-box": [],
   "category-treemap": ["categories"],
   "top-suppliers-chart": ["suppliers"],
@@ -85,10 +83,7 @@ export const SO_WIDGET_GROUPS: CustomizeWidgetGroupDef<SpendOverviewWidgetId>[] 
   {
     id: "summary-kpis",
     title: "Summary — KPIs",
-    widgets: [
-      { id: "kpi-spend-trends", label: "Headline Spend KPIs" },
-      { id: "kpi-off-contract", label: "Off-Contract Spend KPI" },
-    ],
+    widgets: [{ id: "kpi-spend-trends", label: "Headline Spend KPIs" }],
   },
   {
     id: "summary-charts",
