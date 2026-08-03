@@ -19,6 +19,15 @@ export interface ProviderPageState<T> {
   error: string | null;
 }
 
+interface LoadState<T> {
+  key: string | null;
+  data: T | null;
+  /** Sticky once true — an error or reload on a later key must not send a page
+   *  that has already rendered real data back to a first-load skeleton. */
+  ready: boolean;
+  error: string | null;
+}
+
 /**
  * @param load    Issues the queries. Must be stable or memoized by the caller.
  * @param enabled False keeps the hook idle — a page in CSV mode never queries.
@@ -30,9 +39,10 @@ export function useProviderPageData<T>(
   key: string
 ): ProviderPageState<T> {
   const { activeProvider } = useDatasets();
-  const [state, setState] = useState<{ key: string | null; data: T | null; error: string | null }>({
+  const [state, setState] = useState<LoadState<T>>({
     key: null,
     data: null,
+    ready: false,
     error: null,
   });
 
@@ -41,13 +51,15 @@ export function useProviderPageData<T>(
     let active = true;
     load(activeProvider).then(
       (data) => {
-        if (active) setState({ key, data, error: null });
+        if (active) setState({ key, data, ready: true, error: null });
       },
       (err: unknown) => {
         if (!active) return;
         const message = err instanceof Error ? err.message : String(err);
         console.warn(`useProviderPageData: load failed, falling back — ${message}`);
-        setState({ key, data: null, error: message });
+        // Keeps whatever `data`/`ready` the last successful load left behind —
+        // a failed reload on key B must not erase key A's still-good result.
+        setState((prev) => ({ ...prev, key, error: message }));
       }
     );
     return () => {
@@ -58,11 +70,16 @@ export function useProviderPageData<T>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeProvider, enabled, key]);
 
-  const settled = state.key === key;
+  const current = state.key === key;
   return {
-    data: settled ? state.data : null,
-    loading: enabled && !settled,
-    ready: !enabled || settled,
-    error: settled ? state.error : null,
+    // Stale-while-revalidate: the last resolved payload stays on screen while a
+    // new key's fetch is in flight (or fails) instead of dropping to null — an
+    // in-flight request must never read as "no data" and trigger a page's
+    // CSV/mock fallback mid-refetch.
+    data: state.data,
+    loading: enabled && !current,
+    ready: !enabled || state.ready,
+    // An error belongs to the payload that produced it — a new key starts clean.
+    error: current ? state.error : null,
   };
 }

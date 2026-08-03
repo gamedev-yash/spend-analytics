@@ -15,6 +15,7 @@ import {
 import { useDatasets } from "@/context/DatasetsContext";
 import { WidgetFiltersProvider } from "@/context/WidgetFiltersContext";
 import { useRowCount } from "@/hooks/use-widget-query";
+import { WidgetGridSkeleton } from "@/components/dashboard/widget-grid-skeleton";
 import {
   addWidget,
   moveWidget,
@@ -78,7 +79,7 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
   const rowCount = useRowCount(sourceDataset?.id ?? null, queryFilters);
 
   // Store hydrates on the client, so "not found" is only real once ready.
-  if (!ready) return null;
+  if (!ready) return <WidgetGridSkeleton widgetCount={4} />;
 
   if (!dashboard) {
     return (

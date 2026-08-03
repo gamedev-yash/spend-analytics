@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import {
   Bar,
   BarChart,
@@ -15,6 +16,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { Loader2 } from "lucide-react";
 import { usePalette } from "@/hooks/use-palette";
 import { useStackedWidgetQuery, useWidgetQuery } from "@/hooks/use-widget-query";
 import { useWidgetFilters } from "@/context/WidgetFiltersContext";
@@ -102,6 +104,11 @@ export function CustomWidget({ dataset, config, preview = false }: CustomWidgetP
   const stacked = stackedQuery.stacked;
   const ready = isStacked ? stackedQuery.ready : flat.ready;
   const error = isStacked ? stackedQuery.error : flat.error;
+  const loading = isStacked ? stackedQuery.loading : flat.loading;
+  // A filter change re-queries data that's already rendered — dim it slightly
+  // with a small spinner instead of resetting to LoadingNote, which is for the
+  // first query only.
+  const isRevalidating = ready && loading;
 
   if (!renderable) {
     return <EmptyNote message={widgetIssue(dataset, config) ?? "This widget is not configured."} />;
@@ -116,6 +123,16 @@ export function CustomWidget({ dataset, config, preview = false }: CustomWidgetP
     return <EmptyNote message="No rows to plot for this column selection." />;
   }
 
+  return (
+    <div className={`relative h-full transition-opacity duration-300 ${isRevalidating ? "opacity-60" : ""}`}>
+      {isRevalidating && (
+        <Loader2 className="absolute right-1 top-1 z-10 h-3 w-3 animate-spin text-slate-400 dark:text-slate-500" />
+      )}
+      {renderChart()}
+    </div>
+  );
+
+  function renderChart(): ReactNode {
   const valueLabel = measureName
     ? `${AGGREGATION_LABELS[aggregation]} of ${measureName}`
     : AGGREGATION_LABELS[aggregation];
@@ -360,4 +377,5 @@ export function CustomWidget({ dataset, config, preview = false }: CustomWidgetP
       </BarChart>
     </ResponsiveContainer>
   );
+  }
 }
