@@ -15,6 +15,9 @@ const nextConfig: NextConfig = {
    * of itself dynamically and does not bundle cleanly.
    */
   serverExternalPackages: ["mssql"],
+  outputFileTracingIncludes: {
+    "/api/generate-dashboard": ["./lib/ai/skills/**/*"],
+  },
 };
 
 export default nextConfig;

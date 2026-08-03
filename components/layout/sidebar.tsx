@@ -2,12 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { LayoutDashboard, PanelLeft, PanelLeftClose, Trash2 } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { LayoutDashboard, PanelLeft, PanelLeftClose, Sparkles, Trash2 } from "lucide-react";
 import { NAV_ITEMS } from "@/lib/nav";
 import { useCustomDashboards } from "@/lib/custom-dashboards-store";
 import { NewDashboardButton } from "@/components/dashboard/new-dashboard-dialog";
 import { DeleteDashboardDialog } from "@/components/dashboard/delete-dashboard-dialog";
+import { useGeneratedDashboards, deleteGeneratedDashboard } from "@/lib/generated-dashboard/store";
+import { GenerateDashboardButton } from "@/components/generated-dashboard/generate-dashboard-dialog";
 import type { CustomDashboard } from "@/types/custom-dashboard";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +29,9 @@ interface SidebarProps {
  */
 export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const customDashboards = useCustomDashboards();
+  const generatedDashboards = useGeneratedDashboards();
   const [peeking, setPeeking] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<CustomDashboard | null>(null);
   const peekTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -227,6 +231,69 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
               );
             })}
             <NewDashboardButton variant="nav" collapsed={!showExpanded} />
+          </div>
+        </div>
+
+        {/* AI-generated dashboards — a separate feature/store from "My Dashboards" above. */}
+        <div className="pt-3">
+          {showExpanded && (
+            <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              Generated Dashboards
+            </p>
+          )}
+          <div className="space-y-1">
+            {generatedDashboards.map((dashboard) => {
+              const href = `/generated/${dashboard.id}`;
+              const isActive = pathname === href;
+              return (
+                <div
+                  key={dashboard.id}
+                  className={cn(
+                    "group flex items-center rounded-md transition-colors",
+                    isActive
+                      ? "bg-slate-900 dark:bg-slate-100"
+                      : "hover:bg-slate-100 dark:hover:bg-slate-800"
+                  )}
+                >
+                  <Link
+                    href={href}
+                    title={!showExpanded ? dashboard.title : undefined}
+                    className={cn(
+                      "flex min-w-0 flex-1 items-center gap-3 px-3 py-2 text-sm font-medium",
+                      !showExpanded && "justify-center px-0",
+                      isActive
+                        ? "text-white dark:text-slate-900"
+                        : "text-slate-600 dark:text-slate-400"
+                    )}
+                  >
+                    <Sparkles className="h-4 w-4 shrink-0" />
+                    {showExpanded && <span className="truncate">{dashboard.title}</span>}
+                  </Link>
+                  {showExpanded && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (window.confirm(`Delete "${dashboard.title}"? This cannot be undone.`)) {
+                          deleteGeneratedDashboard(dashboard.id);
+                          if (isActive) router.push("/");
+                        }
+                      }}
+                      aria-label={`Delete ${dashboard.title}`}
+                      title="Delete dashboard"
+                      className={cn(
+                        "mr-1 shrink-0 rounded p-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100",
+                        isActive
+                          ? "text-white/70 hover:bg-white/10 hover:text-white dark:text-slate-900/70 dark:hover:bg-black/10 dark:hover:text-slate-900"
+                          : "text-slate-400 hover:bg-slate-200 hover:text-rose-600 dark:text-slate-500 dark:hover:bg-slate-700 dark:hover:text-rose-400"
+                      )}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+            <GenerateDashboardButton variant="nav" collapsed={!showExpanded} />
           </div>
         </div>
       </nav>
