@@ -9,6 +9,8 @@ import { loadTailSpendFromProvider } from "@/lib/page-data/tail-spend-from-provi
 import { DatasetUpload } from "@/components/dashboard/dataset-upload";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
+import { WidgetGridSkeleton } from "@/components/dashboard/widget-grid-skeleton";
+import { RevalidatingSection } from "@/components/dashboard/revalidating-section";
 import { KpiRibbon } from "./components/KpiRibbon";
 import { InvoiceValueBucketChart } from "./components/InvoiceValueBucketChart";
 import { SupplierSpendRankChart } from "./components/SupplierSpendRankChart";
@@ -80,6 +82,16 @@ export default function TailSpendPage() {
     providerType === "azure-sql",
     `tail-spend:${microPOThreshold}`
   );
+
+  const isAzureSqlMode = providerType === "azure-sql";
+  // True only until the very first Azure SQL fetch of the session settles —
+  // useProviderPageData's `ready` is sticky, so a later filter/threshold
+  // change never re-triggers this once real data has rendered once.
+  const isInitialAzureLoad = isAzureSqlMode && !warehouse.ready;
+  // True while a filter/threshold change is re-querying Azure SQL for data
+  // that's already on screen — drives the subtle in-place loading cue below,
+  // never a reset to the skeleton or a flash of the CSV/mock fallback.
+  const isRevalidating = isAzureSqlMode && warehouse.loading && warehouse.ready;
 
   // Precedence: warehouse in Azure SQL mode, else an uploaded CSV, else the
   // static mock — so a widget never renders blank.
@@ -278,66 +290,75 @@ export default function TailSpendPage() {
             thresholdsPageKey="tail-spend"
           />
 
-          {/* ================= Executive KPI Ribbon ================= */}
+          {isInitialAzureLoad ? (
+            <WidgetGridSkeleton kpiCount={8} widgetCount={7} />
+          ) : (
+            <RevalidatingSection isRevalidating={isRevalidating}>
+              {/* ================= Executive KPI Ribbon ================= */}
 
-          {isWidgetVisible("kpi-ribbon") && <KpiRibbon sapKpi={sapKpiRibbon} kpi={kpi} />}
+              {isWidgetVisible("kpi-ribbon") && <KpiRibbon sapKpi={sapKpiRibbon} kpi={kpi} />}
 
-          {/* ================= Dashboard Widgets — unified 2-column grid ================= */}
+              {/* ================= Dashboard Widgets — unified 2-column grid ================= */}
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {isWidgetVisible("invoice-value-bucket-chart") && (
-              <Widget title="Invoice Count by Invoice Value">
-                <InvoiceValueBucketChart
-                  buckets={invoiceValueBuckets}
-                  selectedBuckets={selectedBuckets}
-                  onToggleBucket={toggleBucket}
-                  microThreshold={microPOThreshold}
-                />
-              </Widget>
-            )}
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                {isWidgetVisible("invoice-value-bucket-chart") && (
+                  <Widget title="Invoice Count by Invoice Value">
+                    <InvoiceValueBucketChart
+                      buckets={invoiceValueBuckets}
+                      selectedBuckets={selectedBuckets}
+                      onToggleBucket={toggleBucket}
+                      microThreshold={microPOThreshold}
+                    />
+                  </Widget>
+                )}
 
-            {isWidgetVisible("supplier-spend-rank-chart") && (
-              <Widget title="Spend by Supplier (Global Ultimate) for Selected Buckets">
-                <SupplierSpendRankChart suppliers={scaledSupplierSpendRank} />
-              </Widget>
-            )}
+                {isWidgetVisible("supplier-spend-rank-chart") && (
+                  <Widget title="Spend by Supplier (Global Ultimate) for Selected Buckets">
+                    <SupplierSpendRankChart suppliers={scaledSupplierSpendRank} />
+                  </Widget>
+                )}
 
-            {isWidgetVisible("spend-by-invoice-value-donut") && (
-              <Widget title="Spend by Invoice Value">
-                <SpendByInvoiceValueDonut buckets={invoiceValueBuckets} selectedBuckets={selectedBuckets} />
-              </Widget>
-            )}
+                {isWidgetVisible("spend-by-invoice-value-donut") && (
+                  <Widget title="Spend by Invoice Value">
+                    <SpendByInvoiceValueDonut buckets={invoiceValueBuckets} selectedBuckets={selectedBuckets} />
+                  </Widget>
+                )}
 
-            {isWidgetVisible("category-spend-chart") && (
-              <Widget title="Spend by Category for Selected Buckets">
-                <CategorySpendChart categories={scaledCategoryRows} />
-              </Widget>
-            )}
+                {isWidgetVisible("category-spend-chart") && (
+                  <Widget title="Spend by Category for Selected Buckets">
+                    <CategorySpendChart categories={scaledCategoryRows} />
+                  </Widget>
+                )}
 
-            {isWidgetVisible("pareto-curve-chart") && (
-              <Widget
-                title="80/20 Pareto Distribution"
-                description="Suppliers ranked by spend, decile by decile — where the tail begins."
-              >
-                <ParetoCurveChart deciles={paretoDeciles} threshold={filters.paretoThreshold} />
-              </Widget>
-            )}
+                {isWidgetVisible("pareto-curve-chart") && (
+                  <Widget
+                    title="80/20 Pareto Distribution"
+                    description="Suppliers ranked by spend, decile by decile — where the tail begins."
+                  >
+                    <ParetoCurveChart deciles={paretoDeciles} threshold={filters.paretoThreshold} />
+                  </Widget>
+                )}
 
-            {isWidgetVisible("strategic-comparison") && (
-              <Widget title="Strategic vs. Core vs. Tail" description="How the three segments compare side by side.">
-                <StrategicComparison segments={segmentComparison} />
-              </Widget>
-            )}
+                {isWidgetVisible("strategic-comparison") && (
+                  <Widget
+                    title="Strategic vs. Core vs. Tail"
+                    description="How the three segments compare side by side."
+                  >
+                    <StrategicComparison segments={segmentComparison} />
+                  </Widget>
+                )}
 
-            {isWidgetVisible("tail-trend-chart") && (
-              <Widget
-                title="12-Month Spend Trend"
-                description="Tail spend is climbing steadily while strategic/core swing with capex cycles."
-              >
-                <TailTrendChart months={monthlyTrend} />
-              </Widget>
-            )}
-          </div>
+                {isWidgetVisible("tail-trend-chart") && (
+                  <Widget
+                    title="12-Month Spend Trend"
+                    description="Tail spend is climbing steadily while strategic/core swing with capex cycles."
+                  >
+                    <TailTrendChart months={monthlyTrend} />
+                  </Widget>
+                )}
+              </div>
+            </RevalidatingSection>
+          )}
         </div>
       </div>
     </div>
