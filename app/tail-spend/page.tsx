@@ -25,7 +25,6 @@ import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
 import { DASHBOARD_WIDGET_GROUPS } from "./components/dashboardParams";
 import { FOCUS_PARAMETERS, FOCUS_PRESETS } from "./components/focusParams";
 import { useDashboardCustomization } from "./components/useDashboardCustomization";
-import { cn } from "@/lib/utils";
 
 const ALL_CATEGORIES = "All Categories";
 const ALL_SUPPLIERS = "All Suppliers";
@@ -41,7 +40,10 @@ interface TailSpendFilters {
   paretoThreshold: number;
 }
 
-function Section({
+// Single card shell for every widget on the page — used inside the unified
+// 2-column grid so every widget reads as one consistent visual system rather
+// than two differently-styled tiers.
+function Widget({
   title,
   description,
   children,
@@ -51,42 +53,15 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80 lg:p-6">
+    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80 lg:p-6">
       <div className="mb-4">
-        <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
         {description && <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{description}</p>}
       </div>
-      {children}
-    </section>
-  );
-}
-
-function Widget({
-  title,
-  children,
-  className,
-}: {
-  title: string;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80",
-        className
-      )}
-    >
-      <h3 className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
       {children}
     </div>
   );
 }
-
-// When an odd number of the 4 chart widgets below are visible, the last one
-// would otherwise sit alone in a half-empty row at the xl 2-column
-// breakpoint — this expands it to fill the row instead of leaving a gap.
-const LAST_ODD_SPANS_FULL = "xl:[&:last-child:nth-child(odd)]:col-span-2";
 
 export default function TailSpendPage() {
   const { getDatasetForPage, providerType } = useDatasets();
@@ -307,11 +282,11 @@ export default function TailSpendPage() {
 
           {isWidgetVisible("kpi-ribbon") && <KpiRibbon sapKpi={sapKpiRibbon} kpi={kpi} />}
 
-          {/* ================= TIER 1: SAP Spend Control Tower ================= */}
+          {/* ================= Dashboard Widgets — unified 2-column grid ================= */}
 
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {isWidgetVisible("invoice-value-bucket-chart") && (
-              <Widget title="Invoice Count by Invoice Value" className={LAST_ODD_SPANS_FULL}>
+              <Widget title="Invoice Count by Invoice Value">
                 <InvoiceValueBucketChart
                   buckets={invoiceValueBuckets}
                   selectedBuckets={selectedBuckets}
@@ -322,58 +297,47 @@ export default function TailSpendPage() {
             )}
 
             {isWidgetVisible("supplier-spend-rank-chart") && (
-              <Widget title="Spend by Supplier (Global Ultimate) for Selected Buckets" className={LAST_ODD_SPANS_FULL}>
+              <Widget title="Spend by Supplier (Global Ultimate) for Selected Buckets">
                 <SupplierSpendRankChart suppliers={scaledSupplierSpendRank} />
               </Widget>
             )}
 
             {isWidgetVisible("spend-by-invoice-value-donut") && (
-              <Widget title="Spend by Invoice Value" className={LAST_ODD_SPANS_FULL}>
+              <Widget title="Spend by Invoice Value">
                 <SpendByInvoiceValueDonut buckets={invoiceValueBuckets} selectedBuckets={selectedBuckets} />
               </Widget>
             )}
 
             {isWidgetVisible("category-spend-chart") && (
-              <Widget title="Spend by Category for Selected Buckets" className={LAST_ODD_SPANS_FULL}>
+              <Widget title="Spend by Category for Selected Buckets">
                 <CategorySpendChart categories={scaledCategoryRows} />
               </Widget>
             )}
+
+            {isWidgetVisible("pareto-curve-chart") && (
+              <Widget
+                title="80/20 Pareto Distribution"
+                description="Suppliers ranked by spend, decile by decile — where the tail begins."
+              >
+                <ParetoCurveChart deciles={paretoDeciles} threshold={filters.paretoThreshold} />
+              </Widget>
+            )}
+
+            {isWidgetVisible("strategic-comparison") && (
+              <Widget title="Strategic vs. Core vs. Tail" description="How the three segments compare side by side.">
+                <StrategicComparison segments={segmentComparison} />
+              </Widget>
+            )}
+
+            {isWidgetVisible("tail-trend-chart") && (
+              <Widget
+                title="12-Month Spend Trend"
+                description="Tail spend is climbing steadily while strategic/core swing with capex cycles."
+              >
+                <TailTrendChart months={monthlyTrend} />
+              </Widget>
+            )}
           </div>
-
-          {/* ================= Tier divider ================= */}
-          <div className="flex items-center gap-4 py-2">
-            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
-            <p className="whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              Extended AI &amp; Value-Add Optimization Insights
-            </p>
-            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
-          </div>
-
-          {/* ================= TIER 2: Advanced AI & Tail Spend Optimization ================= */}
-
-          {isWidgetVisible("pareto-curve-chart") && (
-            <Section
-              title="80/20 Pareto Distribution"
-              description="Suppliers ranked by spend, decile by decile — where the tail begins."
-            >
-              <ParetoCurveChart deciles={paretoDeciles} threshold={filters.paretoThreshold} />
-            </Section>
-          )}
-
-          {isWidgetVisible("strategic-comparison") && (
-            <Section title="Strategic vs. Core vs. Tail" description="How the three segments compare side by side.">
-              <StrategicComparison segments={segmentComparison} />
-            </Section>
-          )}
-
-          {isWidgetVisible("tail-trend-chart") && (
-            <Section
-              title="12-Month Spend Trend"
-              description="Tail spend is climbing steadily while strategic/core swing with capex cycles."
-            >
-              <TailTrendChart months={monthlyTrend} />
-            </Section>
-          )}
         </div>
       </div>
     </div>

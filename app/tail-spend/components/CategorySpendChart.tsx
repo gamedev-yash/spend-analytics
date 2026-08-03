@@ -1,8 +1,8 @@
 "use client";
 
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LabelList } from "recharts";
 import type { SapCategoryRow } from "../tailSpendMock";
-import { formatINR, formatCompactNumber } from "../tailSpendMock";
+import { formatCompactNumber } from "../tailSpendMock";
 import { useTailSpendTheme } from "../theme";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 
@@ -10,27 +10,37 @@ interface CategorySpendChartProps {
   categories: SapCategoryRow[];
 }
 
+/** Categories shown before the rest fold away — keeps labels legible in a half-width grid card. */
+const TOP_N = 7;
+
+/** Comma-grouped, whole-crore label for this chart's bars/tooltip — e.g. ₹5,817 Cr. Category totals never dip below crore scale, so unlike the shared formatINR this doesn't need a lakh/rupee fallback. */
+function formatCategorySpend(value: number): string {
+  return `₹${Math.round(value / 1_00_00_000).toLocaleString("en-IN")} Cr`;
+}
+
 /**
- * SAP standard widget — categories ranked by spend for the selected invoice
- * value buckets. Single series, one hue, mirroring the Supplier Ranking
- * widget it sits beside.
+ * SAP standard widget — top categories ranked by spend for the selected
+ * invoice value buckets. Single series, one hue, mirroring the Supplier
+ * Ranking widget it sits beside. Capped to the top categories, with the
+ * spend value labelled directly on each bar, so it stays legible inside a
+ * half-width grid card.
  */
 export function CategorySpendChart({ categories }: CategorySpendChartProps) {
   const theme = useTailSpendTheme();
-  const sorted = [...categories].sort((a, b) => b.spend - a.spend);
+  const sorted = [...categories].sort((a, b) => b.spend - a.spend).slice(0, TOP_N);
 
   return (
     <ResponsiveContainer width="100%" height={280}>
       <BarChart
         data={sorted}
         layout="vertical"
-        margin={{ top: 8, right: 24, bottom: 8, left: 8 }}
+        margin={{ top: 8, right: 64, bottom: 8, left: 8 }}
         barCategoryGap="24%"
       >
         <CartesianGrid horizontal={false} stroke={theme.gridline} />
         <XAxis
           type="number"
-          tickFormatter={(v) => formatINR(v)}
+          tickFormatter={formatCategorySpend}
           stroke={theme.axisLine}
           tick={{ fill: theme.textMuted, fontSize: 11 }}
           tickLine={false}
@@ -52,15 +62,23 @@ export function CategorySpendChart({ categories }: CategorySpendChartProps) {
                 active={active}
                 heading={row.category}
                 rows={[
-                  { label: "Spend", value: formatINR(row.spend) },
                   { label: "Suppliers", value: formatCompactNumber(row.supplierCount) },
+                  { label: "Spend", value: formatCategorySpend(row.spend) },
                 ]}
               />
             );
           }}
           cursor={{ fill: theme.tooltipCursorFill }}
         />
-        <Bar dataKey="spend" name="Spend" fill={theme.paretoBarColor} radius={[0, 4, 4, 0]} maxBarSize={18} />
+        <Bar dataKey="spend" name="Spend" fill={theme.paretoBarColor} radius={[0, 4, 4, 0]} maxBarSize={18}>
+          <LabelList
+            dataKey="spend"
+            position="right"
+            formatter={(value) => formatCategorySpend(Number(value))}
+            fill={theme.textMuted}
+            fontSize={11}
+          />
+        </Bar>
       </BarChart>
     </ResponsiveContainer>
   );
