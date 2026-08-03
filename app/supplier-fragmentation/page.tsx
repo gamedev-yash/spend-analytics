@@ -12,6 +12,8 @@ import { loadSupplierFragmentationFromProvider } from "@/lib/page-data/supplier-
 import { DatasetUpload } from "@/components/dashboard/dataset-upload";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
+import { WidgetGridSkeleton } from "@/components/dashboard/widget-grid-skeleton";
+import { RevalidatingSection } from "@/components/dashboard/revalidating-section";
 import { SF_FOCUS_PARAMETERS, SF_FOCUS_PRESETS } from "./components/focusParams";
 import { useSupplierFragmentationFocus } from "./components/useSupplierFragmentationFocus";
 import { SupplierFragmentationFilters, ALL_CATEGORIES } from "./components/SupplierFragmentationFilters";
@@ -34,13 +36,22 @@ interface SupplierFragmentationFilterState {
 export default function SupplierFragmentationPage() {
   const { getDatasetForPage, providerType } = useDatasets();
   const dataset = getDatasetForPage("supplier-fragmentation");
+  const isAzureSqlMode = providerType === "azure-sql";
 
   // Azure SQL mode derives the category concentration table from fact_po_items.
   const warehouse = useProviderPageData(
     loadSupplierFragmentationFromProvider,
-    providerType === "azure-sql",
+    isAzureSqlMode,
     "supplier-fragmentation"
   );
+
+  // True only until the very first Azure SQL fetch of the session settles —
+  // useProviderPageData's `ready` is sticky, so it never re-triggers once
+  // real data has rendered once. `isRevalidating` covers everything after: a
+  // background refetch of data that's already on screen (see
+  // RevalidatingSection) rather than a reset to the skeleton.
+  const isInitialAzureLoad = isAzureSqlMode && !warehouse.ready;
+  const isRevalidating = isAzureSqlMode && warehouse.loading && warehouse.ready;
 
   // Precedence: warehouse, then an uploaded CSV, then the static mock — so no
   // widget renders blank.
@@ -112,80 +123,89 @@ export default function SupplierFragmentationPage() {
           thresholdsPageKey="supplier-fragmentation"
         />
 
-        <SupplierKpiCards data={data} isWidgetVisible={isWidgetVisible} />
+        {isInitialAzureLoad ? (
+          <WidgetGridSkeleton kpiCount={6} widgetCount={5} widgetHeight={420} />
+        ) : (
+          <RevalidatingSection isRevalidating={isRevalidating}>
+            <SupplierKpiCards data={data} isWidgetVisible={isWidgetVisible} />
 
-        {/* Trailing odd child spans the full row so hiding/filtering widgets never leaves a gap. */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
-          {isWidgetVisible("category-fragmentation") && (
-            <ChartCard
-              className="h-[420px]"
-              title="Supplier Count by Category"
-              description="Repeat vs. single-use suppliers per category"
-              icon={<Layers />}
-              accent="blue"
-            >
-              <CategoryFragmentationChart categories={filteredCategories} />
-            </ChartCard>
-          )}
+            {/* Trailing odd child spans the full row so hiding/filtering widgets never leaves a gap. */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
+              {isWidgetVisible("category-fragmentation") && (
+                <ChartCard
+                  className="h-[420px]"
+                  title="Supplier Count by Category"
+                  description="Repeat vs. single-use suppliers per category"
+                  icon={<Layers />}
+                  accent="blue"
+                >
+                  <CategoryFragmentationChart categories={filteredCategories} />
+                </ChartCard>
+              )}
 
-          {isWidgetVisible("category-concentration") && (
-            <ChartCard
-              className="h-[420px]"
-              title="Category Concentration"
-              description="Top-3 supplier share vs. alert threshold"
-              icon={<Target />}
-              accent="orange"
-            >
-              <CategoryConcentrationChart categories={filteredCategories} threshold={filters.concentrationThreshold} />
-            </ChartCard>
-          )}
+              {isWidgetVisible("category-concentration") && (
+                <ChartCard
+                  className="h-[420px]"
+                  title="Category Concentration"
+                  description="Top-3 supplier share vs. alert threshold"
+                  icon={<Target />}
+                  accent="orange"
+                >
+                  <CategoryConcentrationChart
+                    categories={filteredCategories}
+                    threshold={filters.concentrationThreshold}
+                  />
+                </ChartCard>
+              )}
 
-          {isWidgetVisible("size-distribution") && (
-            <ChartCard
-              className="h-[420px]"
-              title="Suppliers by Annual Spend"
-              description="Long low-value tail signals fragmentation"
-              icon={<Users />}
-              accent="green"
-            >
-              <SupplierSizeChart buckets={sizeBuckets} />
-            </ChartCard>
-          )}
+              {isWidgetVisible("size-distribution") && (
+                <ChartCard
+                  className="h-[420px]"
+                  title="Suppliers by Annual Spend"
+                  description="Long low-value tail signals fragmentation"
+                  icon={<Users />}
+                  accent="green"
+                >
+                  <SupplierSizeChart buckets={sizeBuckets} />
+                </ChartCard>
+              )}
 
-          {isWidgetVisible("top-supplier-pareto") && (
-            <ChartCard
-              className="h-[420px]"
-              title="Top 10 Suppliers"
-              description="Spend and cumulative share of total"
-              icon={<Target />}
-              accent="violet"
-            >
-              <TopSupplierParetoChart suppliers={topSuppliers} />
-            </ChartCard>
-          )}
+              {isWidgetVisible("top-supplier-pareto") && (
+                <ChartCard
+                  className="h-[420px]"
+                  title="Top 10 Suppliers"
+                  description="Spend and cumulative share of total"
+                  icon={<Target />}
+                  accent="violet"
+                >
+                  <TopSupplierParetoChart suppliers={topSuppliers} />
+                </ChartCard>
+              )}
 
-          {isWidgetVisible("onboarding-trend") && (
-            <ChartCard
-              className="h-[420px]"
-              title="12-Month Onboarding Trend"
-              description="New suppliers and the share that were single-use"
-              icon={<TrendingUp />}
-              accent="blue"
-            >
-              <OnboardingTrendChart months={monthlyOnboarding} />
-            </ChartCard>
-          )}
-        </div>
+              {isWidgetVisible("onboarding-trend") && (
+                <ChartCard
+                  className="h-[420px]"
+                  title="12-Month Onboarding Trend"
+                  description="New suppliers and the share that were single-use"
+                  icon={<TrendingUp />}
+                  accent="blue"
+                >
+                  <OnboardingTrendChart months={monthlyOnboarding} />
+                </ChartCard>
+              )}
+            </div>
 
-        {isWidgetVisible("duplicate-table") && (
-          <ChartCard
-            title="Potential Duplicate Suppliers"
-            description={`${duplicatePairs.length} name-similarity matches ranked highest-confidence first`}
-            icon={<Copy />}
-            accent="red"
-          >
-            <DuplicateSupplierTable pairs={duplicatePairs} />
-          </ChartCard>
+            {isWidgetVisible("duplicate-table") && (
+              <ChartCard
+                title="Potential Duplicate Suppliers"
+                description={`${duplicatePairs.length} name-similarity matches ranked highest-confidence first`}
+                icon={<Copy />}
+                accent="red"
+              >
+                <DuplicateSupplierTable pairs={duplicatePairs} />
+              </ChartCard>
+            )}
+          </RevalidatingSection>
         )}
       </div>
     </div>

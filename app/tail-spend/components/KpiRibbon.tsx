@@ -1,40 +1,33 @@
 "use client";
 
 import {
+  FileText,
+  Building2,
+  Landmark,
+  Repeat,
   Layers,
-  PackageX,
-  Receipt,
   Gauge,
   Users,
-  UserX,
-  Calculator,
   PiggyBank,
   type LucideIcon,
 } from "lucide-react";
-import type { KPISummary } from "../tailSpendMock";
+import type { KPISummary, SapKpiRibbon as SapKpiRibbonData } from "../tailSpendMock";
 import { formatINR, formatCompactNumber } from "../tailSpendMock";
 import { useThresholds } from "@/context/ThresholdsContext";
 import { thresholdEvaluationTitle } from "@/lib/threshold-format";
 import { StatusBadge } from "@/components/ui/status-badge";
 import type { ThresholdStatus } from "@/types/thresholds";
 
-interface MicroPOStats {
-  poCount: number;
-  totalValue: number;
-  processingCost: number;
-}
-
-interface TailKPICardsProps {
+interface KpiRibbonProps {
+  sapKpi: SapKpiRibbonData;
   kpi: KPISummary;
-  microStats: MicroPOStats;
-  threshold: number;
 }
 
 interface KPICardDef {
   icon: LucideIcon;
   label: string;
   value: string;
-  sub: string;
+  sub?: string;
   badge?: { status: ThresholdStatus; title: string } | null;
 }
 
@@ -47,15 +40,40 @@ function useThresholdBadge(id: string, value: number): KPICardDef["badge"] {
   return { status, title: thresholdEvaluationTitle(value, config) };
 }
 
-export function TailKPICards({ kpi, microStats, threshold }: TailKPICardsProps) {
-  const microPOPercent = (microStats.poCount / kpi.totalPOCount) * 100;
-  const costToValueRatio = (microStats.processingCost / Math.max(microStats.totalValue, 1)) * 100;
-  const singleUsePercentOfTail = (kpi.singleUseSupplierCount / kpi.tailSupplierCount) * 100;
-
+/**
+ * Single executive KPI ribbon: the SAP standard metrics (Invoices, Suppliers,
+ * mean-per-supplier figures) plus the four tail-spend optimization metrics
+ * that matter for consolidation decisions, combined into one responsive grid
+ * instead of two separately-styled tiers.
+ */
+export function KpiRibbon({ sapKpi, kpi }: KpiRibbonProps) {
   const tailShareBadge = useThresholdBadge("tail-spend.tail-share", kpi.tailSpendPercentOfValue);
   const savingsBadge = useThresholdBadge("tail-spend.savings-target", kpi.potentialConsolidationSavings);
 
   const cards: KPICardDef[] = [
+    // Default SAP standard KPIs
+    {
+      icon: FileText,
+      label: "Invoices",
+      value: formatCompactNumber(sapKpi.invoiceCount),
+    },
+    {
+      icon: Building2,
+      label: "Suppliers (Global Ultimate)",
+      value: formatCompactNumber(sapKpi.supplierCountGlobalUltimate),
+    },
+    {
+      icon: Landmark,
+      label: "Mean Invoice Amount / Supplier",
+      value: formatINR(sapKpi.meanInvoiceAmountPerSupplier),
+    },
+    {
+      icon: Repeat,
+      label: "Mean Invoices / Supplier",
+      value: sapKpi.meanInvoicesPerSupplier.toFixed(1),
+    },
+
+    // Tail-spend optimization KPIs
     {
       icon: Layers,
       label: "Tail Spend Value",
@@ -70,34 +88,10 @@ export function TailKPICards({ kpi, microStats, threshold }: TailKPICardsProps) 
       sub: `${formatCompactNumber(kpi.tailPOCount)} of ${formatCompactNumber(kpi.totalPOCount)} POs`,
     },
     {
-      icon: PackageX,
-      label: `Micro-POs (< ${formatINR(threshold)})`,
-      value: formatCompactNumber(microStats.poCount),
-      sub: `${microPOPercent.toFixed(1)}% of total PO volume`,
-    },
-    {
-      icon: Receipt,
-      label: "Micro-PO Processing Cost",
-      value: formatINR(microStats.processingCost),
-      sub: `${costToValueRatio.toFixed(0)}% of the ${formatINR(microStats.totalValue)} value they carry`,
-    },
-    {
       icon: Users,
       label: "Tail Suppliers",
       value: formatCompactNumber(kpi.tailSupplierCount),
       sub: `${((kpi.tailSupplierCount / kpi.totalActiveSuppliers) * 100).toFixed(0)}% of ${formatCompactNumber(kpi.totalActiveSuppliers)} active suppliers`,
-    },
-    {
-      icon: UserX,
-      label: "Single/Low-Use Suppliers",
-      value: formatCompactNumber(kpi.singleUseSupplierCount),
-      sub: `${singleUsePercentOfTail.toFixed(0)}% of tail suppliers`,
-    },
-    {
-      icon: Calculator,
-      label: "Avg. PO Processing Cost",
-      value: formatINR(kpi.avgPOProcessingCost),
-      sub: "SAP ECC administrative overhead assumption",
     },
     {
       icon: PiggyBank,
@@ -125,7 +119,7 @@ export function TailKPICards({ kpi, microStats, threshold }: TailKPICardsProps) 
             <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50">{card.value}</p>
             {card.badge && <StatusBadge status={card.badge.status} title={card.badge.title} />}
           </div>
-          <p className="mt-1 text-xs leading-snug text-slate-500 dark:text-slate-400">{card.sub}</p>
+          {card.sub && <p className="mt-1 text-xs leading-snug text-slate-500 dark:text-slate-400">{card.sub}</p>}
         </div>
       ))}
     </div>

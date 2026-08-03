@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
-import { tailSpendMock, estimateMicroPOStats, formatINR } from "./tailSpendMock";
+import { tailSpendMock, formatINR } from "./tailSpendMock";
 import { buildTailSpendFromDataset } from "./fromDataset";
 import { useDatasets } from "@/context/DatasetsContext";
 import { useProviderPageData } from "@/hooks/use-provider-page-data";
@@ -9,29 +9,24 @@ import { loadTailSpendFromProvider } from "@/lib/page-data/tail-spend-from-provi
 import { DatasetUpload } from "@/components/dashboard/dataset-upload";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
-import { SapKpiRibbon } from "./components/SapKpiRibbon";
+import { WidgetGridSkeleton } from "@/components/dashboard/widget-grid-skeleton";
+import { RevalidatingSection } from "@/components/dashboard/revalidating-section";
+import { KpiRibbon } from "./components/KpiRibbon";
 import { InvoiceValueBucketChart } from "./components/InvoiceValueBucketChart";
 import { SupplierSpendRankChart } from "./components/SupplierSpendRankChart";
 import { SpendByInvoiceValueDonut } from "./components/SpendByInvoiceValueDonut";
-import { CategorySpendHybrid } from "./components/CategorySpendHybrid";
-import { SapDetailTable } from "./components/SapDetailTable";
-import { TailKPICards } from "./components/TailKPICards";
+import { CategorySpendChart } from "./components/CategorySpendChart";
 import { ParetoCurveChart } from "./components/ParetoCurveChart";
-import { TailCategoryChart } from "./components/TailCategoryChart";
-import { TailBubbleChart } from "./components/TailBubbleChart";
 import { StrategicComparison } from "./components/StrategicComparison";
 import { TailTrendChart } from "./components/TailTrendChart";
-import { ConsolidationTable } from "./components/ConsolidationTable";
-import { MicroPOAnalysis } from "./components/MicroPOAnalysis";
 import { useFilterSlot } from "@/context/FilterContext";
 import { useThresholds } from "@/context/ThresholdsContext";
-import { FilterGroup, FilterSelect, FilterSlider, FilterToggle } from "@/components/ui/filter-controls";
+import { FilterGroup, FilterSelect, FilterSlider } from "@/components/ui/filter-controls";
 import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
 import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
 import { DASHBOARD_WIDGET_GROUPS } from "./components/dashboardParams";
 import { FOCUS_PARAMETERS, FOCUS_PRESETS } from "./components/focusParams";
 import { useDashboardCustomization } from "./components/useDashboardCustomization";
-import { cn } from "@/lib/utils";
 
 const ALL_CATEGORIES = "All Categories";
 const ALL_SUPPLIERS = "All Suppliers";
@@ -45,10 +40,12 @@ interface TailSpendFilters {
   sourceSystem: string;
   plantSite: string;
   paretoThreshold: number;
-  microPOOnly: boolean;
 }
 
-function Section({
+// Single card shell for every widget on the page — used inside the unified
+// 2-column grid so every widget reads as one consistent visual system rather
+// than two differently-styled tiers.
+function Widget({
   title,
   description,
   children,
@@ -58,42 +55,15 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80 lg:p-6">
+    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80 lg:p-6">
       <div className="mb-4">
-        <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
         {description && <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{description}</p>}
       </div>
-      {children}
-    </section>
-  );
-}
-
-function Widget({
-  title,
-  children,
-  className,
-}: {
-  title: string;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80",
-        className
-      )}
-    >
-      <h3 className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
       {children}
     </div>
   );
 }
-
-// When an odd number of the 4 chart widgets below are visible, the last one
-// would otherwise sit alone in a half-empty row at the xl 2-column
-// breakpoint — this expands it to fill the row instead of leaving a gap.
-const LAST_ODD_SPANS_FULL = "xl:[&:last-child:nth-child(odd)]:col-span-2";
 
 export default function TailSpendPage() {
   const { getDatasetForPage, providerType } = useDatasets();
@@ -113,6 +83,16 @@ export default function TailSpendPage() {
     `tail-spend:${microPOThreshold}`
   );
 
+  const isAzureSqlMode = providerType === "azure-sql";
+  // True only until the very first Azure SQL fetch of the session settles —
+  // useProviderPageData's `ready` is sticky, so a later filter/threshold
+  // change never re-triggers this once real data has rendered once.
+  const isInitialAzureLoad = isAzureSqlMode && !warehouse.ready;
+  // True while a filter/threshold change is re-querying Azure SQL for data
+  // that's already on screen — drives the subtle in-place loading cue below,
+  // never a reset to the skeleton or a flash of the CSV/mock fallback.
+  const isRevalidating = isAzureSqlMode && warehouse.loading && warehouse.ready;
+
   // Precedence: warehouse in Azure SQL mode, else an uploaded CSV, else the
   // static mock — so a widget never renders blank.
   const data = useMemo(
@@ -127,11 +107,8 @@ export default function TailSpendPage() {
     kpi,
     paretoDeciles,
     categoryBreakdown,
-    supplierBubbles,
     segmentComparison,
     monthlyTrend,
-    consolidationCandidates,
-    poValueBuckets,
     sapKpiRibbon,
     invoiceValueBuckets,
     supplierSpendRank,
@@ -164,7 +141,6 @@ export default function TailSpendPage() {
     sourceSystem: ALL_SOURCE_SYSTEMS,
     plantSite: ALL_PLANTS,
     paretoThreshold: 80,
-    microPOOnly: false,
   }));
 
   function updateFilter<K extends keyof TailSpendFilters>(key: K, value: TailSpendFilters[K]) {
@@ -241,11 +217,6 @@ export default function TailSpendPage() {
           onChange={(v) => updateFilter("paretoThreshold", v)}
           formatValue={(v) => `${v}%`}
         />
-        <FilterToggle
-          label="Micro-POs only"
-          checked={filters.microPOOnly}
-          onChange={(v) => updateFilter("microPOOnly", v)}
-        />
       </FilterGroup>
     </>
   );
@@ -292,43 +263,6 @@ export default function TailSpendPage() {
     [sapCategoryRows, filters.category, selectedSpendFraction]
   );
 
-  const filteredSupplierReport = useMemo(
-    () =>
-      sapSupplierReport.filter(
-        (r) => filters.supplierGlobalUltimate === ALL_SUPPLIERS || r.supplierName === filters.supplierGlobalUltimate
-      ),
-    [sapSupplierReport, filters.supplierGlobalUltimate]
-  );
-
-  // --- Tier 2: Advanced AI & Tail Spend Optimization ------------------------
-  const sortedCategories = useMemo(
-    () =>
-      [...categoryBreakdown]
-        .filter((c) => filters.category === ALL_CATEGORIES || c.category === filters.category)
-        .sort((a, b) => b.tailPercent - a.tailPercent),
-    [categoryBreakdown, filters.category]
-  );
-
-  const filteredBubbles = useMemo(
-    () => supplierBubbles.filter((s) => filters.category === ALL_CATEGORIES || s.category === filters.category),
-    [supplierBubbles, filters.category]
-  );
-
-  const filteredCandidates = useMemo(
-    () =>
-      consolidationCandidates.filter(
-        (c) =>
-          (filters.category === ALL_CATEGORIES || c.category === filters.category) &&
-          (!filters.microPOOnly || c.microPOCount / c.poCount >= 0.5)
-      ),
-    [consolidationCandidates, filters.category, filters.microPOOnly]
-  );
-
-  const microStats = useMemo(
-    () => estimateMicroPOStats(poValueBuckets, microPOThreshold),
-    [poValueBuckets, microPOThreshold]
-  );
-
   return (
     <div className="min-h-[calc(100vh-4rem)] rounded-xl bg-slate-50 p-6 text-slate-900 dark:bg-slate-950 dark:text-slate-100 lg:p-8">
       <div className="mx-auto flex max-w-[1400px] flex-col gap-6">
@@ -356,120 +290,74 @@ export default function TailSpendPage() {
             thresholdsPageKey="tail-spend"
           />
 
-          {/* ================= TIER 1: SAP Spend Control Tower ================= */}
+          {isInitialAzureLoad ? (
+            <WidgetGridSkeleton kpiCount={8} widgetCount={7} />
+          ) : (
+            <RevalidatingSection isRevalidating={isRevalidating}>
+              {/* ================= Executive KPI Ribbon ================= */}
 
-          {isWidgetVisible("sap-kpi-ribbon") && <SapKpiRibbon kpi={sapKpiRibbon} />}
+              {isWidgetVisible("kpi-ribbon") && <KpiRibbon sapKpi={sapKpiRibbon} kpi={kpi} />}
 
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            {isWidgetVisible("invoice-value-bucket-chart") && (
-              <Widget title="Invoice Count by Invoice Value" className={LAST_ODD_SPANS_FULL}>
-                <InvoiceValueBucketChart
-                  buckets={invoiceValueBuckets}
-                  selectedBuckets={selectedBuckets}
-                  onToggleBucket={toggleBucket}
-                  microThreshold={microPOThreshold}
-                />
-              </Widget>
-            )}
+              {/* ================= Dashboard Widgets — unified 2-column grid ================= */}
 
-            {isWidgetVisible("supplier-spend-rank-chart") && (
-              <Widget title="Spend by Supplier (Global Ultimate) for Selected Buckets" className={LAST_ODD_SPANS_FULL}>
-                <SupplierSpendRankChart suppliers={scaledSupplierSpendRank} />
-              </Widget>
-            )}
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                {isWidgetVisible("invoice-value-bucket-chart") && (
+                  <Widget title="Invoice Count by Invoice Value">
+                    <InvoiceValueBucketChart
+                      buckets={invoiceValueBuckets}
+                      selectedBuckets={selectedBuckets}
+                      onToggleBucket={toggleBucket}
+                      microThreshold={microPOThreshold}
+                    />
+                  </Widget>
+                )}
 
-            {isWidgetVisible("spend-by-invoice-value-donut") && (
-              <Widget title="Spend by Invoice Value" className={LAST_ODD_SPANS_FULL}>
-                <SpendByInvoiceValueDonut buckets={invoiceValueBuckets} selectedBuckets={selectedBuckets} />
-              </Widget>
-            )}
+                {isWidgetVisible("supplier-spend-rank-chart") && (
+                  <Widget title="Spend by Supplier (Global Ultimate) for Selected Buckets">
+                    <SupplierSpendRankChart suppliers={scaledSupplierSpendRank} />
+                  </Widget>
+                )}
 
-            {isWidgetVisible("category-spend-hybrid") && (
-              <Widget title="Spend by Category for Selected Buckets" className={LAST_ODD_SPANS_FULL}>
-                <CategorySpendHybrid categories={scaledCategoryRows} />
-              </Widget>
-            )}
-          </div>
+                {isWidgetVisible("spend-by-invoice-value-donut") && (
+                  <Widget title="Spend by Invoice Value">
+                    <SpendByInvoiceValueDonut buckets={invoiceValueBuckets} selectedBuckets={selectedBuckets} />
+                  </Widget>
+                )}
 
-          {isWidgetVisible("sap-detail-table") && (
-            <Section title="Supplier (Global Ultimate) Detail Report">
-              <SapDetailTable rows={filteredSupplierReport} />
-            </Section>
-          )}
+                {isWidgetVisible("category-spend-chart") && (
+                  <Widget title="Spend by Category for Selected Buckets">
+                    <CategorySpendChart categories={scaledCategoryRows} />
+                  </Widget>
+                )}
 
-          {/* ================= Tier divider ================= */}
-          <div className="flex items-center gap-4 py-2">
-            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
-            <p className="whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              Extended AI &amp; Value-Add Optimization Insights
-            </p>
-            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
-          </div>
+                {isWidgetVisible("pareto-curve-chart") && (
+                  <Widget
+                    title="80/20 Pareto Distribution"
+                    description="Suppliers ranked by spend, decile by decile — where the tail begins."
+                  >
+                    <ParetoCurveChart deciles={paretoDeciles} threshold={filters.paretoThreshold} />
+                  </Widget>
+                )}
 
-          {/* ================= TIER 2: Advanced AI & Tail Spend Optimization ================= */}
+                {isWidgetVisible("strategic-comparison") && (
+                  <Widget
+                    title="Strategic vs. Core vs. Tail"
+                    description="How the three segments compare side by side."
+                  >
+                    <StrategicComparison segments={segmentComparison} />
+                  </Widget>
+                )}
 
-          {isWidgetVisible("tail-kpi-cards") && (
-            <TailKPICards kpi={kpi} microStats={microStats} threshold={microPOThreshold} />
-          )}
-
-          {isWidgetVisible("pareto-curve-chart") && (
-            <Section
-              title="80/20 Pareto Distribution"
-              description="Suppliers ranked by spend, decile by decile — where the tail begins."
-            >
-              <ParetoCurveChart deciles={paretoDeciles} threshold={filters.paretoThreshold} />
-            </Section>
-          )}
-
-          {isWidgetVisible("tail-category-chart") && (
-            <Section
-              title="Spend by Category"
-              description="Strategic / Core / Tail split per category, ranked by tail-spend share."
-            >
-              <TailCategoryChart categories={sortedCategories} />
-            </Section>
-          )}
-
-          {isWidgetVisible("tail-bubble-chart") && (
-            <Section
-              title="Supplier Segmentation Matrix"
-              description="PO count vs. avg PO value, sized by total spend."
-            >
-              <TailBubbleChart suppliers={filteredBubbles} />
-            </Section>
-          )}
-
-          {isWidgetVisible("strategic-comparison") && (
-            <Section title="Strategic vs. Core vs. Tail" description="How the three segments compare side by side.">
-              <StrategicComparison segments={segmentComparison} />
-            </Section>
-          )}
-
-          {isWidgetVisible("tail-trend-chart") && (
-            <Section
-              title="12-Month Spend Trend"
-              description="Tail spend is climbing steadily while strategic/core swing with capex cycles."
-            >
-              <TailTrendChart months={monthlyTrend} />
-            </Section>
-          )}
-
-          {isWidgetVisible("consolidation-table") && (
-            <Section
-              title="Consolidation Candidates"
-              description="Tail suppliers ranked by consolidation opportunity — highest potential savings first."
-            >
-              <ConsolidationTable candidates={filteredCandidates} />
-            </Section>
-          )}
-
-          {isWidgetVisible("micro-po-analysis") && (
-            <Section
-              title="Micro-PO Value Distribution"
-              description={`${kpi.totalPOCount.toLocaleString("en-IN")} POs bucketed by value — the smallest buckets cost more to process than they're worth.`}
-            >
-              <MicroPOAnalysis buckets={poValueBuckets} threshold={microPOThreshold} />
-            </Section>
+                {isWidgetVisible("tail-trend-chart") && (
+                  <Widget
+                    title="12-Month Spend Trend"
+                    description="Tail spend is climbing steadily while strategic/core swing with capex cycles."
+                  >
+                    <TailTrendChart months={monthlyTrend} />
+                  </Widget>
+                )}
+              </div>
+            </RevalidatingSection>
           )}
         </div>
       </div>

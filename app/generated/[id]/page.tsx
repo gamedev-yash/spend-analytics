@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LayoutDashboard, Trash2 } from "lucide-react";
 import { DashboardGrid } from "@/components/generated-dashboard/dashboard-grid";
+import { WidgetGridSkeleton } from "@/components/dashboard/widget-grid-skeleton";
 import {
   deleteGeneratedDashboard,
   useGeneratedDashboard,
@@ -33,7 +34,7 @@ export default function GeneratedDashboardPage({ params }: { params: Promise<{ i
   const ready = useGeneratedDashboardsReady();
 
   // Store hydrates on the client, so "not found" is only real once ready.
-  if (!ready) return null;
+  if (!ready) return <WidgetGridSkeleton widgetCount={4} />;
 
   if (!dashboard) {
     return (
