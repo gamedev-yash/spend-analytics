@@ -5,6 +5,7 @@ import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { DatasetsProvider } from "@/context/DatasetsContext";
 import { ThresholdsProvider } from "@/context/ThresholdsContext";
 import { AiAssistant } from "@/components/ai-assistant/AiAssistant";
+import { DashboardAssistant } from "@/components/ai-assistant/DashboardAssistant";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +34,7 @@ export default function RootLayout({
             <ThresholdsProvider>
               <DashboardShell>{children}</DashboardShell>
               <AiAssistant />
+              <DashboardAssistant />
             </ThresholdsProvider>
           </DatasetsProvider>
         </ThemeProvider>

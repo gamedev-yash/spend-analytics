@@ -2,6 +2,8 @@
 
 import { useMemo } from "react";
 import { useDatasets } from "@/context/DatasetsContext";
+import { useProviderPageData } from "@/hooks/use-provider-page-data";
+import { loadSpendOverviewFromProvider } from "@/lib/page-data/spend-overview-from-provider";
 import { DatasetUpload } from "@/components/dashboard/dataset-upload";
 import type { SapFilters } from "@/lib/sap/types";
 import { buildSpendOverviewFromDataset, type SpendOverviewData } from "../fromDataset";
@@ -15,18 +17,30 @@ interface SpendOverviewDataBridgeProps {
 }
 
 /**
- * Chooses the canvas's data source: when a CSV has been uploaded for this
- * page, every widget is re-aggregated client-side from its rows (same
- * SapFilters semantics as the server path); otherwise the server-aggregated
- * mock props pass straight through, so the dashboard never renders blank.
+ * Chooses the canvas's data source, in precedence order:
+ *
+ *   1. Azure SQL mode — every widget's aggregate comes from fact_po_items
+ *      through IDataProvider.
+ *   2. An uploaded CSV for this page — re-aggregated client-side from its rows
+ *      with the same SapFilters semantics as the server path.
+ *   3. The server-aggregated mock props, so the dashboard never renders blank.
  */
 export function SpendOverviewDataBridge({ serverData, filters }: SpendOverviewDataBridgeProps) {
-  const { getDatasetForPage } = useDatasets();
+  const { getDatasetForPage, providerType } = useDatasets();
   const dataset = getDatasetForPage("spend-overview");
 
+  const warehouse = useProviderPageData(
+    loadSpendOverviewFromProvider,
+    providerType === "azure-sql",
+    "spend-overview"
+  );
+
   const data = useMemo(
-    () => (dataset ? buildSpendOverviewFromDataset(dataset, filters) : null) ?? serverData,
-    [dataset, filters, serverData]
+    () =>
+      warehouse.data ??
+      (dataset ? buildSpendOverviewFromDataset(dataset, filters) : null) ??
+      serverData,
+    [warehouse.data, dataset, filters, serverData]
   );
 
   return (

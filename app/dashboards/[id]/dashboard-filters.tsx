@@ -3,7 +3,9 @@
 import { useMemo } from "react";
 import { FilterX } from "lucide-react";
 import { FilterSelect } from "@/components/ui/filter-controls";
-import type { Dataset, DatasetRow } from "@/context/DatasetsContext";
+import { useFilterOptions } from "@/hooks/use-widget-query";
+import type { QueryFilter } from "@/types/data-provider";
+import type { Dataset } from "@/context/DatasetsContext";
 
 /** Dimension → selected value ("" = all). */
 export type DashboardFilterState = Record<string, string>;
@@ -17,10 +19,11 @@ export function filterableColumns(dataset: Dataset) {
     .slice(0, 3);
 }
 
-export function applyDashboardFilters(rows: DatasetRow[], filters: DashboardFilterState): DatasetRow[] {
-  const active = Object.entries(filters).filter(([, value]) => value !== ALL_VALUES);
-  if (active.length === 0) return rows;
-  return rows.filter((row) => active.every(([column, value]) => String(row[column] ?? "") === value));
+/** Selected values as query filters — what the widgets push down to the provider. */
+export function dashboardFiltersToQuery(filters: DashboardFilterState): QueryFilter[] {
+  return Object.entries(filters)
+    .filter(([, value]) => value !== ALL_VALUES)
+    .map(([field, value]) => ({ field, operator: "eq" as const, value }));
 }
 
 interface DashboardFiltersProps {
@@ -35,21 +38,10 @@ interface DashboardFiltersProps {
  */
 export function DashboardFilters({ dataset, filters, onChange }: DashboardFiltersProps) {
   const columns = useMemo(() => filterableColumns(dataset), [dataset]);
-
-  const optionsByColumn = useMemo(() => {
-    const map = new Map<string, string[]>();
-    for (const column of columns) {
-      const values = new Set<string>();
-      for (const row of dataset.rows) {
-        const raw = row[column.id];
-        if (raw === null || raw === undefined) continue;
-        const s = String(raw).trim();
-        if (s !== "") values.add(s);
-      }
-      map.set(column.id, Array.from(values).sort((a, b) => a.localeCompare(b)));
-    }
-    return map;
-  }, [columns, dataset.rows]);
+  const { options: optionsByColumn } = useFilterOptions(
+    dataset.id,
+    columns.map((c) => c.id)
+  );
 
   if (columns.length === 0) return null;
 
