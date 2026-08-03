@@ -11,6 +11,7 @@ import {
   Loader2,
   Send,
   Sparkles,
+  Square,
   Wand2,
   X,
 } from "lucide-react";
@@ -97,7 +98,12 @@ export function AiAssistant() {
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const dismissToast = useCallback(() => setToast(null), []);
+
+  function stop() {
+    abortRef.current?.abort();
+  }
 
   // Strictly the dashboard whose page this is — no fallback to "newest" and
   // no way to target a different one from here.
@@ -175,8 +181,10 @@ export function AiAssistant() {
     setMessages((prev) => [...prev, { role: "user", content: message }]);
     setInput("");
     setBusy(true);
+    const controller = new AbortController();
+    abortRef.current = controller;
     try {
-      const result = await askAssistant(message, dataset, history, otherDashboards);
+      const result = await askAssistant(message, dataset, history, otherDashboards, controller.signal);
       let addedWidget: string | undefined;
       if (result.validatedWidget && !result.redirect) {
         if (injectWidget(result.validatedWidget)) addedWidget = result.validatedWidget.title;
@@ -202,18 +210,23 @@ export function AiAssistant() {
         ]);
       }
     } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content:
-            err instanceof AssistantError || err instanceof Error
-              ? err.message
-              : "Something went wrong talking to the assistant.",
-          isError: true,
-        },
-      ]);
+      if (err instanceof DOMException && err.name === "AbortError") {
+        setMessages((prev) => [...prev, { role: "assistant", content: "Stopped." }]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content:
+              err instanceof AssistantError || err instanceof Error
+                ? err.message
+                : "Something went wrong talking to the assistant.",
+            isError: true,
+          },
+        ]);
+      }
     } finally {
+      abortRef.current = null;
       setBusy(false);
     }
   }
@@ -361,12 +374,17 @@ export function AiAssistant() {
                 />
                 <button
                   type="button"
-                  onClick={() => void send()}
-                  disabled={busy || !input.trim()}
-                  aria-label="Send message"
-                  className="rounded-lg bg-slate-900 p-2.5 text-white transition-colors hover:bg-slate-700 disabled:opacity-40 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
+                  onClick={() => (busy ? stop() : void send())}
+                  disabled={!busy && !input.trim()}
+                  aria-label={busy ? "Stop generating" : "Send message"}
+                  className={cn(
+                    "rounded-lg p-2.5 text-white transition-colors disabled:opacity-40",
+                    busy
+                      ? "bg-rose-600 hover:bg-rose-700"
+                      : "bg-slate-900 hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
+                  )}
                 >
-                  {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  {busy ? <Square className="h-4 w-4 fill-current" /> : <Send className="h-4 w-4" />}
                 </button>
               </div>
             </>
