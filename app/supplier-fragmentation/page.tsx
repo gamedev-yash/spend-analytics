@@ -7,6 +7,8 @@ import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
 import { supplierMock } from "./supplierMock";
 import { buildSupplierFragmentationFromDataset } from "./fromDataset";
 import { useDatasets } from "@/context/DatasetsContext";
+import { useProviderPageData } from "@/hooks/use-provider-page-data";
+import { loadSupplierFragmentationFromProvider } from "@/lib/page-data/supplier-fragmentation-from-provider";
 import { DatasetUpload } from "@/components/dashboard/dataset-upload";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
@@ -30,14 +32,24 @@ interface SupplierFragmentationFilterState {
 }
 
 export default function SupplierFragmentationPage() {
-  const { getDatasetForPage } = useDatasets();
+  const { getDatasetForPage, providerType } = useDatasets();
   const dataset = getDatasetForPage("supplier-fragmentation");
 
-  // Uploaded CSV (when present and usable) drives the category-level widgets;
-  // otherwise every widget reads the static mock so the page never goes blank.
+  // Azure SQL mode derives the category concentration table from fact_po_items.
+  const warehouse = useProviderPageData(
+    loadSupplierFragmentationFromProvider,
+    providerType === "azure-sql",
+    "supplier-fragmentation"
+  );
+
+  // Precedence: warehouse, then an uploaded CSV, then the static mock — so no
+  // widget renders blank.
   const data = useMemo(
-    () => (dataset ? buildSupplierFragmentationFromDataset(dataset) : null) ?? supplierMock,
-    [dataset]
+    () =>
+      warehouse.data ??
+      (dataset ? buildSupplierFragmentationFromDataset(dataset) : null) ??
+      supplierMock,
+    [warehouse.data, dataset]
   );
 
   const { categories, sizeBuckets, topSuppliers, monthlyOnboarding, duplicatePairs, filterOptions } = data;

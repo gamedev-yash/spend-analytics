@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { Bell, ChevronDown, SlidersHorizontal, UserRound } from "lucide-react";
 import { NAV_ITEMS } from "@/lib/nav";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { ProviderModeBadge } from "@/components/layout/provider-mode-badge";
 import { cn } from "@/lib/utils";
 
 interface TopHeaderProps {
@@ -25,6 +26,8 @@ export function TopHeader({ filtersVisible, onToggleFilters }: TopHeaderProps) {
       </div>
 
       <div className="flex items-center gap-2">
+        <ProviderModeBadge />
+
         <button
           type="button"
           onClick={onToggleFilters}

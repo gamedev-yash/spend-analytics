@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "generate:sap": "node scripts/generate-sap-data.mjs data/sap",
-    "convert-mock": "tsx scripts/convert-mock-to-csv.ts"
+    "convert-mock": "tsx scripts/convert-mock-to-csv.ts",
+    "seed:sql": "tsx scripts/seed-azure-sql.ts",
+    "test": "node --conditions=react-server --import tsx --test tests/*.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",
