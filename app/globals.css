@@ -231,3 +231,64 @@ input[type="range"]::-moz-range-thumb {
   height: 100% !important;
   flex: 1;
 }
+
+/*
+ * `.chart-fixed-height-scroll` (payment-terms-by-supplier-chart.tsx) opts a
+ * chart OUT of the stretch-to-fill rule above. Its height is content-driven
+ * — one row per data point, e.g. a ranked supplier list — rather than an
+ * arbitrary compact-view pixel number that should grow given more room. That
+ * chart renders at its natural full height in both compact and fullscreen
+ * views and relies on its own wrapper's scroll to reach the rest; forcing
+ * height:100% onto its Recharts internals would compress every row to fit
+ * the fullscreen viewport instead of leaving them at a legible fixed height.
+ *
+ * `auto`/`none` (not `revert`) deliberately: `revert` rolls back past BOTH
+ * this stylesheet's rules AND Recharts' own inline style (inline style is
+ * the same "author" cascade origin as a stylesheet, just higher-specificity
+ * within it), landing on the UA default and collapsing to 0 — verified
+ * empirically. `auto` height + `flex: none` instead let this element size to
+ * its own content, same as with no fullscreen CSS involved at all: its child
+ * is Recharts' own SVG, which carries its own explicit width/height
+ * attributes regardless of what CSS says about its ancestors, so content-box
+ * auto-sizing naturally arrives back at that same size.
+ *
+ * A `:not()`-based exclusion on the general rule above was tried first and
+ * reverted: this project's build pipeline merges adjacent same-body rules by
+ * combining their selectors into one comma-separated list, and a comma-list
+ * (or complex descendant selector) inside `:not()` made that merged rule
+ * fail to parse — silently dropping the ENTIRE rule, including the original,
+ * previously-working `*:last-child` cascade for every other chart. Plain
+ * class/descendant selectors only below, no `:not()`, to stay safe.
+ */
+[data-fullscreen-chart] .chart-fixed-height-scroll .recharts-wrapper,
+[data-fullscreen-chart] .chart-fixed-height-scroll .recharts-responsive-container {
+  height: auto !important;
+  flex: none !important;
+}
+
+/*
+ * `.exposure-trend-fullscreen-grid` (single-source-risk's exposure-trend-chart.tsx)
+ * is a two-column CSS grid of independent mini line charts — a shape the
+ * generic cascade above doesn't handle: it turns this grid's display:grid
+ * into display:flex (same specificity, and `[data-fullscreen-chart] > *:last-child`
+ * matches this element same as any other last/only child), and its 2-levels-
+ * deep `:last-child` selector only ever reaches the SECOND column, leaving
+ * the first frozen at its compact height while the second's lone child gets
+ * squeezed by flex-shrink against a smaller, wrongly-computed parent —
+ * verified empirically (220px / 194px instead of both stretching). These
+ * rules replace that assumption for this specific two-column shape: restore
+ * the grid, make BOTH columns flex-column containers (not just the last),
+ * and let each column's last child grow to fill it.
+ */
+[data-fullscreen-chart] .exposure-trend-fullscreen-grid {
+  display: grid !important;
+  flex: 1;
+}
+[data-fullscreen-chart] .exposure-trend-fullscreen-grid > div {
+  display: flex !important;
+  flex-direction: column !important;
+}
+[data-fullscreen-chart] .exposure-trend-fullscreen-grid > div > div:last-child {
+  flex: 1;
+  height: auto !important;
+}

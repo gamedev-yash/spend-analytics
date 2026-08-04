@@ -1,13 +1,14 @@
 "use client";
 
 import { TrendingUp } from "lucide-react";
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import { usePalette } from "@/hooks/use-palette";
 import { useSingleSourceRisk } from "../../provider";
 import { aggregateExposureTrend, type ExposureTrendPoint } from "../../selectors";
 import { formatCurrencyFull, formatMonthLabel } from "../../constants";
+import { FullscreenResponsiveContainer } from "@/components/dashboard/fullscreen-overlay";
 
 export function ExposureTrendChart() {
   const palette = usePalette();
@@ -27,11 +28,11 @@ export function ExposureTrendChart() {
           Not enough months in the selected range to show a trend.
         </p>
       ) : (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="exposure-trend-fullscreen-grid grid grid-cols-1 gap-6 md:grid-cols-2">
           <div>
             <p className="mb-2 text-xs font-medium text-slate-500 dark:text-slate-400">At-Risk Spend Share</p>
             <div style={{ height: 220 }}>
-              <ResponsiveContainer width="100%" height="100%">
+              <FullscreenResponsiveContainer height={220}>
                 <LineChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={palette.ink.grid} />
                   <XAxis
@@ -79,13 +80,13 @@ export function ExposureTrendChart() {
                     dot={{ r: 3 }}
                   />
                 </LineChart>
-              </ResponsiveContainer>
+              </FullscreenResponsiveContainer>
             </div>
           </div>
           <div>
             <p className="mb-2 text-xs font-medium text-slate-500 dark:text-slate-400">At-Risk Categories</p>
             <div style={{ height: 220 }}>
-              <ResponsiveContainer width="100%" height="100%">
+              <FullscreenResponsiveContainer height={220}>
                 <LineChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={palette.ink.grid} />
                   <XAxis
@@ -133,7 +134,7 @@ export function ExposureTrendChart() {
                     dot={{ r: 3 }}
                   />
                 </LineChart>
-              </ResponsiveContainer>
+              </FullscreenResponsiveContainer>
             </div>
           </div>
         </div>

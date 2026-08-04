@@ -18,7 +18,7 @@ export function PlantsChart() {
 
   return (
     <ChartCard title="Spend by Plants/Sites" description="Ordered by spend" icon={<Building2 />} accent="green">
-      <div className="overflow-y-auto" style={{ maxHeight: MAX_HEIGHT }}>
+      <div className="overflow-y-auto chart-fixed-height-scroll" style={{ maxHeight: MAX_HEIGHT }}>
         <div className="flex flex-col gap-1">
           {rows.map((row) => {
             const isSelected = selectedKey !== null && row.key === selectedKey;

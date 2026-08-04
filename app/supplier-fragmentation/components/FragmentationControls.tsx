@@ -1,8 +1,7 @@
 "use client";
 
-import { FilterX } from "lucide-react";
 import { useFilterSlot } from "@/context/FilterContext";
-import { FilterDateRange, FilterGroup, FilterToggle } from "@/components/ui/filter-controls";
+import { ClearFiltersButton, FilterDateRange, FilterGroup, FilterToggle } from "@/components/ui/filter-controls";
 import { MultiSelect } from "@/components/sap/multi-select";
 import { useFragmentation } from "./fragmentationStore";
 
@@ -50,16 +49,7 @@ export function FragmentationControls() {
         checked={mode === "parent"}
         onChange={(checked) => setMode(checked ? "parent" : "vendor")}
       />
-      {hasActiveFilters && (
-        <button
-          type="button"
-          onClick={resetFilters}
-          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-        >
-          <FilterX className="h-3.5 w-3.5" />
-          Clear Filters
-        </button>
-      )}
+      {hasActiveFilters && <ClearFiltersButton onClick={resetFilters} />}
     </FilterGroup>
   );
 

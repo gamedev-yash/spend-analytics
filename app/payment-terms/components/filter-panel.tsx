@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { FilterX, X } from "lucide-react";
-import { FilterDateRange, FilterGroup } from "@/components/ui/filter-controls";
+import { X } from "lucide-react";
+import { ClearFiltersButton, FilterDateRange, FilterGroup } from "@/components/ui/filter-controls";
 import { MultiSelect } from "@/components/sap/multi-select";
 import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
 import { useFilterSlot } from "@/context/FilterContext";
@@ -100,16 +100,7 @@ export function FilterPanel() {
             selected={filters.paymentTermCodes}
             onChange={setPaymentTerms}
           />
-          {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={resetFilters}
-              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-            >
-              <FilterX className="h-3.5 w-3.5" />
-              Clear Filters
-            </button>
-          )}
+          {hasActiveFilters && <ClearFiltersButton onClick={resetFilters} />}
         </FilterGroup>
 
         <FilterGroup title="Page Options">

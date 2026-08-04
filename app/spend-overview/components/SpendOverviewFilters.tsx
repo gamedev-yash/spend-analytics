@@ -1,9 +1,8 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { X } from "lucide-react";
 import { useFilterSlot } from "@/context/FilterContext";
-import { FilterDateRange, FilterGroup } from "@/components/ui/filter-controls";
+import { ClearFiltersButton, FilterDateRange, FilterGroup } from "@/components/ui/filter-controls";
 import { MultiSelect } from "@/components/sap/multi-select";
 import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
 import { SO_WIDGET_GROUPS } from "./focusParams";
@@ -59,22 +58,6 @@ export function SpendOverviewFilters({
   useFilterSlot(
     <div className="space-y-6">
       <FilterGroup title="Filters">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-xs text-slate-400 dark:text-slate-500">
-            {hasActiveFilters ? "Filters applied" : "No filters applied"}
-          </span>
-          {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={() => router.push(pathname)}
-              className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-              title="Reset BU, Category, Date Range, and any cross-filters back to their defaults"
-            >
-              <X className="h-3 w-3" />
-              Clear filters
-            </button>
-          )}
-        </div>
         <MultiSelect
           label="BU / Plant"
           options={plantOptions.map((p) => ({ value: p.code, label: p.name }))}
@@ -101,6 +84,7 @@ export function SpendOverviewFilters({
           }
           onToChange={(value) => updateParams((params) => (value ? params.set("to", value) : params.delete("to")))}
         />
+        {hasActiveFilters && <ClearFiltersButton onClick={() => router.push(pathname)} />}
       </FilterGroup>
 
       <FilterGroup title="Page Options">

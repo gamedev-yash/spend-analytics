@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, type ReactNode } from "react";
-import { FilterX } from "lucide-react";
 import { tailSpendMock, formatINR } from "./tailSpendMock";
 import { useProviderPageData } from "@/hooks/use-provider-page-data";
 import { loadTailSpendFromProvider } from "@/lib/page-data/tail-spend-from-provider";
@@ -21,7 +20,7 @@ import { StrategicComparison } from "./components/StrategicComparison";
 import { TailTrendChart } from "./components/TailTrendChart";
 import { useFilterSlot } from "@/context/FilterContext";
 import { useThresholds } from "@/context/ThresholdsContext";
-import { FilterDateRange, FilterGroup, FilterSlider } from "@/components/ui/filter-controls";
+import { ClearFiltersButton, FilterDateRange, FilterGroup, FilterSlider } from "@/components/ui/filter-controls";
 import { MultiSelect } from "@/components/sap/multi-select";
 import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
 import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
@@ -198,16 +197,7 @@ export default function TailSpendPage() {
           selected={store.filters.plants}
           onChange={store.setPlants}
         />
-        {hasActiveFilters && (
-          <button
-            type="button"
-            onClick={store.resetFilters}
-            className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-          >
-            <FilterX className="h-3.5 w-3.5" />
-            Clear Filters
-          </button>
-        )}
+        {hasActiveFilters && <ClearFiltersButton onClick={store.resetFilters} />}
       </FilterGroup>
 
       <FilterGroup title="Page Options" className="mt-6">
