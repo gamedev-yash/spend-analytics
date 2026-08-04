@@ -28,7 +28,7 @@ export interface NavItem {
  */
 export const NAV_ITEMS: NavItem[] = [
   {
-    label: "Spend Overview",
+    label: "Spend Overview-Summary",
     href: "/spend-overview",
     icon: LayoutDashboard,
     owner: "Shravani",
@@ -36,7 +36,7 @@ export const NAV_ITEMS: NavItem[] = [
       "Total spend, YTD trends, and category/entity breakdowns across the procurement portfolio.",
   },
   {
-    label: "Compliance",
+    label: "Spend Overview-Compliance",
     href: "/compliance",
     icon: ShieldAlert,
     owner: "Shravani",

@@ -8,6 +8,10 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
+function percent(part: number, whole: number): number {
+  return whole > 0 ? Math.round((part / whole) * 1000) / 10 : 0;
+}
+
 // ---------------------------------------------------------------------------
 // Headline — Unmanaged Spend = off-PO invoices + off-contract POs
 // ---------------------------------------------------------------------------
@@ -57,6 +61,8 @@ export function getComplianceHeadline(filters: SapFilters): ComplianceHeadline {
 export interface CategorySpendPoint {
   category: string;
   value: number;
+  /** Share of this widget's own total (e.g. % of total off-PO spend), not of overall company spend. */
+  percent: number;
 }
 
 function bucketByL1<T>(rows: T[], categoryCodeFn: (r: T) => string, valueFn: (r: T) => number): CategorySpendPoint[] {
@@ -65,8 +71,9 @@ function bucketByL1<T>(rows: T[], categoryCodeFn: (r: T) => string, valueFn: (r:
     const l1 = categoryByCode.get(categoryCodeFn(r))?.category_l1 ?? "Other";
     map.set(l1, (map.get(l1) ?? 0) + valueFn(r));
   }
+  const total = Array.from(map.values()).reduce((s, v) => s + v, 0);
   return Array.from(map.entries())
-    .map(([category, value]) => ({ category, value: round2(value) }))
+    .map(([category, value]) => ({ category, value: round2(value), percent: percent(value, total) }))
     .sort((a, b) => b.value - a.value);
 }
 
@@ -90,6 +97,8 @@ export interface SupplierSpendPoint {
   key: string;
   displayName: string;
   value: number;
+  /** Share of total unmanaged spend across every supplier (not just the ones listed). */
+  percent: number;
 }
 
 /** Suppliers ranked by unmanaged spend (off-PO + off-contract combined). */
@@ -109,8 +118,9 @@ export function getUnmanagedBySupplierData(filters: SapFilters, limit = 15): Sup
   for (const p of offContractPo) add(p.vendor_id, p.net_value_inr);
   for (const i of offPoInvoices) add(i.vendor_id, i.invoice_value_inr);
 
+  const total = Array.from(map.values()).reduce((s, v) => s + v.value, 0);
   return Array.from(map.entries())
-    .map(([key, v]) => ({ key, displayName: v.displayName, value: round2(v.value) }))
+    .map(([key, v]) => ({ key, displayName: v.displayName, value: round2(v.value), percent: percent(v.value, total) }))
     .sort((a, b) => b.value - a.value)
     .slice(0, limit);
 }
@@ -119,6 +129,8 @@ export interface BuSpendPoint {
   plantCode: string;
   plantName: string;
   value: number;
+  /** Share of total unmanaged spend across every BU. */
+  percent: number;
 }
 
 /** Business units ranked by unmanaged spend (off-PO + off-contract combined). */
@@ -130,8 +142,12 @@ export function getUnmanagedByBuData(filters: SapFilters): BuSpendPoint[] {
   for (const p of offContractPo) map.set(p.plant_code, (map.get(p.plant_code) ?? 0) + p.net_value_inr);
   for (const i of offPoInvoices) map.set(i.plant_code, (map.get(i.plant_code) ?? 0) + i.invoice_value_inr);
 
+  const total = Array.from(map.values()).reduce((s, v) => s + v, 0);
   return plants
-    .map((pl) => ({ plantCode: pl.plant_code, plantName: pl.plant_name, value: round2(map.get(pl.plant_code) ?? 0) }))
+    .map((pl) => {
+      const value = round2(map.get(pl.plant_code) ?? 0);
+      return { plantCode: pl.plant_code, plantName: pl.plant_name, value, percent: percent(value, total) };
+    })
     .filter((row) => row.value > 0)
     .sort((a, b) => b.value - a.value);
 }

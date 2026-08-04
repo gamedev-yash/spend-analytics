@@ -72,8 +72,9 @@ export function ComplianceCanvas({
           accent="orange"
         >
           <SpendBarList
-            rows={offPoByCategory.map((c) => ({ key: c.category, label: c.category, value: c.value }))}
+            rows={offPoByCategory.map((c) => ({ key: c.category, label: c.category, value: c.value, percent: c.percent }))}
             colorSlot="orange"
+            percentHeader="% of Off-PO"
           />
         </ChartCard>
         <ChartCard
@@ -84,8 +85,9 @@ export function ComplianceCanvas({
           accent="blue"
         >
           <SpendBarList
-            rows={offContractByCategory.map((c) => ({ key: c.category, label: c.category, value: c.value }))}
+            rows={offContractByCategory.map((c) => ({ key: c.category, label: c.category, value: c.value, percent: c.percent }))}
             colorSlot="blue"
+            percentHeader="% of Off-Contract"
           />
         </ChartCard>
         <ChartCard
@@ -96,9 +98,10 @@ export function ComplianceCanvas({
           accent="green"
         >
           <SpendBarList
-            rows={unmanagedByBu.map((b) => ({ key: b.plantCode, label: b.plantName, value: b.value }))}
+            rows={unmanagedByBu.map((b) => ({ key: b.plantCode, label: b.plantName, value: b.value, percent: b.percent }))}
             colorSlot="aqua"
             labelHeader="Business Unit"
+            percentHeader="% of Unmanaged"
           />
         </ChartCard>
         <ChartCard
@@ -109,9 +112,10 @@ export function ComplianceCanvas({
           accent="violet"
         >
           <SpendBarList
-            rows={unmanagedBySupplier.map((s) => ({ key: s.key, label: s.displayName, value: s.value }))}
+            rows={unmanagedBySupplier.map((s) => ({ key: s.key, label: s.displayName, value: s.value, percent: s.percent }))}
             colorSlot="magenta"
             labelHeader="Supplier"
+            percentHeader="% of Unmanaged"
           />
         </ChartCard>
       </div>
