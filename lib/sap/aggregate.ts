@@ -52,7 +52,7 @@ function matchesCategoryPath(categoryCode: string, categoryPath?: string): boole
   return cat.category_l1 === l1;
 }
 
-function getFilteredPoItems(filters: SapFilters) {
+export function getFilteredPoItems(filters: SapFilters) {
   return poItems.filter((p) => {
     if (p.is_deleted) return false;
     if (filters.plants?.length && !filters.plants.includes(p.plant_code)) return false;
@@ -67,7 +67,7 @@ function getFilteredPoItems(filters: SapFilters) {
   });
 }
 
-function getFilteredInvoices(filters: SapFilters) {
+export function getFilteredInvoices(filters: SapFilters) {
   return invoices.filter((inv) => {
     if (filters.plants?.length && !filters.plants.includes(inv.plant_code)) return false;
     if (filters.categoriesL1?.length) {

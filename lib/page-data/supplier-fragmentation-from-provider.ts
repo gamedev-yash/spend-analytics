@@ -27,8 +27,26 @@ import { COUNT_ALL, type IDataProvider } from "@/types/data-provider";
 
 /** Categories detailed per page load — the table shows far fewer than this. */
 const CATEGORY_LIMIT = 20;
+/** Global vendor ranking for top-10 concentration; the base has ~160 suppliers. */
+const VENDOR_LIMIT = 1000;
 
 const CRORE = 10_000_000;
+
+/** Top-10 suppliers (by spend, across every category) as a share of total spend. */
+async function loadTop10Concentration(runner: QueryRunner): Promise<number> {
+  const rows = await runner.run(
+    grouped({
+      datasetId: PO_ITEMS_DATASET,
+      dimensions: ["vendor_name"],
+      measures: { [VALUE]: ["net_order_value_inr", "sum"] },
+      sortBy: VALUE,
+      limit: VENDOR_LIMIT,
+    })
+  );
+  const total = rows.reduce((sum, row) => sum + toNumber(row[VALUE]), 0);
+  const top10 = rows.slice(0, 10).reduce((sum, row) => sum + toNumber(row[VALUE]), 0);
+  return Math.round(percent(top10, total));
+}
 
 async function loadCategoryDetail(
   runner: QueryRunner,
@@ -85,7 +103,10 @@ export async function loadSupplierFragmentationFromProvider(
   if (categoryRows.length === 0) return null;
 
   const names = categoryRows.map((row) => toLabel(row.category_l1_name));
-  const details = await Promise.all(names.map((name) => loadCategoryDetail(runner, name)));
+  const [details, top10ConcentrationPercent] = await Promise.all([
+    Promise.all(names.map((name) => loadCategoryDetail(runner, name))),
+    loadTop10Concentration(runner),
+  ]);
 
   const categories: CategoryConcentration[] = names.map((category, index) => ({
     category,
@@ -101,5 +122,6 @@ export async function loadSupplierFragmentationFromProvider(
     totalActiveSuppliers,
     singleUseSupplierCount,
     avgSuppliersPerCategory: Math.round(totalActiveSuppliers / categories.length),
+    top10ConcentrationPercent,
   };
 }

@@ -23,6 +23,7 @@ import type {
 } from "@/lib/sap/aggregate";
 import type { SpendOverviewData } from "@/app/spend-overview/fromDataset";
 import {
+  INVOICES_DATASET,
   PO_ITEMS_DATASET,
   ROWS,
   SUPPLIERS,
@@ -32,6 +33,7 @@ import {
   nest,
   percent,
   round2,
+  rowCountQuery,
   toLabel,
   toNumber,
   type QueryRunner,
@@ -53,7 +55,7 @@ function contractFilter(backed: boolean): QueryFilter {
 // ---------------------------------------------------------------------------
 
 async function loadKpis(runner: QueryRunner): Promise<{ kpis: HeadlineKpis; total: number }> {
-  const [totals, offContract, byYear] = await Promise.all([
+  const [totals, offContract, byYear, invoiceTotals] = await Promise.all([
     runner.run(
       grouped({
         datasetId: PO_ITEMS_DATASET,
@@ -83,11 +85,15 @@ async function loadKpis(runner: QueryRunner): Promise<{ kpis: HeadlineKpis; tota
         limit: 20,
       })
     ),
+    // fact_invoices is its own dataset (separate row grain from fact_po_items),
+    // so the Invoices KPI needs its own count query rather than reusing poCount.
+    runner.run(rowCountQuery(INVOICES_DATASET)),
   ]);
 
   const row = totals[0] ?? {};
   const total = toNumber(row[VALUE]);
   const poCount = toNumber(row[ROWS]);
+  const invoiceCount = toNumber((invoiceTotals[0] ?? {})[ROWS]);
 
   // Compare the last two complete fiscal years present in the data.
   const years = byYear.map((y) => toNumber(y[VALUE]));
@@ -98,7 +104,7 @@ async function loadKpis(runner: QueryRunner): Promise<{ kpis: HeadlineKpis; tota
     total,
     kpis: {
       totalSpendInr: round2(total),
-      invoiceCount: poCount,
+      invoiceCount,
       poCount,
       activeSupplierCount: toNumber(row[SUPPLIERS]),
       avgPoValueInr: poCount > 0 ? round2(total / poCount) : 0,
@@ -116,10 +122,11 @@ interface CategoryAggregates {
   l1Rows: ResultRow[];
   l2Rows: ResultRow[];
   offContractByL1: Map<string, number>;
+  yoyByL1: Map<string, number>;
 }
 
 async function loadCategories(runner: QueryRunner): Promise<CategoryAggregates> {
-  const [l1Rows, l2Rows, offContractRows] = await Promise.all([
+  const [l1Rows, l2Rows, offContractRows, yearByL1Rows] = await Promise.all([
     runner.run(
       grouped({
         datasetId: PO_ITEMS_DATASET,
@@ -156,13 +163,33 @@ async function loadCategories(runner: QueryRunner): Promise<CategoryAggregates> 
         limit: 100,
       })
     ),
+    // Fiscal-year totals per L1 — the same "compare the last two complete
+    // years present" trick loadKpis uses for the headline, one level deeper.
+    runner.run(
+      grouped({
+        datasetId: PO_ITEMS_DATASET,
+        dimensions: ["category_l1_name", "po_date"],
+        measures: { [VALUE]: ["net_order_value_inr", "sum"] },
+        timeGrain: "year",
+        limit: 1000,
+      })
+    ),
   ]);
 
   const offContractByL1 = new Map<string, number>();
   for (const row of offContractRows) {
     offContractByL1.set(toLabel(row.category_l1_name), toNumber(row[VALUE]));
   }
-  return { l1Rows, l2Rows, offContractByL1 };
+
+  const yoyByL1 = new Map<string, number>();
+  for (const [category, years] of nest(yearByL1Rows, "category_l1_name", "po_date")) {
+    const sortedYearKeys = Object.keys(years).sort();
+    const latest = years[sortedYearKeys.at(-1) ?? ""] ?? 0;
+    const previous = years[sortedYearKeys.at(-2) ?? ""] ?? 0;
+    yoyByL1.set(category, previous > 0 ? round2(((latest - previous) / previous) * 100) : 0);
+  }
+
+  return { l1Rows, l2Rows, offContractByL1, yoyByL1 };
 }
 
 function buildTreemap(
@@ -194,9 +221,7 @@ function buildTreemap(
       label,
       parent: "All Spend",
       value: round2(value),
-      // Year-on-year per category needs a second dated window per node; the
-      // headline KPI carries the movement instead.
-      yoyChangePercent: 0,
+      yoyChangePercent: aggregates.yoyByL1.get(label) ?? 0,
       supplierCount: toNumber(row[SUPPLIERS]),
       poCount: toNumber(row[ROWS]),
       percentOfTotal: percent(value, total),
@@ -211,7 +236,9 @@ function buildTreemap(
       label,
       parent,
       value: round2(value),
-      yoyChangePercent: 0,
+      // No L2-grain fiscal-year query (a second, much larger one) — L2 nodes
+      // carry their parent L1's movement.
+      yoyChangePercent: aggregates.yoyByL1.get(parent) ?? 0,
       supplierCount: toNumber(row[SUPPLIERS]),
       poCount: toNumber(row[ROWS]),
       percentOfTotal: percent(value, total),
@@ -246,7 +273,7 @@ function buildMetricsRows(aggregates: CategoryAggregates, total: number): Metric
       supplierCount: toNumber(row[SUPPLIERS]),
       poCount,
       avgPoValueInr: poCount > 0 ? round2(value / poCount) : 0,
-      yoyChangePercent: 0,
+      yoyChangePercent: aggregates.yoyByL1.get(category) ?? 0,
       offContractPercent: percent(aggregates.offContractByL1.get(category) ?? 0, value),
     };
   });

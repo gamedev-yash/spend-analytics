@@ -1,4 +1,3 @@
-import { DashboardTabs } from "@/components/dashboard/dashboard-tabs";
 import { SpendOverviewFilters } from "./components/SpendOverviewFilters";
 import { SpendOverviewDataBridge } from "./components/SpendOverviewDataBridge";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
@@ -90,7 +89,6 @@ export default async function SpendOverviewPage({ searchParams }: PageProps) {
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-3">
-          <DashboardTabs />
           <ExportSnapshotButton targetId={DASHBOARD_CANVAS_ID} dashboardTitle="Spend Overview" />
           <p className="text-xs text-muted-foreground">
             Initiative 18 · Dashboard 1 of 6{activeFilterCount > 0 ? ` · ${activeFilterCount} filter(s) active` : ""}

@@ -81,8 +81,6 @@ export interface ChartPalette {
   categorical: Record<CategoricalSlot, string>;
   status: typeof STATUS;
   ink: InkColors;
-  riskColor: Record<"Low" | "Medium" | "High", string>;
-  complianceStatusColor: (percent: number) => string;
   /** Fixed-order color for the Nth categorical entity (0-indexed); folds past slot 7 to a neutral "Other" gray. */
   colorForIndex: (index: number) => string;
   /** Resolves a named UI accent (card tints, icon chips) to a hex value for this theme. */
@@ -99,12 +97,6 @@ export function getPalette(isDark: boolean): ChartPalette {
     categorical,
     status: STATUS,
     ink,
-    riskColor: { Low: STATUS.good, Medium: STATUS.warning, High: STATUS.critical },
-    complianceStatusColor: (percent) => {
-      if (percent >= 90) return STATUS.good;
-      if (percent >= 75) return STATUS.warning;
-      return STATUS.critical;
-    },
     colorForIndex: (index) => (index < order.length - 1 ? order[index] : ink.muted),
     accent: (color) => {
       switch (color) {
@@ -118,17 +110,3 @@ export function getPalette(isDark: boolean): ChartPalette {
     },
   };
 }
-
-/** Fixed entity → categorical-slot-index maps, defined once so color never depends on current sort/filter. */
-export const BUSINESS_UNIT_ORDER = [
-  "Zinc India", "Zinc International", "Aluminium", "Iron Ore", "Oil & Gas", "Copper", "Power",
-];
-
-export const VIOLATION_TYPE_ORDER = [
-  "Off-Contract Purchase", "Price Deviation", "Missing Approval", "Policy Breach", "Late Delivery",
-];
-
-export const CATEGORY_ORDER = [
-  "Bearings", "Conveyance", "Crushing", "Electrical Motors", "Flotation", "Instrumentation",
-  "Lead & Copper", "Lubricants", "Milling", "Pipes", "Pumping", "Valves",
-];

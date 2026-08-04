@@ -3,6 +3,7 @@ import {
   Wallet,
   PackageSearch,
   Network,
+  ShieldAlert,
   type LucideIcon,
 } from "lucide-react";
 
@@ -33,6 +34,14 @@ export const NAV_ITEMS: NavItem[] = [
     owner: "Shravani",
     description:
       "Total spend, YTD trends, and category/entity breakdowns across the procurement portfolio.",
+  },
+  {
+    label: "Compliance",
+    href: "/compliance",
+    icon: ShieldAlert,
+    owner: "Shravani",
+    description:
+      "Unmanaged (off-PO + off-contract) spend: headline KPIs and breakdowns by category, supplier, and business unit.",
   },
   {
     label: "Payment Terms",

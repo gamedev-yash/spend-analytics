@@ -5,6 +5,7 @@
 
 export type DashboardKey =
   | "spend-overview"
+  | "compliance"
   | "payment-terms"
   | "tail-spend"
   | "supplier-fragmentation";
@@ -21,8 +22,14 @@ export const DASHBOARD_REGISTRY: DashboardMeta[] = [
     key: "spend-overview",
     label: "Spend Overview",
     route: "/spend-overview",
+    description: "Total spend, YTD trends, and category/entity breakdowns across the procurement portfolio.",
+  },
+  {
+    key: "compliance",
+    label: "Compliance",
+    route: "/compliance",
     description:
-      "Total spend, YTD trends, category/entity breakdowns, and contract/pricing/policy/approval/delivery compliance & risk.",
+      "Unmanaged (off-PO + off-contract) spend: headline KPIs and breakdowns by category, supplier, and business unit.",
   },
   {
     key: "payment-terms",
@@ -46,7 +53,6 @@ export const DASHBOARD_REGISTRY: DashboardMeta[] = [
   },
 ];
 
-/** Matches "/spend-overview/compliance" to the "spend-overview" dashboard too. */
 export function dashboardKeyForPathname(pathname: string): DashboardKey | null {
   const found = DASHBOARD_REGISTRY.find((d) => pathname.startsWith(d.route));
   return found ? found.key : null;

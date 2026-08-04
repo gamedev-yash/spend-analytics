@@ -13,7 +13,7 @@ import { getSampleDataset, sampleDataProvider } from "@/lib/server/sample-data-s
 import { loadSpendOverviewFromProvider } from "@/lib/page-data/spend-overview-from-provider";
 import { loadSupplierFragmentationFromProvider } from "@/lib/page-data/supplier-fragmentation-from-provider";
 import { loadTailSpendFromProvider } from "@/lib/page-data/tail-spend-from-provider";
-import { createRunner, grouped, PO_ITEMS_DATASET } from "@/lib/page-data/provider-queries";
+import { createRunner, grouped, INVOICES_DATASET, PO_ITEMS_DATASET } from "@/lib/page-data/provider-queries";
 import { COUNT_ALL, type IDataProvider, type QueryPayload } from "@/types/data-provider";
 
 /** Wraps the sample provider, recording payloads so they can be re-validated. */
@@ -131,6 +131,62 @@ describe("spend-overview provider loader", () => {
       data.kpis.offContractPercent >= 0 && data.kpis.offContractPercent <= 100,
       "off-contract share must be a percentage"
     );
+  });
+
+  it("counts real invoices rather than labelling PO documents as invoices", async () => {
+    // fact_invoices is a separate, smaller dataset from fact_po_items — the two
+    // counts must not collapse to the same number just because one query ran.
+    const invoices = getSampleDataset(INVOICES_DATASET);
+    assert.ok(invoices);
+    const distinctInvoices = new Set(invoices.rows.map((row) => row.invoice_number)).size;
+
+    const data = await loadSpendOverviewFromProvider(sampleDataProvider);
+    assert.ok(data);
+    assert.equal(data.kpis.invoiceCount, distinctInvoices, "the KPI ribbon's Invoices figure must be invoices");
+    assert.notEqual(data.kpis.invoiceCount, data.kpis.poCount, "invoices and POs are different row grains");
+  });
+
+  it("derives per-category YoY from real fiscal-year totals, not a flat zero", async () => {
+    const dataset = getSampleDataset(PO_ITEMS_DATASET);
+    assert.ok(dataset);
+    // Fiscal year (Apr-Mar), matching ClientCsvAdapter's own timeGrain:"year"
+    // bucketing (lib/adapters/client-csv-adapter.ts) — the loader's fiscal-year
+    // comparison rides the same grain as the headline KPI's YoY.
+    const byCategoryYear = new Map<string, Map<number, number>>();
+    for (const row of dataset.rows) {
+      const category = String(row.category_l1_name ?? "");
+      const match = /^(\d{4})-(\d{2})/.exec(String(row.po_date ?? ""));
+      if (!category || !match) continue;
+      const calendarYear = Number(match[1]);
+      const month = Number(match[2]);
+      const fiscalYear = month >= 4 ? calendarYear : calendarYear - 1;
+      const years = byCategoryYear.get(category) ?? new Map<number, number>();
+      years.set(fiscalYear, (years.get(fiscalYear) ?? 0) + (Number(row.net_order_value_inr) || 0));
+      byCategoryYear.set(category, years);
+    }
+
+    const data = await loadSpendOverviewFromProvider(sampleDataProvider);
+    assert.ok(data);
+
+    // At least one category must show real movement — a leftover `yoyChangePercent: 0`
+    // placeholder would make every row read exactly zero.
+    assert.ok(
+      data.metricsRows.some((row) => row.yoyChangePercent !== 0),
+      "every category reads 0% YoY — looks like a hardcoded placeholder"
+    );
+
+    for (const row of data.metricsRows) {
+      const years = byCategoryYear.get(row.category);
+      assert.ok(years, `unexpected category "${row.category}"`);
+      const sortedYears = [...years.keys()].sort((a, b) => a - b);
+      const latest = years.get(sortedYears.at(-1) ?? -1) ?? 0;
+      const previous = years.get(sortedYears.at(-2) ?? -1) ?? 0;
+      const expected = previous > 0 ? Math.round(((latest - previous) / previous) * 1000) / 10 : 0;
+      assert.ok(
+        near(row.yoyChangePercent, expected, 0.5),
+        `${row.category}: YoY ${row.yoyChangePercent} != expected ${expected}`
+      );
+    }
   });
 });
 
@@ -289,6 +345,28 @@ describe("supplier-fragmentation provider loader", () => {
       "average must follow from the same rows"
     );
     assert.ok(data.categories.every((c) => c.spendCr >= 0));
+  });
+
+  it("computes top-10 concentration from a real global vendor ranking, not the static mock", async () => {
+    const dataset = getSampleDataset(PO_ITEMS_DATASET);
+    assert.ok(dataset);
+    const byVendor = new Map<string, number>();
+    for (const row of dataset.rows) {
+      const vendor = String(row.vendor_name ?? "");
+      byVendor.set(vendor, (byVendor.get(vendor) ?? 0) + (Number(row.net_order_value_inr) || 0));
+    }
+    const ranked = [...byVendor.values()].sort((a, b) => b - a);
+    const total = ranked.reduce((sum, v) => sum + v, 0);
+    const top10 = ranked.slice(0, 10).reduce((sum, v) => sum + v, 0);
+    const expected = Math.round((top10 / total) * 100);
+
+    const data = await loadSupplierFragmentationFromProvider(sampleDataProvider);
+    assert.ok(data);
+    assert.equal(
+      data.top10ConcentrationPercent,
+      expected,
+      `top-10 concentration ${data.top10ConcentrationPercent} != independently computed ${expected}`
+    );
   });
 });
 

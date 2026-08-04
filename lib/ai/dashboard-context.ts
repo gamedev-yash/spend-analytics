@@ -1,7 +1,7 @@
 import "server-only";
 
 import { getHeadlineKpis } from "@/lib/sap/aggregate";
-import { getComplianceHeadline } from "@/lib/aggregate-compliance";
+import { getComplianceHeadline } from "@/lib/sap/compliance";
 import { computeKpis, aggregateByPaymentTerm } from "@/app/payment-terms/selectors";
 import { invoices as paymentTermsInvoices } from "@/app/payment-terms/data";
 import { tailSpendMock } from "@/app/tail-spend/tailSpendMock";
@@ -23,18 +23,23 @@ export function buildDashboardContext(key: DashboardKey): string {
   switch (key) {
     case "spend-overview": {
       const kpis = getHeadlineKpis({});
-      const compliance = getComplianceHeadline({});
       return [
         `Total Spend: ${fmtCr(kpis.totalSpendInr)}`,
         `PO Count: ${kpis.poCount.toLocaleString("en-IN")}`,
         `Active Suppliers: ${kpis.activeSupplierCount.toLocaleString("en-IN")}`,
         `Avg PO Value: ₹${Math.round(kpis.avgPoValueInr).toLocaleString("en-IN")}`,
         `YoY Spend Change: ${kpis.yoyChangePercent}%`,
-        `Off-Contract Spend: ${kpis.offContractPercent}%`,
-        `Overall Compliance: ${compliance.avgOverallCompliance}%`,
-        `High-Risk Transactions: ${compliance.highRiskCount}`,
-        `Total Violations: ${compliance.totalViolations}`,
-        `On-Time Delivery: ${compliance.onTimeDeliveryPercent}%`,
+      ].join("\n");
+    }
+
+    case "compliance": {
+      const compliance = getComplianceHeadline({});
+      return [
+        `Unmanaged Spend: ${fmtCr(compliance.unmanagedSpendInr)} (${compliance.unmanagedSpendPercent}% of total spend)`,
+        `Off-PO Spend: ${fmtCr(compliance.offPoSpendInr)}`,
+        `Off-Contract Spend: ${fmtCr(compliance.offContractSpendInr)}`,
+        `Unmanaged Invoices: ${compliance.unmanagedInvoiceCount.toLocaleString("en-IN")}`,
+        `Unmanaged Suppliers: ${compliance.unmanagedSupplierCount.toLocaleString("en-IN")}`,
       ].join("\n");
     }
 
