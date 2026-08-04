@@ -63,11 +63,11 @@ export function getDefaultDateRange(allInvoices: Invoice[]): { dateFrom: string;
 export function applyFilters(allInvoices: Invoice[], filters: FilterState): Invoice[] {
   return allInvoices.filter((inv) => {
     if (!isWithinWindow(inv, filters.dateFrom, filters.dateTo)) return false;
-    if (filters.categoryCode !== null && categoryKey(inv) !== filters.categoryCode) return false;
-    if (filters.globalUltimateId !== null && inv.global_ultimate_id !== filters.globalUltimateId) return false;
-    if (filters.sourceSystemId !== null && inv.source_system_id !== filters.sourceSystemId) return false;
-    if (filters.plantId !== null && inv.plant_id !== filters.plantId) return false;
-    if (filters.paymentTermCode !== null && paymentTermKey(inv) !== filters.paymentTermCode) return false;
+    if (filters.categoryCodes.length > 0 && !filters.categoryCodes.includes(categoryKey(inv))) return false;
+    if (filters.globalUltimateIds.length > 0 && !filters.globalUltimateIds.includes(inv.global_ultimate_id)) return false;
+    if (filters.sourceSystemIds.length > 0 && !filters.sourceSystemIds.includes(inv.source_system_id)) return false;
+    if (filters.plantIds.length > 0 && !filters.plantIds.includes(inv.plant_id)) return false;
+    if (filters.paymentTermCodes.length > 0 && !filters.paymentTermCodes.includes(paymentTermKey(inv))) return false;
     return true;
   });
 }
@@ -294,4 +294,78 @@ export function getPlantFilterOptions(allInvoices: Invoice[]): FilterOption[] {
   return Array.from(seen, ([value, label]) => ({ value, label })).sort((a, b) =>
     a.label.localeCompare(b.label)
   );
+}
+
+// ---------------------------------------------------------------------------
+// Cascading options — each dimension's option list is computed from rows
+// matching every OTHER active filter (date window included), so picking one
+// filter narrows what the rest can offer. Implemented by re-running
+// applyFilters with just that one dimension relaxed back to "all" — no
+// separate lookup structure to keep in sync with applyFilters itself.
+// ---------------------------------------------------------------------------
+
+type CategoricalFilterKey =
+  | "categoryCodes"
+  | "globalUltimateIds"
+  | "sourceSystemIds"
+  | "plantIds"
+  | "paymentTermCodes";
+
+function relax(filters: FilterState, key: CategoricalFilterKey): FilterState {
+  return { ...filters, [key]: [] };
+}
+
+export function cascadingCategoryOptions(allInvoices: Invoice[], filters: FilterState): FilterOption[] {
+  return getCategoryFilterOptions(applyFilters(allInvoices, relax(filters, "categoryCodes")));
+}
+
+export function cascadingGlobalUltimateOptions(allInvoices: Invoice[], filters: FilterState): FilterOption[] {
+  return getGlobalUltimateFilterOptions(applyFilters(allInvoices, relax(filters, "globalUltimateIds")));
+}
+
+export function cascadingSourceSystemOptions(
+  allInvoices: Invoice[],
+  filters: FilterState,
+  sourceSystemDims: SourceSystemDim[]
+): FilterOption[] {
+  return getSourceSystemFilterOptions(applyFilters(allInvoices, relax(filters, "sourceSystemIds")), sourceSystemDims);
+}
+
+export function cascadingPlantOptions(allInvoices: Invoice[], filters: FilterState): FilterOption[] {
+  return getPlantFilterOptions(applyFilters(allInvoices, relax(filters, "plantIds")));
+}
+
+export function cascadingPaymentTermOptions(allInvoices: Invoice[], filters: FilterState): FilterOption[] {
+  return getPaymentTermFilterOptions(applyFilters(allInvoices, relax(filters, "paymentTermCodes")));
+}
+
+/**
+ * Drops any selected value that's no longer valid given every OTHER active
+ * filter — the fix for the "0-row lockout" a cascading narrow can otherwise
+ * cause (e.g. a previously-picked category disappearing once a Plant
+ * selection excludes it, silently filtering the dashboard to nothing).
+ * Single-pass: each dimension is checked against the RAW (pre-prune) state
+ * of the others, matching how the rest of this app's cascading filters work.
+ */
+export function pruneFilterState(
+  allInvoices: Invoice[],
+  raw: FilterState,
+  sourceSystemDims: SourceSystemDim[]
+): FilterState {
+  const validCategory = new Set(cascadingCategoryOptions(allInvoices, raw).map((o) => o.value));
+  const validGlobalUltimate = new Set(cascadingGlobalUltimateOptions(allInvoices, raw).map((o) => o.value));
+  const validSourceSystem = new Set(
+    cascadingSourceSystemOptions(allInvoices, raw, sourceSystemDims).map((o) => o.value)
+  );
+  const validPlant = new Set(cascadingPlantOptions(allInvoices, raw).map((o) => o.value));
+  const validPaymentTerm = new Set(cascadingPaymentTermOptions(allInvoices, raw).map((o) => o.value));
+
+  return {
+    ...raw,
+    categoryCodes: raw.categoryCodes.filter((v) => validCategory.has(v)),
+    globalUltimateIds: raw.globalUltimateIds.filter((v) => validGlobalUltimate.has(v)),
+    sourceSystemIds: raw.sourceSystemIds.filter((v) => validSourceSystem.has(v)),
+    plantIds: raw.plantIds.filter((v) => validPlant.has(v)),
+    paymentTermCodes: raw.paymentTermCodes.filter((v) => validPaymentTerm.has(v)),
+  };
 }

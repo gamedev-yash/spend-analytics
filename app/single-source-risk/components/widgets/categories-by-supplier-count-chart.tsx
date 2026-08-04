@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertTriangle } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, Tooltip, XAxis, YAxis } from "recharts";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import { usePalette } from "@/hooks/use-palette";
@@ -9,6 +9,7 @@ import { useSingleSourceRisk, useWidgetInvoices } from "../../provider";
 import { aggregateByCategory, type CategoryAgg } from "../../selectors";
 import { formatCurrencyFull, truncateLabel, useSingleSourceRiskChartColors } from "../../constants";
 import type { SupplierCountThreshold } from "../../types";
+import { FullscreenResponsiveContainer } from "@/components/dashboard/fullscreen-overlay";
 
 const LEGEND: { threshold: SupplierCountThreshold; label: string }[] = [
   { threshold: 1, label: "1 supplier" },
@@ -47,7 +48,7 @@ export function CategoriesBySupplierCountChart() {
     >
       <div className="overflow-x-auto">
         <div style={{ minWidth: `${chartMinWidth}px`, height: 400 }}>
-          <ResponsiveContainer width="100%" height="100%">
+          <FullscreenResponsiveContainer height={400}>
             <BarChart data={rows} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={palette.ink.grid} />
               <XAxis
@@ -107,7 +108,7 @@ export function CategoriesBySupplierCountChart() {
                 })}
               </Bar>
             </BarChart>
-          </ResponsiveContainer>
+          </FullscreenResponsiveContainer>
         </div>
       </div>
     </ChartCard>

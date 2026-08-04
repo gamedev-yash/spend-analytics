@@ -2,7 +2,6 @@
 
 import { Banknote } from "lucide-react";
 import {
-  ResponsiveContainer,
   ComposedChart,
   Bar,
   Line,
@@ -18,6 +17,7 @@ import { usePalette } from "@/hooks/use-palette";
 import { useWidgetInvoices } from "../../provider";
 import { aggregateByPaymentTerm, type PaymentTermAgg } from "../../selectors";
 import { NO_VALUE_KEY, formatCurrencyCompact, formatCurrencyFull, formatDays, usePaymentTermsChartColors } from "../../constants";
+import { FullscreenResponsiveContainer } from "@/components/dashboard/fullscreen-overlay";
 
 function formatDaysAxisTick(value: number): string {
   return `${value}d`;
@@ -43,7 +43,7 @@ export function SpendByTermComboChart() {
     >
         <div className="overflow-x-auto">
           <div style={{ width: "100%", minWidth: chartWidth }}>
-            <ResponsiveContainer width="100%" height={360}>
+            <FullscreenResponsiveContainer height={360}>
               <ComposedChart data={rows} margin={{ top: 8, right: 16, bottom: 56, left: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={palette.ink.grid} />
                 <XAxis
@@ -118,7 +118,7 @@ export function SpendByTermComboChart() {
                   dot={{ r: 4 }}
                 />
               </ComposedChart>
-            </ResponsiveContainer>
+            </FullscreenResponsiveContainer>
           </div>
         </div>
     </ChartCard>

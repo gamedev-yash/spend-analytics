@@ -6,7 +6,6 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
@@ -17,6 +16,7 @@ import { usePalette } from "@/hooks/use-palette";
 import { useWidgetInvoices } from "../../provider";
 import { aggregateByPaymentTerm, type PaymentTermAgg } from "../../selectors";
 import { NO_VALUE_KEY, formatCurrencyFull, usePaymentTermsChartColors } from "../../constants";
+import { FullscreenResponsiveContainer } from "@/components/dashboard/fullscreen-overlay";
 
 /**
  * Horizontal room each term needs before its rotated axis label starts
@@ -43,7 +43,7 @@ export function PaymentTermsByInvoiceCountChart() {
     >
       <div className="overflow-x-auto">
         <div style={{ minWidth: rows.length * SLOT_WIDTH }}>
-        <ResponsiveContainer width="100%" height={340}>
+        <FullscreenResponsiveContainer height={340}>
           <BarChart data={rows} margin={{ top: 8, right: 16, left: 8, bottom: 48 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={palette.ink.grid} />
             <XAxis
@@ -91,7 +91,7 @@ export function PaymentTermsByInvoiceCountChart() {
               })}
             </Bar>
         </BarChart>
-        </ResponsiveContainer>
+        </FullscreenResponsiveContainer>
         </div>
       </div>
     </ChartCard>

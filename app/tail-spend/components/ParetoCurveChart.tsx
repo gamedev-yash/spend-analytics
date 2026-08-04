@@ -16,6 +16,7 @@ import type { ParetoDecile } from "../tailSpendMock";
 import { formatCompactNumber } from "../tailSpendMock";
 import { useTailSpendTheme } from "../theme";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
+import { useIsFullscreenChart } from "@/components/dashboard/fullscreen-overlay";
 
 interface ParetoCurveChartProps {
   deciles: ParetoDecile[];
@@ -29,6 +30,7 @@ interface ParetoCurveChartProps {
  */
 export function ParetoCurveChart({ deciles, threshold = 80 }: ParetoCurveChartProps) {
   const theme = useTailSpendTheme();
+  const isFullscreen = useIsFullscreenChart();
   const crossover = deciles.find((d) => d.cumulativeSpendPercent >= threshold);
 
   return (
@@ -41,7 +43,7 @@ export function ParetoCurveChart({ deciles, threshold = 80 }: ParetoCurveChartPr
           total value — past the {threshold}% mark, the rest is tail.
         </p>
       )}
-      <ResponsiveContainer width="100%" height={320}>
+      <ResponsiveContainer width="100%" height={isFullscreen ? "100%" : 320}>
         <ComposedChart data={deciles} margin={{ top: 8, right: 16, bottom: 8, left: 0 }} barCategoryGap="20%">
           <CartesianGrid vertical={false} stroke={theme.gridline} />
           <XAxis

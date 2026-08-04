@@ -1,10 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
 import { SingleSourceRiskProvider } from "./provider";
-import { buildInvoicesFromDataset } from "./fromDataset";
-import { useDatasets } from "@/context/DatasetsContext";
-import { DatasetUpload } from "@/components/dashboard/dataset-upload";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
 import { KpiRibbon } from "./components/kpi-ribbon";
@@ -21,22 +17,9 @@ import { useSingleSourceRiskFocus } from "./components/useSingleSourceRiskFocus"
 
 export default function SingleSourceRiskPage() {
   const { activeParameters, toggleParameter, applyPreset, isWidgetVisible } = useSingleSourceRiskFocus();
-  const { getDatasetForPage } = useDatasets();
-  const dataset = getDatasetForPage("single-source-risk");
-
-  // Uploaded CSV (when present and usable) replaces the mock invoice list —
-  // every widget, KPI, and filter option derives from it. The key remounts
-  // the provider so filter state resets against the new data.
-  const datasetInvoices = useMemo(
-    () => (dataset ? buildInvoicesFromDataset(dataset) : null),
-    [dataset]
-  );
 
   return (
-    <SingleSourceRiskProvider
-      key={datasetInvoices ? dataset!.id : "static"}
-      invoices={datasetInvoices ?? undefined}
-    >
+    <SingleSourceRiskProvider>
       <FilterPanel />
       <div className="flex w-full flex-col gap-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -48,7 +31,6 @@ export default function SingleSourceRiskPage() {
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
-            <DatasetUpload pageKey="single-source-risk" usingFallback={datasetInvoices === null} />
             <ExportSnapshotButton targetId={DASHBOARD_CANVAS_ID} dashboardTitle="Single Source Risk" />
           </div>
         </div>

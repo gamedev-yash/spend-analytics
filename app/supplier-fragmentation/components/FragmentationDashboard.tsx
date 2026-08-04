@@ -20,7 +20,7 @@ import { FragmentationControls } from "./FragmentationControls";
 import { FragmentationHeatmap } from "./FragmentationHeatmap";
 import { FragmentationInsight } from "./FragmentationInsight";
 import { FragmentationKpis } from "./FragmentationKpis";
-import { FragmentationStoreProvider } from "./fragmentationStore";
+import { FragmentationStoreProvider, useFragmentation } from "./fragmentationStore";
 import { FragmentationTrendChart } from "./FragmentationTrendChart";
 import { SuppliersPerCategoryChart } from "./SuppliersPerCategoryChart";
 
@@ -46,6 +46,91 @@ function Header() {
           EKKO · EKPO · LFA1 · T023T · T001W
         </span>
       </div>
+    </div>
+  );
+}
+
+/** Short summary of the active filters, shown in each widget's fullscreen header. */
+function useActiveFiltersSummary(): string {
+  const { filters, mode } = useFragmentation();
+  const parts: string[] = [];
+  if (filters.plants.length) parts.push(`BU / Plant: ${filters.plants.length} selected`);
+  if (filters.l1s.length) parts.push(`Category: ${filters.l1s.join(", ")}`);
+  parts.push(`Period: ${filters.dateFrom} to ${filters.dateTo}`);
+  parts.push(mode === "parent" ? "Grouped by parent company" : "Grouped by vendor");
+  return parts.join(" · ");
+}
+
+function WidgetGrid() {
+  const activeFilters = useActiveFiltersSummary();
+
+  return (
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <ChartCard
+        className="h-[440px]"
+        title="Fragmentation Heatmap"
+        description="Distinct suppliers per Business Unit × Category — click a cell to focus"
+        icon={<Grid3x3 />}
+        accent="red"
+        activeFilters={activeFilters}
+      >
+        <FragmentationHeatmap />
+      </ChartCard>
+
+      <ChartCard
+        className="h-[440px]"
+        title="Suppliers per Category"
+        description="Top 20 fragmented L2 categories — red exceeds the median · click to focus"
+        icon={<BarChart3 />}
+        accent="blue"
+        activeFilters={activeFilters}
+      >
+        <SuppliersPerCategoryChart />
+      </ChartCard>
+
+      <ChartCard
+        className="h-[440px]"
+        title="Fragmentation vs Spend"
+        description="Each bubble = L2 category · size = # POs · click to drill down"
+        icon={<CircleDot />}
+        accent="orange"
+        activeFilters={activeFilters}
+      >
+        <FragmentationBubbleChart />
+      </ChartCard>
+
+      <ChartCard
+        className="h-[440px]"
+        title="Cross-BU Supplier Overlap"
+        description="Same supplier used by multiple BUs for the same category — consolidate contracts"
+        icon={<Share2 />}
+        accent="violet"
+        activeFilters={activeFilters}
+      >
+        <CrossBuSankeyChart />
+      </ChartCard>
+
+      <ChartCard
+        className="h-[440px]"
+        title="Fragmentation Trend"
+        description="Are we becoming more or less fragmented? ◆ marks new-supplier spikes"
+        icon={<TrendingUp />}
+        accent="green"
+        activeFilters={activeFilters}
+      >
+        <FragmentationTrendChart />
+      </ChartCard>
+
+      <ChartCard
+        className="h-[440px]"
+        title="Consolidation Opportunity"
+        description="Highlighted rows: parent-grouping cuts supplier count >50% · sortable · CSV export"
+        icon={<Table2 />}
+        accent="red"
+        activeFilters={activeFilters}
+      >
+        <ConsolidationOpportunityTable />
+      </ChartCard>
     </div>
   );
 }
@@ -99,67 +184,7 @@ export function FragmentationDashboard() {
           <FragmentationInsight />
           <FragmentationKpis />
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <ChartCard
-              className="h-[440px]"
-              title="Fragmentation Heatmap"
-              description="Distinct suppliers per Business Unit × Category — click a cell to focus"
-              icon={<Grid3x3 />}
-              accent="red"
-            >
-              <FragmentationHeatmap />
-            </ChartCard>
-
-            <ChartCard
-              className="h-[440px]"
-              title="Suppliers per Category"
-              description="Top 20 fragmented L2 categories — red exceeds the median · click to focus"
-              icon={<BarChart3 />}
-              accent="blue"
-            >
-              <SuppliersPerCategoryChart />
-            </ChartCard>
-
-            <ChartCard
-              className="h-[440px]"
-              title="Fragmentation vs Spend"
-              description="Each bubble = L2 category · size = # POs · click to drill down"
-              icon={<CircleDot />}
-              accent="orange"
-            >
-              <FragmentationBubbleChart />
-            </ChartCard>
-
-            <ChartCard
-              className="h-[440px]"
-              title="Cross-BU Supplier Overlap"
-              description="Same supplier used by multiple BUs for the same category — consolidate contracts"
-              icon={<Share2 />}
-              accent="violet"
-            >
-              <CrossBuSankeyChart />
-            </ChartCard>
-
-            <ChartCard
-              className="h-[440px]"
-              title="Fragmentation Trend"
-              description="Are we becoming more or less fragmented? ◆ marks new-supplier spikes"
-              icon={<TrendingUp />}
-              accent="green"
-            >
-              <FragmentationTrendChart />
-            </ChartCard>
-
-            <ChartCard
-              className="h-[440px]"
-              title="Consolidation Opportunity"
-              description="Highlighted rows: parent-grouping cuts supplier count >50% · sortable · CSV export"
-              icon={<Table2 />}
-              accent="red"
-            >
-              <ConsolidationOpportunityTable />
-            </ChartCard>
-          </div>
+          <WidgetGrid />
 
           <p className="text-center text-xs text-slate-400 dark:text-slate-600">
             Dummy data generated for demonstration — not actual Vedanta procurement records.

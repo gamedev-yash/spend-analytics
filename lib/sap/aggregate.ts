@@ -26,6 +26,33 @@ export function getFilterOptions() {
   };
 }
 
+/**
+ * Cascading filter options: each dimension's list is computed from PO items
+ * matching every OTHER active filter (date window included) — picking a BU
+ * narrows which categories are still offered, and vice versa. Implemented by
+ * re-running getFilteredPoItems with just that one dimension relaxed back to
+ * "all", so it can never drift from what applying the filters actually does.
+ */
+export function getCascadingFilterOptions(filters: SapFilters): {
+  plants: { code: string; name: string }[];
+  categoriesL1: string[];
+} {
+  const plantCodes = new Set(getFilteredPoItems({ ...filters, plants: undefined }).map((p) => p.plant_code));
+  const l1Names = new Set(
+    getFilteredPoItems({ ...filters, categoriesL1: undefined })
+      .map((p) => categoryByCode.get(p.category_code)?.category_l1)
+      .filter((l1): l1 is string => Boolean(l1))
+  );
+
+  return {
+    plants: PLANT_LIST.filter((p) => plantCodes.has(p.plant_code)).map((p) => ({
+      code: p.plant_code,
+      name: p.plant_name,
+    })),
+    categoriesL1: L1_CATEGORIES.filter((l1) => l1Names.has(l1)),
+  };
+}
+
 interface NormalizedRecord {
   date: string;
   vendorId: string;

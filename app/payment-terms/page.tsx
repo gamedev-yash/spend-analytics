@@ -1,10 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
-import { PaymentTermsProvider } from "./provider";
-import { buildInvoicesFromDataset } from "./fromDataset";
 import { useDatasets } from "@/context/DatasetsContext";
-import { DatasetUpload } from "@/components/dashboard/dataset-upload";
+import { PaymentTermsProvider } from "./provider";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
 import { KpiRibbon } from "./components/kpi-ribbon";
@@ -23,7 +20,7 @@ import { usePaymentTermsFocus } from "./components/usePaymentTermsFocus";
  * headline metrics — average paid days and standard-terms adherence — need a
  * settlement date per invoice, and fact_invoices carries only the document and
  * posting dates. Rather than derive a paid date that does not exist, the page
- * stays on its invoice-list source and says so.
+ * stays on its static invoice-list source and says so.
  */
 function WarehouseGapNote() {
   return (
@@ -43,22 +40,10 @@ function WarehouseGapNote() {
 
 export default function PaymentTermsPage() {
   const { activeParameters, toggleParameter, applyPreset, isWidgetVisible } = usePaymentTermsFocus();
-  const { getDatasetForPage, providerType } = useDatasets();
-  const dataset = getDatasetForPage("payment-terms");
-
-  // Uploaded CSV (when present and usable) replaces the mock invoice list —
-  // every widget, KPI, and filter option derives from it. The key remounts
-  // the provider so filter state resets against the new data.
-  const datasetInvoices = useMemo(
-    () => (dataset ? buildInvoicesFromDataset(dataset) : null),
-    [dataset]
-  );
+  const { providerType } = useDatasets();
 
   return (
-    <PaymentTermsProvider
-      key={datasetInvoices ? dataset!.id : "static"}
-      invoices={datasetInvoices ?? undefined}
-    >
+    <PaymentTermsProvider>
       <FilterPanel />
       <div className="flex w-full flex-col gap-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -70,7 +55,6 @@ export default function PaymentTermsPage() {
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
-            <DatasetUpload pageKey="payment-terms" usingFallback={datasetInvoices === null} />
             <ExportSnapshotButton targetId={DASHBOARD_CANVAS_ID} dashboardTitle="Payment Terms" />
           </div>
         </div>
@@ -86,7 +70,7 @@ export default function PaymentTermsPage() {
             thresholdsPageKey="payment-terms"
           />
 
-          {providerType === "azure-sql" && datasetInvoices === null && <WarehouseGapNote />}
+          {providerType === "azure-sql" && <WarehouseGapNote />}
 
           {isWidgetVisible("kpi-ribbon") && <KpiRibbon />}
           {/* Trailing odd child spans the full row so hiding/filtering widgets never leaves a gap. */}

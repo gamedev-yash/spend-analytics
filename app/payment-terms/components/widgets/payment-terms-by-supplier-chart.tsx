@@ -51,7 +51,18 @@ export function PaymentTermsBySupplierChart() {
       icon={<Users />}
       accent="violet"
     >
-      <div className="overflow-y-auto" style={{ maxHeight: MAX_VIEWPORT_HEIGHT }}>
+      {/*
+        Deliberately a plain ResponsiveContainer, not FullscreenResponsiveContainer:
+        chartHeight here is content-driven (every supplier gets a fixed, legible
+        ROW_HEIGHT), and overflow is meant to be handled by scrolling this viewport,
+        not by stretching the chart to fill it. Switching to height="100%" in
+        fullscreen would make Recharts compress all rows into the capped viewport
+        height instead, shrinking 50 suppliers into unreadable ~10px slivers.
+        `chart-fixed-height-scroll` opts this out of globals.css's fullscreen
+        stretch rule, which would otherwise force the same height:100% onto
+        this chart's internals regardless of the prop value.
+      */}
+      <div className="overflow-y-auto chart-fixed-height-scroll" style={{ maxHeight: MAX_VIEWPORT_HEIGHT }}>
       <ResponsiveContainer width="100%" height={chartHeight}>
           <BarChart
             data={displayedRows}

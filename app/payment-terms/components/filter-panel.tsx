@@ -2,7 +2,8 @@
 
 import { useMemo } from "react";
 import { X } from "lucide-react";
-import { FilterDateRange, FilterGroup, FilterSelect } from "@/components/ui/filter-controls";
+import { ClearFiltersButton, FilterDateRange, FilterGroup } from "@/components/ui/filter-controls";
+import { MultiSelect } from "@/components/sap/multi-select";
 import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
 import { useFilterSlot } from "@/context/FilterContext";
 import { usePaymentTerms } from "../provider";
@@ -27,12 +28,13 @@ export function FilterPanel() {
     selection,
     setDateFrom,
     setDateTo,
-    setCategory,
-    setGlobalUltimate,
-    setSourceSystem,
-    setPlant,
-    setPaymentTerm,
+    setCategories,
+    setGlobalUltimates,
+    setSourceSystems,
+    setPlants,
+    setPaymentTerms,
     clearSelection,
+    resetFilters,
     dateMin,
     dateMax,
     categoryOptions,
@@ -44,10 +46,17 @@ export function FilterPanel() {
 
   const { isWidgetEnabled, toggleWidgetEnabled, resetWidgetsToDefault } = usePaymentTermsFocus();
 
+  const hasActiveFilters =
+    filters.categoryCodes.length > 0 ||
+    filters.globalUltimateIds.length > 0 ||
+    filters.sourceSystemIds.length > 0 ||
+    filters.plantIds.length > 0 ||
+    filters.paymentTermCodes.length > 0;
+
   const node = useMemo(
     () => (
       <div className="space-y-8">
-        <FilterGroup title="Global Filters">
+        <FilterGroup title="Filters">
           <FilterDateRange
             fromValue={filters.dateFrom}
             toValue={filters.dateTo}
@@ -56,36 +65,42 @@ export function FilterPanel() {
             onFromChange={setDateFrom}
             onToChange={setDateTo}
           />
-          <FilterSelect
-            label="Category L1"
-            value={filters.categoryCode ?? ""}
-            options={[{ value: "", label: "All Categories" }, ...categoryOptions]}
-            onChange={(value) => setCategory(value === "" ? null : value)}
+          <MultiSelect
+            label="Category"
+            allLabel="All Categories"
+            options={categoryOptions}
+            selected={filters.categoryCodes}
+            onChange={setCategories}
           />
-          <FilterSelect
-            label="Supplier (Global Ultimate)"
-            value={filters.globalUltimateId ?? ""}
-            options={[{ value: "", label: "All Suppliers" }, ...globalUltimateOptions]}
-            onChange={(value) => setGlobalUltimate(value === "" ? null : value)}
+          <MultiSelect
+            label="Supplier"
+            allLabel="All Suppliers"
+            options={globalUltimateOptions}
+            selected={filters.globalUltimateIds}
+            onChange={setGlobalUltimates}
           />
-          <FilterSelect
+          <MultiSelect
             label="Source System"
-            value={filters.sourceSystemId ?? ""}
-            options={[{ value: "", label: "All Source Systems" }, ...sourceSystemOptions]}
-            onChange={(value) => setSourceSystem(value === "" ? null : value)}
+            allLabel="All Source Systems"
+            options={sourceSystemOptions}
+            selected={filters.sourceSystemIds}
+            onChange={setSourceSystems}
           />
-          <FilterSelect
-            label="Plant / Site"
-            value={filters.plantId ?? ""}
-            options={[{ value: "", label: "All Plants" }, ...plantOptions]}
-            onChange={(value) => setPlant(value === "" ? null : value)}
+          <MultiSelect
+            label="BU / Plant"
+            allLabel="All Plants"
+            options={plantOptions}
+            selected={filters.plantIds}
+            onChange={setPlants}
           />
-          <FilterSelect
+          <MultiSelect
             label="Payment Term"
-            value={filters.paymentTermCode ?? ""}
-            options={[{ value: "", label: "All Payment Terms" }, ...paymentTermOptions]}
-            onChange={(value) => setPaymentTerm(value === "" ? null : value)}
+            allLabel="All Payment Terms"
+            options={paymentTermOptions}
+            selected={filters.paymentTermCodes}
+            onChange={setPaymentTerms}
           />
+          {hasActiveFilters && <ClearFiltersButton onClick={resetFilters} />}
         </FilterGroup>
 
         <FilterGroup title="Page Options">
@@ -117,6 +132,7 @@ export function FilterPanel() {
     [
       filters,
       selection,
+      hasActiveFilters,
       dateMin,
       dateMax,
       categoryOptions,
@@ -126,11 +142,12 @@ export function FilterPanel() {
       paymentTermOptions,
       setDateFrom,
       setDateTo,
-      setCategory,
-      setGlobalUltimate,
-      setSourceSystem,
-      setPlant,
-      setPaymentTerm,
+      setCategories,
+      setGlobalUltimates,
+      setSourceSystems,
+      setPlants,
+      setPaymentTerms,
+      resetFilters,
       clearSelection,
       isWidgetEnabled,
       toggleWidgetEnabled,

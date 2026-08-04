@@ -1,7 +1,6 @@
 "use client";
 
 import { use, useMemo, useState } from "react";
-import Link from "next/link";
 import {
   ChevronLeft,
   ChevronRight,
@@ -12,10 +11,11 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import { useDatasets } from "@/context/DatasetsContext";
+import { useDatasets, type Dataset } from "@/context/DatasetsContext";
 import { WidgetFiltersProvider } from "@/context/WidgetFiltersContext";
 import { useRowCount } from "@/hooks/use-widget-query";
 import { WidgetGridSkeleton } from "@/components/dashboard/widget-grid-skeleton";
+import { FullscreenOverlay, MaximizeButton, useFullscreen } from "@/components/dashboard/fullscreen-overlay";
 import {
   addWidget,
   moveWidget,
@@ -40,6 +40,82 @@ import {
 } from "./dashboard-filters";
 import { AiSuggestionsBar } from "./ai-suggestions-bar";
 import { cn } from "@/lib/utils";
+
+interface DashboardWidgetCardProps {
+  dataset: Dataset;
+  widget: WidgetConfig;
+  dashboardId: string;
+  index: number;
+  widgetCount: number;
+  onEdit: (widget: WidgetConfig) => void;
+}
+
+/** One widget's card: title/toolbar + its content, plus its own fullscreen overlay state. */
+function DashboardWidgetCard({ dataset, widget, dashboardId, index, widgetCount, onEdit }: DashboardWidgetCardProps) {
+  const { isFullscreen, setIsFullscreen } = useFullscreen();
+
+  return (
+    <div
+      className={cn(
+        "flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80",
+        widget.gridSpan === 2 && "lg:col-span-2"
+      )}
+    >
+      <div className="flex shrink-0 items-center gap-2 border-b border-slate-200 bg-slate-100/50 px-4 py-2.5 dark:border-slate-800/80 dark:bg-slate-900/90">
+        <p className="min-w-0 flex-1 truncate text-sm font-bold text-slate-900 dark:text-slate-100">
+          {widget.title}
+        </p>
+        <div className="flex shrink-0 items-center gap-0.5 text-slate-400 dark:text-slate-500">
+          <button
+            type="button"
+            onClick={() => moveWidget(dashboardId, widget.id, -1)}
+            disabled={index === 0}
+            aria-label={`Move ${widget.title} earlier`}
+            title="Move earlier"
+            className="rounded p-1 transition-colors hover:bg-slate-200 hover:text-slate-700 disabled:opacity-30 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => moveWidget(dashboardId, widget.id, 1)}
+            disabled={index === widgetCount - 1}
+            aria-label={`Move ${widget.title} later`}
+            title="Move later"
+            className="rounded p-1 transition-colors hover:bg-slate-200 hover:text-slate-700 disabled:opacity-30 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          >
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onEdit(widget)}
+            aria-label={`Edit ${widget.title}`}
+            title="Edit widget"
+            className="rounded p-1 transition-colors hover:bg-slate-200 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => removeWidget(dashboardId, widget.id)}
+            aria-label={`Remove ${widget.title}`}
+            title="Remove widget"
+            className="rounded p-1 transition-colors hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-950 dark:hover:text-rose-400"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+          <MaximizeButton onClick={() => setIsFullscreen(true)} />
+        </div>
+      </div>
+      <div className="min-h-0 flex-1 p-4">
+        <CustomWidget dataset={dataset} config={widget} />
+      </div>
+      <FullscreenOverlay open={isFullscreen} onClose={() => setIsFullscreen(false)} title={widget.title}>
+        <CustomWidget dataset={dataset} config={widget} />
+      </FullscreenOverlay>
+    </div>
+  );
+}
 
 function EmptyShell({
   title,
@@ -113,8 +189,8 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
           title="Bound dataset is missing"
           message={
             providerType === "client-csv"
-              ? `"${dashboard.title}" is bound to a dataset CSV Mode cannot reach. If it reads a warehouse table, switch to Azure SQL Mode in the header; if it was an uploaded CSV, upload it again.`
-              : "The CSV this dashboard was built from has been removed. Upload it again from any dashboard page, or create a new dashboard against a dataset you still have."
+              ? `"${dashboard.title}" is bound to a dataset CSV Mode cannot reach. If it reads a warehouse table, switch to Azure SQL Mode in the header.`
+              : "The dataset this dashboard was built from has been removed. Create a new dashboard against a dataset you still have."
           }
         >
           <div className="flex flex-wrap justify-center gap-2">
@@ -127,12 +203,6 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
                 Switch to Azure SQL Mode
               </button>
             )}
-            <Link
-              href="/tail-spend"
-              className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-            >
-              Go upload a CSV
-            </Link>
             <NewDashboardButton label="New dashboard" />
           </div>
         </EmptyShell>
@@ -238,62 +308,15 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
           ) : (
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               {dashboard.widgets.map((widget, index) => (
-                <div
+                <DashboardWidgetCard
                   key={widget.id}
-                  className={cn(
-                    "flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80",
-                    widget.gridSpan === 2 && "lg:col-span-2"
-                  )}
-                >
-                  <div className="flex shrink-0 items-center gap-2 border-b border-slate-200 bg-slate-100/50 px-4 py-2.5 dark:border-slate-800/80 dark:bg-slate-900/90">
-                    <p className="min-w-0 flex-1 truncate text-sm font-bold text-slate-900 dark:text-slate-100">
-                      {widget.title}
-                    </p>
-                    <div className="flex shrink-0 items-center gap-0.5 text-slate-400 dark:text-slate-500">
-                      <button
-                        type="button"
-                        onClick={() => moveWidget(dashboard.id, widget.id, -1)}
-                        disabled={index === 0}
-                        aria-label={`Move ${widget.title} earlier`}
-                        title="Move earlier"
-                        className="rounded p-1 transition-colors hover:bg-slate-200 hover:text-slate-700 disabled:opacity-30 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                      >
-                        <ChevronLeft className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => moveWidget(dashboard.id, widget.id, 1)}
-                        disabled={index === dashboard.widgets.length - 1}
-                        aria-label={`Move ${widget.title} later`}
-                        title="Move later"
-                        className="rounded p-1 transition-colors hover:bg-slate-200 hover:text-slate-700 disabled:opacity-30 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                      >
-                        <ChevronRight className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => openEditWidget(widget)}
-                        aria-label={`Edit ${widget.title}`}
-                        title="Edit widget"
-                        className="rounded p-1 transition-colors hover:bg-slate-200 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => removeWidget(dashboard.id, widget.id)}
-                        aria-label={`Remove ${widget.title}`}
-                        title="Remove widget"
-                        className="rounded p-1 transition-colors hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-950 dark:hover:text-rose-400"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="min-h-0 flex-1 p-4">
-                    <CustomWidget dataset={sourceDataset} config={widget} />
-                  </div>
-                </div>
+                  dataset={sourceDataset}
+                  widget={widget}
+                  dashboardId={dashboard.id}
+                  index={index}
+                  widgetCount={dashboard.widgets.length}
+                  onEdit={openEditWidget}
+                />
               ))}
             </div>
           )}
