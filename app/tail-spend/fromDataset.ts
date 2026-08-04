@@ -85,6 +85,15 @@ export interface ParsedDataset {
   monthlySegmentSpend: Map<string, Map<SpendSegment, number>> | null;
   /** True when consolidation fields came from real columns (supplier grain). */
   consolidationFromColumns: boolean;
+  /**
+   * Every plant value seen in a transaction-grain dataset, regardless of any
+   * active plant filter — becomes the Plant/BU dropdown's options. Optional
+   * (rather than required) so other ParsedDataset producers (e.g. the
+   * warehouse loader in lib/page-data/) don't need to supply a value they
+   * have no plant-identity data to compute; absent/null means "no real plant
+   * dimension available," and the page falls back to the static option list.
+   */
+  distinctPlants?: string[] | null;
 }
 
 export { DEFAULT_MICRO_PO_THRESHOLD };
@@ -197,7 +206,7 @@ function resolveColumns(dataset: Dataset) {
 
 type Cols = ReturnType<typeof resolveColumns>;
 
-function parseDataset(dataset: Dataset, microThreshold: number): ParsedDataset | null {
+function parseDataset(dataset: Dataset, microThreshold: number, plantFilter: string | null): ParsedDataset | null {
   const cols = resolveColumns(dataset);
 
   // Without a supplier name and a spend measure there is nothing to build from.
@@ -208,7 +217,10 @@ function parseDataset(dataset: Dataset, microThreshold: number): ParsedDataset |
   const suppliersRepeat = (nameMeta?.distinctCount ?? dataset.rows.length) < dataset.rows.length * 0.9;
   const transactional = Boolean(cols.date || cols.txnId) && suppliersRepeat;
 
-  if (transactional) return parseTransactionGrain(dataset, cols, microThreshold);
+  // Plant/BU filtering needs a real per-row plant column, which only the
+  // transaction grain resolves (parseSupplierGrain never reads cols.plant —
+  // a supplier-grain row carries at most a plant COUNT, not plant identity).
+  if (transactional) return parseTransactionGrain(dataset, cols, microThreshold, plantFilter);
   return parseSupplierGrain(dataset, cols);
 }
 
@@ -258,6 +270,7 @@ function parseSupplierGrain(dataset: Dataset, cols: Cols): ParsedDataset | null 
     txnValues: null,
     monthlySegmentSpend: null,
     consolidationFromColumns: true,
+    distinctPlants: null,
   };
 }
 
@@ -275,14 +288,28 @@ interface SupplierAccumulator {
   monthly: Map<string, number>;
 }
 
-function parseTransactionGrain(dataset: Dataset, cols: Cols, microThreshold: number): ParsedDataset | null {
+function parseTransactionGrain(
+  dataset: Dataset,
+  cols: Cols,
+  microThreshold: number,
+  plantFilter: string | null
+): ParsedDataset | null {
   const bySupplier = new Map<string, SupplierAccumulator>();
   const txnValues: number[] = [];
+  // Tracked unconditionally (before the plant-filter check below) so the
+  // filter's own OPTION LIST always reflects the whole dataset, never just
+  // whatever currently passes the filter — otherwise picking one plant would
+  // erase every other option from the dropdown.
+  const distinctPlants = new Set<string>();
 
   for (const row of dataset.rows) {
     const supplierName = cellString(row, cols.supplierName);
     const value = cellNumber(row, cols.value);
     if (!supplierName || value === null) continue;
+
+    const rowPlant = cellString(row, cols.plant);
+    if (rowPlant) distinctPlants.add(rowPlant);
+    if (plantFilter && rowPlant !== plantFilter) continue;
 
     const supplierId = cellString(row, cols.supplierId) || supplierName;
     const acc = bySupplier.get(supplierId) ?? {
@@ -368,6 +395,7 @@ function parseTransactionGrain(dataset: Dataset, cols: Cols, microThreshold: num
     txnValues,
     monthlySegmentSpend: sawMonths ? monthlySegmentSpend : null,
     consolidationFromColumns: false,
+    distinctPlants: distinctPlants.size > 0 ? Array.from(distinctPlants).sort((a, b) => a.localeCompare(b)) : null,
   };
 }
 
@@ -612,9 +640,10 @@ function deriveMonthlyTrend(
  */
 export function buildTailSpendFromDataset(
   dataset: Dataset,
-  microThreshold: number = DEFAULT_MICRO_PO_THRESHOLD
+  microThreshold: number = DEFAULT_MICRO_PO_THRESHOLD,
+  plantFilter: string | null = null
 ): TailSpendData | null {
-  const parsed = parseDataset(dataset, microThreshold);
+  const parsed = parseDataset(dataset, microThreshold, plantFilter);
   if (!parsed) return null;
   return buildTailSpendFromParsed(parsed, microThreshold);
 }
@@ -799,5 +828,10 @@ export function buildTailSpendFromParsed(
     supplierSpendRank,
     sapCategoryRows,
     sapSupplierReport,
+    // Real plant values seen in the upload replace the static Vedanta site
+    // list so the Plant/BU filter's options actually match this dataset.
+    sapFilterOptions: parsed.distinctPlants?.length
+      ? { ...tailSpendMock.sapFilterOptions, plantSites: parsed.distinctPlants }
+      : tailSpendMock.sapFilterOptions,
   };
 }
