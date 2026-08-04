@@ -94,6 +94,19 @@ export const THRESHOLD_PRESETS: Record<string, ThresholdConfig[]> = {
       description: "Share of spend concentrated in the top 10 suppliers.",
     },
   ],
+  "single-source-risk": [
+    {
+      id: "single-source-risk.category-count",
+      metricKey: "categoryCount",
+      label: "At-Risk Categories",
+      targetValue: 12,
+      operator: "lte",
+      sentiment: "lower_is_better",
+      unit: "count",
+      description:
+        "Flags when more categories fall at or below the selected \"Number of Suppliers per Category\" threshold than this target.",
+    },
+  ],
 };
 
 export function presetById(id: string): ThresholdConfig | null {

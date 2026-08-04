@@ -1,0 +1,657 @@
+[
+  {
+    "supplier_id": "SUP-00001",
+    "supplier_name": "Palisade Materials Chennai Pte. Ltd.",
+    "gu_id": "GU-0001"
+  },
+  {
+    "supplier_id": "SUP-00002",
+    "supplier_name": "Coralwave Fabrication Singapore Co. Ltd.",
+    "gu_id": "GU-0002"
+  },
+  {
+    "supplier_id": "SUP-00003",
+    "supplier_name": "Coralwave Fabrication Chennai Pte. Ltd.",
+    "gu_id": "GU-0002"
+  },
+  {
+    "supplier_id": "SUP-00004",
+    "supplier_name": "Coralwave Fabrication Bengaluru Ltd.",
+    "gu_id": "GU-0002"
+  },
+  {
+    "supplier_id": "SUP-00005",
+    "supplier_name": "Coralwave Fabrication Shanghai Co. Ltd.",
+    "gu_id": "GU-0002"
+  },
+  {
+    "supplier_id": "SUP-00006",
+    "supplier_name": "Coralwave Fabrication Pune Pte. Ltd.",
+    "gu_id": "GU-0002"
+  },
+  {
+    "supplier_id": "SUP-00007",
+    "supplier_name": "Sierra Manufacturing Bogota Ltda.",
+    "gu_id": "GU-0003"
+  },
+  {
+    "supplier_id": "SUP-00008",
+    "supplier_name": "Sierra Manufacturing Bogota S.A. de C.V.",
+    "gu_id": "GU-0003"
+  },
+  {
+    "supplier_id": "SUP-00009",
+    "supplier_name": "Sierra Manufacturing Bogota Ltda.",
+    "gu_id": "GU-0003"
+  },
+  {
+    "supplier_id": "SUP-00010",
+    "supplier_name": "Sierra Manufacturing Bogota Ltda.",
+    "gu_id": "GU-0003"
+  },
+  {
+    "supplier_id": "SUP-00011",
+    "supplier_name": "Ironwood Logistics Monterrey S.A. de C.V.",
+    "gu_id": "GU-0004"
+  },
+  {
+    "supplier_id": "SUP-00012",
+    "supplier_name": "Northgate Fabrication Pune Pte. Ltd.",
+    "gu_id": "GU-0005"
+  },
+  {
+    "supplier_id": "SUP-00013",
+    "supplier_name": "Northgate Fabrication Singapore Pte. Ltd.",
+    "gu_id": "GU-0005"
+  },
+  {
+    "supplier_id": "SUP-00014",
+    "supplier_name": "Northgate Fabrication Shanghai Pte. Ltd.",
+    "gu_id": "GU-0005"
+  },
+  {
+    "supplier_id": "SUP-00015",
+    "supplier_name": "Northgate Fabrication Singapore Co. Ltd.",
+    "gu_id": "GU-0005"
+  },
+  {
+    "supplier_id": "SUP-00016",
+    "supplier_name": "Northgate Fabrication Bengaluru Pte. Ltd.",
+    "gu_id": "GU-0005"
+  },
+  {
+    "supplier_id": "SUP-00017",
+    "supplier_name": "Northgate Packaging Toronto Co.",
+    "gu_id": "GU-0006"
+  },
+  {
+    "supplier_id": "SUP-00018",
+    "supplier_name": "Coralwave Materials Bogota S.A.",
+    "gu_id": "GU-0007"
+  },
+  {
+    "supplier_id": "SUP-00019",
+    "supplier_name": "Coralwave Materials Monterrey S.A.",
+    "gu_id": "GU-0007"
+  },
+  {
+    "supplier_id": "SUP-00020",
+    "supplier_name": "Coralwave Fabrication Detroit LLC",
+    "gu_id": "GU-0008"
+  },
+  {
+    "supplier_id": "SUP-00021",
+    "supplier_name": "Northgate Facilities Warsaw GmbH",
+    "gu_id": "GU-0009"
+  },
+  {
+    "supplier_id": "SUP-00022",
+    "supplier_name": "Coralwave Components Toronto Inc.",
+    "gu_id": "GU-0010"
+  },
+  {
+    "supplier_id": "SUP-00023",
+    "supplier_name": "Coralwave Components Toronto Co.",
+    "gu_id": "GU-0010"
+  },
+  {
+    "supplier_id": "SUP-00024",
+    "supplier_name": "Coralwave Components Charlotte Inc.",
+    "gu_id": "GU-0010"
+  },
+  {
+    "supplier_id": "SUP-00025",
+    "supplier_name": "Coralwave Components Dallas LLC",
+    "gu_id": "GU-0010"
+  },
+  {
+    "supplier_id": "SUP-00026",
+    "supplier_name": "Millbrook Consulting Rotterdam Ltd.",
+    "gu_id": "GU-0011"
+  },
+  {
+    "supplier_id": "SUP-00027",
+    "supplier_name": "Millbrook Consulting Warsaw GmbH",
+    "gu_id": "GU-0011"
+  },
+  {
+    "supplier_id": "SUP-00028",
+    "supplier_name": "Millbrook Consulting Warsaw GmbH",
+    "gu_id": "GU-0011"
+  },
+  {
+    "supplier_id": "SUP-00029",
+    "supplier_name": "Millbrook Consulting Manchester GmbH",
+    "gu_id": "GU-0011"
+  },
+  {
+    "supplier_id": "SUP-00030",
+    "supplier_name": "Northgate Controls Stuttgart GmbH",
+    "gu_id": "GU-0012"
+  },
+  {
+    "supplier_id": "SUP-00031",
+    "supplier_name": "Northgate Controls Milan Ltd.",
+    "gu_id": "GU-0012"
+  },
+  {
+    "supplier_id": "SUP-00032",
+    "supplier_name": "Beacon Logistics Warsaw GmbH",
+    "gu_id": "GU-0013"
+  },
+  {
+    "supplier_id": "SUP-00033",
+    "supplier_name": "Beacon Logistics Milan S.A.",
+    "gu_id": "GU-0013"
+  },
+  {
+    "supplier_id": "SUP-00034",
+    "supplier_name": "Beacon Logistics Rotterdam S.A.",
+    "gu_id": "GU-0013"
+  },
+  {
+    "supplier_id": "SUP-00035",
+    "supplier_name": "Beacon Logistics Lyon GmbH",
+    "gu_id": "GU-0013"
+  },
+  {
+    "supplier_id": "SUP-00036",
+    "supplier_name": "Beacon Logistics Milan S.A.",
+    "gu_id": "GU-0013"
+  },
+  {
+    "supplier_id": "SUP-00037",
+    "supplier_name": "Amberline Electricals Manchester GmbH",
+    "gu_id": "GU-0014"
+  },
+  {
+    "supplier_id": "SUP-00038",
+    "supplier_name": "Amberline Electricals Stuttgart S.A.",
+    "gu_id": "GU-0014"
+  },
+  {
+    "supplier_id": "SUP-00039",
+    "supplier_name": "Amberline Electricals Warsaw GmbH",
+    "gu_id": "GU-0014"
+  },
+  {
+    "supplier_id": "SUP-00040",
+    "supplier_name": "Amberline Electricals Milan S.A.",
+    "gu_id": "GU-0014"
+  },
+  {
+    "supplier_id": "SUP-00041",
+    "supplier_name": "Amberline Electricals Manchester Ltd.",
+    "gu_id": "GU-0014"
+  },
+  {
+    "supplier_id": "SUP-00042",
+    "supplier_name": "Ironwood Fabrication Houston Inc.",
+    "gu_id": "GU-0015"
+  },
+  {
+    "supplier_id": "SUP-00043",
+    "supplier_name": "Ironwood Fabrication Detroit LLC",
+    "gu_id": "GU-0015"
+  },
+  {
+    "supplier_id": "SUP-00044",
+    "supplier_name": "Ironwood Fabrication Houston LLC",
+    "gu_id": "GU-0015"
+  },
+  {
+    "supplier_id": "SUP-00045",
+    "supplier_name": "Granite Tooling Bengaluru Pte. Ltd.",
+    "gu_id": "GU-0016"
+  },
+  {
+    "supplier_id": "SUP-00046",
+    "supplier_name": "Blackthorn Consulting Milan Ltd.",
+    "gu_id": "GU-0017"
+  },
+  {
+    "supplier_id": "SUP-00047",
+    "supplier_name": "Blackthorn Consulting Lyon S.A.",
+    "gu_id": "GU-0017"
+  },
+  {
+    "supplier_id": "SUP-00048",
+    "supplier_name": "Blackthorn Consulting Rotterdam GmbH",
+    "gu_id": "GU-0017"
+  },
+  {
+    "supplier_id": "SUP-00049",
+    "supplier_name": "Fernbrook Tooling Pune Co. Ltd.",
+    "gu_id": "GU-0018"
+  },
+  {
+    "supplier_id": "SUP-00050",
+    "supplier_name": "Ashford Tooling Shanghai Ltd.",
+    "gu_id": "GU-0019"
+  },
+  {
+    "supplier_id": "SUP-00051",
+    "supplier_name": "Ashford Tooling Osaka Co. Ltd.",
+    "gu_id": "GU-0019"
+  },
+  {
+    "supplier_id": "SUP-00052",
+    "supplier_name": "Ashford Tooling Bengaluru Ltd.",
+    "gu_id": "GU-0019"
+  },
+  {
+    "supplier_id": "SUP-00053",
+    "supplier_name": "Waverly Facilities Milan GmbH",
+    "gu_id": "GU-0020"
+  },
+  {
+    "supplier_id": "SUP-00054",
+    "supplier_name": "Waverly Facilities Milan GmbH",
+    "gu_id": "GU-0020"
+  },
+  {
+    "supplier_id": "SUP-00055",
+    "supplier_name": "Waverly Facilities Milan S.A.",
+    "gu_id": "GU-0020"
+  },
+  {
+    "supplier_id": "SUP-00056",
+    "supplier_name": "Waverly Facilities Stuttgart Ltd.",
+    "gu_id": "GU-0020"
+  },
+  {
+    "supplier_id": "SUP-00057",
+    "supplier_name": "Millbrook Chemicals Sao Paulo S.A.",
+    "gu_id": "GU-0021"
+  },
+  {
+    "supplier_id": "SUP-00058",
+    "supplier_name": "Millbrook Chemicals Monterrey S.A. de C.V.",
+    "gu_id": "GU-0021"
+  },
+  {
+    "supplier_id": "SUP-00059",
+    "supplier_name": "Millbrook Chemicals Sao Paulo S.A. de C.V.",
+    "gu_id": "GU-0021"
+  },
+  {
+    "supplier_id": "SUP-00060",
+    "supplier_name": "Beacon Instruments Santiago S.A.",
+    "gu_id": "GU-0022"
+  },
+  {
+    "supplier_id": "SUP-00061",
+    "supplier_name": "Sierra Machinery Dallas Inc.",
+    "gu_id": "GU-0023"
+  },
+  {
+    "supplier_id": "SUP-00062",
+    "supplier_name": "Sierra Machinery Chicago Inc.",
+    "gu_id": "GU-0023"
+  },
+  {
+    "supplier_id": "SUP-00063",
+    "supplier_name": "Sierra Machinery Charlotte Co.",
+    "gu_id": "GU-0023"
+  },
+  {
+    "supplier_id": "SUP-00064",
+    "supplier_name": "Sierra Machinery Chicago Co.",
+    "gu_id": "GU-0023"
+  },
+  {
+    "supplier_id": "SUP-00065",
+    "supplier_name": "Hillcrest Tooling Chicago LLC",
+    "gu_id": "GU-0024"
+  },
+  {
+    "supplier_id": "SUP-00066",
+    "supplier_name": "Hillcrest Tooling Detroit Co.",
+    "gu_id": "GU-0024"
+  },
+  {
+    "supplier_id": "SUP-00067",
+    "supplier_name": "Hillcrest Tooling Detroit Inc.",
+    "gu_id": "GU-0024"
+  },
+  {
+    "supplier_id": "SUP-00068",
+    "supplier_name": "Hillcrest Tooling Houston LLC",
+    "gu_id": "GU-0024"
+  },
+  {
+    "supplier_id": "SUP-00069",
+    "supplier_name": "Hillcrest Consulting Detroit Inc.",
+    "gu_id": "GU-0025"
+  },
+  {
+    "supplier_id": "SUP-00070",
+    "supplier_name": "Hillcrest Consulting Chicago LLC",
+    "gu_id": "GU-0025"
+  },
+  {
+    "supplier_id": "SUP-00071",
+    "supplier_name": "Hillcrest Consulting Chicago Inc.",
+    "gu_id": "GU-0025"
+  },
+  {
+    "supplier_id": "SUP-00072",
+    "supplier_name": "Hillcrest Consulting Detroit LLC",
+    "gu_id": "GU-0025"
+  },
+  {
+    "supplier_id": "SUP-00073",
+    "supplier_name": "Coralwave Technologies Lyon S.A.",
+    "gu_id": "GU-0026"
+  },
+  {
+    "supplier_id": "SUP-00074",
+    "supplier_name": "Coralwave Technologies Milan S.A.",
+    "gu_id": "GU-0026"
+  },
+  {
+    "supplier_id": "SUP-00075",
+    "supplier_name": "Coralwave Technologies Milan GmbH",
+    "gu_id": "GU-0026"
+  },
+  {
+    "supplier_id": "SUP-00076",
+    "supplier_name": "Coralwave Technologies Warsaw Ltd.",
+    "gu_id": "GU-0026"
+  },
+  {
+    "supplier_id": "SUP-00077",
+    "supplier_name": "Crestline Materials Toronto Co.",
+    "gu_id": "GU-0027"
+  },
+  {
+    "supplier_id": "SUP-00078",
+    "supplier_name": "Crestline Materials Chicago LLC",
+    "gu_id": "GU-0027"
+  },
+  {
+    "supplier_id": "SUP-00079",
+    "supplier_name": "Crestline Logistics Sao Paulo S.A.",
+    "gu_id": "GU-0028"
+  },
+  {
+    "supplier_id": "SUP-00080",
+    "supplier_name": "Crestline Logistics Bogota S.A.",
+    "gu_id": "GU-0028"
+  },
+  {
+    "supplier_id": "SUP-00081",
+    "supplier_name": "Crestline Logistics Sao Paulo Ltda.",
+    "gu_id": "GU-0028"
+  },
+  {
+    "supplier_id": "SUP-00082",
+    "supplier_name": "Crestline Logistics Sao Paulo Ltda.",
+    "gu_id": "GU-0028"
+  },
+  {
+    "supplier_id": "SUP-00083",
+    "supplier_name": "Crestline Logistics Monterrey Ltda.",
+    "gu_id": "GU-0028"
+  },
+  {
+    "supplier_id": "SUP-00084",
+    "supplier_name": "Beacon Technologies Singapore Ltd.",
+    "gu_id": "GU-0029"
+  },
+  {
+    "supplier_id": "SUP-00085",
+    "supplier_name": "Beacon Technologies Pune Co. Ltd.",
+    "gu_id": "GU-0029"
+  },
+  {
+    "supplier_id": "SUP-00086",
+    "supplier_name": "Larkspur Consulting Manchester Ltd.",
+    "gu_id": "GU-0030"
+  },
+  {
+    "supplier_id": "SUP-00087",
+    "supplier_name": "Larkspur Consulting Stuttgart GmbH",
+    "gu_id": "GU-0030"
+  },
+  {
+    "supplier_id": "SUP-00088",
+    "supplier_name": "Ridgemont Freight Bogota S.A. de C.V.",
+    "gu_id": "GU-0031"
+  },
+  {
+    "supplier_id": "SUP-00089",
+    "supplier_name": "Ridgemont Freight Sao Paulo S.A.",
+    "gu_id": "GU-0031"
+  },
+  {
+    "supplier_id": "SUP-00090",
+    "supplier_name": "Ridgemont Freight Bogota S.A. de C.V.",
+    "gu_id": "GU-0031"
+  },
+  {
+    "supplier_id": "SUP-00091",
+    "supplier_name": "Ridgemont Freight Bogota S.A. de C.V.",
+    "gu_id": "GU-0031"
+  },
+  {
+    "supplier_id": "SUP-00092",
+    "supplier_name": "Ridgemont Freight Santiago S.A. de C.V.",
+    "gu_id": "GU-0031"
+  },
+  {
+    "supplier_id": "SUP-00093",
+    "supplier_name": "Hillcrest Packaging Monterrey Ltda.",
+    "gu_id": "GU-0032"
+  },
+  {
+    "supplier_id": "SUP-00094",
+    "supplier_name": "Amberline Packaging Toronto Inc.",
+    "gu_id": "GU-0033"
+  },
+  {
+    "supplier_id": "SUP-00095",
+    "supplier_name": "Sierra Controls Osaka Pte. Ltd.",
+    "gu_id": "GU-0034"
+  },
+  {
+    "supplier_id": "SUP-00096",
+    "supplier_name": "Sierra Controls Chennai Co. Ltd.",
+    "gu_id": "GU-0034"
+  },
+  {
+    "supplier_id": "SUP-00097",
+    "supplier_name": "Sierra Controls Singapore Co. Ltd.",
+    "gu_id": "GU-0034"
+  },
+  {
+    "supplier_id": "SUP-00098",
+    "supplier_name": "Fernbrook Manufacturing Singapore Ltd.",
+    "gu_id": "GU-0035"
+  },
+  {
+    "supplier_id": "SUP-00099",
+    "supplier_name": "Fernbrook Manufacturing Singapore Pte. Ltd.",
+    "gu_id": "GU-0035"
+  },
+  {
+    "supplier_id": "SUP-00100",
+    "supplier_name": "Fernbrook Manufacturing Shanghai Ltd.",
+    "gu_id": "GU-0035"
+  },
+  {
+    "supplier_id": "SUP-00101",
+    "supplier_name": "Fernbrook Manufacturing Pune Co. Ltd.",
+    "gu_id": "GU-0035"
+  },
+  {
+    "supplier_id": "SUP-00102",
+    "supplier_name": "Fernbrook Manufacturing Shanghai Pte. Ltd.",
+    "gu_id": "GU-0035"
+  },
+  {
+    "supplier_id": "SUP-00103",
+    "supplier_name": "Granite Consulting Lyon S.A.",
+    "gu_id": "GU-0036"
+  },
+  {
+    "supplier_id": "SUP-00104",
+    "supplier_name": "Granite Consulting Rotterdam Ltd.",
+    "gu_id": "GU-0036"
+  },
+  {
+    "supplier_id": "SUP-00105",
+    "supplier_name": "Granite Consulting Warsaw GmbH",
+    "gu_id": "GU-0036"
+  },
+  {
+    "supplier_id": "SUP-00106",
+    "supplier_name": "Granite Consulting Rotterdam Ltd.",
+    "gu_id": "GU-0036"
+  },
+  {
+    "supplier_id": "SUP-00107",
+    "supplier_name": "Granite Consulting Milan S.A.",
+    "gu_id": "GU-0036"
+  },
+  {
+    "supplier_id": "SUP-00108",
+    "supplier_name": "Meridian Components Bogota S.A.",
+    "gu_id": "GU-0037"
+  },
+  {
+    "supplier_id": "SUP-00109",
+    "supplier_name": "Meridian Components Monterrey S.A. de C.V.",
+    "gu_id": "GU-0037"
+  },
+  {
+    "supplier_id": "SUP-00110",
+    "supplier_name": "Waverly Technologies Manchester GmbH",
+    "gu_id": "GU-0038"
+  },
+  {
+    "supplier_id": "SUP-00111",
+    "supplier_name": "Waverly Technologies Stuttgart Ltd.",
+    "gu_id": "GU-0038"
+  },
+  {
+    "supplier_id": "SUP-00112",
+    "supplier_name": "Waverly Technologies Lyon GmbH",
+    "gu_id": "GU-0038"
+  },
+  {
+    "supplier_id": "SUP-00113",
+    "supplier_name": "Waverly Technologies Manchester Ltd.",
+    "gu_id": "GU-0038"
+  },
+  {
+    "supplier_id": "SUP-00114",
+    "supplier_name": "Solstice Fabrication Sao Paulo Ltda.",
+    "gu_id": "GU-0039"
+  },
+  {
+    "supplier_id": "SUP-00115",
+    "supplier_name": "Solstice Fabrication Bogota Ltda.",
+    "gu_id": "GU-0039"
+  },
+  {
+    "supplier_id": "SUP-00116",
+    "supplier_name": "Solstice Fabrication Sao Paulo S.A.",
+    "gu_id": "GU-0039"
+  },
+  {
+    "supplier_id": "SUP-00117",
+    "supplier_name": "Solstice Fabrication Santiago S.A.",
+    "gu_id": "GU-0039"
+  },
+  {
+    "supplier_id": "SUP-00118",
+    "supplier_name": "Amberline Machinery Charlotte Inc.",
+    "gu_id": "GU-0040"
+  },
+  {
+    "supplier_id": "SUP-00119",
+    "supplier_name": "Ashgrove Electricals Bogota S.A. de C.V.",
+    "gu_id": "GU-0041"
+  },
+  {
+    "supplier_id": "SUP-00120",
+    "supplier_name": "Ashgrove Electricals Sao Paulo Ltda.",
+    "gu_id": "GU-0041"
+  },
+  {
+    "supplier_id": "SUP-00121",
+    "supplier_name": "Thornfield Industrial Stuttgart Ltd.",
+    "gu_id": "GU-0042"
+  },
+  {
+    "supplier_id": "SUP-00122",
+    "supplier_name": "Thornfield Industrial Stuttgart S.A.",
+    "gu_id": "GU-0042"
+  },
+  {
+    "supplier_id": "SUP-00123",
+    "supplier_name": "Ridgemont Consulting Stuttgart Ltd.",
+    "gu_id": "GU-0043"
+  },
+  {
+    "supplier_id": "SUP-00124",
+    "supplier_name": "Ridgemont Technologies Detroit Co.",
+    "gu_id": "GU-0044"
+  },
+  {
+    "supplier_id": "SUP-00125",
+    "supplier_name": "Ridgemont Technologies Houston Inc.",
+    "gu_id": "GU-0044"
+  },
+  {
+    "supplier_id": "SUP-00126",
+    "supplier_name": "Ridgemont Technologies Charlotte Inc.",
+    "gu_id": "GU-0044"
+  },
+  {
+    "supplier_id": "SUP-00127",
+    "supplier_name": "Blackthorn Logistics Toronto Inc.",
+    "gu_id": "GU-0045"
+  },
+  {
+    "supplier_id": "SUP-00128",
+    "supplier_name": "Blackthorn Logistics Charlotte Co.",
+    "gu_id": "GU-0045"
+  },
+  {
+    "supplier_id": "SUP-00129",
+    "supplier_name": "Blackthorn Logistics Toronto LLC",
+    "gu_id": "GU-0045"
+  },
+  {
+    "supplier_id": "SUP-00130",
+    "supplier_name": "Blackthorn Logistics Chicago Inc.",
+    "gu_id": "GU-0045"
+  },
+  {
+    "supplier_id": "SUP-00131",
+    "supplier_name": "Blackthorn Logistics Detroit Co.",
+    "gu_id": "GU-0045"
+  }
+]

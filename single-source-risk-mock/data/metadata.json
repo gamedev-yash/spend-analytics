@@ -1,0 +1,36 @@
+{
+  "generated_by": "generate_data.py",
+  "seed": 7,
+  "currency": "USD",
+  "reference_today": "2026-07-20",
+  "date_window": {
+    "start": "2025-07-01",
+    "end": "2026-06-30",
+    "description": "last 12 completed months as of reference_today"
+  },
+  "counts": {
+    "invoices": 2200,
+    "global_ultimates": 45,
+    "suppliers": 131,
+    "categories": 38,
+    "products": 156,
+    "cost_centers": 29,
+    "plants": 14,
+    "source_systems": 5,
+    "single_source_categories": 17,
+    "dual_source_categories": 6
+  },
+  "single_source_slice": {
+    "categories": 17,
+    "distinct_suppliers": 8,
+    "distinct_products": 68,
+    "spend": 52624644.28,
+    "spend_share_of_total": 8.488
+  },
+  "notes": [
+    "Row-per-invoice fact table; all KPIs/widgets/tables derive from invoices.json.",
+    "category_code -> eligible Global-Ultimate supplier pool is fixed BEFORE invoice generation, not inferred after the fact.",
+    "17 of 38 categories are true single-source (1 eligible GU); 8 critical GUs are reused as the sole supplier across several of them.",
+    "Single-source categories carry a small overall share of total spend but a few land high-value outliers by chance -- the risk is exposure, not dollar volume."
+  ]
+}
