@@ -364,11 +364,12 @@ export function validateWidgetAgainstColumns(
 
 export class AssistantError extends Error {}
 
-async function callAssistant(payload: AssistantRequest): Promise<AssistantResponse> {
+async function callAssistant(payload: AssistantRequest, signal?: AbortSignal): Promise<AssistantResponse> {
   const response = await fetch("/api/assistant", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
+    signal,
   });
   const data: unknown = await response.json().catch(() => null);
   if (!response.ok) {
@@ -395,21 +396,25 @@ export async function askAssistant(
   message: string,
   dataset: Dataset | null,
   history: AssistantRequest["history"] = [],
-  otherDashboards: AssistantRequest["otherDashboards"] = []
+  otherDashboards: AssistantRequest["otherDashboards"] = [],
+  signal?: AbortSignal
 ): Promise<AssistantResponse & { validatedWidget: WidgetConfig | null }> {
   const serverDatasetId = registryDatasetId(dataset);
-  const response = await callAssistant({
-    mode: "chat",
-    message,
-    history,
-    // A warehouse dataset gets named, not summarised — its rows aren't here to
-    // compute statistics from. An uploaded CSV still sends its column context.
-    dataset: serverDatasetId || !dataset ? null : buildDatasetContext(dataset),
-    registryDatasetId: serverDatasetId,
-    // Redirect targets are independent of where the data lives, so they travel
-    // in either mode.
-    otherDashboards,
-  });
+  const response = await callAssistant(
+    {
+      mode: "chat",
+      message,
+      history,
+      // A warehouse dataset gets named, not summarised — its rows aren't here to
+      // compute statistics from. An uploaded CSV still sends its column context.
+      dataset: serverDatasetId || !dataset ? null : buildDatasetContext(dataset),
+      registryDatasetId: serverDatasetId,
+      // Redirect targets are independent of where the data lives, so they travel
+      // in either mode.
+      otherDashboards,
+    },
+    signal
+  );
   const validatedWidget =
     response.widget && dataset
       ? validateWidgetAgainstColumns(response.widget, dataset.columns)
