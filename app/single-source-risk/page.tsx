@@ -13,9 +13,6 @@ import { CategoriesBySupplierCountChart } from "./components/widgets/categories-
 import { ProductsChart } from "./components/widgets/products-chart";
 import { PlantsChart } from "./components/widgets/plants-chart";
 import { SuppliersChart } from "./components/widgets/suppliers-chart";
-import { CriticalSupplierChart } from "./components/widgets/critical-supplier-chart";
-import { CategoryQuadrantChart } from "./components/widgets/category-quadrant-chart";
-import { SegmentRiskChart } from "./components/widgets/segment-risk-chart";
 import { ExposureTrendChart } from "./components/widgets/exposure-trend-chart";
 import { DetailReportTable } from "./components/detail-report-table";
 import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
@@ -74,13 +71,6 @@ export default function SingleSourceRiskPage() {
             {isWidgetVisible("product-chart") && <ProductsChart />}
             {isWidgetVisible("plant-chart") && <PlantsChart />}
             {isWidgetVisible("supplier-chart") && <SuppliersChart />}
-          </div>
-
-          {isWidgetVisible("critical-supplier-chart") && <CriticalSupplierChart />}
-
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
-            {isWidgetVisible("category-quadrant-chart") && <CategoryQuadrantChart />}
-            {isWidgetVisible("segment-risk-chart") && <SegmentRiskChart />}
           </div>
 
           {isWidgetVisible("exposure-trend-chart") && <ExposureTrendChart />}

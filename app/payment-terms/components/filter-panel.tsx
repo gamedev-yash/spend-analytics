@@ -2,11 +2,10 @@
 
 import { useMemo } from "react";
 import { X } from "lucide-react";
-import { FilterGroup, FilterMonthRange, FilterSelect } from "@/components/ui/filter-controls";
+import { FilterDateRange, FilterGroup, FilterSelect } from "@/components/ui/filter-controls";
 import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
 import { useFilterSlot } from "@/context/FilterContext";
 import { usePaymentTerms } from "../provider";
-import { formatMonthLabel } from "../constants";
 import { PT_WIDGET_GROUPS } from "./focusParams";
 import { usePaymentTermsFocus } from "./usePaymentTermsFocus";
 import type { LinkedDimension } from "../types";
@@ -26,15 +25,16 @@ export function FilterPanel() {
   const {
     filters,
     selection,
-    setStartMonth,
-    setEndMonth,
+    setDateFrom,
+    setDateTo,
     setCategory,
     setGlobalUltimate,
     setSourceSystem,
     setPlant,
     setPaymentTerm,
     clearSelection,
-    monthOptions,
+    dateMin,
+    dateMax,
     categoryOptions,
     globalUltimateOptions,
     sourceSystemOptions,
@@ -48,13 +48,13 @@ export function FilterPanel() {
     () => (
       <div className="space-y-8">
         <FilterGroup title="Global Filters">
-          <FilterMonthRange
-            label="Date Range"
-            options={monthOptions.map((m) => ({ value: m, label: formatMonthLabel(m) }))}
-            startValue={filters.startMonth}
-            endValue={filters.endMonth}
-            onStartChange={setStartMonth}
-            onEndChange={setEndMonth}
+          <FilterDateRange
+            fromValue={filters.dateFrom}
+            toValue={filters.dateTo}
+            min={dateMin}
+            max={dateMax}
+            onFromChange={setDateFrom}
+            onToChange={setDateTo}
           />
           <FilterSelect
             label="Category L1"
@@ -80,6 +80,12 @@ export function FilterPanel() {
             options={[{ value: "", label: "All Plants" }, ...plantOptions]}
             onChange={(value) => setPlant(value === "" ? null : value)}
           />
+          <FilterSelect
+            label="Payment Term"
+            value={filters.paymentTermCode ?? ""}
+            options={[{ value: "", label: "All Payment Terms" }, ...paymentTermOptions]}
+            onChange={(value) => setPaymentTerm(value === "" ? null : value)}
+          />
         </FilterGroup>
 
         <FilterGroup title="Page Options">
@@ -88,12 +94,6 @@ export function FilterPanel() {
             isWidgetEnabled={isWidgetEnabled}
             onToggleWidgetEnabled={toggleWidgetEnabled}
             onResetToDefault={resetWidgetsToDefault}
-          />
-          <FilterSelect
-            label="Payment Term"
-            value={filters.paymentTermCode ?? ""}
-            options={[{ value: "", label: "All Payment Terms" }, ...paymentTermOptions]}
-            onChange={(value) => setPaymentTerm(value === "" ? null : value)}
           />
         </FilterGroup>
 
@@ -117,14 +117,15 @@ export function FilterPanel() {
     [
       filters,
       selection,
-      monthOptions,
+      dateMin,
+      dateMax,
       categoryOptions,
       globalUltimateOptions,
       sourceSystemOptions,
       plantOptions,
       paymentTermOptions,
-      setStartMonth,
-      setEndMonth,
+      setDateFrom,
+      setDateTo,
       setCategory,
       setGlobalUltimate,
       setSourceSystem,

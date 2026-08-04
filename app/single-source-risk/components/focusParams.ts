@@ -37,7 +37,7 @@ export const SSR_FOCUS_PARAMETERS: FocusParameterDef<SsrFocusId>[] = [
   {
     id: "risk-insights",
     label: "Risk Insights",
-    description: "Deeper concentration analysis: blast radius, category quadrant, exposure trend, segment roll-up",
+    description: "How the at-risk share of spend has moved month over month",
     icon: Crosshair,
   },
 ];
@@ -49,9 +49,6 @@ export type SsrWidgetId =
   | "plant-chart"
   | "supplier-chart"
   | "detail-table"
-  | "critical-supplier-chart"
-  | "category-quadrant-chart"
-  | "segment-risk-chart"
   | "exposure-trend-chart";
 
 /**
@@ -65,9 +62,6 @@ export const SSR_WIDGET_TAGS: Record<SsrWidgetId, SsrFocusId[]> = {
   "plant-chart": ["site-exposure"],
   "supplier-chart": ["supplier-concentration"],
   "detail-table": ["supplier-concentration"],
-  "critical-supplier-chart": ["risk-insights"],
-  "category-quadrant-chart": ["risk-insights"],
-  "segment-risk-chart": ["risk-insights"],
   "exposure-trend-chart": ["risk-insights"],
 };
 
@@ -90,12 +84,7 @@ export const SSR_WIDGET_GROUPS: CustomizeWidgetGroupDef<SsrWidgetId>[] = [
   {
     id: "risk-insights",
     title: "Risk Insights",
-    widgets: [
-      { id: "critical-supplier-chart", label: "Critical Supplier Blast Radius" },
-      { id: "category-quadrant-chart", label: "Category Risk Quadrant" },
-      { id: "segment-risk-chart", label: "At-Risk Spend by Segment" },
-      { id: "exposure-trend-chart", label: "Single-Source Exposure Trend" },
-    ],
+    widgets: [{ id: "exposure-trend-chart", label: "Single-Source Exposure Trend" }],
   },
   {
     id: "tables",

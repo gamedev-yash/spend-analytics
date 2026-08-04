@@ -6,25 +6,21 @@ import { useWidgetInvoices } from "../../provider";
 import { aggregateByProduct } from "../../selectors";
 import { formatCurrencyFull, truncateLabel, useSingleSourceRiskChartColors } from "../../constants";
 
-const TOP_N = 15;
 const MAX_HEIGHT = 460;
 
 export function ProductsChart() {
   const chartColors = useSingleSourceRiskChartColors();
   const { invoicesForWidget, selectedKey, onBarClick } = useWidgetInvoices("product");
 
-  const allRows = aggregateByProduct(invoicesForWidget).sort((a, b) => b.spend - a.spend);
-  const totalCount = allRows.length;
-  const rows = allRows.slice(0, TOP_N);
-  const isCapped = totalCount > TOP_N;
-  // rows are sorted descending, so rows[0] is the visible max — the bars scale to
-  // what's currently shown, not to the full (possibly capped-away) dataset.
+  // Every product is listed — the scroll container below absorbs the length.
+  const rows = aggregateByProduct(invoicesForWidget).sort((a, b) => b.spend - a.spend);
+  // rows are sorted descending, so rows[0] is the max the bars scale against.
   const maxVisibleValue = rows[0]?.spend ?? 0;
 
   return (
     <ChartCard
       title="Spend by Products"
-      description={isCapped ? `Showing top ${TOP_N} of ${totalCount} products by spend` : "Ordered by spend"}
+      description={`All ${rows.length} products, ordered by spend`}
       icon={<Boxes />}
       accent="blue"
     >

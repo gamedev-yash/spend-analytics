@@ -68,10 +68,12 @@ export const THRESHOLD_PRESETS: Record<string, ThresholdConfig[]> = {
       metricKey: "avgPaidDays",
       label: "Average Paid Days (DPO)",
       targetValue: 45,
-      operator: "gte",
+      upperBound: 60,
+      operator: "between",
       sentiment: "higher_is_better",
       unit: "days",
-      description: "Working-capital lens: paying no faster than this DPO target.",
+      description:
+        "Working-capital lens: paying no faster than the lower bound (wastes working capital) and no slower than the upper bound (strains supplier relationships).",
     },
   ],
   "supplier-fragmentation": [
@@ -101,12 +103,13 @@ export const THRESHOLD_PRESETS: Record<string, ThresholdConfig[]> = {
       id: "single-source-risk.category-count",
       metricKey: "categoryCount",
       label: "At-Risk Categories",
-      targetValue: 12,
-      operator: "lte",
+      targetValue: 0,
+      upperBound: 12,
+      operator: "between",
       sentiment: "lower_is_better",
       unit: "count",
       description:
-        "Flags when more categories fall at or below the selected \"Number of Suppliers per Category\" threshold than this target.",
+        "Flags when the count of categories at or below the selected \"Number of Suppliers per Category\" threshold falls outside this range — in practice, above the upper bound, since fewer at-risk categories is always better.",
     },
   ],
 };

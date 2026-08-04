@@ -24,37 +24,33 @@ export function paymentTermLabel(inv: Invoice): string {
 // Date window
 // ---------------------------------------------------------------------------
 
-function monthOf(dateStr: string): string {
-  return dateStr.slice(0, 7); // "YYYY-MM"
+/** Inclusive on both ends — ISO "YYYY-MM-DD" strings sort lexicographically, so plain comparison works. */
+export function isWithinWindow(inv: Invoice, dateFrom: string, dateTo: string): boolean {
+  return inv.invoice_date >= dateFrom && inv.invoice_date <= dateTo;
 }
 
-export function monthIndex(yyyyMm: string): number {
-  const [y, m] = yyyyMm.split("-").map(Number);
-  return y * 12 + (m - 1);
-}
-
-/** Inclusive on both ends — startMonth and endMonth are both counted. */
-export function isWithinWindow(inv: Invoice, startMonth: string, endMonth: string): boolean {
-  const invIdx = monthIndex(monthOf(inv.invoice_date));
-  return invIdx >= monthIndex(startMonth) && invIdx <= monthIndex(endMonth);
-}
-
-/** All distinct invoice months present in the data, ascending — powers both month dropdowns. */
-export function getAvailableMonths(allInvoices: Invoice[]): string[] {
-  const months = new Set(allInvoices.map((inv) => monthOf(inv.invoice_date)));
-  return Array.from(months).sort();
+/** Earliest/latest invoice date present in the data — feeds the date-range picker's min/max. */
+export function getDateBounds(allInvoices: Invoice[]): { min: string; max: string } {
+  let min = allInvoices[0]?.invoice_date ?? "";
+  let max = min;
+  for (const inv of allInvoices) {
+    if (inv.invoice_date < min) min = inv.invoice_date;
+    if (inv.invoice_date > max) max = inv.invoice_date;
+  }
+  return { min, max };
 }
 
 /**
- * Default window: the trailing 12 months of data, i.e. the latest month present
- * back 11 months — clamped to the earliest month available so a dataset shorter
- * than a year still opens fully in range.
+ * Default window: the trailing 365 days of data, clamped to the earliest
+ * date available so a dataset shorter than a year still opens fully in range.
  */
-export function getDefaultMonthRange(allInvoices: Invoice[]): { startMonth: string; endMonth: string } {
-  const months = getAvailableMonths(allInvoices);
-  const endMonth = months[months.length - 1];
-  const startIdx = Math.max(0, months.length - 12);
-  return { startMonth: months[startIdx], endMonth };
+export function getDefaultDateRange(allInvoices: Invoice[]): { dateFrom: string; dateTo: string } {
+  const { min, max } = getDateBounds(allInvoices);
+  if (!max) return { dateFrom: min, dateTo: max };
+  const from = new Date(new Date(`${max}T00:00:00Z`).getTime() - 365 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  return { dateFrom: from > min ? from : min, dateTo: max };
 }
 
 // ---------------------------------------------------------------------------
@@ -66,7 +62,7 @@ export function getDefaultMonthRange(allInvoices: Invoice[]): { startMonth: stri
 
 export function applyFilters(allInvoices: Invoice[], filters: FilterState): Invoice[] {
   return allInvoices.filter((inv) => {
-    if (!isWithinWindow(inv, filters.startMonth, filters.endMonth)) return false;
+    if (!isWithinWindow(inv, filters.dateFrom, filters.dateTo)) return false;
     if (filters.categoryCode !== null && categoryKey(inv) !== filters.categoryCode) return false;
     if (filters.globalUltimateId !== null && inv.global_ultimate_id !== filters.globalUltimateId) return false;
     if (filters.sourceSystemId !== null && inv.source_system_id !== filters.sourceSystemId) return false;

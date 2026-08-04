@@ -19,10 +19,13 @@ import { useWidgetInvoices } from "../../provider";
 import { aggregateByGlobalUltimate, type GlobalUltimateAgg } from "../../selectors";
 import { formatCurrencyCompact, formatCurrencyFull, usePaymentTermsChartColors } from "../../constants";
 
-const TOP_N = 20;
 const ROW_HEIGHT = 26;
 const MIN_CHART_HEIGHT = 160;
-const MAX_CHART_HEIGHT = 520;
+/**
+ * Viewport cap, not a data cap — the chart itself grows to ROW_HEIGHT per
+ * supplier so every row stays legible, and this scrolls to reach the rest.
+ */
+const MAX_VIEWPORT_HEIGHT = 520;
 const LABEL_MAX_CHARS = 24;
 
 function truncateLabel(label: string): string {
@@ -34,27 +37,21 @@ export function PaymentTermsBySupplierChart() {
   const chartColors = usePaymentTermsChartColors();
   const { invoicesForWidget, selectedKey, onBarClick } = useWidgetInvoices("globalUltimate");
 
-  const { displayedRows, totalCount } = useMemo(() => {
-    const rows = aggregateByGlobalUltimate(invoicesForWidget).sort((a, b) => b.spend - a.spend);
-    return { displayedRows: rows.slice(0, TOP_N), totalCount: rows.length };
-  }, [invoicesForWidget]);
-
-  const chartHeight = Math.min(
-    MAX_CHART_HEIGHT,
-    Math.max(MIN_CHART_HEIGHT, displayedRows.length * ROW_HEIGHT)
+  const displayedRows = useMemo(
+    () => aggregateByGlobalUltimate(invoicesForWidget).sort((a, b) => b.spend - a.spend),
+    [invoicesForWidget]
   );
+
+  const chartHeight = Math.max(MIN_CHART_HEIGHT, displayedRows.length * ROW_HEIGHT);
 
   return (
     <ChartCard
       title="Payment Terms by Suppliers (Global Ultimate)"
-      description={
-        totalCount > TOP_N
-          ? `Showing top ${TOP_N} of ${totalCount} suppliers by spend`
-          : "Ranked by total spend"
-      }
+      description={`All ${displayedRows.length} suppliers, ranked by total spend`}
       icon={<Users />}
       accent="violet"
     >
+      <div className="overflow-y-auto" style={{ maxHeight: MAX_VIEWPORT_HEIGHT }}>
       <ResponsiveContainer width="100%" height={chartHeight}>
           <BarChart
             data={displayedRows}
@@ -117,6 +114,7 @@ export function PaymentTermsBySupplierChart() {
             </Bar>
       </BarChart>
       </ResponsiveContainer>
+      </div>
     </ChartCard>
   );
 }

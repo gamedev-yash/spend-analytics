@@ -19,8 +19,6 @@ import { useWidgetInvoices } from "../../provider";
 import { aggregateByPaymentTerm, type PaymentTermAgg } from "../../selectors";
 import { NO_VALUE_KEY, formatCurrencyCompact, formatCurrencyFull, formatDays, usePaymentTermsChartColors } from "../../constants";
 
-const TOP_N = 15;
-
 function formatDaysAxisTick(value: number): string {
   return `${value}d`;
 }
@@ -30,21 +28,16 @@ export function SpendByTermComboChart() {
   const chartColors = usePaymentTermsChartColors();
   const { invoicesForWidget, selectedKey, onBarClick } = useWidgetInvoices("paymentTerm");
 
-  const allRows = aggregateByPaymentTerm(invoicesForWidget).sort((a, b) => b.spend - a.spend);
-  const totalCount = allRows.length;
-  const rows = allRows.slice(0, TOP_N);
-  const isCapped = totalCount > TOP_N;
+  const rows = aggregateByPaymentTerm(invoicesForWidget).sort((a, b) => b.spend - a.spend);
 
+  // Every term is plotted; the container below scrolls horizontally rather than
+  // squeezing bars, so this grows with the row count.
   const chartWidth = Math.max(640, rows.length * 90);
 
   return (
     <ChartCard
       title="Spend by Payment Terms and Average Paid Cycle Days"
-      description={
-        isCapped
-          ? `Showing top ${TOP_N} of ${totalCount} payment terms by spend`
-          : "Spend (bars) vs. average days to pay (line)"
-      }
+      description="Spend (bars) vs. average days to pay (line), across all payment terms"
       icon={<Banknote />}
       accent="orange"
     >
