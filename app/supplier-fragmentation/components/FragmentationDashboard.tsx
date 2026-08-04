@@ -92,9 +92,9 @@ export function FragmentationDashboard() {
 
   return (
     <FragmentationStoreProvider payload={data}>
+      <FragmentationControls />
       <div className="flex flex-col gap-6">
         <Header />
-        <FragmentationControls />
         <RevalidatingSection isRevalidating={revalidating}>
           <FragmentationInsight />
           <FragmentationKpis />
