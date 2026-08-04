@@ -38,12 +38,12 @@ export interface SourceSystemDim {
 /** How many distinct Global-Ultimate suppliers a category may have and still count as "at risk". */
 export type SupplierCountThreshold = 1 | 2 | 3;
 
-/** User-picked month window + the global/page-option dropdown filters this dashboard defines. */
+/** User-picked date window + the global/page-option dropdown filters this dashboard defines. */
 export interface FilterState {
-  /** "YYYY-MM" — inclusive first month of the window. Never later than endMonth. */
-  startMonth: string;
-  /** "YYYY-MM" — inclusive last month of the window. */
-  endMonth: string;
+  /** "YYYY-MM-DD" — inclusive first day of the window. Never later than dateTo. */
+  dateFrom: string;
+  /** "YYYY-MM-DD" — inclusive last day of the window. */
+  dateTo: string;
   /** category_code, or null for "All Categories". */
   categoryCode: string | null;
   /** global_ultimate_id, or null for "All Suppliers". */

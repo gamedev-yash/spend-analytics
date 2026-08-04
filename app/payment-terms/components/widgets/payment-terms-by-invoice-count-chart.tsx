@@ -18,31 +18,31 @@ import { aggregateByPaymentTerm, type PaymentTermAgg } from "../../selectors";
 import { NO_VALUE_KEY, formatCurrencyFull, usePaymentTermsChartColors } from "../../constants";
 import { FullscreenResponsiveContainer } from "@/components/dashboard/fullscreen-overlay";
 
-const DISPLAY_CAP = 15;
+/**
+ * Horizontal room each term needs before its rotated axis label starts
+ * colliding with its neighbour. Every term is plotted, so the chart widens
+ * past the card and scrolls rather than compressing bars into slivers.
+ */
+const SLOT_WIDTH = 34;
 
 export function PaymentTermsByInvoiceCountChart() {
   const palette = usePalette();
   const chartColors = usePaymentTermsChartColors();
   const { invoicesForWidget, selectedKey, onBarClick } = useWidgetInvoices("paymentTerm");
 
-  const allRows = aggregateByPaymentTerm(invoicesForWidget).sort(
+  const rows = aggregateByPaymentTerm(invoicesForWidget).sort(
     (a, b) => b.invoiceCount - a.invoiceCount
   );
-  const totalCount = allRows.length;
-  const rows = allRows.slice(0, DISPLAY_CAP);
-  const isCapped = totalCount > DISPLAY_CAP;
 
   return (
     <ChartCard
       title="Payment Terms by Number of Invoices"
-      description={
-        isCapped
-          ? `Showing top ${DISPLAY_CAP} of ${totalCount} payment terms by invoice count`
-          : "Invoice volume per payment term"
-      }
+      description={`Invoice volume across all ${rows.length} payment terms`}
       icon={<Receipt />}
       accent="green"
     >
+      <div className="overflow-x-auto">
+        <div style={{ minWidth: rows.length * SLOT_WIDTH }}>
         <FullscreenResponsiveContainer height={340}>
           <BarChart data={rows} margin={{ top: 8, right: 16, left: 8, bottom: 48 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={palette.ink.grid} />
@@ -92,6 +92,8 @@ export function PaymentTermsByInvoiceCountChart() {
             </Bar>
         </BarChart>
         </FullscreenResponsiveContainer>
+        </div>
+      </div>
     </ChartCard>
   );
 }

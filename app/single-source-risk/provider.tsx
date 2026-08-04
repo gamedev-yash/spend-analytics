@@ -6,13 +6,12 @@ import {
   applyBaseFilters,
   applyFilters,
   applyLinkedSelection,
-  getAvailableMonths,
   getCategoryFilterOptions,
-  getDefaultMonthRange,
+  getDateBounds,
+  getDefaultDateRange,
   getGlobalUltimateFilterOptions,
   getPlantFilterOptions,
   getSourceSystemFilterOptions,
-  monthIndex,
   type FilterOption,
 } from "./selectors";
 import type { FilterState, Invoice, LinkedDimension, LinkedSelection, SupplierCountThreshold } from "./types";
@@ -23,8 +22,8 @@ interface State {
 }
 
 type Action =
-  | { type: "SET_START_MONTH"; month: string }
-  | { type: "SET_END_MONTH"; month: string }
+  | { type: "SET_DATE_FROM"; date: string }
+  | { type: "SET_DATE_TO"; date: string }
   | { type: "SET_CATEGORY"; code: string | null }
   | { type: "SET_GLOBAL_ULTIMATE"; id: string | null }
   | { type: "SET_SOURCE_SYSTEM"; id: string | null }
@@ -35,19 +34,18 @@ type Action =
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    // Picking a start after the current end (or an end before the current
-    // start) drags the other bound along instead of producing an empty window.
-    case "SET_START_MONTH": {
-      const startMonth = action.month;
-      const endMonth =
-        monthIndex(startMonth) > monthIndex(state.filters.endMonth) ? startMonth : state.filters.endMonth;
-      return { filters: { ...state.filters, startMonth, endMonth }, selection: null };
+    // Picking a FROM after the current TO (or a TO before the current FROM)
+    // drags the other bound along instead of producing an empty window. ISO
+    // "YYYY-MM-DD" strings sort lexicographically, so plain comparison works.
+    case "SET_DATE_FROM": {
+      const dateFrom = action.date;
+      const dateTo = dateFrom > state.filters.dateTo ? dateFrom : state.filters.dateTo;
+      return { filters: { ...state.filters, dateFrom, dateTo }, selection: null };
     }
-    case "SET_END_MONTH": {
-      const endMonth = action.month;
-      const startMonth =
-        monthIndex(endMonth) < monthIndex(state.filters.startMonth) ? endMonth : state.filters.startMonth;
-      return { filters: { ...state.filters, startMonth, endMonth }, selection: null };
+    case "SET_DATE_TO": {
+      const dateTo = action.date;
+      const dateFrom = dateTo < state.filters.dateFrom ? dateTo : state.filters.dateFrom;
+      return { filters: { ...state.filters, dateFrom, dateTo }, selection: null };
     }
     case "SET_CATEGORY":
       return { filters: { ...state.filters, categoryCode: action.code }, selection: null };
@@ -91,8 +89,8 @@ interface SingleSourceRiskContextValue {
    * trend, segment roll-up).
    */
   baseFilteredInvoices: Invoice[];
-  setStartMonth: (month: string) => void;
-  setEndMonth: (month: string) => void;
+  setDateFrom: (date: string) => void;
+  setDateTo: (date: string) => void;
   setCategory: (code: string | null) => void;
   setGlobalUltimate: (id: string | null) => void;
   setSourceSystem: (id: string | null) => void;
@@ -100,8 +98,9 @@ interface SingleSourceRiskContextValue {
   setSupplierCountPerCategory: (value: SupplierCountThreshold) => void;
   select: (dimension: LinkedDimension, value: string, label: string) => void;
   clearSelection: () => void;
-  /** Every invoice month present in the data, ascending — feeds both range dropdowns. */
-  monthOptions: string[];
+  /** Earliest/latest invoice date present in the data — feeds the date-range picker's min/max. */
+  dateMin: string;
+  dateMax: string;
   categoryOptions: FilterOption[];
   globalUltimateOptions: FilterOption[];
   sourceSystemOptions: FilterOption[];
@@ -124,7 +123,7 @@ interface SingleSourceRiskProviderProps {
 export function SingleSourceRiskProvider({ children, invoices }: SingleSourceRiskProviderProps) {
   const invoiceData = invoices ?? staticInvoices;
 
-  const monthOptions = useMemo(() => getAvailableMonths(invoiceData), [invoiceData]);
+  const { min: dateMin, max: dateMax } = useMemo(() => getDateBounds(invoiceData), [invoiceData]);
   const categoryOptions = useMemo(() => getCategoryFilterOptions(invoiceData), [invoiceData]);
   const globalUltimateOptions = useMemo(() => getGlobalUltimateFilterOptions(invoiceData), [invoiceData]);
   const sourceSystemOptions = useMemo(
@@ -135,7 +134,7 @@ export function SingleSourceRiskProvider({ children, invoices }: SingleSourceRis
 
   const [state, dispatch] = useReducer(reducer, invoiceData, (data): State => ({
     filters: {
-      ...getDefaultMonthRange(data),
+      ...getDefaultDateRange(data),
       categoryCode: null,
       globalUltimateId: null,
       sourceSystemId: null,
@@ -162,8 +161,8 @@ export function SingleSourceRiskProvider({ children, invoices }: SingleSourceRis
       filteredInvoices,
       scopedInvoices,
       baseFilteredInvoices,
-      setStartMonth: (month) => dispatch({ type: "SET_START_MONTH", month }),
-      setEndMonth: (month) => dispatch({ type: "SET_END_MONTH", month }),
+      setDateFrom: (date) => dispatch({ type: "SET_DATE_FROM", date }),
+      setDateTo: (date) => dispatch({ type: "SET_DATE_TO", date }),
       setCategory: (code) => dispatch({ type: "SET_CATEGORY", code }),
       setGlobalUltimate: (id) => dispatch({ type: "SET_GLOBAL_ULTIMATE", id }),
       setSourceSystem: (id) => dispatch({ type: "SET_SOURCE_SYSTEM", id }),
@@ -171,7 +170,8 @@ export function SingleSourceRiskProvider({ children, invoices }: SingleSourceRis
       setSupplierCountPerCategory: (value) => dispatch({ type: "SET_SUPPLIER_COUNT_PER_CATEGORY", value }),
       select: (dimension, value, label) => dispatch({ type: "SELECT", dimension, value, label }),
       clearSelection: () => dispatch({ type: "CLEAR_SELECTION" }),
-      monthOptions,
+      dateMin,
+      dateMax,
       categoryOptions,
       globalUltimateOptions,
       sourceSystemOptions,
@@ -182,7 +182,8 @@ export function SingleSourceRiskProvider({ children, invoices }: SingleSourceRis
       filteredInvoices,
       scopedInvoices,
       baseFilteredInvoices,
-      monthOptions,
+      dateMin,
+      dateMax,
       categoryOptions,
       globalUltimateOptions,
       sourceSystemOptions,

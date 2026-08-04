@@ -46,12 +46,12 @@ export interface SourceSystemDim {
   name: string;
 }
 
-/** User-picked month window + the global/page-option dropdown filters this dashboard defines. Every categorical filter is multi-select: empty array = all. */
+/** User-picked date window + the global/page-option dropdown filters this dashboard defines. Every categorical filter is multi-select: empty array = all. */
 export interface FilterState {
-  /** "YYYY-MM" — inclusive first month of the window. Never later than endMonth. */
-  startMonth: string;
-  /** "YYYY-MM" — inclusive last month of the window. */
-  endMonth: string;
+  /** "YYYY-MM-DD" — inclusive first day of the window. Never later than dateTo. */
+  dateFrom: string;
+  /** "YYYY-MM-DD" — inclusive last day of the window. */
+  dateTo: string;
   /** category_code values, may include the NO_VALUE_KEY sentinel. Empty = all. */
   categoryCodes: string[];
   /** global_ultimate_id values. Empty = all. */

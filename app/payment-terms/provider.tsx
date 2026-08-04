@@ -10,9 +10,8 @@ import {
   cascadingPaymentTermOptions,
   cascadingPlantOptions,
   cascadingSourceSystemOptions,
-  getAvailableMonths,
-  getDefaultMonthRange,
-  monthIndex,
+  getDateBounds,
+  getDefaultDateRange,
   pruneFilterState,
   type FilterOption,
 } from "./selectors";
@@ -24,8 +23,8 @@ interface State {
 }
 
 type Action =
-  | { type: "SET_START_MONTH"; month: string }
-  | { type: "SET_END_MONTH"; month: string }
+  | { type: "SET_DATE_FROM"; date: string }
+  | { type: "SET_DATE_TO"; date: string }
   | { type: "SET_CATEGORIES"; codes: string[] }
   | { type: "SET_GLOBAL_ULTIMATES"; ids: string[] }
   | { type: "SET_SOURCE_SYSTEMS"; ids: string[] }
@@ -33,23 +32,22 @@ type Action =
   | { type: "SET_PAYMENT_TERMS"; codes: string[] }
   | { type: "SELECT"; dimension: LinkedDimension; value: string; label: string }
   | { type: "CLEAR_SELECTION" }
-  | { type: "RESET_FILTERS"; defaultRange: { startMonth: string; endMonth: string } };
+  | { type: "RESET_FILTERS"; defaultRange: { dateFrom: string; dateTo: string } };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    // Picking a start after the current end (or an end before the current
-    // start) drags the other bound along instead of producing an empty window.
-    case "SET_START_MONTH": {
-      const startMonth = action.month;
-      const endMonth =
-        monthIndex(startMonth) > monthIndex(state.filters.endMonth) ? startMonth : state.filters.endMonth;
-      return { filters: { ...state.filters, startMonth, endMonth }, selection: null };
+    // Picking a FROM after the current TO (or a TO before the current FROM)
+    // drags the other bound along instead of producing an empty window. ISO
+    // "YYYY-MM-DD" strings sort lexicographically, so plain comparison works.
+    case "SET_DATE_FROM": {
+      const dateFrom = action.date;
+      const dateTo = dateFrom > state.filters.dateTo ? dateFrom : state.filters.dateTo;
+      return { filters: { ...state.filters, dateFrom, dateTo }, selection: null };
     }
-    case "SET_END_MONTH": {
-      const endMonth = action.month;
-      const startMonth =
-        monthIndex(endMonth) < monthIndex(state.filters.startMonth) ? endMonth : state.filters.startMonth;
-      return { filters: { ...state.filters, startMonth, endMonth }, selection: null };
+    case "SET_DATE_TO": {
+      const dateTo = action.date;
+      const dateFrom = dateTo < state.filters.dateFrom ? dateTo : state.filters.dateFrom;
+      return { filters: { ...state.filters, dateFrom, dateTo }, selection: null };
     }
     case "SET_CATEGORIES":
       return { filters: { ...state.filters, categoryCodes: action.codes }, selection: null };
@@ -98,8 +96,8 @@ interface PaymentTermsContextValue {
   filteredInvoices: Invoice[];
   /** Filters + linked-analysis selection applied — what sibling widgets and the table read from. */
   scopedInvoices: Invoice[];
-  setStartMonth: (month: string) => void;
-  setEndMonth: (month: string) => void;
+  setDateFrom: (date: string) => void;
+  setDateTo: (date: string) => void;
   setCategories: (codes: string[]) => void;
   setGlobalUltimates: (ids: string[]) => void;
   setSourceSystems: (ids: string[]) => void;
@@ -109,8 +107,9 @@ interface PaymentTermsContextValue {
   clearSelection: () => void;
   /** Resets every dropdown and date back to its default. */
   resetFilters: () => void;
-  /** Every invoice month present in the data, ascending — feeds both range dropdowns. */
-  monthOptions: string[];
+  /** Earliest/latest invoice date present in the data — feeds the date-range picker's min/max. */
+  dateMin: string;
+  dateMax: string;
   /** Every option list below is cascading — narrowed by every OTHER active filter, not the full dataset. */
   categoryOptions: FilterOption[];
   globalUltimateOptions: FilterOption[];
@@ -135,11 +134,12 @@ interface PaymentTermsProviderProps {
 export function PaymentTermsProvider({ children, invoices }: PaymentTermsProviderProps) {
   const invoiceData = invoices ?? staticInvoices;
 
-  const monthOptions = useMemo(() => getAvailableMonths(invoiceData), [invoiceData]);
+  // Earliest/latest invoice date present in the data — feeds the date-range picker's min/max.
+  const { min: dateMin, max: dateMax } = useMemo(() => getDateBounds(invoiceData), [invoiceData]);
 
   const [state, dispatch] = useReducer(reducer, invoiceData, (data) => ({
     filters: {
-      ...getDefaultMonthRange(data),
+      ...getDefaultDateRange(data),
       categoryCodes: [],
       globalUltimateIds: [],
       sourceSystemIds: [],
@@ -187,8 +187,8 @@ export function PaymentTermsProvider({ children, invoices }: PaymentTermsProvide
       selection: state.selection,
       filteredInvoices,
       scopedInvoices,
-      setStartMonth: (month) => dispatch({ type: "SET_START_MONTH", month }),
-      setEndMonth: (month) => dispatch({ type: "SET_END_MONTH", month }),
+      setDateFrom: (date) => dispatch({ type: "SET_DATE_FROM", date }),
+      setDateTo: (date) => dispatch({ type: "SET_DATE_TO", date }),
       setCategories: (codes) => dispatch({ type: "SET_CATEGORIES", codes }),
       setGlobalUltimates: (ids) => dispatch({ type: "SET_GLOBAL_ULTIMATES", ids }),
       setSourceSystems: (ids) => dispatch({ type: "SET_SOURCE_SYSTEMS", ids }),
@@ -196,8 +196,9 @@ export function PaymentTermsProvider({ children, invoices }: PaymentTermsProvide
       setPaymentTerms: (codes) => dispatch({ type: "SET_PAYMENT_TERMS", codes }),
       select: (dimension, value, label) => dispatch({ type: "SELECT", dimension, value, label }),
       clearSelection: () => dispatch({ type: "CLEAR_SELECTION" }),
-      resetFilters: () => dispatch({ type: "RESET_FILTERS", defaultRange: getDefaultMonthRange(invoiceData) }),
-      monthOptions,
+      resetFilters: () => dispatch({ type: "RESET_FILTERS", defaultRange: getDefaultDateRange(invoiceData) }),
+      dateMin,
+      dateMax,
       categoryOptions,
       globalUltimateOptions,
       paymentTermOptions,
@@ -210,7 +211,8 @@ export function PaymentTermsProvider({ children, invoices }: PaymentTermsProvide
       invoiceData,
       filteredInvoices,
       scopedInvoices,
-      monthOptions,
+      dateMin,
+      dateMax,
       categoryOptions,
       globalUltimateOptions,
       paymentTermOptions,

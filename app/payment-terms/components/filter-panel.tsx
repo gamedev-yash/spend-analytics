@@ -2,12 +2,11 @@
 
 import { useMemo } from "react";
 import { FilterX, X } from "lucide-react";
-import { FilterGroup, FilterMonthRange } from "@/components/ui/filter-controls";
+import { FilterDateRange, FilterGroup } from "@/components/ui/filter-controls";
 import { MultiSelect } from "@/components/sap/multi-select";
 import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
 import { useFilterSlot } from "@/context/FilterContext";
 import { usePaymentTerms } from "../provider";
-import { formatMonthLabel } from "../constants";
 import { PT_WIDGET_GROUPS } from "./focusParams";
 import { usePaymentTermsFocus } from "./usePaymentTermsFocus";
 import type { LinkedDimension } from "../types";
@@ -27,8 +26,8 @@ export function FilterPanel() {
   const {
     filters,
     selection,
-    setStartMonth,
-    setEndMonth,
+    setDateFrom,
+    setDateTo,
     setCategories,
     setGlobalUltimates,
     setSourceSystems,
@@ -36,7 +35,8 @@ export function FilterPanel() {
     setPaymentTerms,
     clearSelection,
     resetFilters,
-    monthOptions,
+    dateMin,
+    dateMax,
     categoryOptions,
     globalUltimateOptions,
     sourceSystemOptions,
@@ -57,13 +57,13 @@ export function FilterPanel() {
     () => (
       <div className="space-y-8">
         <FilterGroup title="Filters">
-          <FilterMonthRange
-            label="Date Range"
-            options={monthOptions.map((m) => ({ value: m, label: formatMonthLabel(m) }))}
-            startValue={filters.startMonth}
-            endValue={filters.endMonth}
-            onStartChange={setStartMonth}
-            onEndChange={setEndMonth}
+          <FilterDateRange
+            fromValue={filters.dateFrom}
+            toValue={filters.dateTo}
+            min={dateMin}
+            max={dateMax}
+            onFromChange={setDateFrom}
+            onToChange={setDateTo}
           />
           <MultiSelect
             label="Category"
@@ -93,6 +93,13 @@ export function FilterPanel() {
             selected={filters.plantIds}
             onChange={setPlants}
           />
+          <MultiSelect
+            label="Payment Term"
+            allLabel="All Payment Terms"
+            options={paymentTermOptions}
+            selected={filters.paymentTermCodes}
+            onChange={setPaymentTerms}
+          />
           {hasActiveFilters && (
             <button
               type="button"
@@ -111,13 +118,6 @@ export function FilterPanel() {
             isWidgetEnabled={isWidgetEnabled}
             onToggleWidgetEnabled={toggleWidgetEnabled}
             onResetToDefault={resetWidgetsToDefault}
-          />
-          <MultiSelect
-            label="Payment Term"
-            allLabel="All Payment Terms"
-            options={paymentTermOptions}
-            selected={filters.paymentTermCodes}
-            onChange={setPaymentTerms}
           />
         </FilterGroup>
 
@@ -142,14 +142,15 @@ export function FilterPanel() {
       filters,
       selection,
       hasActiveFilters,
-      monthOptions,
+      dateMin,
+      dateMax,
       categoryOptions,
       globalUltimateOptions,
       sourceSystemOptions,
       plantOptions,
       paymentTermOptions,
-      setStartMonth,
-      setEndMonth,
+      setDateFrom,
+      setDateTo,
       setCategories,
       setGlobalUltimates,
       setSourceSystems,

@@ -2,11 +2,10 @@
 
 import { useMemo } from "react";
 import { X } from "lucide-react";
-import { FilterGroup, FilterMonthRange, FilterSelect } from "@/components/ui/filter-controls";
+import { FilterDateRange, FilterGroup, FilterSelect } from "@/components/ui/filter-controls";
 import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
 import { useFilterSlot } from "@/context/FilterContext";
 import { useSingleSourceRisk } from "../provider";
-import { formatMonthLabel } from "../constants";
 import { SUPPLIER_COUNT_OPTIONS } from "../selectors";
 import { SSR_WIDGET_GROUPS } from "./focusParams";
 import { useSingleSourceRiskFocus } from "./useSingleSourceRiskFocus";
@@ -27,15 +26,16 @@ export function FilterPanel() {
   const {
     filters,
     selection,
-    setStartMonth,
-    setEndMonth,
+    setDateFrom,
+    setDateTo,
     setCategory,
     setGlobalUltimate,
     setSourceSystem,
     setPlant,
     setSupplierCountPerCategory,
     clearSelection,
-    monthOptions,
+    dateMin,
+    dateMax,
     categoryOptions,
     globalUltimateOptions,
     sourceSystemOptions,
@@ -48,13 +48,13 @@ export function FilterPanel() {
     () => (
       <div className="space-y-8">
         <FilterGroup title="Global Filters">
-          <FilterMonthRange
-            label="Date Range"
-            options={monthOptions.map((m) => ({ value: m, label: formatMonthLabel(m) }))}
-            startValue={filters.startMonth}
-            endValue={filters.endMonth}
-            onStartChange={setStartMonth}
-            onEndChange={setEndMonth}
+          <FilterDateRange
+            fromValue={filters.dateFrom}
+            toValue={filters.dateTo}
+            min={dateMin}
+            max={dateMax}
+            onFromChange={setDateFrom}
+            onToChange={setDateTo}
           />
           <FilterSelect
             label="Category"
@@ -120,13 +120,14 @@ export function FilterPanel() {
     [
       filters,
       selection,
-      monthOptions,
+      dateMin,
+      dateMax,
       categoryOptions,
       globalUltimateOptions,
       sourceSystemOptions,
       plantOptions,
-      setStartMonth,
-      setEndMonth,
+      setDateFrom,
+      setDateTo,
       setCategory,
       setGlobalUltimate,
       setSourceSystem,
