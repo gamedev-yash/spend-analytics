@@ -19,7 +19,7 @@ import { PT_FOCUS_PARAMETERS } from "./components/focusParams";
 import { usePaymentTermsFocus } from "./components/usePaymentTermsFocus";
 
 export default function PaymentTermsPage() {
-  const { activeParameters, toggleParameter, isWidgetVisible } = usePaymentTermsFocus();
+  const { activeParameters, toggleParameter, applyPreset, isWidgetVisible } = usePaymentTermsFocus();
   const { getDatasetForPage } = useDatasets();
   const dataset = getDatasetForPage("payment-terms");
 
@@ -59,6 +59,7 @@ export default function PaymentTermsPage() {
             parameters={PT_FOCUS_PARAMETERS}
             activeParameters={activeParameters}
             onToggleParameter={toggleParameter}
+            onSelectAll={() => applyPreset(PT_FOCUS_PARAMETERS.map((parameter) => parameter.id))}
             thresholdsPageKey="payment-terms"
           />
 

@@ -27,6 +27,13 @@ interface FocusParameterBarProps<Id extends string> {
   title?: string;
   /** Optional one-line hint under the heading, for pages whose chips need explaining. */
   description?: string;
+  /**
+   * When set, renders a "Select all" action that re-activates every parameter,
+   * disabled once they all already are. Pages without presets need this — it is
+   * otherwise one click per chip to get back to a full canvas, and a page whose
+   * chips are all off has no obvious way back.
+   */
+  onSelectAll?: () => void;
   /** When set, shows the "Thresholds" editor for that page's alert targets. */
   thresholdsPageKey?: string;
 }
@@ -44,8 +51,11 @@ export function FocusParameterBar<Id extends string>({
   onApplyPreset,
   title = "Focus Parameters",
   description,
+  onSelectAll,
   thresholdsPageKey,
 }: FocusParameterBarProps<Id>) {
+  const allActive = parameters.every((parameter) => activeParameters.includes(parameter.id));
+
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -58,6 +68,17 @@ export function FocusParameterBar<Id extends string>({
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {onSelectAll && (
+            <button
+              type="button"
+              onClick={onSelectAll}
+              disabled={allActive}
+              title={allActive ? "All sections are already shown" : "Show every section"}
+              className="rounded-full border border-slate-300 px-3 py-1 text-xs font-medium text-slate-500 transition-colors hover:border-slate-400 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-slate-300 disabled:hover:text-slate-500 dark:border-slate-700 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-200 dark:disabled:hover:border-slate-700 dark:disabled:hover:text-slate-400"
+            >
+              Select all
+            </button>
+          )}
           {presets && onApplyPreset && (
             <div className="flex flex-wrap gap-2">
               {presets.map((preset) => (
