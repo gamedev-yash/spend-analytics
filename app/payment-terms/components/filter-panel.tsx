@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import { X } from "lucide-react";
-import { FilterGroup, FilterMonthRange, FilterSelect } from "@/components/ui/filter-controls";
+import { FilterX, X } from "lucide-react";
+import { FilterGroup, FilterMonthRange } from "@/components/ui/filter-controls";
+import { MultiSelect } from "@/components/sap/multi-select";
 import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
 import { useFilterSlot } from "@/context/FilterContext";
 import { usePaymentTerms } from "../provider";
@@ -28,12 +29,13 @@ export function FilterPanel() {
     selection,
     setStartMonth,
     setEndMonth,
-    setCategory,
-    setGlobalUltimate,
-    setSourceSystem,
-    setPlant,
-    setPaymentTerm,
+    setCategories,
+    setGlobalUltimates,
+    setSourceSystems,
+    setPlants,
+    setPaymentTerms,
     clearSelection,
+    resetFilters,
     monthOptions,
     categoryOptions,
     globalUltimateOptions,
@@ -44,10 +46,17 @@ export function FilterPanel() {
 
   const { isWidgetEnabled, toggleWidgetEnabled, resetWidgetsToDefault } = usePaymentTermsFocus();
 
+  const hasActiveFilters =
+    filters.categoryCodes.length > 0 ||
+    filters.globalUltimateIds.length > 0 ||
+    filters.sourceSystemIds.length > 0 ||
+    filters.plantIds.length > 0 ||
+    filters.paymentTermCodes.length > 0;
+
   const node = useMemo(
     () => (
       <div className="space-y-8">
-        <FilterGroup title="Global Filters">
+        <FilterGroup title="Filters">
           <FilterMonthRange
             label="Date Range"
             options={monthOptions.map((m) => ({ value: m, label: formatMonthLabel(m) }))}
@@ -56,30 +65,44 @@ export function FilterPanel() {
             onStartChange={setStartMonth}
             onEndChange={setEndMonth}
           />
-          <FilterSelect
-            label="Category L1"
-            value={filters.categoryCode ?? ""}
-            options={[{ value: "", label: "All Categories" }, ...categoryOptions]}
-            onChange={(value) => setCategory(value === "" ? null : value)}
+          <MultiSelect
+            label="Category"
+            allLabel="All Categories"
+            options={categoryOptions}
+            selected={filters.categoryCodes}
+            onChange={setCategories}
           />
-          <FilterSelect
-            label="Supplier (Global Ultimate)"
-            value={filters.globalUltimateId ?? ""}
-            options={[{ value: "", label: "All Suppliers" }, ...globalUltimateOptions]}
-            onChange={(value) => setGlobalUltimate(value === "" ? null : value)}
+          <MultiSelect
+            label="Supplier"
+            allLabel="All Suppliers"
+            options={globalUltimateOptions}
+            selected={filters.globalUltimateIds}
+            onChange={setGlobalUltimates}
           />
-          <FilterSelect
+          <MultiSelect
             label="Source System"
-            value={filters.sourceSystemId ?? ""}
-            options={[{ value: "", label: "All Source Systems" }, ...sourceSystemOptions]}
-            onChange={(value) => setSourceSystem(value === "" ? null : value)}
+            allLabel="All Source Systems"
+            options={sourceSystemOptions}
+            selected={filters.sourceSystemIds}
+            onChange={setSourceSystems}
           />
-          <FilterSelect
-            label="Plant / Site"
-            value={filters.plantId ?? ""}
-            options={[{ value: "", label: "All Plants" }, ...plantOptions]}
-            onChange={(value) => setPlant(value === "" ? null : value)}
+          <MultiSelect
+            label="BU / Plant"
+            allLabel="All Plants"
+            options={plantOptions}
+            selected={filters.plantIds}
+            onChange={setPlants}
           />
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            >
+              <FilterX className="h-3.5 w-3.5" />
+              Clear Filters
+            </button>
+          )}
         </FilterGroup>
 
         <FilterGroup title="Page Options">
@@ -89,11 +112,12 @@ export function FilterPanel() {
             onToggleWidgetEnabled={toggleWidgetEnabled}
             onResetToDefault={resetWidgetsToDefault}
           />
-          <FilterSelect
+          <MultiSelect
             label="Payment Term"
-            value={filters.paymentTermCode ?? ""}
-            options={[{ value: "", label: "All Payment Terms" }, ...paymentTermOptions]}
-            onChange={(value) => setPaymentTerm(value === "" ? null : value)}
+            allLabel="All Payment Terms"
+            options={paymentTermOptions}
+            selected={filters.paymentTermCodes}
+            onChange={setPaymentTerms}
           />
         </FilterGroup>
 
@@ -117,6 +141,7 @@ export function FilterPanel() {
     [
       filters,
       selection,
+      hasActiveFilters,
       monthOptions,
       categoryOptions,
       globalUltimateOptions,
@@ -125,11 +150,12 @@ export function FilterPanel() {
       paymentTermOptions,
       setStartMonth,
       setEndMonth,
-      setCategory,
-      setGlobalUltimate,
-      setSourceSystem,
-      setPlant,
-      setPaymentTerm,
+      setCategories,
+      setGlobalUltimates,
+      setSourceSystems,
+      setPlants,
+      setPaymentTerms,
+      resetFilters,
       clearSelection,
       isWidgetEnabled,
       toggleWidgetEnabled,

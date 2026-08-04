@@ -5,14 +5,15 @@ import { invoices as staticInvoices, sourceSystemDims } from "./data";
 import {
   applyFilters,
   applyLinkedSelection,
+  cascadingCategoryOptions,
+  cascadingGlobalUltimateOptions,
+  cascadingPaymentTermOptions,
+  cascadingPlantOptions,
+  cascadingSourceSystemOptions,
   getAvailableMonths,
-  getCategoryFilterOptions,
   getDefaultMonthRange,
-  getGlobalUltimateFilterOptions,
-  getPaymentTermFilterOptions,
-  getPlantFilterOptions,
-  getSourceSystemFilterOptions,
   monthIndex,
+  pruneFilterState,
   type FilterOption,
 } from "./selectors";
 import type { FilterState, Invoice, LinkedDimension, LinkedSelection } from "./types";
@@ -25,13 +26,14 @@ interface State {
 type Action =
   | { type: "SET_START_MONTH"; month: string }
   | { type: "SET_END_MONTH"; month: string }
-  | { type: "SET_CATEGORY"; code: string | null }
-  | { type: "SET_GLOBAL_ULTIMATE"; id: string | null }
-  | { type: "SET_SOURCE_SYSTEM"; id: string | null }
-  | { type: "SET_PLANT"; id: string | null }
-  | { type: "SET_PAYMENT_TERM"; code: string | null }
+  | { type: "SET_CATEGORIES"; codes: string[] }
+  | { type: "SET_GLOBAL_ULTIMATES"; ids: string[] }
+  | { type: "SET_SOURCE_SYSTEMS"; ids: string[] }
+  | { type: "SET_PLANTS"; ids: string[] }
+  | { type: "SET_PAYMENT_TERMS"; codes: string[] }
   | { type: "SELECT"; dimension: LinkedDimension; value: string; label: string }
-  | { type: "CLEAR_SELECTION" };
+  | { type: "CLEAR_SELECTION" }
+  | { type: "RESET_FILTERS"; defaultRange: { startMonth: string; endMonth: string } };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -49,16 +51,16 @@ function reducer(state: State, action: Action): State {
         monthIndex(endMonth) < monthIndex(state.filters.startMonth) ? endMonth : state.filters.startMonth;
       return { filters: { ...state.filters, startMonth, endMonth }, selection: null };
     }
-    case "SET_CATEGORY":
-      return { filters: { ...state.filters, categoryCode: action.code }, selection: null };
-    case "SET_GLOBAL_ULTIMATE":
-      return { filters: { ...state.filters, globalUltimateId: action.id }, selection: null };
-    case "SET_SOURCE_SYSTEM":
-      return { filters: { ...state.filters, sourceSystemId: action.id }, selection: null };
-    case "SET_PLANT":
-      return { filters: { ...state.filters, plantId: action.id }, selection: null };
-    case "SET_PAYMENT_TERM":
-      return { filters: { ...state.filters, paymentTermCode: action.code }, selection: null };
+    case "SET_CATEGORIES":
+      return { filters: { ...state.filters, categoryCodes: action.codes }, selection: null };
+    case "SET_GLOBAL_ULTIMATES":
+      return { filters: { ...state.filters, globalUltimateIds: action.ids }, selection: null };
+    case "SET_SOURCE_SYSTEMS":
+      return { filters: { ...state.filters, sourceSystemIds: action.ids }, selection: null };
+    case "SET_PLANTS":
+      return { filters: { ...state.filters, plantIds: action.ids }, selection: null };
+    case "SET_PAYMENT_TERMS":
+      return { filters: { ...state.filters, paymentTermCodes: action.codes }, selection: null };
     case "SELECT": {
       const isSameSelection =
         state.selection?.dimension === action.dimension && state.selection?.value === action.value;
@@ -71,12 +73,25 @@ function reducer(state: State, action: Action): State {
     }
     case "CLEAR_SELECTION":
       return { ...state, selection: null };
+    case "RESET_FILTERS":
+      return {
+        filters: {
+          ...action.defaultRange,
+          categoryCodes: [],
+          globalUltimateIds: [],
+          sourceSystemIds: [],
+          plantIds: [],
+          paymentTermCodes: [],
+        },
+        selection: null,
+      };
     default:
       return state;
   }
 }
 
 interface PaymentTermsContextValue {
+  /** Always pruned against the current data — never holds a stale, now-invalid selection (see selectors.ts's pruneFilterState). */
   filters: FilterState;
   selection: LinkedSelection | null;
   /** Filters applied, selection NOT applied — what KPIs and a widget's own dimension read from. */
@@ -85,15 +100,18 @@ interface PaymentTermsContextValue {
   scopedInvoices: Invoice[];
   setStartMonth: (month: string) => void;
   setEndMonth: (month: string) => void;
-  setCategory: (code: string | null) => void;
-  setGlobalUltimate: (id: string | null) => void;
-  setSourceSystem: (id: string | null) => void;
-  setPlant: (id: string | null) => void;
-  setPaymentTerm: (code: string | null) => void;
+  setCategories: (codes: string[]) => void;
+  setGlobalUltimates: (ids: string[]) => void;
+  setSourceSystems: (ids: string[]) => void;
+  setPlants: (ids: string[]) => void;
+  setPaymentTerms: (codes: string[]) => void;
   select: (dimension: LinkedDimension, value: string, label: string) => void;
   clearSelection: () => void;
+  /** Resets every dropdown and date back to its default. */
+  resetFilters: () => void;
   /** Every invoice month present in the data, ascending — feeds both range dropdowns. */
   monthOptions: string[];
+  /** Every option list below is cascading — narrowed by every OTHER active filter, not the full dataset. */
   categoryOptions: FilterOption[];
   globalUltimateOptions: FilterOption[];
   paymentTermOptions: FilterOption[];
@@ -106,10 +124,10 @@ const PaymentTermsContext = createContext<PaymentTermsContextValue | null>(null)
 interface PaymentTermsProviderProps {
   children: ReactNode;
   /**
-   * Invoice list to drive the dashboard — an uploaded dataset mapped via
-   * buildInvoicesFromDataset, falling back to the static mock when absent.
-   * Callers should remount the provider (React key) when this changes so
-   * filter state resets against the new data.
+   * Invoice list to drive the dashboard — currently always the static mock,
+   * since this page has no warehouse tier (see page.tsx's WarehouseGapNote)
+   * and no longer reads an uploaded CSV. Kept as a prop, not a hardcoded
+   * import, so a future data source can still be threaded in here.
    */
   invoices?: Invoice[];
 }
@@ -117,30 +135,47 @@ interface PaymentTermsProviderProps {
 export function PaymentTermsProvider({ children, invoices }: PaymentTermsProviderProps) {
   const invoiceData = invoices ?? staticInvoices;
 
-  // Option lists — derived once per invoice dataset.
   const monthOptions = useMemo(() => getAvailableMonths(invoiceData), [invoiceData]);
-  const categoryOptions = useMemo(() => getCategoryFilterOptions(invoiceData), [invoiceData]);
-  const globalUltimateOptions = useMemo(() => getGlobalUltimateFilterOptions(invoiceData), [invoiceData]);
-  const paymentTermOptions = useMemo(() => getPaymentTermFilterOptions(invoiceData), [invoiceData]);
-  const sourceSystemOptions = useMemo(
-    () => getSourceSystemFilterOptions(invoiceData, sourceSystemDims),
-    [invoiceData]
-  );
-  const plantOptions = useMemo(() => getPlantFilterOptions(invoiceData), [invoiceData]);
 
   const [state, dispatch] = useReducer(reducer, invoiceData, (data) => ({
     filters: {
       ...getDefaultMonthRange(data),
-      categoryCode: null,
-      globalUltimateId: null,
-      sourceSystemId: null,
-      plantId: null,
-      paymentTermCode: null,
+      categoryCodes: [],
+      globalUltimateIds: [],
+      sourceSystemIds: [],
+      plantIds: [],
+      paymentTermCodes: [],
     },
     selection: null,
   }));
 
-  const filteredInvoices = useMemo(() => applyFilters(invoiceData, state.filters), [invoiceData, state.filters]);
+  // Self-healing: re-validated against the current data on every render, so
+  // a filter that's become invalid (another dimension narrowed it out, or
+  // the dataset itself changed) never silently locks the dashboard to zero
+  // rows — it's just dropped.
+  const filters = useMemo(
+    () => pruneFilterState(invoiceData, state.filters, sourceSystemDims),
+    [invoiceData, state.filters]
+  );
+
+  // Cascading option lists — computed from `filters` (the pruned state), so
+  // each dropdown reflects every OTHER active filter.
+  const categoryOptions = useMemo(() => cascadingCategoryOptions(invoiceData, filters), [invoiceData, filters]);
+  const globalUltimateOptions = useMemo(
+    () => cascadingGlobalUltimateOptions(invoiceData, filters),
+    [invoiceData, filters]
+  );
+  const sourceSystemOptions = useMemo(
+    () => cascadingSourceSystemOptions(invoiceData, filters, sourceSystemDims),
+    [invoiceData, filters]
+  );
+  const plantOptions = useMemo(() => cascadingPlantOptions(invoiceData, filters), [invoiceData, filters]);
+  const paymentTermOptions = useMemo(
+    () => cascadingPaymentTermOptions(invoiceData, filters),
+    [invoiceData, filters]
+  );
+
+  const filteredInvoices = useMemo(() => applyFilters(invoiceData, filters), [invoiceData, filters]);
   const scopedInvoices = useMemo(
     () => applyLinkedSelection(filteredInvoices, state.selection),
     [filteredInvoices, state.selection]
@@ -148,19 +183,20 @@ export function PaymentTermsProvider({ children, invoices }: PaymentTermsProvide
 
   const value = useMemo<PaymentTermsContextValue>(
     () => ({
-      filters: state.filters,
+      filters,
       selection: state.selection,
       filteredInvoices,
       scopedInvoices,
       setStartMonth: (month) => dispatch({ type: "SET_START_MONTH", month }),
       setEndMonth: (month) => dispatch({ type: "SET_END_MONTH", month }),
-      setCategory: (code) => dispatch({ type: "SET_CATEGORY", code }),
-      setGlobalUltimate: (id) => dispatch({ type: "SET_GLOBAL_ULTIMATE", id }),
-      setSourceSystem: (id) => dispatch({ type: "SET_SOURCE_SYSTEM", id }),
-      setPlant: (id) => dispatch({ type: "SET_PLANT", id }),
-      setPaymentTerm: (code) => dispatch({ type: "SET_PAYMENT_TERM", code }),
+      setCategories: (codes) => dispatch({ type: "SET_CATEGORIES", codes }),
+      setGlobalUltimates: (ids) => dispatch({ type: "SET_GLOBAL_ULTIMATES", ids }),
+      setSourceSystems: (ids) => dispatch({ type: "SET_SOURCE_SYSTEMS", ids }),
+      setPlants: (ids) => dispatch({ type: "SET_PLANTS", ids }),
+      setPaymentTerms: (codes) => dispatch({ type: "SET_PAYMENT_TERMS", codes }),
       select: (dimension, value, label) => dispatch({ type: "SELECT", dimension, value, label }),
       clearSelection: () => dispatch({ type: "CLEAR_SELECTION" }),
+      resetFilters: () => dispatch({ type: "RESET_FILTERS", defaultRange: getDefaultMonthRange(invoiceData) }),
       monthOptions,
       categoryOptions,
       globalUltimateOptions,
@@ -169,7 +205,9 @@ export function PaymentTermsProvider({ children, invoices }: PaymentTermsProvide
       plantOptions,
     }),
     [
-      state,
+      filters,
+      state.selection,
+      invoiceData,
       filteredInvoices,
       scopedInvoices,
       monthOptions,

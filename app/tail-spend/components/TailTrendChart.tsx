@@ -5,6 +5,7 @@ import type { MonthlyTrendPoint, SpendSegment } from "../tailSpendMock";
 import { formatINR } from "../tailSpendMock";
 import { useTailSpendTheme } from "../theme";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
+import { useIsFullscreenChart } from "@/components/dashboard/fullscreen-overlay";
 
 interface TailTrendChartProps {
   months: MonthlyTrendPoint[];
@@ -29,9 +30,10 @@ function shortMonth(month: string): string {
  */
 export function TailTrendChart({ months }: TailTrendChartProps) {
   const theme = useTailSpendTheme();
+  const isFullscreen = useIsFullscreenChart();
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={isFullscreen ? "100%" : 300}>
       <AreaChart data={months} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
         <CartesianGrid vertical={false} stroke={theme.gridline} />
         <XAxis

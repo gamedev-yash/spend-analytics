@@ -7,7 +7,6 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
@@ -18,6 +17,7 @@ import { usePalette } from "@/hooks/use-palette";
 import { useWidgetInvoices } from "../../provider";
 import { aggregateByGlobalUltimate, type GlobalUltimateAgg } from "../../selectors";
 import { formatCurrencyCompact, formatCurrencyFull, usePaymentTermsChartColors } from "../../constants";
+import { FullscreenResponsiveContainer } from "@/components/dashboard/fullscreen-overlay";
 
 const TOP_N = 20;
 const ROW_HEIGHT = 26;
@@ -39,10 +39,10 @@ export function PaymentTermsBySupplierChart() {
     return { displayedRows: rows.slice(0, TOP_N), totalCount: rows.length };
   }, [invoicesForWidget]);
 
-  const chartHeight = Math.min(
-    MAX_CHART_HEIGHT,
-    Math.max(MIN_CHART_HEIGHT, displayedRows.length * ROW_HEIGHT)
-  );
+  // Fullscreen has far more vertical room than the compact-card cap allows —
+  // FullscreenResponsiveContainer lets the same top-20 bars spread out and
+  // fill it, rather than staying pinned to this compact-view cap.
+  const chartHeight = Math.min(MAX_CHART_HEIGHT, Math.max(MIN_CHART_HEIGHT, displayedRows.length * ROW_HEIGHT));
 
   return (
     <ChartCard
@@ -55,7 +55,7 @@ export function PaymentTermsBySupplierChart() {
       icon={<Users />}
       accent="violet"
     >
-      <ResponsiveContainer width="100%" height={chartHeight}>
+      <FullscreenResponsiveContainer height={chartHeight}>
           <BarChart
             data={displayedRows}
             layout="vertical"
@@ -116,7 +116,7 @@ export function PaymentTermsBySupplierChart() {
               })}
             </Bar>
       </BarChart>
-      </ResponsiveContainer>
+      </FullscreenResponsiveContainer>
     </ChartCard>
   );
 }

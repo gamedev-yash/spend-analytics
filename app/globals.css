@@ -175,3 +175,59 @@ input[type="range"]::-moz-range-thumb {
     @apply font-sans;
   }
 }
+
+/*
+ * Fullscreen widget overlay (components/dashboard/fullscreen-overlay.tsx):
+ * every chart across the app hardcodes a fixed pixel height on its own
+ * <ResponsiveContainer>, since that's the right default for a compact card.
+ * Inside the fullscreen overlay we want the same chart to actually fill the
+ * enlarged canvas instead.
+ *
+ * `height: 100% !important` alone does NOT work here: each chart file wraps
+ * its <ResponsiveContainer> in its own plain (unstyled, auto-height) <div>,
+ * and CSS only resolves a percentage height against a DEFINITE ancestor
+ * height — an auto-height block box doesn't count, so the percentage chain
+ * breaks at that uncontrolled intermediate level no matter what this wrapper
+ * itself is given. flex-grow sizing is treated as definite for descendant
+ * percentage resolution, so turning every level from this wrapper down into
+ * a flex column whose last child grows propagates a real, definite height
+ * all the way to the chart regardless of each file's exact structure.
+ *
+ * Only the LAST child at each level grows (`:last-child`, not every child):
+ * several chart files put a hint/caption <p> before the <ResponsiveContainer>
+ * (e.g. InvoiceValueBucketChart's "click a bar to isolate..." line, or
+ * ParetoCurveChart's crossover sentence) — giving every child equal flex:1
+ * would split the space with that caption instead of handing it to the
+ * chart. The chart is consistently the last element in every file that has
+ * a leading caption, so `:last-child` reliably targets it.
+ *
+ * This is a real layout change, not a CSS transform/zoom — Recharts' own
+ * ResizeObserver sees the new size and redraws its SVG at it, so mouse/
+ * tooltip coordinates stay correct (a transform: scale() trick would not:
+ * it changes paint size without changing the layout box Recharts measures,
+ * silently misaligning every tooltip and click handler in the enlarged view).
+ */
+[data-fullscreen-chart] {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+[data-fullscreen-chart] * {
+  min-height: 0;
+}
+[data-fullscreen-chart] > *:last-child {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+[data-fullscreen-chart] > *:last-child > *:last-child {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+[data-fullscreen-chart] .recharts-wrapper,
+[data-fullscreen-chart] .recharts-responsive-container {
+  width: 100% !important;
+  height: 100% !important;
+  flex: 1;
+}

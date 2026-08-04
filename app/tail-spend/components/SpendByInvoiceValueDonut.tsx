@@ -5,6 +5,7 @@ import type { InvoiceValueBucket } from "../tailSpendMock";
 import { formatINR } from "../tailSpendMock";
 import { useTailSpendTheme } from "../theme";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
+import { useIsFullscreenChart } from "@/components/dashboard/fullscreen-overlay";
 
 interface SpendByInvoiceValueDonutProps {
   buckets: InvoiceValueBucket[];
@@ -18,9 +19,10 @@ interface SpendByInvoiceValueDonutProps {
  */
 export function SpendByInvoiceValueDonut({ buckets, selectedBuckets }: SpendByInvoiceValueDonutProps) {
   const theme = useTailSpendTheme();
+  const isFullscreen = useIsFullscreenChart();
 
   return (
-    <ResponsiveContainer width="100%" height={280}>
+    <ResponsiveContainer width="100%" height={isFullscreen ? "100%" : 280}>
       <PieChart>
         <Pie
           data={buckets}

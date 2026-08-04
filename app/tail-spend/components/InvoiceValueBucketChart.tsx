@@ -18,6 +18,7 @@ import { useTailSpendTheme } from "../theme";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import { STATUS_CHART_COLOR } from "@/components/ui/status-badge";
 import { bucketRisk } from "../bucketRisk";
+import { useIsFullscreenChart } from "@/components/dashboard/fullscreen-overlay";
 
 interface InvoiceValueBucketChartProps {
   buckets: InvoiceValueBucket[];
@@ -41,6 +42,7 @@ export function InvoiceValueBucketChart({
   microThreshold,
 }: InvoiceValueBucketChartProps) {
   const theme = useTailSpendTheme();
+  const isFullscreen = useIsFullscreenChart();
 
   return (
     <div>
@@ -56,7 +58,7 @@ export function InvoiceValueBucketChart({
           </>
         ) : null}
       </p>
-      <ResponsiveContainer width="100%" height={252}>
+      <ResponsiveContainer width="100%" height={isFullscreen ? "100%" : 252}>
       <ComposedChart data={buckets} margin={{ top: 8, right: 8, bottom: 8, left: 0 }} barCategoryGap="24%">
         <CartesianGrid vertical={false} stroke={theme.gridline} />
         <XAxis

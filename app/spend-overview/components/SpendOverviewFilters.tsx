@@ -58,7 +58,7 @@ export function SpendOverviewFilters({
 
   useFilterSlot(
     <div className="space-y-6">
-      <FilterGroup title="Global Filters">
+      <FilterGroup title="Filters">
         <div className="flex items-center justify-between gap-2">
           <span className="text-xs text-slate-400 dark:text-slate-500">
             {hasActiveFilters ? "Filters applied" : "No filters applied"}
@@ -84,7 +84,7 @@ export function SpendOverviewFilters({
           }
         />
         <MultiSelect
-          label="Category (L1)"
+          label="Category"
           options={categoryOptions.map((c) => ({ value: c, label: c }))}
           selected={selectedCategories}
           onChange={(values) =>
