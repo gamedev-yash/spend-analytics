@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { tailSpendMock, formatINR } from "./tailSpendMock";
 import { buildTailSpendFromDataset } from "./fromDataset";
 import { useDatasets } from "@/context/DatasetsContext";
@@ -21,26 +21,22 @@ import { StrategicComparison } from "./components/StrategicComparison";
 import { TailTrendChart } from "./components/TailTrendChart";
 import { useFilterSlot } from "@/context/FilterContext";
 import { useThresholds } from "@/context/ThresholdsContext";
-import { FilterGroup, FilterSelect, FilterSlider } from "@/components/ui/filter-controls";
+import { FilterDateRange, FilterGroup, FilterSelect, FilterSlider } from "@/components/ui/filter-controls";
 import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
 import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
 import { DASHBOARD_WIDGET_GROUPS } from "./components/dashboardParams";
 import { FOCUS_PARAMETERS, FOCUS_PRESETS } from "./components/focusParams";
 import { useDashboardCustomization } from "./components/useDashboardCustomization";
-
-const ALL_CATEGORIES = "All Categories";
-const ALL_SUPPLIERS = "All Suppliers";
-const ALL_SOURCE_SYSTEMS = "All Source Systems";
-const ALL_PLANTS = "All Plants/Sites";
-
-interface TailSpendFilters {
-  dateRange: string;
-  category: string;
-  supplierGlobalUltimate: string;
-  sourceSystem: string;
-  plantSite: string;
-  paretoThreshold: number;
-}
+import {
+  ALL_CATEGORIES,
+  ALL_PLANTS,
+  ALL_SOURCE_SYSTEMS,
+  ALL_SUPPLIERS,
+  DATE_MAX,
+  DATE_MIN,
+  useTailSpendStore,
+} from "./lib/useTailSpendStore";
+import { applyTailSpendFilters } from "./lib/reactiveFilters";
 
 // Single card shell for every widget on the page — used inside the unified
 // 2-column grid so every widget reads as one consistent visual system rather
@@ -69,6 +65,11 @@ export default function TailSpendPage() {
   const { getDatasetForPage, providerType } = useDatasets();
   const dataset = getDatasetForPage("tail-spend");
 
+  // Owns every sidebar filter (category, supplier, plant, date range,
+  // bucket selection, pareto split) and is the ONLY place any of them
+  // change — see useFilterSlot below.
+  const store = useTailSpendStore();
+
   // The micro-PO boundary lives in ThresholdsContext so the sidebar slider,
   // the Thresholds popover, KPI badges, and chart accents all share one live,
   // localStorage-persisted value.
@@ -93,29 +94,42 @@ export default function TailSpendPage() {
   // never a reset to the skeleton or a flash of the CSV/mock fallback.
   const isRevalidating = isAzureSqlMode && warehouse.loading && warehouse.ready;
 
+  const plantFilter = store.filters.plantSite !== ALL_PLANTS ? store.filters.plantSite : null;
+
   // Precedence: warehouse in Azure SQL mode, else an uploaded CSV, else the
-  // static mock — so a widget never renders blank.
+  // static mock — so a widget never renders blank. Plant/BU is threaded in
+  // here because it's the one filter that needs to be exact rather than
+  // estimated (see fromDataset.ts) — CSV uploads carry real per-row plant
+  // values that Category/Supplier/Date/Buckets don't need row access for.
   const data = useMemo(
     () =>
       warehouse.data?.data ??
-      (dataset ? buildTailSpendFromDataset(dataset, microPOThreshold) : null) ??
+      (dataset ? buildTailSpendFromDataset(dataset, microPOThreshold, plantFilter) : null) ??
       tailSpendMock,
-    [warehouse.data, dataset, microPOThreshold]
+    [warehouse.data, dataset, microPOThreshold, plantFilter]
   );
+
+  // Every filter still in effect after buildTailSpendFromDataset (category,
+  // supplier, date range, bucket selection) is applied here — this is what
+  // every widget below actually renders, so any sidebar change recomputes
+  // the whole page from one place.
+  const filteredData = useMemo(() => applyTailSpendFilters(data, store.filters), [data, store.filters]);
 
   const {
     kpi,
     paretoDeciles,
-    categoryBreakdown,
     segmentComparison,
     monthlyTrend,
     sapKpiRibbon,
     invoiceValueBuckets,
     supplierSpendRank,
     sapCategoryRows,
-    sapSupplierReport,
-    sapFilterOptions,
-  } = data;
+  } = filteredData;
+
+  // Filter dropdown OPTIONS always come from the unfiltered data, never from
+  // filteredData — otherwise picking one category would erase every other
+  // option from its own dropdown.
+  const { categoryBreakdown, sapSupplierReport, sapFilterOptions } = data;
 
   const categoryNames = useMemo(
     () => Array.from(new Set(categoryBreakdown.map((c) => c.category))),
@@ -132,21 +146,6 @@ export default function TailSpendPage() {
     [sapSupplierReport]
   );
 
-  // Single filter state shared by every widget on the page — the sidebar
-  // drawer is the only place any of it is edited (see useFilterSlot below).
-  const [filters, setFilters] = useState<TailSpendFilters>(() => ({
-    dateRange: sapFilterOptions.dateRanges[0],
-    category: ALL_CATEGORIES,
-    supplierGlobalUltimate: ALL_SUPPLIERS,
-    sourceSystem: ALL_SOURCE_SYSTEMS,
-    plantSite: ALL_PLANTS,
-    paretoThreshold: 80,
-  }));
-
-  function updateFilter<K extends keyof TailSpendFilters>(key: K, value: TailSpendFilters[K]) {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  }
-
   const {
     activeParameters,
     toggleParameter,
@@ -160,34 +159,36 @@ export default function TailSpendPage() {
   useFilterSlot(
     <>
       <FilterGroup title="Global Filters">
-        <FilterSelect
-          label="Date Range"
-          value={filters.dateRange}
-          onChange={(v) => updateFilter("dateRange", v)}
-          options={sapFilterOptions.dateRanges.map((d) => ({ label: d, value: d }))}
+        <FilterDateRange
+          fromValue={store.filters.dateFrom}
+          toValue={store.filters.dateTo}
+          min={DATE_MIN}
+          max={DATE_MAX}
+          onFromChange={store.setDateFrom}
+          onToChange={store.setDateTo}
         />
         <FilterSelect
           label="Category L1"
-          value={filters.category}
-          onChange={(v) => updateFilter("category", v)}
+          value={store.filters.category}
+          onChange={store.setCategory}
           options={[ALL_CATEGORIES, ...categoryNames].map((c) => ({ label: c, value: c }))}
         />
         <FilterSelect
           label="Supplier (Global Ultimate)"
-          value={filters.supplierGlobalUltimate}
-          onChange={(v) => updateFilter("supplierGlobalUltimate", v)}
+          value={store.filters.supplierGlobalUltimate}
+          onChange={store.setSupplier}
           options={[ALL_SUPPLIERS, ...supplierNames].map((s) => ({ label: s, value: s }))}
         />
         <FilterSelect
           label="Source System"
-          value={filters.sourceSystem}
-          onChange={(v) => updateFilter("sourceSystem", v)}
+          value={store.filters.sourceSystem}
+          onChange={store.setSourceSystem}
           options={[ALL_SOURCE_SYSTEMS, ...sapFilterOptions.sourceSystems].map((s) => ({ label: s, value: s }))}
         />
         <FilterSelect
           label="Plant / Site"
-          value={filters.plantSite}
-          onChange={(v) => updateFilter("plantSite", v)}
+          value={store.filters.plantSite}
+          onChange={store.setPlantSite}
           options={[ALL_PLANTS, ...sapFilterOptions.plantSites].map((p) => ({ label: p, value: p }))}
         />
       </FilterGroup>
@@ -213,54 +214,12 @@ export default function TailSpendPage() {
           min={50}
           max={95}
           step={5}
-          value={filters.paretoThreshold}
-          onChange={(v) => updateFilter("paretoThreshold", v)}
+          value={store.filters.paretoThreshold}
+          onChange={store.setParetoThreshold}
           formatValue={(v) => `${v}%`}
         />
       </FilterGroup>
     </>
-  );
-
-  // --- Tier 1: SAP Spend Control Tower --------------------------------------
-  const [selectedBuckets, setSelectedBuckets] = useState<Set<string>>(
-    () => new Set(invoiceValueBuckets.map((b) => b.bucketLabel))
-  );
-
-  function toggleBucket(bucketLabel: string) {
-    setSelectedBuckets((prev) => {
-      const allSelected = prev.size === invoiceValueBuckets.length;
-      if (allSelected) return new Set([bucketLabel]);
-      const next = new Set(prev);
-      if (next.has(bucketLabel)) {
-        next.delete(bucketLabel);
-      } else {
-        next.add(bucketLabel);
-      }
-      return next.size === 0 ? new Set(invoiceValueBuckets.map((b) => b.bucketLabel)) : next;
-    });
-  }
-
-  const selectedSpendFraction = useMemo(() => {
-    const selectedPercent = invoiceValueBuckets
-      .filter((b) => selectedBuckets.has(b.bucketLabel))
-      .reduce((sum, b) => sum + b.spendPercent, 0);
-    return selectedPercent / 100;
-  }, [invoiceValueBuckets, selectedBuckets]);
-
-  const scaledSupplierSpendRank = useMemo(
-    () =>
-      supplierSpendRank
-        .filter((s) => filters.supplierGlobalUltimate === ALL_SUPPLIERS || s.supplierName === filters.supplierGlobalUltimate)
-        .map((s) => ({ ...s, totalSpend: s.totalSpend * selectedSpendFraction })),
-    [supplierSpendRank, filters.supplierGlobalUltimate, selectedSpendFraction]
-  );
-
-  const scaledCategoryRows = useMemo(
-    () =>
-      sapCategoryRows
-        .filter((c) => filters.category === ALL_CATEGORIES || c.category === filters.category)
-        .map((c) => ({ ...c, spend: c.spend * selectedSpendFraction })),
-    [sapCategoryRows, filters.category, selectedSpendFraction]
   );
 
   return (
@@ -305,8 +264,8 @@ export default function TailSpendPage() {
                   <Widget title="Invoice Count by Invoice Value">
                     <InvoiceValueBucketChart
                       buckets={invoiceValueBuckets}
-                      selectedBuckets={selectedBuckets}
-                      onToggleBucket={toggleBucket}
+                      selectedBuckets={store.filters.selectedBuckets}
+                      onToggleBucket={store.toggleBucket}
                       microThreshold={microPOThreshold}
                     />
                   </Widget>
@@ -314,19 +273,19 @@ export default function TailSpendPage() {
 
                 {isWidgetVisible("supplier-spend-rank-chart") && (
                   <Widget title="Spend by Supplier (Global Ultimate) for Selected Buckets">
-                    <SupplierSpendRankChart suppliers={scaledSupplierSpendRank} />
+                    <SupplierSpendRankChart suppliers={supplierSpendRank} />
                   </Widget>
                 )}
 
                 {isWidgetVisible("spend-by-invoice-value-donut") && (
                   <Widget title="Spend by Invoice Value">
-                    <SpendByInvoiceValueDonut buckets={invoiceValueBuckets} selectedBuckets={selectedBuckets} />
+                    <SpendByInvoiceValueDonut buckets={invoiceValueBuckets} selectedBuckets={store.filters.selectedBuckets} />
                   </Widget>
                 )}
 
                 {isWidgetVisible("category-spend-chart") && (
                   <Widget title="Spend by Category for Selected Buckets">
-                    <CategorySpendChart categories={scaledCategoryRows} />
+                    <CategorySpendChart categories={sapCategoryRows} />
                   </Widget>
                 )}
 
@@ -335,7 +294,7 @@ export default function TailSpendPage() {
                     title="80/20 Pareto Distribution"
                     description="Suppliers ranked by spend, decile by decile — where the tail begins."
                   >
-                    <ParetoCurveChart deciles={paretoDeciles} threshold={filters.paretoThreshold} />
+                    <ParetoCurveChart deciles={paretoDeciles} threshold={store.filters.paretoThreshold} />
                   </Widget>
                 )}
 

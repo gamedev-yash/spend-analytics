@@ -73,16 +73,6 @@ export const THRESHOLD_PRESETS: Record<string, ThresholdConfig[]> = {
       unit: "days",
       description: "Working-capital lens: paying no faster than this DPO target.",
     },
-    {
-      id: "payment-terms.terms-adherence",
-      metricKey: "standardTermsAdherencePercent",
-      label: "Standard Terms Adherence",
-      targetValue: 80,
-      operator: "gte",
-      sentiment: "higher_is_better",
-      unit: "percent",
-      description: "Share of invoices carrying a standard payment term.",
-    },
   ],
   "supplier-fragmentation": [
     {
@@ -104,6 +94,19 @@ export const THRESHOLD_PRESETS: Record<string, ThresholdConfig[]> = {
       sentiment: "lower_is_better",
       unit: "percent",
       description: "Share of spend concentrated in the top 10 suppliers.",
+    },
+  ],
+  "single-source-risk": [
+    {
+      id: "single-source-risk.category-count",
+      metricKey: "categoryCount",
+      label: "At-Risk Categories",
+      targetValue: 12,
+      operator: "lte",
+      sentiment: "lower_is_better",
+      unit: "count",
+      description:
+        "Flags when more categories fall at or below the selected \"Number of Suppliers per Category\" threshold than this target.",
     },
   ],
 };

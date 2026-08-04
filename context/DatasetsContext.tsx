@@ -22,12 +22,13 @@ export type { Dataset, DatasetRow, JoinInfo } from "@/types/dataset";
 // Types
 // ---------------------------------------------------------------------------
 
-/** The four core dashboard routes a dataset can be uploaded against. */
+/** The core dashboard routes a dataset can be uploaded against. */
 export const DASHBOARD_PAGE_KEYS = [
   "tail-spend",
   "spend-overview",
   "payment-terms",
   "supplier-fragmentation",
+  "single-source-risk",
 ] as const;
 
 export type DashboardPageKey = (typeof DASHBOARD_PAGE_KEYS)[number];

@@ -46,9 +46,11 @@ export interface SourceSystemDim {
   name: string;
 }
 
-/** Trailing-12-completed-month window + the global/page-option dropdown filters this dashboard defines. */
+/** User-picked month window + the global/page-option dropdown filters this dashboard defines. */
 export interface FilterState {
-  /** "YYYY-MM" — inclusive end of the trailing 12-month window. */
+  /** "YYYY-MM" — inclusive first month of the window. Never later than endMonth. */
+  startMonth: string;
+  /** "YYYY-MM" — inclusive last month of the window. */
   endMonth: string;
   /** category_code, the NO_VALUE_KEY sentinel, or null for "All Categories". */
   categoryCode: string | null;

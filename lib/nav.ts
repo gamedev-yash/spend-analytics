@@ -3,6 +3,7 @@ import {
   Wallet,
   PackageSearch,
   Network,
+  AlertTriangle,
   ShieldAlert,
   type LucideIcon,
 } from "lucide-react";
@@ -67,5 +68,14 @@ export const NAV_ITEMS: NavItem[] = [
     owner: "Anish",
     description:
       "Supplier counts, single-use suppliers, and concentration ratios by category.",
+  },
+  {
+    label: "Single Source Risk",
+    href: "/single-source-risk",
+    icon: AlertTriangle,
+    owner: "Varad",
+    description:
+      "Spend Assessment: categories dependent on too few suppliers, and the product/plant/supplier exposure behind them.",
+    hasCustomFilterPanel: true,
   },
 ];

@@ -5,13 +5,14 @@ import { invoices as staticInvoices, sourceSystemDims } from "./data";
 import {
   applyFilters,
   applyLinkedSelection,
-  getAvailableEndMonths,
+  getAvailableMonths,
   getCategoryFilterOptions,
-  getDefaultEndMonth,
+  getDefaultMonthRange,
   getGlobalUltimateFilterOptions,
   getPaymentTermFilterOptions,
   getPlantFilterOptions,
   getSourceSystemFilterOptions,
+  monthIndex,
   type FilterOption,
 } from "./selectors";
 import type { FilterState, Invoice, LinkedDimension, LinkedSelection } from "./types";
@@ -22,6 +23,7 @@ interface State {
 }
 
 type Action =
+  | { type: "SET_START_MONTH"; month: string }
   | { type: "SET_END_MONTH"; month: string }
   | { type: "SET_CATEGORY"; code: string | null }
   | { type: "SET_GLOBAL_ULTIMATE"; id: string | null }
@@ -33,8 +35,20 @@ type Action =
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case "SET_END_MONTH":
-      return { filters: { ...state.filters, endMonth: action.month }, selection: null };
+    // Picking a start after the current end (or an end before the current
+    // start) drags the other bound along instead of producing an empty window.
+    case "SET_START_MONTH": {
+      const startMonth = action.month;
+      const endMonth =
+        monthIndex(startMonth) > monthIndex(state.filters.endMonth) ? startMonth : state.filters.endMonth;
+      return { filters: { ...state.filters, startMonth, endMonth }, selection: null };
+    }
+    case "SET_END_MONTH": {
+      const endMonth = action.month;
+      const startMonth =
+        monthIndex(endMonth) < monthIndex(state.filters.startMonth) ? endMonth : state.filters.startMonth;
+      return { filters: { ...state.filters, startMonth, endMonth }, selection: null };
+    }
     case "SET_CATEGORY":
       return { filters: { ...state.filters, categoryCode: action.code }, selection: null };
     case "SET_GLOBAL_ULTIMATE":
@@ -69,6 +83,7 @@ interface PaymentTermsContextValue {
   filteredInvoices: Invoice[];
   /** Filters + linked-analysis selection applied — what sibling widgets and the table read from. */
   scopedInvoices: Invoice[];
+  setStartMonth: (month: string) => void;
   setEndMonth: (month: string) => void;
   setCategory: (code: string | null) => void;
   setGlobalUltimate: (id: string | null) => void;
@@ -77,7 +92,8 @@ interface PaymentTermsContextValue {
   setPaymentTerm: (code: string | null) => void;
   select: (dimension: LinkedDimension, value: string, label: string) => void;
   clearSelection: () => void;
-  endMonthOptions: string[];
+  /** Every invoice month present in the data, ascending — feeds both range dropdowns. */
+  monthOptions: string[];
   categoryOptions: FilterOption[];
   globalUltimateOptions: FilterOption[];
   paymentTermOptions: FilterOption[];
@@ -102,7 +118,7 @@ export function PaymentTermsProvider({ children, invoices }: PaymentTermsProvide
   const invoiceData = invoices ?? staticInvoices;
 
   // Option lists — derived once per invoice dataset.
-  const endMonthOptions = useMemo(() => getAvailableEndMonths(invoiceData), [invoiceData]);
+  const monthOptions = useMemo(() => getAvailableMonths(invoiceData), [invoiceData]);
   const categoryOptions = useMemo(() => getCategoryFilterOptions(invoiceData), [invoiceData]);
   const globalUltimateOptions = useMemo(() => getGlobalUltimateFilterOptions(invoiceData), [invoiceData]);
   const paymentTermOptions = useMemo(() => getPaymentTermFilterOptions(invoiceData), [invoiceData]);
@@ -114,7 +130,7 @@ export function PaymentTermsProvider({ children, invoices }: PaymentTermsProvide
 
   const [state, dispatch] = useReducer(reducer, invoiceData, (data) => ({
     filters: {
-      endMonth: getDefaultEndMonth(data),
+      ...getDefaultMonthRange(data),
       categoryCode: null,
       globalUltimateId: null,
       sourceSystemId: null,
@@ -136,6 +152,7 @@ export function PaymentTermsProvider({ children, invoices }: PaymentTermsProvide
       selection: state.selection,
       filteredInvoices,
       scopedInvoices,
+      setStartMonth: (month) => dispatch({ type: "SET_START_MONTH", month }),
       setEndMonth: (month) => dispatch({ type: "SET_END_MONTH", month }),
       setCategory: (code) => dispatch({ type: "SET_CATEGORY", code }),
       setGlobalUltimate: (id) => dispatch({ type: "SET_GLOBAL_ULTIMATE", id }),
@@ -144,7 +161,7 @@ export function PaymentTermsProvider({ children, invoices }: PaymentTermsProvide
       setPaymentTerm: (code) => dispatch({ type: "SET_PAYMENT_TERM", code }),
       select: (dimension, value, label) => dispatch({ type: "SELECT", dimension, value, label }),
       clearSelection: () => dispatch({ type: "CLEAR_SELECTION" }),
-      endMonthOptions,
+      monthOptions,
       categoryOptions,
       globalUltimateOptions,
       paymentTermOptions,
@@ -155,7 +172,7 @@ export function PaymentTermsProvider({ children, invoices }: PaymentTermsProvide
       state,
       filteredInvoices,
       scopedInvoices,
-      endMonthOptions,
+      monthOptions,
       categoryOptions,
       globalUltimateOptions,
       paymentTermOptions,
