@@ -1,9 +1,8 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { X } from "lucide-react";
 import { useFilterSlot } from "@/context/FilterContext";
-import { FilterGroup } from "@/components/ui/filter-controls";
+import { ClearFiltersButton, FilterGroup } from "@/components/ui/filter-controls";
 import { MultiSelect } from "@/components/sap/multi-select";
 
 interface ComplianceFiltersProps {
@@ -49,22 +48,6 @@ export function ComplianceFilters({
 
   useFilterSlot(
     <FilterGroup title="Global Filters">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-xs text-slate-400 dark:text-slate-500">
-          {hasActiveFilters ? "Filters applied" : "No filters applied"}
-        </span>
-        {hasActiveFilters && (
-          <button
-            type="button"
-            onClick={() => router.push(pathname)}
-            className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-            title="Reset BU, Category, and Date Range back to their defaults"
-          >
-            <X className="h-3 w-3" />
-            Clear filters
-          </button>
-        )}
-      </div>
       <MultiSelect
         label="BU / Plant"
         options={plantOptions.map((p) => ({ value: p.code, label: p.name }))}
@@ -109,6 +92,7 @@ export function ComplianceFilters({
           />
         </div>
       </div>
+      {hasActiveFilters && <ClearFiltersButton onClick={() => router.push(pathname)} />}
     </FilterGroup>
   );
 
