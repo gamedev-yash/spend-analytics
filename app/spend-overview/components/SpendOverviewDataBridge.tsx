@@ -61,7 +61,7 @@ export function SpendOverviewDataBridge({ serverData, filters }: SpendOverviewDa
     return (
       <>
         <DatasetUpload pageKey="spend-overview" usingFallback={data === serverData} />
-        <WidgetGridSkeleton kpiCount={6} widgetCount={6} />
+        <WidgetGridSkeleton kpiCount={6} widgetCount={5} />
       </>
     );
   }
@@ -78,8 +78,6 @@ export function SpendOverviewDataBridge({ serverData, filters }: SpendOverviewDa
           trend={data.trend}
           invoiceCountByMonth={data.invoiceCountByMonth ?? {}}
           buSpend={data.buSpend}
-          sunburstNodes={data.sunburstNodes}
-          plantNameToCode={data.plantNameToCode}
           metricsRows={data.metricsRows}
         />
       </RevalidatingSection>

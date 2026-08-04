@@ -9,14 +9,12 @@ import { CategorySpendList } from "@/components/sap/category-spend-list";
 import { SupplierSpendList } from "@/components/sap/supplier-spend-list";
 import { SpendTrendChart } from "@/components/sap/spend-trend-chart";
 import { SpendByBuChart } from "@/components/sap/spend-by-bu-chart";
-import { SpendSunburst } from "@/components/sap/spend-sunburst";
 import { MetricsTable } from "@/components/sap/metrics-table";
 import type {
   HeadlineKpis,
   TreemapNode,
   MonthlyTrendPoint,
   BuSpendRow,
-  SunburstNode,
   MetricsTableRow,
   getTopSuppliersData,
 } from "@/lib/sap/aggregate";
@@ -42,8 +40,6 @@ interface SpendOverviewCanvasProps {
   trend: MonthlyTrendPoint[];
   invoiceCountByMonth: Record<string, number>;
   buSpend: BuSpendRow[];
-  sunburstNodes: SunburstNode[];
-  plantNameToCode: Record<string, string>;
   metricsRows: MetricsTableRow[];
 }
 
@@ -60,8 +56,6 @@ export function SpendOverviewCanvas({
   trend,
   invoiceCountByMonth,
   buSpend,
-  sunburstNodes,
-  plantNameToCode,
   metricsRows,
 }: SpendOverviewCanvasProps) {
   const { activeParameters, toggleParameter, applyPreset, isWidgetVisible } = useSpendOverviewFocus();
@@ -125,13 +119,8 @@ export function SpendOverviewCanvas({
             <SpendByBuChart rows={buSpend} />
           </ChartCard>
         )}
-        {isWidgetVisible("spend-sunburst") && (
-          <ChartCard className="h-[420px]" title="Spend Composition" description="BU → Category → Subcategory" icon={<Building2 />} accent="green">
-            <SpendSunburst nodes={sunburstNodes} plantNameToCode={plantNameToCode} />
-          </ChartCard>
-        )}
         {isWidgetVisible("metrics-table") && (
-          <ChartCard className="h-[420px]" title="Key Metrics Summary" description="Sortable, exportable" icon={<FileCheck2 />} accent="blue">
+          <ChartCard className="h-[420px] lg:col-span-2" title="Key Metrics Summary" description="Sortable, exportable" icon={<FileCheck2 />} accent="blue">
             <MetricsTable rows={metricsRows} />
           </ChartCard>
         )}

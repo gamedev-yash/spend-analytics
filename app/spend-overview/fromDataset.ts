@@ -37,8 +37,9 @@ export interface SpendOverviewData {
   invoiceCountByMonth?: Record<string, number>;
   spikes: SpikeMarker[];
   buSpend: BuSpendRow[];
-  sunburstNodes: SunburstNode[];
-  plantNameToCode: Record<string, string>;
+  /** No longer rendered (the Spend Composition sunburst was removed) — optional so nothing needs to keep computing it. */
+  sunburstNodes?: SunburstNode[];
+  plantNameToCode?: Record<string, string>;
   metricsRows: MetricsTableRow[];
 }
 

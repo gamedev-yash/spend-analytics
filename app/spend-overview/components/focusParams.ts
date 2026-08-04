@@ -42,7 +42,6 @@ export type SpendOverviewWidgetId =
   | "top-suppliers-chart"
   | "spend-trend-chart"
   | "spend-by-bu-chart"
-  | "spend-sunburst"
   | "metrics-table";
 
 export const SO_WIDGET_TAGS: Record<SpendOverviewWidgetId, SpendOverviewFocusId[]> = {
@@ -52,7 +51,6 @@ export const SO_WIDGET_TAGS: Record<SpendOverviewWidgetId, SpendOverviewFocusId[
   "top-suppliers-chart": ["suppliers"],
   "spend-trend-chart": ["spend-trends"],
   "spend-by-bu-chart": ["spend-trends"],
-  "spend-sunburst": ["categories", "spend-trends"],
   "metrics-table": [],
 };
 
@@ -71,7 +69,6 @@ export const SO_WIDGET_GROUPS: CustomizeWidgetGroupDef<SpendOverviewWidgetId>[] 
       { id: "top-suppliers-chart", label: "Spend by Suppliers" },
       { id: "spend-trend-chart", label: "Spend Trend" },
       { id: "spend-by-bu-chart", label: "Spend by Business Unit" },
-      { id: "spend-sunburst", label: "Spend Composition" },
       { id: "metrics-table", label: "Key Metrics Summary" },
     ],
   },

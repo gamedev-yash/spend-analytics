@@ -2,7 +2,6 @@ import { SpendOverviewFilters } from "./components/SpendOverviewFilters";
 import { SpendOverviewDataBridge } from "./components/SpendOverviewDataBridge";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
-import { plants } from "@/lib/sap/raw-data";
 import {
   getFilterOptions,
   getHeadlineKpis,
@@ -11,7 +10,6 @@ import {
   getSpendTrendData,
   getSpikeMarkers,
   getSpendByBuData,
-  getSunburstData,
   getMetricsTableData,
   generateInsightText,
 } from "@/lib/sap/aggregate";
@@ -57,10 +55,8 @@ export default async function SpendOverviewPage({ searchParams }: PageProps) {
   const invoiceCountByMonth = getMonthlyInvoiceCounts(filters);
   const spikes = getSpikeMarkers(trend);
   const buSpend = getSpendByBuData(filters);
-  const sunburstNodes = getSunburstData(filters);
   const metricsRows = getMetricsTableData(filters);
   const insightText = generateInsightText(filters);
-  const plantNameToCode = Object.fromEntries(plants.map((p) => [p.plant_name, p.plant_code]));
 
   const activeFilterCount =
     (filters.plants?.length ?? 0) +
@@ -107,8 +103,6 @@ export default async function SpendOverviewPage({ searchParams }: PageProps) {
             invoiceCountByMonth,
             spikes,
             buSpend,
-            sunburstNodes,
-            plantNameToCode,
             metricsRows,
           }}
           filters={filters}
