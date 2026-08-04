@@ -1,68 +1,57 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { PlotMouseEvent } from "plotly.js";
 import { PlotlyChart, type PlotlyTrace } from "@/components/sap/plotly-chart";
 import { usePalette } from "@/hooks/use-palette";
-import { colorForL1, orderL1s } from "@/lib/sap/theme";
 import type { BuSpendRow } from "@/lib/sap/aggregate";
 
 interface SpendByBuChartProps {
   rows: BuSpendRow[];
 }
 
-/** Horizontal stacked bar by BU, segments by L1, with a % annotation past each bar's end. Bars cross-filter to that BU. */
+const CRORE = 10_000_000;
+
+/**
+ * Vertical bar of total spend by business unit / plant (x = BU, y = spend in
+ * ₹ Cr — the axis title and unit avoid Plotly's default raw-number "0B"
+ * auto-formatting), with a % of total annotation above each bar.
+ */
 export function SpendByBuChart({ rows }: SpendByBuChartProps) {
   const palette = usePalette();
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
 
-  const ordered = [...rows].reverse(); // highest spend renders at top
-  const allL1 = orderL1s(Array.from(new Set(rows.flatMap((r) => Object.keys(r.byL1)))));
+  const ordered = [...rows].sort((a, b) => b.total - a.total);
+  const valuesCr = ordered.map((r) => r.total / CRORE);
 
-  function handleClick(event: Readonly<PlotMouseEvent>) {
-    const point = event.points?.[0] as unknown as { y?: string };
-    const row = ordered.find((r) => r.plantName === point?.y);
-    if (!row) return;
-    const params = new URLSearchParams(searchParams.toString());
-    if (params.get("bu") === row.plantCode) params.delete("bu");
-    else params.set("bu", row.plantCode);
-    const query = params.toString();
-    router.push(query ? `${pathname}?${query}` : pathname);
-  }
+  const data: PlotlyTrace[] = [
+    {
+      type: "bar",
+      x: ordered.map((r) => r.plantName),
+      y: valuesCr,
+      customdata: ordered.map((r) => r.total),
+      marker: { color: palette.categorical.orange, cornerradius: 4 },
+      hovertemplate: "<b>%{x}</b><br>Spend: ₹%{customdata:,.0f}<extra></extra>",
+    },
+  ];
 
-  const barTraces: PlotlyTrace[] = allL1.map((l1) => ({
-    type: "bar",
-    orientation: "h",
-    name: l1,
-    x: ordered.map((r) => r.byL1[l1] ?? 0),
-    y: ordered.map((r) => r.plantName),
-    marker: { color: colorForL1(l1, palette) },
-    hovertemplate: `<b>%{y}</b><br>${l1}: ₹%{x:,.0f}<extra></extra>`,
-  }));
-
-  const annotations = ordered.map((r) => ({
-    x: r.total,
-    y: r.plantName,
+  const annotations = ordered.map((r, i) => ({
+    x: r.plantName,
+    y: valuesCr[i],
     xref: "x" as const,
     yref: "y" as const,
     text: `${r.percentOfTotal.toFixed(1)}%`,
     showarrow: false,
-    xanchor: "left" as const,
-    xshift: 8,
+    yanchor: "bottom" as const,
+    yshift: 4,
     font: { size: 11, color: palette.ink.secondary },
   }));
 
   return (
     <PlotlyChart
-      data={barTraces}
-      onClick={handleClick}
+      data={data}
       layout={{
-        barmode: "stack",
-        yaxis: { automargin: true },
-        legend: { orientation: "h", y: -0.14 },
-        margin: { t: 16, r: 52, b: 16, l: 16 },
+        xaxis: { automargin: true },
+        yaxis: { title: { text: "Spend (₹ Cr)" } },
+        bargap: 0.4,
+        margin: { t: 24, r: 16, b: 16, l: 48 },
         annotations,
       }}
     />

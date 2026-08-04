@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import type { ReactNode } from "react";
 import {
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
+  Legend,
   Line,
   LineChart,
   Pie,
@@ -15,16 +16,18 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { Loader2 } from "lucide-react";
 import { usePalette } from "@/hooks/use-palette";
+import { useStackedWidgetQuery, useWidgetQuery } from "@/hooks/use-widget-query";
+import { useWidgetFilters } from "@/context/WidgetFiltersContext";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import {
-  computeKpiValue,
-  computeSeries,
   formatAxisValue,
   formatWidgetValue,
   isWidgetRenderable,
   widgetIssue,
   type SeriesPoint,
+  type StackedSeriesPoint,
 } from "@/lib/widget-data";
 import { AGGREGATION_LABELS, type WidgetConfig } from "@/types/custom-dashboard";
 import type { Dataset } from "@/context/DatasetsContext";
@@ -40,6 +43,22 @@ function columnName(dataset: Dataset, columnId: string | undefined): string | un
   return dataset.columns.find((c) => c.id === columnId)?.name;
 }
 
+/**
+ * Handed to whichever widget-query hook does not apply to this chart type. Both
+ * hooks must be called on every render (hook rules), so the inactive one gets a
+ * config both payload builders decline: a non-`count` aggregation with no measure
+ * column makes each return null, and a null payload issues no request at all.
+ *
+ * `aggregation: "count"` would *not* work here — it needs no measure column, so it
+ * would build a valid KPI payload and cost a wasted round trip per widget.
+ */
+const NO_QUERY_CONFIG: WidgetConfig = {
+  id: "__inactive__",
+  title: "",
+  chartType: "bar",
+  aggregation: "sum",
+};
+
 /** Long category labels truncate on the axis; the tooltip shows them in full. */
 function shortLabel(label: string, max = 18): string {
   return label.length > max ? `${label.slice(0, max - 1)}…` : label;
@@ -53,11 +72,18 @@ function EmptyNote({ message }: { message: string }) {
   );
 }
 
+/** Placeholder for the first query only — a refetch keeps the previous data on screen. */
+function LoadingNote() {
+  return <div className="h-full min-h-24 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800/60" />;
+}
+
 /**
  * Renders one WidgetConfig against its dataset — KPI tile, bar/line/pie/donut
  * chart, or data table — using the app's theme-aware palette and the shared
- * ChartTooltipCard. Missing or stale column references degrade to an
- * explanatory note rather than an error.
+ * ChartTooltipCard. Numbers come from the active IDataProvider via
+ * useWidgetQuery, narrowed by whatever filters the surrounding dashboard has
+ * set. Missing or stale column references degrade to an explanatory note rather
+ * than an error.
  */
 export function CustomWidget({ dataset, config, preview = false }: CustomWidgetProps) {
   const palette = usePalette();
@@ -66,23 +92,47 @@ export function CustomWidget({ dataset, config, preview = false }: CustomWidgetP
   const groupName = columnName(dataset, config.xAxisColumn);
 
   const renderable = isWidgetRenderable(dataset, config);
+  const isStacked = config.chartType === "stackedBar";
+  const filters = useWidgetFilters();
 
-  const series = useMemo<SeriesPoint[]>(
-    () => (renderable && config.chartType !== "kpi" ? computeSeries(dataset, config) : []),
-    [dataset, config, renderable]
-  );
-  const kpiValue = useMemo(
-    () => (renderable && config.chartType === "kpi" ? computeKpiValue(dataset, config) : 0),
-    [dataset, config, renderable]
-  );
+  // Both hooks run unconditionally (hook rules); each declines to query when its
+  // payload doesn't apply, so only one round trip is actually issued per widget.
+  const flat = useWidgetQuery(dataset, isStacked ? NO_QUERY_CONFIG : config, filters);
+  const stackedQuery = useStackedWidgetQuery(dataset, isStacked ? config : NO_QUERY_CONFIG, filters);
+
+  const { series, kpiValue, totalMatchingRows } = flat;
+  const stacked = stackedQuery.stacked;
+  const ready = isStacked ? stackedQuery.ready : flat.ready;
+  const error = isStacked ? stackedQuery.error : flat.error;
+  const loading = isStacked ? stackedQuery.loading : flat.loading;
+  // A filter change re-queries data that's already rendered — dim it slightly
+  // with a small spinner instead of resetting to LoadingNote, which is for the
+  // first query only.
+  const isRevalidating = ready && loading;
 
   if (!renderable) {
     return <EmptyNote message={widgetIssue(dataset, config) ?? "This widget is not configured."} />;
   }
-  if (config.chartType !== "kpi" && series.length === 0) {
+  if (error) {
+    return <EmptyNote message={error} />;
+  }
+  if (!ready) {
+    return <LoadingNote />;
+  }
+  if (isStacked ? stacked.points.length === 0 : config.chartType !== "kpi" && series.length === 0) {
     return <EmptyNote message="No rows to plot for this column selection." />;
   }
 
+  return (
+    <div className={`relative h-full transition-opacity duration-300 ${isRevalidating ? "opacity-60" : ""}`}>
+      {isRevalidating && (
+        <Loader2 className="absolute right-1 top-1 z-10 h-3 w-3 animate-spin text-slate-400 dark:text-slate-500" />
+      )}
+      {renderChart()}
+    </div>
+  );
+
+  function renderChart(): ReactNode {
   const valueLabel = measureName
     ? `${AGGREGATION_LABELS[aggregation]} of ${measureName}`
     : AGGREGATION_LABELS[aggregation];
@@ -98,7 +148,7 @@ export function CustomWidget({ dataset, config, preview = false }: CustomWidgetP
           </span>
         </p>
         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-          {valueLabel} · {dataset.rows.length.toLocaleString("en-IN")} rows
+          {valueLabel} · {totalMatchingRows.toLocaleString("en-IN")} rows
         </p>
       </div>
     );
@@ -225,6 +275,80 @@ export function CustomWidget({ dataset, config, preview = false }: CustomWidgetP
     );
   }
 
+  // --- Stacked bar -----------------------------------------------------------
+  if (isStacked) {
+    const { points, seriesKeys } = stacked;
+    const stackedTooltip = (
+      <Tooltip
+        cursor={{ fill: palette.isDark ? "rgba(148,163,184,0.12)" : "rgba(15,23,42,0.05)" }}
+        content={({ active, payload, label }) => {
+          const point = payload?.[0]?.payload as StackedSeriesPoint | undefined;
+          if (!active || !point) return null;
+          return (
+            <ChartTooltipCard
+              active={active}
+              heading={String(label)}
+              rows={[
+                ...seriesKeys
+                  .filter((key) => point.values[key] > 0)
+                  .map((key) => ({
+                    label: key,
+                    value: formatWidgetValue(point.values[key], aggregation, measureName),
+                    color: palette.colorForIndex(seriesKeys.indexOf(key)),
+                  })),
+                { label: "Total", value: formatWidgetValue(point.total, aggregation, measureName) },
+              ]}
+            />
+          );
+        }}
+      />
+    );
+
+    return (
+      <ResponsiveContainer width="100%" height={chartHeight}>
+        <BarChart data={points} margin={{ top: 8, right: 12, bottom: 4, left: 0 }} barCategoryGap="22%">
+          <CartesianGrid vertical={false} stroke={palette.ink.grid} />
+          <XAxis
+            dataKey="label"
+            stroke={palette.ink.baseline}
+            tick={{ fill: palette.ink.muted, fontSize: 11 }}
+            tickLine={false}
+            interval={0}
+            angle={points.length > 6 ? -25 : 0}
+            textAnchor={points.length > 6 ? "end" : "middle"}
+            height={points.length > 6 ? 56 : 28}
+            tickFormatter={(value: string) => shortLabel(value)}
+          />
+          <YAxis
+            stroke={palette.ink.baseline}
+            tick={{ fill: palette.ink.muted, fontSize: 11 }}
+            tickLine={false}
+            width={52}
+            tickFormatter={formatAxisValue}
+          />
+          {stackedTooltip}
+          {seriesKeys.length > 1 && (
+            <Legend wrapperStyle={{ fontSize: 11, color: palette.ink.secondary }} iconType="square" iconSize={8} />
+          )}
+          {seriesKeys.map((key, index) => (
+            <Bar
+              key={key}
+              dataKey={`values.${key}`}
+              name={key}
+              stackId="stack"
+              fill={palette.colorForIndex(index)}
+              stroke={palette.ink.surface}
+              strokeWidth={2}
+              radius={index === seriesKeys.length - 1 ? [4, 4, 0, 0] : 0}
+              maxBarSize={44}
+              isAnimationActive={false}
+            />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
+    );
+  }
+
   // --- Bar -----------------------------------------------------------------
   return (
     <ResponsiveContainer width="100%" height={chartHeight}>
@@ -253,4 +377,5 @@ export function CustomWidget({ dataset, config, preview = false }: CustomWidgetP
       </BarChart>
     </ResponsiveContainer>
   );
+  }
 }

@@ -1,27 +1,24 @@
 "use client";
 
-import { Building2, FileCheck2, ShieldAlert, TrendingDown, TrendingUp, Users, Wallet } from "lucide-react";
+import { Building2, FileCheck2, Receipt, TrendingDown, TrendingUp, Users, Wallet } from "lucide-react";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
 import { InsightBox } from "@/components/sap/insight-box";
-import { CategoryTreemap } from "@/components/sap/category-treemap";
-import { TopSuppliersChart } from "@/components/sap/top-suppliers-chart";
+import { CategorySpendList } from "@/components/sap/category-spend-list";
+import { SupplierSpendList } from "@/components/sap/supplier-spend-list";
 import { SpendTrendChart } from "@/components/sap/spend-trend-chart";
 import { SpendByBuChart } from "@/components/sap/spend-by-bu-chart";
-import { SpendSunburst } from "@/components/sap/spend-sunburst";
-import { MetricsTable } from "@/components/sap/metrics-table";
+import { SupplierDetailReportTable } from "@/components/sap/supplier-detail-report";
 import type {
   HeadlineKpis,
   TreemapNode,
   MonthlyTrendPoint,
-  SpikeMarker,
   BuSpendRow,
-  SunburstNode,
-  MetricsTableRow,
+  SupplierDetailRow,
   getTopSuppliersData,
 } from "@/lib/sap/aggregate";
-import { formatCr, formatInr, formatPercentInr, formatSignedPercentInr } from "@/lib/sap/format-inr";
+import { formatCr, formatSignedPercentInr } from "@/lib/sap/format-inr";
 import { SO_FOCUS_PARAMETERS, SO_FOCUS_PRESETS } from "./focusParams";
 import { useSpendOverviewFocus } from "./useSpendOverviewFocus";
 import { useThresholds } from "@/context/ThresholdsContext";
@@ -41,11 +38,8 @@ interface SpendOverviewCanvasProps {
   treemapNodes: TreemapNode[];
   topSuppliers: ReturnType<typeof getTopSuppliersData>;
   trend: MonthlyTrendPoint[];
-  spikes: SpikeMarker[];
   buSpend: BuSpendRow[];
-  sunburstNodes: SunburstNode[];
-  plantNameToCode: Record<string, string>;
-  metricsRows: MetricsTableRow[];
+  supplierDetailRows: SupplierDetailRow[];
 }
 
 /**
@@ -59,17 +53,12 @@ export function SpendOverviewCanvas({
   treemapNodes,
   topSuppliers,
   trend,
-  spikes,
   buSpend,
-  sunburstNodes,
-  plantNameToCode,
-  metricsRows,
+  supplierDetailRows,
 }: SpendOverviewCanvasProps) {
   const { activeParameters, toggleParameter, applyPreset, isWidgetVisible } = useSpendOverviewFocus();
   const { getThreshold, evaluate } = useThresholds();
 
-  const offContractConfig = getThreshold("spend-overview.off-contract");
-  const offContractStatus = evaluate("spend-overview.off-contract", kpis.offContractPercent);
   const yoyConfig = getThreshold("spend-overview.yoy-growth");
   const yoyStatus = evaluate("spend-overview.yoy-growth", kpis.yoyChangePercent);
 
@@ -90,9 +79,9 @@ export function SpendOverviewCanvas({
         {isWidgetVisible("kpi-spend-trends") && (
           <>
             <KpiCard size="compact" label="Total Spend" value={formatCr(kpis.totalSpendInr)} icon={<Wallet />} accent="blue" />
-            <KpiCard size="compact" label="Total PO Count" value={kpis.poCount.toLocaleString()} icon={<FileCheck2 />} />
+            <KpiCard size="compact" label="Invoices" value={kpis.invoiceCount.toLocaleString()} icon={<Receipt />} />
+            <KpiCard size="compact" label="Purchase Orders" value={kpis.poCount.toLocaleString()} icon={<FileCheck2 />} />
             <KpiCard size="compact" label="Active Suppliers" value={kpis.activeSupplierCount.toLocaleString()} icon={<Users />} />
-            <KpiCard size="compact" label="Avg. PO Value" value={formatInr(kpis.avgPoValueInr)} icon={<FileCheck2 />} />
             <KpiCard
               size="compact"
               label="YoY Spend Change"
@@ -104,58 +93,37 @@ export function SpendOverviewCanvas({
             />
           </>
         )}
-        {isWidgetVisible("kpi-off-contract") && (
-          <KpiCard
-            size="compact"
-            label="Off-Contract Spend"
-            value={formatPercentInr(kpis.offContractPercent)}
-            icon={<ShieldAlert />}
-            accent={offContractStatus ? STATUS_ACCENT[offContractStatus] : "neutral"}
-            status={offContractStatus}
-            statusTitle={
-              offContractConfig
-                ? thresholdEvaluationTitle(kpis.offContractPercent, offContractConfig)
-                : undefined
-            }
-            hint={
-              offContractConfig
-                ? `Target ≤ ${offContractConfig.targetValue.toLocaleString("en-IN", { maximumFractionDigits: 1 })}%`
-                : undefined
-            }
-          />
-        )}
       </section>
 
       {/* Trailing odd child spans the full row so hiding widgets never leaves a gap. */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
         {isWidgetVisible("category-treemap") && (
-          <ChartCard className="h-[420px]" title="Spend by Category" description="Click to drill in" icon={<TrendingUp />} accent="blue">
-            <CategoryTreemap nodes={treemapNodes} />
+          <ChartCard className="h-[420px]" title="Spend by Category" description="Top categories by spend" icon={<TrendingUp />} accent="blue">
+            <CategorySpendList nodes={treemapNodes} />
           </ChartCard>
         )}
         {isWidgetVisible("top-suppliers-chart") && (
-          <ChartCard className="h-[420px]" title="Top 20 Suppliers" description="Stacked by category + Pareto line" icon={<Users />} accent="violet">
-            <TopSuppliersChart rows={topSuppliers.rows} allL1={topSuppliers.allL1} top5Percent={topSuppliers.top5Percent} />
+          <ChartCard className="h-[420px]" title="Spend by Suppliers" description="All suppliers, scroll for more" icon={<Users />} accent="violet">
+            <SupplierSpendList rows={topSuppliers.rows} top5Percent={topSuppliers.top5Percent} />
           </ChartCard>
         )}
         {isWidgetVisible("spend-trend-chart") && (
           <ChartCard className="h-[420px]" title="Spend Trend" description="Jan 2023 – Dec 2025, full history" icon={<TrendingUp />} accent="blue">
-            <SpendTrendChart trend={trend} spikes={spikes} />
+            <SpendTrendChart trend={trend} />
           </ChartCard>
         )}
         {isWidgetVisible("spend-by-bu-chart") && (
-          <ChartCard className="h-[420px]" title="Spend by Business Unit" description="Click a bar to drill in" icon={<Building2 />} accent="orange">
+          <ChartCard className="h-[420px]" title="Spend by Business Unit" description="Total spend per BU" icon={<Building2 />} accent="orange">
             <SpendByBuChart rows={buSpend} />
           </ChartCard>
         )}
-        {isWidgetVisible("spend-sunburst") && (
-          <ChartCard className="h-[420px]" title="Spend Composition" description="BU → Category → Subcategory" icon={<Building2 />} accent="green">
-            <SpendSunburst nodes={sunburstNodes} plantNameToCode={plantNameToCode} />
-          </ChartCard>
-        )}
         {isWidgetVisible("metrics-table") && (
-          <ChartCard className="h-[420px]" title="Key Metrics Summary" description="Sortable, exportable" icon={<FileCheck2 />} accent="blue">
-            <MetricsTable rows={metricsRows} />
+          <ChartCard className="h-[420px] lg:col-span-2" title="Detailed Report" description="Supplier (Global Ultimate) drill-down, sortable, exportable" icon={<FileCheck2 />} accent="blue">
+            <SupplierDetailReportTable
+              rows={supplierDetailRows}
+              valueColumns={[{ key: "spendInr", label: "Spend", value: (r) => r.spendInr }]}
+              csvFilename="spend-overview-detailed-report"
+            />
           </ChartCard>
         )}
       </div>

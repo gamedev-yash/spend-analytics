@@ -1,9 +1,7 @@
-import { DashboardTabs } from "@/components/dashboard/dashboard-tabs";
-import { SpendOverviewFilters } from "@/components/sap/spend-overview-filters";
+import { SpendOverviewFilters } from "./components/SpendOverviewFilters";
 import { SpendOverviewDataBridge } from "./components/SpendOverviewDataBridge";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
-import { plants } from "@/lib/sap/raw-data";
 import {
   getFilterOptions,
   getHeadlineKpis,
@@ -12,11 +10,12 @@ import {
   getSpendTrendData,
   getSpikeMarkers,
   getSpendByBuData,
-  getSunburstData,
   getMetricsTableData,
+  getSupplierDetailReportData,
   generateInsightText,
 } from "@/lib/sap/aggregate";
-import type { SapFilters, SpendType } from "@/lib/sap/types";
+import { getMonthlyInvoiceCounts } from "./monthlyInvoiceCounts";
+import type { SapFilters } from "@/lib/sap/types";
 
 interface PageProps {
   searchParams: Promise<{
@@ -24,35 +23,42 @@ interface PageProps {
     cat?: string;
     from?: string;
     to?: string;
-    spend?: string;
     vendor?: string;
     catPath?: string;
   }>;
 }
 
+/** Last two full calendar years ending at the dataset's max date, used when no date filter is set. */
+function defaultDateRange(dateMax: string): { from: string; to: string } {
+  const maxYear = Number(dateMax.slice(0, 4));
+  return { from: `${maxYear - 2}-01-01`, to: dateMax };
+}
+
 export default async function SpendOverviewPage({ searchParams }: PageProps) {
   const params = await searchParams;
+  const filterOptions = getFilterOptions();
+  const { from: defaultFrom, to: defaultTo } = defaultDateRange(filterOptions.dateMax);
+
   const filters: SapFilters = {
     plants: params.bu?.split(",").filter(Boolean),
     categoriesL1: params.cat?.split(",").filter(Boolean),
-    dateFrom: params.from,
-    dateTo: params.to,
-    spendType: (params.spend as SpendType) ?? "po",
+    dateFrom: params.from ?? defaultFrom,
+    dateTo: params.to ?? defaultTo,
+    spendType: "po",
     vendorId: params.vendor,
     categoryPath: params.catPath,
   };
 
-  const filterOptions = getFilterOptions();
   const kpis = getHeadlineKpis(filters);
   const treemapNodes = getCategoryTreemapData(filters);
-  const topSuppliers = getTopSuppliersData(filters, 20);
+  const topSuppliers = getTopSuppliersData(filters, 500);
   const trend = getSpendTrendData(filters);
+  const invoiceCountByMonth = getMonthlyInvoiceCounts(filters);
   const spikes = getSpikeMarkers(trend);
   const buSpend = getSpendByBuData(filters);
-  const sunburstNodes = getSunburstData(filters);
   const metricsRows = getMetricsTableData(filters);
+  const supplierDetailRows = getSupplierDetailReportData(filters);
   const insightText = generateInsightText(filters);
-  const plantNameToCode = Object.fromEntries(plants.map((p) => [p.plant_name, p.plant_code]));
 
   const activeFilterCount =
     (filters.plants?.length ?? 0) +
@@ -65,6 +71,8 @@ export default async function SpendOverviewPage({ searchParams }: PageProps) {
       <SpendOverviewFilters
         plantOptions={filterOptions.plants}
         categoryOptions={filterOptions.categoriesL1}
+        defaultDateFrom={defaultFrom}
+        defaultDateTo={defaultTo}
         dateMin={filterOptions.dateMin}
         dateMax={filterOptions.dateMax}
       />
@@ -79,7 +87,6 @@ export default async function SpendOverviewPage({ searchParams }: PageProps) {
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-3">
-          <DashboardTabs />
           <ExportSnapshotButton targetId={DASHBOARD_CANVAS_ID} dashboardTitle="Spend Overview" />
           <p className="text-xs text-muted-foreground">
             Initiative 18 · Dashboard 1 of 6{activeFilterCount > 0 ? ` · ${activeFilterCount} filter(s) active` : ""}
@@ -95,11 +102,11 @@ export default async function SpendOverviewPage({ searchParams }: PageProps) {
             treemapNodes,
             topSuppliers,
             trend,
+            invoiceCountByMonth,
             spikes,
             buSpend,
-            sunburstNodes,
-            plantNameToCode,
             metricsRows,
+            supplierDetailRows,
           }}
           filters={filters}
         />

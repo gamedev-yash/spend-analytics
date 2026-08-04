@@ -4,13 +4,19 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useState,
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import Papa from "papaparse";
-import { inferColumns, type ColumnMeta } from "@/lib/infer";
+import { AzureSqlAdapter } from "@/lib/adapters/azure-sql-adapter";
+import { ClientCsvAdapter } from "@/lib/adapters/client-csv-adapter";
 import { joinDatasets, joinKeysLabel, type JoinKeys } from "@/lib/join";
+import type { IDataProvider } from "@/types/data-provider";
+import type { Dataset } from "@/types/dataset";
+
+export type { Dataset, DatasetRow, JoinInfo } from "@/types/dataset";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -27,36 +33,13 @@ export const DASHBOARD_PAGE_KEYS = [
 
 export type DashboardPageKey = (typeof DASHBOARD_PAGE_KEYS)[number];
 
-export type DatasetRow = Record<string, unknown>;
+/** Which IDataProvider implementation answers widget queries. */
+export type DataProviderType = "client-csv" | "azure-sql";
 
-/** How a joined (composite) dataset was produced — kept for provenance/UI badges. */
-export interface JoinInfo {
-  leftId: string;
-  rightId: string;
-  leftName: string;
-  rightName: string;
-  /** Display label — composite keys render as "EBELN + EBELP". */
-  leftKey: string;
-  rightKey: string;
-  joinType: "inner" | "left";
-  matchedLeftRows: number;
-  /** True when the join was executed automatically by the SAP auto-join engine. */
-  auto?: boolean;
-}
-
-export interface Dataset {
-  id: string;
-  /** Original file name ("tail-spend.csv") or user-chosen name for joined datasets. */
-  name: string;
-  /** Dashboard route this dataset feeds; undefined = unassigned. */
-  pageKey?: string;
-  rows: DatasetRow[];
-  columns: ColumnMeta[];
-  createdAt: string;
-  /** True for materialized composite datasets produced by createJoinedDataset. */
-  isJoined?: boolean;
-  joinInfo?: JoinInfo;
-}
+export const DATA_PROVIDER_LABELS: Record<DataProviderType, string> = {
+  "client-csv": "CSV Mode",
+  "azure-sql": "Azure SQL Mode",
+};
 
 export interface CreateJoinedDatasetParams {
   name: string;
@@ -77,6 +60,16 @@ interface DatasetsState {
 }
 
 interface DatasetsContextValue extends DatasetsState {
+  /**
+   * Where every widget reads its numbers from — the CSV engine in this browser
+   * or the REST query engine over Azure SQL. Widgets never branch on this; they
+   * send the same QueryPayload either way.
+   */
+  activeProvider: IDataProvider;
+  /** Which implementation activeProvider is. */
+  providerType: DataProviderType;
+  /** Switch providers live. Persists, so a reload keeps the chosen mode. */
+  setProviderType: (type: DataProviderType) => void;
   setActiveDatasetId: (id: string | null) => void;
   /** Parse a CSV file, infer columns, store the dataset, and persist. */
   uploadCsv: (file: File, pageTarget?: string) => Promise<Dataset>;
@@ -182,37 +175,99 @@ function updateStore(update: (prev: DatasetsState) => DatasetsState): void {
   for (const listener of listeners) listener();
 }
 
-// ---------------------------------------------------------------------------
-// CSV parsing
-// ---------------------------------------------------------------------------
-
 function newDatasetId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
   return `ds-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-function parseCsvFile(file: File): Promise<DatasetRow[]> {
-  return new Promise((resolve, reject) => {
-    Papa.parse<DatasetRow>(file, {
-      header: true,
-      dynamicTyping: true,
-      skipEmptyLines: "greedy",
-      transformHeader: (h) => h.trim(),
-      complete: (result) => {
-        const fatal = result.errors.find((e) => e.type === "Delimiter" || e.code === "UndetectableDelimiter");
-        if (fatal) {
-          reject(new Error(`Could not parse "${file.name}": ${fatal.message}`));
-          return;
-        }
-        if (result.data.length === 0) {
-          reject(new Error(`"${file.name}" contains no data rows.`));
-          return;
-        }
-        resolve(result.data);
-      },
-      error: (err) => reject(new Error(`Could not read "${file.name}": ${err.message}`)),
-    });
-  });
+// ---------------------------------------------------------------------------
+// Data providers
+//
+// Both read the dataset store through a getter rather than a captured value, so
+// they always see the live datasets. Module singletons because they are
+// stateless — a stable identity keeps them out of every hook's dependencies.
+// ---------------------------------------------------------------------------
+
+const clientCsvAdapter = new ClientCsvAdapter(() => getSnapshot().datasets);
+
+const azureSqlAdapter = new AzureSqlAdapter({
+  fallback: clientCsvAdapter,
+  // An uploaded CSV only exists in this browser, so it is answered here rather
+  // than posted to an API that has never heard of it.
+  isLocalDataset: (datasetId) => getSnapshot().datasets.some((d) => d.id === datasetId),
+});
+
+const PROVIDERS: Record<DataProviderType, IDataProvider> = {
+  "client-csv": clientCsvAdapter,
+  "azure-sql": azureSqlAdapter,
+};
+
+// ---------------------------------------------------------------------------
+// Provider-mode store
+//
+// Same externalized pattern as the dataset store: the server snapshot is the
+// env default so SSR is deterministic, then the client snapshot (hydrated from
+// localStorage) takes over. Persisting means a mode chosen from the header
+// survives a reload.
+// ---------------------------------------------------------------------------
+
+const PROVIDER_STORAGE_KEY = "app_data_provider";
+
+function isProviderType(value: unknown): value is DataProviderType {
+  return value === "client-csv" || value === "azure-sql";
+}
+
+/** NEXT_PUBLIC_DATA_SOURCE_PROVIDER, defaulting to azure-sql. */
+function envProviderType(): DataProviderType {
+  const configured = process.env.NEXT_PUBLIC_DATA_SOURCE_PROVIDER;
+  if (configured === undefined || configured === "") return "azure-sql";
+  if (isProviderType(configured)) return configured;
+  console.warn(
+    `DatasetsContext: NEXT_PUBLIC_DATA_SOURCE_PROVIDER="${configured}" is not a known provider; using azure-sql.`
+  );
+  return "azure-sql";
+}
+
+let providerState: DataProviderType | null = null;
+const providerListeners = new Set<() => void>();
+
+function loadPersistedProvider(): DataProviderType {
+  if (typeof window === "undefined") return envProviderType();
+  try {
+    const raw = window.localStorage.getItem(PROVIDER_STORAGE_KEY);
+    return isProviderType(raw) ? raw : envProviderType();
+  } catch {
+    return envProviderType();
+  }
+}
+
+function getProviderSnapshot(): DataProviderType {
+  if (providerState === null) providerState = loadPersistedProvider();
+  return providerState;
+}
+
+function getProviderServerSnapshot(): DataProviderType {
+  return envProviderType();
+}
+
+function subscribeProvider(listener: () => void): () => void {
+  providerListeners.add(listener);
+  return () => {
+    providerListeners.delete(listener);
+  };
+}
+
+function setStoredProviderType(type: DataProviderType): void {
+  if (getProviderSnapshot() === type) return;
+  providerState = type;
+  try {
+    window.localStorage.setItem(PROVIDER_STORAGE_KEY, type);
+  } catch (err) {
+    console.warn("DatasetsContext: unable to persist the provider mode", err);
+  }
+  // Warehouse metadata may have changed while we were away.
+  if (type === "azure-sql") azureSqlAdapter.invalidateMetadata();
+  for (const listener of providerListeners) listener();
 }
 
 // ---------------------------------------------------------------------------
@@ -221,17 +276,72 @@ function parseCsvFile(file: File): Promise<DatasetRow[]> {
 
 const DatasetsContext = createContext<DatasetsContextValue | null>(null);
 
-export function DatasetsProvider({ children }: { children: ReactNode }) {
-  const { datasets, activeDatasetId } = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+const NO_SERVER_DATASETS: Dataset[] = [];
+
+export function DatasetsProvider({
+  children,
+  provider,
+}: {
+  children: ReactNode;
+  /**
+   * Pin the provider, ignoring providerType and the header switcher — an escape
+   * hatch for tests and embedded views.
+   */
+  provider?: IDataProvider;
+}) {
+  const { datasets: storedDatasets, activeDatasetId } = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot
+  );
+  const providerType = useSyncExternalStore(
+    subscribeProvider,
+    getProviderSnapshot,
+    getProviderServerSnapshot
+  );
+  const activeProvider = provider ?? PROVIDERS[providerType];
+
+  // Warehouse tables the query API advertises. Held in React state rather than
+  // the persisted store: they are discovered per session, not owned by this
+  // browser, and must not survive a switch back to CSV mode.
+  const [discovered, setDiscovered] = useState<Dataset[]>(NO_SERVER_DATASETS);
+
+  useEffect(() => {
+    if (providerType !== "azure-sql") return;
+    let active = true;
+    activeProvider.getDatasets().then(
+      (all) => {
+        if (active) setDiscovered(all.filter((dataset) => dataset.source === "server"));
+      },
+      (err: unknown) => {
+        if (!active) return;
+        console.warn("DatasetsContext: could not load warehouse datasets", err);
+        setDiscovered(NO_SERVER_DATASETS);
+      }
+    );
+    return () => {
+      active = false;
+    };
+  }, [providerType, activeProvider]);
+
+  // Derived rather than cleared in the effect, so CSV mode hides them
+  // immediately instead of one render later.
+  const serverDatasets = providerType === "azure-sql" ? discovered : NO_SERVER_DATASETS;
+
+  const datasets = useMemo(
+    () => (serverDatasets.length === 0 ? storedDatasets : [...serverDatasets, ...storedDatasets]),
+    [serverDatasets, storedDatasets]
+  );
 
   const uploadCsv = useCallback(async (file: File, pageTarget?: string): Promise<Dataset> => {
-    const rows = await parseCsvFile(file);
+    const { rows, columns } = await clientCsvAdapter.parseCsv(file);
     const dataset: Dataset = {
       id: newDatasetId(),
       name: file.name,
+      source: "upload",
       pageKey: pageTarget,
       rows,
-      columns: inferColumns(rows),
+      columns,
       createdAt: new Date().toISOString(),
     };
     updateStore((prev) => ({
@@ -261,6 +371,7 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
       const dataset: Dataset = {
         id: newDatasetId(),
         name: params.name.trim() || `${left.name} + ${right.name}`,
+        source: "upload",
         pageKey: params.pageTarget,
         rows,
         columns,
@@ -309,17 +420,35 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
     [datasets, activeDatasetId]
   );
 
+  const setProviderType = useCallback((type: DataProviderType) => {
+    setStoredProviderType(type);
+  }, []);
+
   const value = useMemo<DatasetsContextValue>(
     () => ({
       datasets,
       activeDatasetId,
+      activeProvider,
+      providerType,
+      setProviderType,
       setActiveDatasetId,
       uploadCsv,
       createJoinedDataset,
       getDatasetForPage,
       removeDataset,
     }),
-    [datasets, activeDatasetId, setActiveDatasetId, uploadCsv, createJoinedDataset, getDatasetForPage, removeDataset]
+    [
+      datasets,
+      activeDatasetId,
+      activeProvider,
+      providerType,
+      setProviderType,
+      setActiveDatasetId,
+      uploadCsv,
+      createJoinedDataset,
+      getDatasetForPage,
+      removeDataset,
+    ]
   );
 
   return <DatasetsContext.Provider value={value}>{children}</DatasetsContext.Provider>;
@@ -329,4 +458,9 @@ export function useDatasets(): DatasetsContextValue {
   const ctx = useContext(DatasetsContext);
   if (!ctx) throw new Error("useDatasets must be used within a DatasetsProvider");
   return ctx;
+}
+
+/** The provider every widget query goes through. */
+export function useDataProvider(): IDataProvider {
+  return useDatasets().activeProvider;
 }

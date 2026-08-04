@@ -216,6 +216,74 @@ export function FilterSlider({
   );
 }
 
+interface FilterDateRangeProps {
+  /** Section label above both inputs — defaults to "Date Range"; pass something more specific (e.g. "Time Period") when that reads better for the page. */
+  label?: string;
+  fromValue: string;
+  toValue: string;
+  min?: string;
+  max?: string;
+  onFromChange: (value: string) => void;
+  onToChange: (value: string) => void;
+  className?: string;
+}
+
+/**
+ * The one Date Range control every dashboard filter bar should use — a pair
+ * of native `<input type="date">` pickers, cross-constrained (FROM can't
+ * exceed the current TO, TO can't precede the current FROM) so the range
+ * can't invert through the picker itself. Purely presentational: it renders
+ * whatever `fromValue`/`toValue` it's given and calls back on change — each
+ * page owns its own state (URL params, local state, a store, whatever) and
+ * decides what "on change" means.
+ */
+export function FilterDateRange({
+  label = "Date Range",
+  fromValue,
+  toValue,
+  min,
+  max,
+  onFromChange,
+  onToChange,
+  className,
+}: FilterDateRangeProps) {
+  const fromId = useId();
+  const toId = useId();
+  const inputClassName =
+    "h-8 w-full min-w-0 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:[color-scheme:dark]";
+
+  return (
+    <div className={cn("space-y-1.5", className)}>
+      <label className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+        {label}
+      </label>
+      <div className="flex items-center gap-1.5">
+        <input
+          id={fromId}
+          type="date"
+          value={fromValue}
+          min={min}
+          max={toValue || max}
+          onChange={(event) => onFromChange(event.target.value)}
+          className={inputClassName}
+          aria-label={`${label} — from`}
+        />
+        <span className="shrink-0 text-xs text-slate-400 dark:text-slate-500">to</span>
+        <input
+          id={toId}
+          type="date"
+          value={toValue}
+          min={fromValue || min}
+          max={max}
+          onChange={(event) => onToChange(event.target.value)}
+          className={inputClassName}
+          aria-label={`${label} — to`}
+        />
+      </div>
+    </div>
+  );
+}
+
 interface FilterToggleProps {
   label: string;
   checked: boolean;

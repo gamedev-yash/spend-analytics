@@ -40,16 +40,6 @@ export const THRESHOLD_PRESETS: Record<string, ThresholdConfig[]> = {
   ],
   "spend-overview": [
     {
-      id: "spend-overview.off-contract",
-      metricKey: "offContractPercent",
-      label: "Off-Contract Spend",
-      targetValue: 25,
-      operator: "lte",
-      sentiment: "lower_is_better",
-      unit: "percent",
-      description: "Red warning when off-contract (maverick) spend exceeds this share.",
-    },
-    {
       id: "spend-overview.yoy-growth",
       metricKey: "yoyChangePercent",
       label: "YoY Spend Growth",
@@ -58,6 +48,18 @@ export const THRESHOLD_PRESETS: Record<string, ThresholdConfig[]> = {
       sentiment: "lower_is_better",
       unit: "percent",
       description: "Cost-control lens: spend growing year-over-year needs attention.",
+    },
+  ],
+  compliance: [
+    {
+      id: "compliance.unmanaged-spend",
+      metricKey: "unmanagedSpendPercent",
+      label: "Unmanaged Spend",
+      targetValue: 25,
+      operator: "lte",
+      sentiment: "lower_is_better",
+      unit: "percent",
+      description: "Red warning when unmanaged (off-PO + off-contract, maverick) spend exceeds this share.",
     },
   ],
   "payment-terms": [

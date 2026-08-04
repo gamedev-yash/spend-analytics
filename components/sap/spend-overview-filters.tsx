@@ -4,24 +4,18 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useFilterSlot } from "@/context/FilterContext";
 import { FilterGroup } from "@/components/ui/filter-controls";
 import { MultiSelect } from "@/components/sap/multi-select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
 import { SO_WIDGET_GROUPS } from "@/app/spend-overview/components/focusParams";
 import { useSpendOverviewFocus } from "@/app/spend-overview/components/useSpendOverviewFocus";
-import type { SpendType } from "@/lib/sap/types";
 
 interface SpendOverviewFiltersProps {
   plantOptions: { code: string; name: string }[];
   categoryOptions: string[];
   dateMin: string;
   dateMax: string;
+  defaultDateFrom: string;
+  defaultDateTo: string;
 }
-
-const SPEND_TYPE_LABEL: Record<SpendType, string> = {
-  po: "PO Spend",
-  invoice: "Invoice Spend",
-  both: "Both",
-};
 
 /**
  * Registers Spend Overview's filters into the shell's sidebar Filter Drawer
@@ -30,16 +24,22 @@ const SPEND_TYPE_LABEL: Record<SpendType, string> = {
  * component reads, so a change here triggers a normal Next.js navigation
  * that re-runs the server-side aggregation with the new filters.
  */
-export function SpendOverviewFilters({ plantOptions, categoryOptions, dateMin, dateMax }: SpendOverviewFiltersProps) {
+export function SpendOverviewFilters({
+  plantOptions,
+  categoryOptions,
+  dateMin,
+  dateMax,
+  defaultDateFrom,
+  defaultDateTo,
+}: SpendOverviewFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const selectedPlants = searchParams.get("bu")?.split(",").filter(Boolean) ?? [];
   const selectedCategories = searchParams.get("cat")?.split(",").filter(Boolean) ?? [];
-  const dateFrom = searchParams.get("from") ?? "";
-  const dateTo = searchParams.get("to") ?? "";
-  const spendType = (searchParams.get("spend") as SpendType) ?? "po";
+  const dateFrom = searchParams.get("from") ?? defaultDateFrom;
+  const dateTo = searchParams.get("to") ?? defaultDateTo;
 
   function updateParams(mutate: (params: URLSearchParams) => void) {
     const params = new URLSearchParams(searchParams.toString());
@@ -54,7 +54,7 @@ export function SpendOverviewFilters({ plantOptions, categoryOptions, dateMin, d
     <div className="space-y-6">
       <FilterGroup title="Global Filters">
         <MultiSelect
-          label="Plant / Site"
+          label="BU / Plant"
           options={plantOptions.map((p) => ({ value: p.code, label: p.name }))}
           selected={selectedPlants}
           onChange={(values) =>
@@ -106,20 +106,6 @@ export function SpendOverviewFilters({ plantOptions, categoryOptions, dateMin, d
           onToggleWidgetEnabled={toggleWidgetEnabled}
           onResetToDefault={resetWidgetsToDefault}
         />
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
-            Spend Type
-          </label>
-          <Tabs value={spendType} onValueChange={(v) => updateParams((params) => params.set("spend", String(v)))}>
-            <TabsList className="w-full">
-              {(Object.keys(SPEND_TYPE_LABEL) as SpendType[]).map((key) => (
-                <TabsTrigger key={key} value={key} className="flex-1 text-xs">
-                  {SPEND_TYPE_LABEL[key]}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        </div>
       </FilterGroup>
     </div>
   );

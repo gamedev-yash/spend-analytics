@@ -51,7 +51,7 @@ const SAVINGS_PER_MICRO_PO = 3_400;
 const STRATEGIC_SHARE = 0.5;
 const CORE_SHARE = 0.8;
 
-interface SupplierRecord {
+export interface SupplierRecord {
   supplierId: string;
   supplierName: string;
   category: string;
@@ -71,7 +71,13 @@ interface SupplierRecord {
   costCenterCount: number | null;
 }
 
-interface ParsedDataset {
+/**
+ * Supplier-grain intermediate every widget on this page derives from. Producing
+ * one of these is the whole job of an input adapter — lib/page-data builds it
+ * from provider aggregates, parseDataset below builds it from CSV rows, and
+ * buildTailSpendFromParsed turns either into the page's data.
+ */
+export interface ParsedDataset {
   suppliers: SupplierRecord[];
   /** Individual transaction values — only for transaction-grain datasets. */
   txnValues: number[] | null;
@@ -79,7 +85,18 @@ interface ParsedDataset {
   monthlySegmentSpend: Map<string, Map<SpendSegment, number>> | null;
   /** True when consolidation fields came from real columns (supplier grain). */
   consolidationFromColumns: boolean;
+  /**
+   * Every plant value seen in a transaction-grain dataset, regardless of any
+   * active plant filter — becomes the Plant/BU dropdown's options. Optional
+   * (rather than required) so other ParsedDataset producers (e.g. the
+   * warehouse loader in lib/page-data/) don't need to supply a value they
+   * have no plant-identity data to compute; absent/null means "no real plant
+   * dimension available," and the page falls back to the static option list.
+   */
+  distinctPlants?: string[] | null;
 }
+
+export { DEFAULT_MICRO_PO_THRESHOLD };
 
 function normalizeSegment(raw: string): SpendSegment | null {
   const s = raw.trim().toLowerCase();
@@ -109,7 +126,7 @@ function normalizeAction(raw: string, score: number | null): ConsolidationAction
  * category table keys its rows on this code — so `taken` disambiguates with a
  * numeric suffix, keeping every emitted code unique.
  */
-function categoryCode(category: string, taken: Set<string>): string {
+export function categoryCode(category: string, taken: Set<string>): string {
   const word = category.split(/[\s,&–-]+/).find(Boolean) ?? category;
   const base = word.slice(0, 7).toUpperCase() || "CAT";
   let code = base;
@@ -189,7 +206,7 @@ function resolveColumns(dataset: Dataset) {
 
 type Cols = ReturnType<typeof resolveColumns>;
 
-function parseDataset(dataset: Dataset, microThreshold: number): ParsedDataset | null {
+function parseDataset(dataset: Dataset, microThreshold: number, plantFilter: string | null): ParsedDataset | null {
   const cols = resolveColumns(dataset);
 
   // Without a supplier name and a spend measure there is nothing to build from.
@@ -200,7 +217,10 @@ function parseDataset(dataset: Dataset, microThreshold: number): ParsedDataset |
   const suppliersRepeat = (nameMeta?.distinctCount ?? dataset.rows.length) < dataset.rows.length * 0.9;
   const transactional = Boolean(cols.date || cols.txnId) && suppliersRepeat;
 
-  if (transactional) return parseTransactionGrain(dataset, cols, microThreshold);
+  // Plant/BU filtering needs a real per-row plant column, which only the
+  // transaction grain resolves (parseSupplierGrain never reads cols.plant —
+  // a supplier-grain row carries at most a plant COUNT, not plant identity).
+  if (transactional) return parseTransactionGrain(dataset, cols, microThreshold, plantFilter);
   return parseSupplierGrain(dataset, cols);
 }
 
@@ -250,6 +270,7 @@ function parseSupplierGrain(dataset: Dataset, cols: Cols): ParsedDataset | null 
     txnValues: null,
     monthlySegmentSpend: null,
     consolidationFromColumns: true,
+    distinctPlants: null,
   };
 }
 
@@ -267,14 +288,28 @@ interface SupplierAccumulator {
   monthly: Map<string, number>;
 }
 
-function parseTransactionGrain(dataset: Dataset, cols: Cols, microThreshold: number): ParsedDataset | null {
+function parseTransactionGrain(
+  dataset: Dataset,
+  cols: Cols,
+  microThreshold: number,
+  plantFilter: string | null
+): ParsedDataset | null {
   const bySupplier = new Map<string, SupplierAccumulator>();
   const txnValues: number[] = [];
+  // Tracked unconditionally (before the plant-filter check below) so the
+  // filter's own OPTION LIST always reflects the whole dataset, never just
+  // whatever currently passes the filter — otherwise picking one plant would
+  // erase every other option from the dropdown.
+  const distinctPlants = new Set<string>();
 
   for (const row of dataset.rows) {
     const supplierName = cellString(row, cols.supplierName);
     const value = cellNumber(row, cols.value);
     if (!supplierName || value === null) continue;
+
+    const rowPlant = cellString(row, cols.plant);
+    if (rowPlant) distinctPlants.add(rowPlant);
+    if (plantFilter && rowPlant !== plantFilter) continue;
 
     const supplierId = cellString(row, cols.supplierId) || supplierName;
     const acc = bySupplier.get(supplierId) ?? {
@@ -360,6 +395,7 @@ function parseTransactionGrain(dataset: Dataset, cols: Cols, microThreshold: num
     txnValues,
     monthlySegmentSpend: sawMonths ? monthlySegmentSpend : null,
     consolidationFromColumns: false,
+    distinctPlants: distinctPlants.size > 0 ? Array.from(distinctPlants).sort((a, b) => a.localeCompare(b)) : null,
   };
 }
 
@@ -604,11 +640,25 @@ function deriveMonthlyTrend(
  */
 export function buildTailSpendFromDataset(
   dataset: Dataset,
+  microThreshold: number = DEFAULT_MICRO_PO_THRESHOLD,
+  plantFilter: string | null = null
+): TailSpendData | null {
+  const parsed = parseDataset(dataset, microThreshold, plantFilter);
+  if (!parsed) return null;
+  return buildTailSpendFromParsed(parsed, microThreshold);
+}
+
+/**
+ * Derive the full page shape from the supplier-grain intermediate, whichever
+ * adapter produced it. Anything the intermediate cannot supply keeps its static
+ * mock value, so a partial source still renders a complete page.
+ */
+export function buildTailSpendFromParsed(
+  parsed: ParsedDataset,
   microThreshold: number = DEFAULT_MICRO_PO_THRESHOLD
 ): TailSpendData | null {
-  const parsed = parseDataset(dataset, microThreshold);
-  if (!parsed) return null;
   const records = parsed.suppliers;
+  if (records.length === 0) return null;
 
   // --- Supplier-grain tables (direct projections) --------------------------
 
@@ -778,5 +828,10 @@ export function buildTailSpendFromDataset(
     supplierSpendRank,
     sapCategoryRows,
     sapSupplierReport,
+    // Real plant values seen in the upload replace the static Vedanta site
+    // list so the Plant/BU filter's options actually match this dataset.
+    sapFilterOptions: parsed.distinctPlants?.length
+      ? { ...tailSpendMock.sapFilterOptions, plantSites: parsed.distinctPlants }
+      : tailSpendMock.sapFilterOptions,
   };
 }
