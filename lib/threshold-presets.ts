@@ -71,16 +71,6 @@ export const THRESHOLD_PRESETS: Record<string, ThresholdConfig[]> = {
       unit: "days",
       description: "Working-capital lens: paying no faster than this DPO target.",
     },
-    {
-      id: "payment-terms.terms-adherence",
-      metricKey: "standardTermsAdherencePercent",
-      label: "Standard Terms Adherence",
-      targetValue: 80,
-      operator: "gte",
-      sentiment: "higher_is_better",
-      unit: "percent",
-      description: "Share of invoices carrying a standard payment term.",
-    },
   ],
   "supplier-fragmentation": [
     {

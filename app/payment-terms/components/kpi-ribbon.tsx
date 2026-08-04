@@ -19,14 +19,6 @@ export function KpiRibbon() {
   const { distinctPaymentTerms, avgPaidDays } = computeKpis(filteredInvoices);
   const { getThreshold, evaluate } = useThresholds();
 
-  // Share of invoices carrying a standard payment term (non-null code).
-  const adherencePercent =
-    filteredInvoices.length > 0
-      ? (filteredInvoices.filter((inv) => inv.payment_term_code !== null).length /
-          filteredInvoices.length) *
-        100
-      : 0;
-
   const badgeFor = (id: string, value: number | null): RibbonStat["badge"] => {
     if (value === null) return null;
     const config = getThreshold(id);
@@ -44,11 +36,6 @@ export function KpiRibbon() {
       label: "Average Number of Paid Days",
       value: formatDays(avgPaidDays),
       badge: badgeFor("payment-terms.avg-paid-days", avgPaidDays),
-    },
-    {
-      label: "Standard Terms Adherence",
-      value: `${adherencePercent.toLocaleString("en-IN", { maximumFractionDigits: 1 })}%`,
-      badge: badgeFor("payment-terms.terms-adherence", adherencePercent),
     },
   ];
 

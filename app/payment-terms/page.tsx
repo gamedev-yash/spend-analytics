@@ -15,11 +15,11 @@ import { SpendByTermComboChart } from "./components/widgets/spend-by-term-combo-
 import { PaymentTermsByInvoiceCountChart } from "./components/widgets/payment-terms-by-invoice-count-chart";
 import { DetailReportTable } from "./components/detail-report-table";
 import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
-import { PT_FOCUS_PARAMETERS, PT_FOCUS_PRESETS } from "./components/focusParams";
+import { PT_FOCUS_PARAMETERS } from "./components/focusParams";
 import { usePaymentTermsFocus } from "./components/usePaymentTermsFocus";
 
 export default function PaymentTermsPage() {
-  const { activeParameters, toggleParameter, applyPreset, isWidgetVisible } = usePaymentTermsFocus();
+  const { activeParameters, toggleParameter, isWidgetVisible } = usePaymentTermsFocus();
   const { getDatasetForPage } = useDatasets();
   const dataset = getDatasetForPage("payment-terms");
 
@@ -54,21 +54,23 @@ export default function PaymentTermsPage() {
 
         <div id={DASHBOARD_CANVAS_ID} className="flex flex-col gap-6">
           <FocusParameterBar
+            title="Show Sections"
+            description="Toggle which parts of the dashboard are visible — these don't change any numbers."
             parameters={PT_FOCUS_PARAMETERS}
-            presets={PT_FOCUS_PRESETS}
             activeParameters={activeParameters}
             onToggleParameter={toggleParameter}
-            onApplyPreset={applyPreset}
             thresholdsPageKey="payment-terms"
           />
 
           {isWidgetVisible("kpi-ribbon") && <KpiRibbon />}
           {/* Trailing odd child spans the full row so hiding/filtering widgets never leaves a gap. */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
+            {/* Ordered by section (Term Mix, then Payment Performance, then
+                Supplier View) so switching a section off never splits a pair. */}
             {isWidgetVisible("category-chart") && <PaymentTermsByCategoryChart />}
-            {isWidgetVisible("supplier-chart") && <PaymentTermsBySupplierChart />}
-            {isWidgetVisible("combo-chart") && <SpendByTermComboChart />}
             {isWidgetVisible("invoice-count-chart") && <PaymentTermsByInvoiceCountChart />}
+            {isWidgetVisible("combo-chart") && <SpendByTermComboChart />}
+            {isWidgetVisible("supplier-chart") && <PaymentTermsBySupplierChart />}
           </div>
           {isWidgetVisible("detail-table") && <DetailReportTable />}
         </div>

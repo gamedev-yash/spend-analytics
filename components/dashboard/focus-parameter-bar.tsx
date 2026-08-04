@@ -23,6 +23,10 @@ interface FocusParameterBarProps<Id extends string> {
   activeParameters: readonly Id[];
   onToggleParameter: (parameterId: Id) => void;
   onApplyPreset?: (parameterIds: Id[]) => void;
+  /** Card heading. Defaults to "Focus Parameters". */
+  title?: string;
+  /** Optional one-line hint under the heading, for pages whose chips need explaining. */
+  description?: string;
   /** When set, shows the "Thresholds" editor for that page's alert targets. */
   thresholdsPageKey?: string;
 }
@@ -38,14 +42,21 @@ export function FocusParameterBar<Id extends string>({
   activeParameters,
   onToggleParameter,
   onApplyPreset,
+  title = "Focus Parameters",
+  description,
   thresholdsPageKey,
 }: FocusParameterBarProps<Id>) {
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          Focus Parameters
-        </h3>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="space-y-1">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            {title}
+          </h3>
+          {description && (
+            <p className="text-xs text-slate-400 dark:text-slate-500">{description}</p>
+          )}
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           {presets && onApplyPreset && (
             <div className="flex flex-wrap gap-2">

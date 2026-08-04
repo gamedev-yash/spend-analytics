@@ -28,28 +28,33 @@ function monthOf(dateStr: string): string {
   return dateStr.slice(0, 7); // "YYYY-MM"
 }
 
-function monthIndex(yyyyMm: string): number {
+export function monthIndex(yyyyMm: string): number {
   const [y, m] = yyyyMm.split("-").map(Number);
   return y * 12 + (m - 1);
 }
 
-/** Trailing 12 completed months ending at (and including) filters.endMonth. */
-export function isWithinWindow(inv: Invoice, endMonth: string): boolean {
-  const endIdx = monthIndex(endMonth);
-  const startIdx = endIdx - 11;
+/** Inclusive on both ends — startMonth and endMonth are both counted. */
+export function isWithinWindow(inv: Invoice, startMonth: string, endMonth: string): boolean {
   const invIdx = monthIndex(monthOf(inv.invoice_date));
-  return invIdx >= startIdx && invIdx <= endIdx;
+  return invIdx >= monthIndex(startMonth) && invIdx <= monthIndex(endMonth);
 }
 
-/** All distinct invoice months present in the data, ascending — powers the "end month" dropdown. */
-export function getAvailableEndMonths(allInvoices: Invoice[]): string[] {
+/** All distinct invoice months present in the data, ascending — powers both month dropdowns. */
+export function getAvailableMonths(allInvoices: Invoice[]): string[] {
   const months = new Set(allInvoices.map((inv) => monthOf(inv.invoice_date)));
   return Array.from(months).sort();
 }
 
-export function getDefaultEndMonth(allInvoices: Invoice[]): string {
-  const months = getAvailableEndMonths(allInvoices);
-  return months[months.length - 1];
+/**
+ * Default window: the trailing 12 months of data, i.e. the latest month present
+ * back 11 months — clamped to the earliest month available so a dataset shorter
+ * than a year still opens fully in range.
+ */
+export function getDefaultMonthRange(allInvoices: Invoice[]): { startMonth: string; endMonth: string } {
+  const months = getAvailableMonths(allInvoices);
+  const endMonth = months[months.length - 1];
+  const startIdx = Math.max(0, months.length - 12);
+  return { startMonth: months[startIdx], endMonth };
 }
 
 // ---------------------------------------------------------------------------
@@ -61,7 +66,7 @@ export function getDefaultEndMonth(allInvoices: Invoice[]): string {
 
 export function applyFilters(allInvoices: Invoice[], filters: FilterState): Invoice[] {
   return allInvoices.filter((inv) => {
-    if (!isWithinWindow(inv, filters.endMonth)) return false;
+    if (!isWithinWindow(inv, filters.startMonth, filters.endMonth)) return false;
     if (filters.categoryCode !== null && categoryKey(inv) !== filters.categoryCode) return false;
     if (filters.globalUltimateId !== null && inv.global_ultimate_id !== filters.globalUltimateId) return false;
     if (filters.sourceSystemId !== null && inv.source_system_id !== filters.sourceSystemId) return false;

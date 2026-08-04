@@ -73,6 +73,99 @@ export function FilterSelect({ label, value, options, onChange, id, className }:
   );
 }
 
+interface FilterMonthRangeProps {
+  label: string;
+  /** All selectable months, ascending. Values are opaque keys (e.g. "YYYY-MM"). */
+  options: FilterSelectOption[];
+  startValue: string;
+  endValue: string;
+  onStartChange: (value: string) => void;
+  onEndChange: (value: string) => void;
+  className?: string;
+}
+
+/**
+ * Two month dropdowns under one label — an inclusive start..end window.
+ *
+ * The start list is capped at the current end and the end list floored at the
+ * current start, so an inverted range can't be selected in the first place.
+ * Callers should still clamp in their reducer, since a dataset swap can move
+ * the bounds underneath the current selection.
+ */
+export function FilterMonthRange({
+  label,
+  options,
+  startValue,
+  endValue,
+  onStartChange,
+  onEndChange,
+  className,
+}: FilterMonthRangeProps) {
+  const startId = useId();
+  const endId = useId();
+
+  const endIndex = options.findIndex((option) => option.value === endValue);
+  const startIndex = options.findIndex((option) => option.value === startValue);
+  const startOptions = endIndex === -1 ? options : options.slice(0, endIndex + 1);
+  const endOptions = startIndex === -1 ? options : options.slice(startIndex);
+  const monthSpan = startIndex === -1 || endIndex === -1 ? null : endIndex - startIndex + 1;
+
+  return (
+    <div className={cn("space-y-1.5", className)}>
+      <span className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+        {label}
+      </span>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-1">
+          <label htmlFor={startId} className="block text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
+            From
+          </label>
+          <div className="relative">
+            <select
+              id={startId}
+              value={startValue}
+              onChange={(event) => onStartChange(event.target.value)}
+              className="w-full appearance-none rounded-md border border-slate-200 bg-white px-2.5 py-2 pr-7 text-sm text-slate-700 shadow-sm transition-colors hover:border-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:focus:ring-slate-500"
+            >
+              {startOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+          </div>
+        </div>
+        <div className="space-y-1">
+          <label htmlFor={endId} className="block text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
+            To
+          </label>
+          <div className="relative">
+            <select
+              id={endId}
+              value={endValue}
+              onChange={(event) => onEndChange(event.target.value)}
+              className="w-full appearance-none rounded-md border border-slate-200 bg-white px-2.5 py-2 pr-7 text-sm text-slate-700 shadow-sm transition-colors hover:border-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:focus:ring-slate-500"
+            >
+              {endOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+          </div>
+        </div>
+      </div>
+      {monthSpan !== null && (
+        <p className="text-[11px] text-slate-400 dark:text-slate-500">
+          {monthSpan} month{monthSpan === 1 ? "" : "s"} selected
+        </p>
+      )}
+    </div>
+  );
+}
+
 interface FilterSliderProps {
   label: string;
   min: number;

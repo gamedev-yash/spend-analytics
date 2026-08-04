@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { X } from "lucide-react";
-import { FilterGroup, FilterSelect } from "@/components/ui/filter-controls";
+import { FilterGroup, FilterMonthRange, FilterSelect } from "@/components/ui/filter-controls";
 import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
 import { useFilterSlot } from "@/context/FilterContext";
 import { usePaymentTerms } from "../provider";
@@ -26,6 +26,7 @@ export function FilterPanel() {
   const {
     filters,
     selection,
+    setStartMonth,
     setEndMonth,
     setCategory,
     setGlobalUltimate,
@@ -33,7 +34,7 @@ export function FilterPanel() {
     setPlant,
     setPaymentTerm,
     clearSelection,
-    endMonthOptions,
+    monthOptions,
     categoryOptions,
     globalUltimateOptions,
     sourceSystemOptions,
@@ -47,11 +48,13 @@ export function FilterPanel() {
     () => (
       <div className="space-y-8">
         <FilterGroup title="Global Filters">
-          <FilterSelect
+          <FilterMonthRange
             label="Date Range"
-            value={filters.endMonth}
-            options={endMonthOptions.map((m) => ({ value: m, label: formatMonthLabel(m) }))}
-            onChange={setEndMonth}
+            options={monthOptions.map((m) => ({ value: m, label: formatMonthLabel(m) }))}
+            startValue={filters.startMonth}
+            endValue={filters.endMonth}
+            onStartChange={setStartMonth}
+            onEndChange={setEndMonth}
           />
           <FilterSelect
             label="Category L1"
@@ -114,12 +117,13 @@ export function FilterPanel() {
     [
       filters,
       selection,
-      endMonthOptions,
+      monthOptions,
       categoryOptions,
       globalUltimateOptions,
       sourceSystemOptions,
       plantOptions,
       paymentTermOptions,
+      setStartMonth,
       setEndMonth,
       setCategory,
       setGlobalUltimate,
