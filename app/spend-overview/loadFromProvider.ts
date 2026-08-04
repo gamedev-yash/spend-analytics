@@ -23,13 +23,16 @@ import type {
   MonthlyTrendPoint,
   SpikeMarker,
   SunburstNode,
+  SupplierDetailRow,
   TopSupplierRow,
   TreemapNode,
 } from "@/lib/sap/aggregate";
 import type { SpendOverviewData } from "@/app/spend-overview/fromDataset";
 import type { SapFilters } from "@/lib/sap/types";
 import {
+  CATEGORIES,
   INVOICES_DATASET,
+  PLANTS,
   PO_ITEMS_DATASET,
   ROWS,
   SUPPLIERS,
@@ -447,6 +450,73 @@ async function loadTopSuppliers(
   return { rows, top5Percent: percent(top5, total), allL1: [] };
 }
 
+/**
+ * Supplier-grain "Detailed Report" (SAP Spend Control Tower's own name for
+ * this widget) — spend/plants/categories come from POs, the same basis every
+ * other widget on this page uses; invoices are a separate row grain, counted
+ * from fact_invoices rather than reused from the PO count.
+ */
+async function loadSupplierDetailReport(runner: QueryRunner, filters: SapFilters): Promise<SupplierDetailRow[]> {
+  const invoiceFilters = await buildInvoiceFilters(runner, filters);
+  const [poRows, invoiceRows] = await Promise.all([
+    runner.run(
+      grouped({
+        datasetId: PO_ITEMS_DATASET,
+        dimensions: ["vendor_name"],
+        measures: {
+          [VALUE]: ["net_order_value_inr", "sum"],
+          [PLANTS]: ["plant_code", "distinct"],
+          [CATEGORIES]: ["category_l1_name", "distinct"],
+        },
+        filters: buildProviderFilters(filters),
+        sortBy: VALUE,
+        limit: SUPPLIER_ROW_LIMIT,
+      })
+    ),
+    runner.run(
+      grouped({
+        datasetId: INVOICES_DATASET,
+        dimensions: ["vendor_name"],
+        measures: { docs: ["invoice_number", "distinct"] },
+        filters: invoiceFilters,
+        limit: SUPPLIER_ROW_LIMIT,
+      })
+    ),
+  ]);
+
+  const rows = new Map<string, SupplierDetailRow>();
+  for (const row of poRows) {
+    const supplierName = toLabel(row.vendor_name);
+    rows.set(supplierName, {
+      key: supplierName,
+      supplierName,
+      invoices: 0,
+      plants: toNumber(row[PLANTS]),
+      categories: toNumber(row[CATEGORIES]),
+      products: null,
+      spendInr: round2(toNumber(row[VALUE])),
+    });
+  }
+  for (const row of invoiceRows) {
+    const supplierName = toLabel(row.vendor_name);
+    const existing = rows.get(supplierName);
+    if (existing) existing.invoices = toNumber(row.docs);
+    else {
+      rows.set(supplierName, {
+        key: supplierName,
+        supplierName,
+        invoices: toNumber(row.docs),
+        plants: 0,
+        categories: 0,
+        products: null,
+        spendInr: 0,
+      });
+    }
+  }
+
+  return Array.from(rows.values()).sort((a, b) => b.spendInr - a.spendInr);
+}
+
 async function loadTrend(
   runner: QueryRunner,
   filters: SapFilters
@@ -571,12 +641,13 @@ export async function loadSpendOverviewFromProvider(
   const { kpis, total } = await loadKpis(runner, filters);
   if (total <= 0 && kpis.poCount === 0) return null;
 
-  const [categories, topSuppliers, trendData, buData, invoiceCountByMonth] = await Promise.all([
+  const [categories, topSuppliers, trendData, buData, invoiceCountByMonth, supplierDetailRows] = await Promise.all([
     loadCategories(runner, filters),
     loadTopSuppliers(runner, total, filters),
     loadTrend(runner, filters),
     loadBuSpend(runner, total, filters),
     loadMonthlyInvoiceCounts(runner, filters),
+    loadSupplierDetailReport(runner, filters),
   ]);
 
   const metricsRows = buildMetricsRows(categories, total);
@@ -593,5 +664,6 @@ export async function loadSpendOverviewFromProvider(
     sunburstNodes: buildSunburst(categories),
     plantNameToCode: buData.plantNameToCode,
     metricsRows,
+    supplierDetailRows,
   };
 }

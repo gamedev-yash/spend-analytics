@@ -9,13 +9,13 @@ import { CategorySpendList } from "@/components/sap/category-spend-list";
 import { SupplierSpendList } from "@/components/sap/supplier-spend-list";
 import { SpendTrendChart } from "@/components/sap/spend-trend-chart";
 import { SpendByBuChart } from "@/components/sap/spend-by-bu-chart";
-import { MetricsTable } from "@/components/sap/metrics-table";
+import { SupplierDetailReportTable } from "@/components/sap/supplier-detail-report";
 import type {
   HeadlineKpis,
   TreemapNode,
   MonthlyTrendPoint,
   BuSpendRow,
-  MetricsTableRow,
+  SupplierDetailRow,
   getTopSuppliersData,
 } from "@/lib/sap/aggregate";
 import { formatCr, formatSignedPercentInr } from "@/lib/sap/format-inr";
@@ -38,9 +38,8 @@ interface SpendOverviewCanvasProps {
   treemapNodes: TreemapNode[];
   topSuppliers: ReturnType<typeof getTopSuppliersData>;
   trend: MonthlyTrendPoint[];
-  invoiceCountByMonth: Record<string, number>;
   buSpend: BuSpendRow[];
-  metricsRows: MetricsTableRow[];
+  supplierDetailRows: SupplierDetailRow[];
 }
 
 /**
@@ -54,9 +53,8 @@ export function SpendOverviewCanvas({
   treemapNodes,
   topSuppliers,
   trend,
-  invoiceCountByMonth,
   buSpend,
-  metricsRows,
+  supplierDetailRows,
 }: SpendOverviewCanvasProps) {
   const { activeParameters, toggleParameter, applyPreset, isWidgetVisible } = useSpendOverviewFocus();
   const { getThreshold, evaluate } = useThresholds();
@@ -110,8 +108,8 @@ export function SpendOverviewCanvas({
           </ChartCard>
         )}
         {isWidgetVisible("spend-trend-chart") && (
-          <ChartCard className="h-[420px]" title="Spend Trend" description="Trailing 12 months, YoY change per bar" icon={<TrendingUp />} accent="blue">
-            <SpendTrendChart trend={trend} invoiceCountByMonth={invoiceCountByMonth} />
+          <ChartCard className="h-[420px]" title="Spend Trend" description="Jan 2023 – Dec 2025, full history" icon={<TrendingUp />} accent="blue">
+            <SpendTrendChart trend={trend} />
           </ChartCard>
         )}
         {isWidgetVisible("spend-by-bu-chart") && (
@@ -120,8 +118,12 @@ export function SpendOverviewCanvas({
           </ChartCard>
         )}
         {isWidgetVisible("metrics-table") && (
-          <ChartCard className="h-[420px] lg:col-span-2" title="Key Metrics Summary" description="Sortable, exportable" icon={<FileCheck2 />} accent="blue">
-            <MetricsTable rows={metricsRows} />
+          <ChartCard className="h-[420px] lg:col-span-2" title="Detailed Report" description="Supplier (Global Ultimate) drill-down, sortable, exportable" icon={<FileCheck2 />} accent="blue">
+            <SupplierDetailReportTable
+              rows={supplierDetailRows}
+              valueColumns={[{ key: "spendInr", label: "Spend", value: (r) => r.spendInr }]}
+              csvFilename="spend-overview-detailed-report"
+            />
           </ChartCard>
         )}
       </div>

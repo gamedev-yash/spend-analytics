@@ -8,25 +8,33 @@ interface SpendByBuChartProps {
   rows: BuSpendRow[];
 }
 
-/** Vertical bar of total spend by business unit / plant, with a % annotation above each bar. */
+const CRORE = 10_000_000;
+
+/**
+ * Vertical bar of total spend by business unit / plant (x = BU, y = spend in
+ * ₹ Cr — the axis title and unit avoid Plotly's default raw-number "0B"
+ * auto-formatting), with a % of total annotation above each bar.
+ */
 export function SpendByBuChart({ rows }: SpendByBuChartProps) {
   const palette = usePalette();
 
   const ordered = [...rows].sort((a, b) => b.total - a.total);
+  const valuesCr = ordered.map((r) => r.total / CRORE);
 
   const data: PlotlyTrace[] = [
     {
       type: "bar",
       x: ordered.map((r) => r.plantName),
-      y: ordered.map((r) => r.total),
+      y: valuesCr,
+      customdata: ordered.map((r) => r.total),
       marker: { color: palette.categorical.orange, cornerradius: 4 },
-      hovertemplate: "<b>%{x}</b><br>Spend: ₹%{y:,.0f}<extra></extra>",
+      hovertemplate: "<b>%{x}</b><br>Spend: ₹%{customdata:,.0f}<extra></extra>",
     },
   ];
 
-  const annotations = ordered.map((r) => ({
+  const annotations = ordered.map((r, i) => ({
     x: r.plantName,
-    y: r.total,
+    y: valuesCr[i],
     xref: "x" as const,
     yref: "y" as const,
     text: `${r.percentOfTotal.toFixed(1)}%`,
@@ -41,8 +49,9 @@ export function SpendByBuChart({ rows }: SpendByBuChartProps) {
       data={data}
       layout={{
         xaxis: { automargin: true },
+        yaxis: { title: { text: "Spend (₹ Cr)" } },
         bargap: 0.4,
-        margin: { t: 24, r: 16, b: 16, l: 16 },
+        margin: { t: 24, r: 16, b: 16, l: 48 },
         annotations,
       }}
     />

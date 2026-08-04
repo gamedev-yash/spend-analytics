@@ -76,9 +76,8 @@ export function SpendOverviewDataBridge({ serverData, filters }: SpendOverviewDa
           treemapNodes={data.treemapNodes}
           topSuppliers={data.topSuppliers}
           trend={data.trend}
-          invoiceCountByMonth={data.invoiceCountByMonth ?? {}}
           buSpend={data.buSpend}
-          metricsRows={data.metricsRows}
+          supplierDetailRows={data.supplierDetailRows}
         />
       </RevalidatingSection>
     </>

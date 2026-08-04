@@ -69,7 +69,7 @@ export const SO_WIDGET_GROUPS: CustomizeWidgetGroupDef<SpendOverviewWidgetId>[] 
       { id: "top-suppliers-chart", label: "Spend by Suppliers" },
       { id: "spend-trend-chart", label: "Spend Trend" },
       { id: "spend-by-bu-chart", label: "Spend by Business Unit" },
-      { id: "metrics-table", label: "Key Metrics Summary" },
+      { id: "metrics-table", label: "Detailed Report" },
     ],
   },
 ];

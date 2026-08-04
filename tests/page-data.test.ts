@@ -80,7 +80,7 @@ describe("spend-overview provider loader", () => {
     assert.ok(data.topSuppliers.rows.length > 0, "top suppliers");
     assert.ok(data.trend.length > 0, "trend");
     assert.ok(data.buSpend.length > 0, "BU split");
-    assert.ok(data.sunburstNodes.length > 0, "sunburst");
+    assert.ok((data.sunburstNodes ?? []).length > 0, "sunburst");
     assert.ok(data.metricsRows.length > 0, "metrics table");
     assert.ok(data.insightText.length > 20, "insight text");
   });

@@ -5,6 +5,7 @@ import {
   getOffContractByCategoryData,
   getUnmanagedBySupplierData,
   getUnmanagedByBuData,
+  getComplianceDetailReportData,
 } from "@/lib/sap/compliance";
 import { ComplianceFilters } from "./components/ComplianceFilters";
 import { ComplianceCanvas } from "./components/ComplianceCanvas";
@@ -46,6 +47,7 @@ export default async function CompliancePage({ searchParams }: PageProps) {
   const offContractByCategory = getOffContractByCategoryData(filters);
   const unmanagedBySupplier = getUnmanagedBySupplierData(filters, 15);
   const unmanagedByBu = getUnmanagedByBuData(filters);
+  const detailReportRows = getComplianceDetailReportData(filters);
 
   const activeFilterCount =
     (filters.plants?.length ?? 0) + (filters.categoriesL1?.length ?? 0) + (filters.vendorId ? 1 : 0);
@@ -83,6 +85,7 @@ export default async function CompliancePage({ searchParams }: PageProps) {
           offContractByCategory={offContractByCategory}
           unmanagedBySupplier={unmanagedBySupplier}
           unmanagedByBu={unmanagedByBu}
+          detailReportRows={detailReportRows}
         />
       </div>
     </div>

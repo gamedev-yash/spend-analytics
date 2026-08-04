@@ -520,6 +520,79 @@ export function getMetricsTableData(filters: SapFilters): MetricsTableRow[] {
 }
 
 // ---------------------------------------------------------------------------
+// View 7 — Supplier Detailed Report (SAP Spend Control Tower "Detailed Report")
+// ---------------------------------------------------------------------------
+
+export interface SupplierDetailRow {
+  key: string;
+  supplierName: string;
+  /** Real invoice count for this supplier — a separate row grain from POs. */
+  invoices: number;
+  plants: number;
+  categories: number;
+  /** Not tracked at this transaction grain in the current dataset (no material/product id on a PO line). */
+  products: number | null;
+  spendInr: number;
+}
+
+export function getSupplierDetailReportData(filters: SapFilters, limit = 500): SupplierDetailRow[] {
+  const poRows = getFilteredPoItems(filters);
+  const invoiceRows = getFilteredInvoices(filters);
+
+  interface Entry {
+    supplierName: string;
+    spend: number;
+    plants: Set<string>;
+    categories: Set<string>;
+    invoices: number;
+  }
+  const map = new Map<string, Entry>();
+  function entryFor(vendorId: string): Entry {
+    const vendor = vendorById.get(vendorId);
+    const key = vendor?.parent_company_group ?? vendorId;
+    let entry = map.get(key);
+    if (!entry) {
+      entry = {
+        supplierName: vendor?.parent_company_group ?? vendor?.vendor_name ?? vendorId,
+        spend: 0,
+        plants: new Set(),
+        categories: new Set(),
+        invoices: 0,
+      };
+      map.set(key, entry);
+    }
+    return entry;
+  }
+
+  // Spend, plants, and categories come from POs — the same basis every other
+  // widget on this page uses. Invoices are a separate row grain, counted here
+  // rather than derived from the PO count (see the KPI ribbon's Invoices fix).
+  for (const p of poRows) {
+    const entry = entryFor(p.vendor_id);
+    entry.spend += p.net_value_inr;
+    entry.plants.add(p.plant_code);
+    const l1 = categoryByCode.get(p.category_code)?.category_l1;
+    if (l1) entry.categories.add(l1);
+  }
+  for (const inv of invoiceRows) {
+    entryFor(inv.vendor_id).invoices += 1;
+  }
+
+  return Array.from(map.entries())
+    .map(([key, e]) => ({
+      key,
+      supplierName: e.supplierName,
+      invoices: e.invoices,
+      plants: e.plants.size,
+      categories: e.categories.size,
+      products: null,
+      spendInr: round2(e.spend),
+    }))
+    .sort((a, b) => b.spendInr - a.spendInr)
+    .slice(0, limit);
+}
+
+// ---------------------------------------------------------------------------
 // Insight summary text
 // ---------------------------------------------------------------------------
 

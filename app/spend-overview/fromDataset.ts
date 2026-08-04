@@ -18,6 +18,7 @@ import type {
   MonthlyTrendPoint,
   SpikeMarker,
   SunburstNode,
+  SupplierDetailRow,
   TopSupplierRow,
   TreemapNode,
 } from "@/lib/sap/aggregate";
@@ -41,6 +42,8 @@ export interface SpendOverviewData {
   sunburstNodes?: SunburstNode[];
   plantNameToCode?: Record<string, string>;
   metricsRows: MetricsTableRow[];
+  /** Supplier-grain "Detailed Report" — see lib/sap/aggregate.ts's getSupplierDetailReportData. */
+  supplierDetailRows: SupplierDetailRow[];
 }
 
 interface Record_ {
@@ -254,11 +257,18 @@ export function buildSpendOverviewFromDataset(dataset: Dataset, filters: SapFilt
 
   // --- Top suppliers (Pareto) -------------------------------------------------
 
-  const groups = new Map<string, { displayName: string; totalValue: number; byL1: Map<string, number> }>();
+  const groups = new Map<
+    string,
+    { displayName: string; totalValue: number; byL1: Map<string, number>; plants: Set<string>; recordCount: number }
+  >();
   for (const r of records) {
-    const entry = groups.get(r.vendorKey) ?? { displayName: r.vendorKey, totalValue: 0, byL1: new Map() };
+    const entry =
+      groups.get(r.vendorKey) ??
+      { displayName: r.vendorKey, totalValue: 0, byL1: new Map(), plants: new Set(), recordCount: 0 };
     entry.totalValue += r.value;
     entry.byL1.set(r.l1, (entry.byL1.get(r.l1) ?? 0) + r.value);
+    entry.plants.add(r.plantCode);
+    entry.recordCount += 1;
     groups.set(r.vendorKey, entry);
   }
   const sortedSuppliers = Array.from(groups.entries())
@@ -281,6 +291,24 @@ export function buildSpendOverviewFromDataset(dataset: Dataset, filters: SapFilt
     top5Percent: round2((top5Value / safeTotal) * 100),
     allL1: Array.from(new Set(records.map((r) => r.l1))),
   };
+
+  // --- Supplier Detailed Report -----------------------------------------------
+
+  // This flat model doesn't distinguish invoice rows from PO rows (see the file
+  // header), so the same per-supplier record count stands in for "invoices"
+  // here too — matching how the KPI ribbon's Invoices figure already does.
+  const supplierDetailRows: SupplierDetailRow[] = Array.from(groups.entries())
+    .map(([key, v]) => ({
+      key,
+      supplierName: v.displayName,
+      invoices: v.recordCount,
+      plants: v.plants.size,
+      categories: v.byL1.size,
+      products: null,
+      spendInr: round2(v.totalValue),
+    }))
+    .sort((a, b) => b.spendInr - a.spendInr)
+    .slice(0, 500);
 
   // --- Monthly trend (full history of the dataset, ignoring the date filter) ---
 
@@ -429,5 +457,6 @@ export function buildSpendOverviewFromDataset(dataset: Dataset, filters: SapFilt
     sunburstNodes,
     plantNameToCode,
     metricsRows,
+    supplierDetailRows,
   };
 }

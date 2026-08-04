@@ -11,6 +11,7 @@ import {
   getSpikeMarkers,
   getSpendByBuData,
   getMetricsTableData,
+  getSupplierDetailReportData,
   generateInsightText,
 } from "@/lib/sap/aggregate";
 import { getMonthlyInvoiceCounts } from "./monthlyInvoiceCounts";
@@ -56,6 +57,7 @@ export default async function SpendOverviewPage({ searchParams }: PageProps) {
   const spikes = getSpikeMarkers(trend);
   const buSpend = getSpendByBuData(filters);
   const metricsRows = getMetricsTableData(filters);
+  const supplierDetailRows = getSupplierDetailReportData(filters);
   const insightText = generateInsightText(filters);
 
   const activeFilterCount =
@@ -104,6 +106,7 @@ export default async function SpendOverviewPage({ searchParams }: PageProps) {
             spikes,
             buSpend,
             metricsRows,
+            supplierDetailRows,
           }}
           filters={filters}
         />

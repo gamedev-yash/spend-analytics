@@ -133,6 +133,87 @@ export interface BuSpendPoint {
   percent: number;
 }
 
+// ---------------------------------------------------------------------------
+// Supplier Detailed Report (SAP Spend Control Tower "Detailed Report")
+// ---------------------------------------------------------------------------
+
+export interface ComplianceDetailRow {
+  key: string;
+  supplierName: string;
+  invoices: number;
+  plants: number;
+  categories: number;
+  /** Not tracked at this transaction grain in the current dataset (no material/product id on a PO line). */
+  products: number | null;
+  unmanagedSpendInr: number;
+  totalSpendInr: number;
+}
+
+/** Supplier-grain drill-down: every supplier's unmanaged spend against their total spend. */
+export function getComplianceDetailReportData(filters: SapFilters, limit = 500): ComplianceDetailRow[] {
+  const poItems = getFilteredPoItems(filters);
+  const invoiceRows = getFilteredInvoices(filters);
+
+  interface Entry {
+    supplierName: string;
+    unmanagedSpend: number;
+    totalSpend: number;
+    plants: Set<string>;
+    categories: Set<string>;
+    invoices: number;
+  }
+  const map = new Map<string, Entry>();
+  function entryFor(vendorId: string): Entry {
+    const vendor = vendorById.get(vendorId);
+    const key = vendor?.parent_company_group ?? vendorId;
+    let entry = map.get(key);
+    if (!entry) {
+      entry = {
+        supplierName: vendor?.parent_company_group ?? vendor?.vendor_name ?? vendorId,
+        unmanagedSpend: 0,
+        totalSpend: 0,
+        plants: new Set(),
+        categories: new Set(),
+        invoices: 0,
+      };
+      map.set(key, entry);
+    }
+    return entry;
+  }
+
+  for (const p of poItems) {
+    const entry = entryFor(p.vendor_id);
+    entry.totalSpend += p.net_value_inr;
+    if (!p.contract_number) entry.unmanagedSpend += p.net_value_inr;
+    entry.plants.add(p.plant_code);
+    const l1 = categoryByCode.get(p.category_code)?.category_l1;
+    if (l1) entry.categories.add(l1);
+  }
+  for (const inv of invoiceRows) {
+    const entry = entryFor(inv.vendor_id);
+    entry.totalSpend += inv.invoice_value_inr;
+    entry.invoices += 1;
+    if (!inv.po_number) entry.unmanagedSpend += inv.invoice_value_inr;
+    entry.plants.add(inv.plant_code);
+    const l1 = categoryByCode.get(inv.category_code)?.category_l1;
+    if (l1) entry.categories.add(l1);
+  }
+
+  return Array.from(map.entries())
+    .map(([key, e]) => ({
+      key,
+      supplierName: e.supplierName,
+      invoices: e.invoices,
+      plants: e.plants.size,
+      categories: e.categories.size,
+      products: null,
+      unmanagedSpendInr: round2(e.unmanagedSpend),
+      totalSpendInr: round2(e.totalSpend),
+    }))
+    .sort((a, b) => b.unmanagedSpendInr - a.unmanagedSpendInr)
+    .slice(0, limit);
+}
+
 /** Business units ranked by unmanaged spend (off-PO + off-contract combined). */
 export function getUnmanagedByBuData(filters: SapFilters): BuSpendPoint[] {
   const offContractPo = getFilteredPoItems(filters).filter((p) => !p.contract_number);

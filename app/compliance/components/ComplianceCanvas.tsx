@@ -1,9 +1,10 @@
 "use client";
 
-import { ShieldAlert, FileWarning, Users, Building2 } from "lucide-react";
+import { ShieldAlert, FileWarning, Users, Building2, FileCheck2 } from "lucide-react";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { SpendBarList } from "@/components/sap/spend-bar-list";
+import { SupplierDetailReportTable } from "@/components/sap/supplier-detail-report";
 import { formatCr, formatPercentInr } from "@/lib/sap/format-inr";
 import { useThresholds } from "@/context/ThresholdsContext";
 import { thresholdEvaluationTitle } from "@/lib/threshold-format";
@@ -14,6 +15,7 @@ import type {
   CategorySpendPoint,
   SupplierSpendPoint,
   BuSpendPoint,
+  ComplianceDetailRow,
 } from "@/lib/sap/compliance";
 
 const STATUS_ACCENT: Record<ThresholdStatus, AccentColor> = {
@@ -28,6 +30,7 @@ interface ComplianceCanvasProps {
   offContractByCategory: CategorySpendPoint[];
   unmanagedBySupplier: SupplierSpendPoint[];
   unmanagedByBu: BuSpendPoint[];
+  detailReportRows: ComplianceDetailRow[];
 }
 
 /**
@@ -42,6 +45,7 @@ export function ComplianceCanvas({
   offContractByCategory,
   unmanagedBySupplier,
   unmanagedByBu,
+  detailReportRows,
 }: ComplianceCanvasProps) {
   const { getThreshold, evaluate } = useThresholds();
   const unmanagedConfig = getThreshold("compliance.unmanaged-spend");
@@ -119,6 +123,23 @@ export function ComplianceCanvas({
           />
         </ChartCard>
       </div>
+
+      <ChartCard
+        className="h-[420px]"
+        title="Detailed Report"
+        description="Supplier (Global Ultimate) drill-down, sortable, exportable"
+        icon={<FileCheck2 />}
+        accent="blue"
+      >
+        <SupplierDetailReportTable
+          rows={detailReportRows}
+          valueColumns={[
+            { key: "unmanagedSpendInr", label: "Unmanaged Spend", value: (r) => r.unmanagedSpendInr },
+            { key: "totalSpendInr", label: "Total Spend", value: (r) => r.totalSpendInr },
+          ]}
+          csvFilename="compliance-detailed-report"
+        />
+      </ChartCard>
     </>
   );
 }
