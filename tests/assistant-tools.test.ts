@@ -30,6 +30,23 @@ function enumOf(schema: Schema): unknown[] {
   return schema.enum;
 }
 
+/**
+ * A nullable enum-constrained property is `{ anyOf: [{ type, enum }, { type: "null" }] }`
+ * — Anthropic's strict tool-use API rejects the shorter `{ type: [X, "null"], enum: [...values, null] }`
+ * form outright (400 "Enum value ... does not match declared type"), so every
+ * nullable + enum property in this codebase uses anyOf instead. This reads the
+ * enum back out, plus a trailing `null` so call sites that expect the old
+ * "enum including null" shape don't need to change.
+ */
+function nullableEnumOf(schema: Schema): unknown[] {
+  const branches = schema.anyOf;
+  assert.ok(Array.isArray(branches) && branches.length === 2, `expected a 2-branch anyOf, got ${JSON.stringify(schema)}`);
+  const [enumBranch, nullBranch] = branches as Schema[];
+  assert.equal(nullBranch.type, "null");
+  assert.ok(Array.isArray(enumBranch.enum), `expected an enum, got ${JSON.stringify(enumBranch)}`);
+  return [...(enumBranch.enum as unknown[]), null];
+}
+
 describe("query_warehouse tool schema", () => {
   const tool = queryWarehouseTool();
   const props = properties(tool);
@@ -76,7 +93,7 @@ describe("query_warehouse tool schema", () => {
   });
 
   it("offers only the grains both providers implement", () => {
-    assert.deepEqual(enumOf(props.timeGrain), ["month", "quarter", "year", null]);
+    assert.deepEqual(nullableEnumOf(props.timeGrain), ["month", "quarter", "year", null]);
   });
 
   it("tells the model the real row cap", () => {
@@ -92,11 +109,11 @@ describe("create_widget tool schema", () => {
     const props = properties(createWidgetTool("fact_po_items"));
 
     assert.deepEqual(
-      enumOf(props.xAxisColumn),
+      nullableEnumOf(props.xAxisColumn),
       [...columns.filter((c) => c.type !== "number").map((c) => c.id), null]
     );
     assert.deepEqual(
-      enumOf(props.yAxisColumn),
+      nullableEnumOf(props.yAxisColumn),
       [...columns.filter((c) => c.type === "number").map((c) => c.id), null]
     );
   });
@@ -110,8 +127,8 @@ describe("create_widget tool schema", () => {
   it("never offers a measure column as a grouping axis, or vice versa", () => {
     for (const dataset of listDatasets()) {
       const props = properties(createWidgetTool(dataset.id));
-      const grouping = new Set(enumOf(props.xAxisColumn).filter((v) => v !== null));
-      const measures = new Set(enumOf(props.yAxisColumn).filter((v) => v !== null));
+      const grouping = new Set(nullableEnumOf(props.xAxisColumn).filter((v) => v !== null));
+      const measures = new Set(nullableEnumOf(props.yAxisColumn).filter((v) => v !== null));
       for (const id of grouping) assert.equal(measures.has(id), false, `${String(id)} in both`);
     }
   });

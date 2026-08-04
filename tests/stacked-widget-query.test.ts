@@ -307,6 +307,15 @@ describe("create_widget tool after the merge", () => {
     assert.ok(required.includes("seriesColumn"));
   });
 
+  // Nullable + enum-constrained axis properties use `{ anyOf: [{type,enum}, {type:"null"}] }`,
+  // not `{ type: [X,"null"], enum: [...values, null] }` — Anthropic's strict tool-use API
+  // rejects the latter outright (see lib/server/assistant-tools.ts's `axis()` helper).
+  function nullableEnumOf(schema: Schema): unknown[] {
+    const branches = schema.anyOf as Schema[];
+    assert.ok(Array.isArray(branches) && branches.length === 2);
+    return [...(branches[0].enum as unknown[]), null];
+  }
+
   it("enum-constrains seriesColumn to the dataset's grouping columns", () => {
     const dataset = getDataset("fact_po_items");
     assert.ok(dataset);
@@ -314,7 +323,7 @@ describe("create_widget tool after the merge", () => {
       .filter((c) => c.type !== "number")
       .map((c) => c.id);
     const schema = props(createWidgetTool("fact_po_items")).seriesColumn;
-    assert.deepEqual(schema.enum, [...grouping, null]);
+    assert.deepEqual(nullableEnumOf(schema), [...grouping, null]);
   });
 
   it("never offers a measure column as the stack-by dimension", () => {
@@ -323,7 +332,7 @@ describe("create_widget tool after the merge", () => {
     const measures = new Set(
       listColumns(dataset).filter((c) => c.type === "number").map((c) => c.id)
     );
-    const seriesEnum = props(createWidgetTool("fact_invoices")).seriesColumn.enum as unknown[];
+    const seriesEnum = nullableEnumOf(props(createWidgetTool("fact_invoices")).seriesColumn);
     for (const id of seriesEnum) {
       if (id !== null) assert.equal(measures.has(String(id)), false, `${String(id)} is a measure`);
     }

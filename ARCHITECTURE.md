@@ -619,6 +619,79 @@ Fix the query and try again, or tell the user what is missing. Do not invent num
 returns the executed payload plus its rows to the client, the model's prose can be
 audited against the query that produced it.
 
+### 4.4 Per-dashboard assistant — the 5 core dashboards
+
+`DashboardAssistant.tsx` / `app/api/dashboard-chat/route.ts` serves the 5 core
+dashboards (Spend Overview, Compliance, Payment Terms, Tail Spend, Supplier
+Fragmentation) — a **separate** assistant from §4.3's warehouse one, because
+these dashboards' data doesn't live in the `fact_po_items`/`fact_invoices`
+registry. It used to answer only from a hardcoded per-dashboard text summary
+(a handful of headline KPIs); it now runs the same "structured query,
+validated, then answered" shape as §4.3, just scoped to one dashboard's own
+tables instead of the warehouse.
+
+```
+lib/ai/
+  dashboard-registry.ts   routing only — DashboardKey, route, label, description (no data)
+  dashboard-tables.ts     the Data Provider — named row tables per dashboard, e.g.
+                          spend-overview/compliance share "purchase_orders" + "invoices"
+                          (denormalized from lib/sap/raw-data.ts); tail-spend and
+                          supplier-fragmentation each expose several small tables straight
+                          from their existing mock objects (categoryBreakdown, supplierBubbles,
+                          duplicatePairs, ...)
+  query-engine.ts         dashboard-agnostic filter/groupBy/aggregate/sort/limit over plain
+                          row arrays — runQuery() + describeSchema()
+  dashboard-query.ts      wires the two together: builds the `query_dashboard_data` tool
+                          scoped to one dashboard's tables/columns, validates the model's
+                          table+field choice against that dashboard's real data before
+                          running anything, renders the result as a correctable tool_result
+  dashboard-context.ts    the Context Manager — renders a dashboard's table/column schema
+                          (via describeSchema) into the system prompt; never the rows
+```
+
+`app/api/dashboard-chat/route.ts` runs the same two-pass loop as `/api/assistant`:
+pass 1 the model may call `query_dashboard_data` and/or `redirect_to_dashboard`;
+matched queries execute through `runDashboardQuery` and come back as a
+`tool_result`; pass 2 the model reads the rows and answers. A question the
+dashboard's tables can't answer gets a plain "I don't have that" rather than
+an estimate; a question that belongs to a *different* dashboard gets
+`redirect_to_dashboard`, never a guess.
+
+**This is a CSV/mock-data provider today, by design** — `dashboard-tables.ts`
+builds its row arrays from `lib/sap/raw-data.ts` (the same PO/invoice JSON the
+Spend Overview and Compliance pages themselves render from) and each other
+dashboard's existing mock objects. Swapping in real SAP data later only means
+changing the row sources inside `dashboard-tables.ts` — the tool schema, the
+validation in `dashboard-query.ts`, and the route's two-pass loop stay
+identical, the same seam `IDataProvider` gives the warehouse side in §1–§3.
+
+**Two tables can share a name across dashboards on purpose.** Compliance and
+Spend Overview both expose `purchase_orders`/`invoices` pointing at the exact
+same underlying rows — see §3.2's point about two dashboards needing to
+reconcile. They never appear in the same tool call, since each dashboard's
+assistant only ever sees its own table list.
+
+**Containment is two-layered, same as §4.3.** `queryDashboardDataTool()`
+enum-constrains `table` to exactly that dashboard's own table ids, and
+`groupBy`/`measure`/`filters[].field`/`select[]` to the *union* of column ids
+across that dashboard's tables (not the ids of every table on every
+dashboard). `runDashboardQuery` is the second layer: it rejects a field that
+is real on a sibling table but not the one actually requested, as a
+correctable `QUERY FAILED` tool_result rather than a silent empty result —
+`tests/dashboard-query.test.ts` asserts exactly this case, plus independent
+reconciliation (e.g. `category_breakdown`'s `totalSpend` sums to the tail-spend
+dashboard's own `kpi.totalAnnualSpend`).
+
+**Anthropic's strict tool-use rejects `{ type: [X, "null"], enum: [...values, null] }`.**
+Every nullable, enum-constrained tool property in this codebase (here and in
+§4.3's `queryWarehouseTool`/`createWidgetTool`) instead uses
+`{ anyOf: [{ type: X, enum: [...values] }, { type: "null" }] }`. The shorter
+form validates fine as a JS object and passes `strict: true`'s own
+`additionalProperties` check, but the live API 400s on it
+(`"Enum value '...' does not match declared type '[...]'"`)  — this only
+surfaces against a real request, never against the schema shape alone, which
+is why it shipped once already.
+
 ---
 
 ## 5. Environment & feature toggle configuration
@@ -730,6 +803,14 @@ lib/server/                   ── server-only ──
   assistant-tools.ts          tool schemas, toQueryPayload, model-facing context
   sap-transforms.ts           FX rates, Indian fiscal calendar, group-name humanization
 
+lib/ai/                        ── the 5 core dashboards' assistant, see §4.4 ──
+  dashboard-registry.ts       routing/labels only — DashboardKey, route, description
+  dashboard-tables.ts          Data Provider — named row tables per dashboard (CSV/mock today)
+  query-engine.ts              dashboard-agnostic runQuery()/describeSchema() over row arrays
+  dashboard-query.ts           query_dashboard_data tool + validation + result rendering
+  dashboard-context.ts         Context Manager — renders a dashboard's schema into the prompt
+  anthropic-client.ts          shared credential resolution for both assistants
+
 lib/page-data/                core dashboards: provider aggregates → page shapes
   provider-queries.ts         shared query helpers ("push grouping down, derive in JS")
   tail-spend-from-provider.ts
@@ -739,7 +820,8 @@ lib/page-data/                core dashboards: provider aggregates → page shap
 app/api/
   v1/query/route.ts           POST — the query engine
   v1/datasets/route.ts        GET  — warehouse metadata
-  assistant/route.ts          POST — AI assistant with tool use
+  assistant/route.ts          POST — AI assistant with tool use (warehouse / uploaded CSV)
+  dashboard-chat/route.ts     POST — AI assistant for the 5 core dashboards (§4.4)
 
 db/
   schema.sql                  star schema DDL: 6 dims, 2 facts, 12 FKs, 2 CCIs
@@ -767,6 +849,7 @@ npx eslint .
 | `tests/azure-sql-adapter.test.ts` | Local routing, fallback on every failure class, error rethrow, metadata caching |
 | `tests/page-data.test.ts` | Loaders issue only registry-valid payloads; totals reconcile against independent aggregation |
 | `tests/assistant-tools.test.ts` | `strict: true` enum containment, `toQueryPayload`, cross-dataset rejection |
+| `tests/dashboard-query.test.ts` | Same containment property for the 5 core dashboards' `query_dashboard_data` tool — per-table enum scoping, cross-table field rejection, independent reconciliation against each dashboard's own mock totals |
 
 The most valuable pattern in these suites is **independent reconciliation** — a
 loader's output is compared against a separate aggregation of the same source rows

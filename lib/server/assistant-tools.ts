@@ -93,8 +93,7 @@ export function queryWarehouseTool(): Anthropic.Tool {
           },
         },
         timeGrain: {
-          type: ["string", "null"],
-          enum: ["month", "quarter", "year", null],
+          anyOf: [{ type: "string", enum: ["month", "quarter", "year"] }, { type: "null" }],
           description: 'Date bucket width. "year" is the Indian fiscal year (April-March).',
         },
         limit: {
@@ -105,7 +104,7 @@ export function queryWarehouseTool(): Anthropic.Tool {
           type: ["string", "null"],
           description: "A measure alias or a grouped dimension to order by.",
         },
-        sortDirection: { type: ["string", "null"], enum: ["asc", "desc", null] },
+        sortDirection: { anyOf: [{ type: "string", enum: ["asc", "desc"] }, { type: "null" }] },
       },
       required: [
         "datasetId",
@@ -137,7 +136,7 @@ export function createWidgetTool(registryDatasetId: string | null): Anthropic.To
 
   const axis = (ids: string[], description: string) =>
     ids.length > 0
-      ? { type: ["string", "null"], enum: [...ids, null], description }
+      ? { anyOf: [{ type: "string", enum: ids }, { type: "null" }], description }
       : { type: ["string", "null"], description };
 
   return {
@@ -169,8 +168,7 @@ export function createWidgetTool(registryDatasetId: string | null): Anthropic.To
           "Stack-by dimension column id — only for chartType 'stackedBar', a second category/date column distinct from xAxisColumn (ideally ≤ 8 distinct values). Null for every other chart type."
         ),
         aggregation: {
-          type: ["string", "null"],
-          enum: ["sum", "avg", "count", "distinct", null],
+          anyOf: [{ type: "string", enum: ["sum", "avg", "count", "distinct"] }, { type: "null" }],
           description: "How to aggregate the metric column.",
         },
         limit: {
@@ -179,8 +177,7 @@ export function createWidgetTool(registryDatasetId: string | null): Anthropic.To
             "Top-N cap for grouped charts, e.g. 10 for 'top 10 vendors'. On a date axis, most-recent-N instead.",
         },
         gridSpan: {
-          type: ["integer", "null"],
-          enum: [1, 2, null],
+          anyOf: [{ type: "integer", enum: [1, 2] }, { type: "null" }],
           description: "1 = half width (default), 2 = full width. Use 2 for line trends and tables.",
         },
       },
