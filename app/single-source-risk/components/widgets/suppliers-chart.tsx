@@ -6,29 +6,25 @@ import { useWidgetInvoices } from "../../provider";
 import { aggregateByGlobalUltimate } from "../../selectors";
 import { formatCurrencyFull, formatPercent, truncateLabel, useSingleSourceRiskChartColors } from "../../constants";
 
-const TOP_N = 15;
 const MAX_HEIGHT = 460;
 
 export function SuppliersChart() {
   const chartColors = useSingleSourceRiskChartColors();
   const { invoicesForWidget, selectedKey, onBarClick } = useWidgetInvoices("globalUltimate");
 
-  const allRows = aggregateByGlobalUltimate(invoicesForWidget).sort((a, b) => b.spend - a.spend);
-  const totalCount = allRows.length;
-  const rows = allRows.slice(0, TOP_N);
-  const isCapped = totalCount > TOP_N;
-  // rows are sorted descending, so rows[0] is the visible max — the bars scale to
-  // what's currently shown, not to the full (possibly capped-away) dataset.
+  // Every supplier is listed — the scroll container below absorbs the length.
+  const rows = aggregateByGlobalUltimate(invoicesForWidget).sort((a, b) => b.spend - a.spend);
+  // rows are sorted descending, so rows[0] is the max the bars scale against.
   const maxVisibleValue = rows[0]?.spend ?? 0;
 
   return (
     <ChartCard
       title="Spend by Suppliers (Global Ultimate)"
-      description={isCapped ? `Showing top ${TOP_N} of ${totalCount} suppliers by spend` : "Ordered by spend"}
+      description={`All ${rows.length} suppliers, ordered by spend`}
       icon={<Users />}
       accent="violet"
     >
-      <div className="overflow-y-auto" style={{ maxHeight: MAX_HEIGHT }}>
+      <div className="overflow-y-auto chart-fixed-height-scroll" style={{ maxHeight: MAX_HEIGHT }}>
         <div className="flex flex-col gap-1">
           {rows.map((row) => {
             const isSelected = selectedKey !== null && row.key === selectedKey;

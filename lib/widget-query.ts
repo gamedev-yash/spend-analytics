@@ -221,9 +221,14 @@ export function buildRowCountPayload(datasetId: string, filters: QueryFilter[] =
   };
 }
 
-/** Every distinct value of one column, ascending — the option list for a filter control. */
-export function buildDistinctValuesPayload(datasetId: string, field: string): QueryPayload {
-  return { datasetId, dimensions: [field], sort: { field, direction: "asc" } };
+/**
+ * Every distinct value of one column, ascending — the option list for a
+ * filter control. `filters` (every OTHER active filter, this field excluded)
+ * makes the result cascading: the same provider query mechanism every widget
+ * uses, so it narrows correctly in both CSV and Azure SQL mode alike.
+ */
+export function buildDistinctValuesPayload(datasetId: string, field: string, filters: QueryFilter[] = []): QueryPayload {
+  return { datasetId, dimensions: [field], sort: { field, direction: "asc" }, filters };
 }
 
 export function dimensionLabel(value: unknown): string {

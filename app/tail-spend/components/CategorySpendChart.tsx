@@ -5,6 +5,7 @@ import type { SapCategoryRow } from "../tailSpendMock";
 import { formatCompactNumber } from "../tailSpendMock";
 import { useTailSpendTheme } from "../theme";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
+import { useIsFullscreenChart } from "@/components/dashboard/fullscreen-overlay";
 
 interface CategorySpendChartProps {
   categories: SapCategoryRow[];
@@ -27,10 +28,11 @@ function formatCategorySpend(value: number): string {
  */
 export function CategorySpendChart({ categories }: CategorySpendChartProps) {
   const theme = useTailSpendTheme();
+  const isFullscreen = useIsFullscreenChart();
   const sorted = [...categories].sort((a, b) => b.spend - a.spend).slice(0, TOP_N);
 
   return (
-    <ResponsiveContainer width="100%" height={280}>
+    <ResponsiveContainer width="100%" height={isFullscreen ? "100%" : 280}>
       <BarChart
         data={sorted}
         layout="vertical"

@@ -2,11 +2,11 @@
 
 import { useMemo } from "react";
 import { X } from "lucide-react";
-import { FilterGroup, FilterMonthRange, FilterSelect } from "@/components/ui/filter-controls";
+import { ClearFiltersButton, FilterDateRange, FilterGroup, FilterSelect } from "@/components/ui/filter-controls";
+import { MultiSelect } from "@/components/sap/multi-select";
 import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
 import { useFilterSlot } from "@/context/FilterContext";
 import { useSingleSourceRisk } from "../provider";
-import { formatMonthLabel } from "../constants";
 import { SUPPLIER_COUNT_OPTIONS } from "../selectors";
 import { SSR_WIDGET_GROUPS } from "./focusParams";
 import { useSingleSourceRiskFocus } from "./useSingleSourceRiskFocus";
@@ -15,7 +15,7 @@ import type { LinkedDimension, SupplierCountThreshold } from "../types";
 const DIMENSION_LABELS: Record<LinkedDimension, string> = {
   category: "Category",
   product: "Product",
-  plant: "Plant/Site",
+  plant: "BU / Plant",
   globalUltimate: "Supplier",
 };
 
@@ -27,15 +27,17 @@ export function FilterPanel() {
   const {
     filters,
     selection,
-    setStartMonth,
-    setEndMonth,
-    setCategory,
-    setGlobalUltimate,
-    setSourceSystem,
-    setPlant,
+    setDateFrom,
+    setDateTo,
+    setCategories,
+    setGlobalUltimates,
+    setSourceSystems,
+    setPlants,
     setSupplierCountPerCategory,
     clearSelection,
-    monthOptions,
+    resetFilters,
+    dateMin,
+    dateMax,
     categoryOptions,
     globalUltimateOptions,
     sourceSystemOptions,
@@ -44,42 +46,54 @@ export function FilterPanel() {
 
   const { isWidgetEnabled, toggleWidgetEnabled, resetWidgetsToDefault } = useSingleSourceRiskFocus();
 
+  const hasActiveFilters =
+    filters.categoryCodes.length > 0 ||
+    filters.globalUltimateIds.length > 0 ||
+    filters.sourceSystemIds.length > 0 ||
+    filters.plantIds.length > 0 ||
+    filters.supplierCountPerCategory !== 1;
+
   const node = useMemo(
     () => (
       <div className="space-y-8">
-        <FilterGroup title="Global Filters">
-          <FilterMonthRange
-            label="Date Range"
-            options={monthOptions.map((m) => ({ value: m, label: formatMonthLabel(m) }))}
-            startValue={filters.startMonth}
-            endValue={filters.endMonth}
-            onStartChange={setStartMonth}
-            onEndChange={setEndMonth}
+        <FilterGroup title="Filters">
+          <FilterDateRange
+            fromValue={filters.dateFrom}
+            toValue={filters.dateTo}
+            min={dateMin}
+            max={dateMax}
+            onFromChange={setDateFrom}
+            onToChange={setDateTo}
           />
-          <FilterSelect
+          <MultiSelect
             label="Category"
-            value={filters.categoryCode ?? ""}
-            options={[{ value: "", label: "All Categories" }, ...categoryOptions]}
-            onChange={(value) => setCategory(value === "" ? null : value)}
+            allLabel="All Categories"
+            options={categoryOptions}
+            selected={filters.categoryCodes}
+            onChange={setCategories}
           />
-          <FilterSelect
-            label="Supplier (Global Ultimate)"
-            value={filters.globalUltimateId ?? ""}
-            options={[{ value: "", label: "All Suppliers" }, ...globalUltimateOptions]}
-            onChange={(value) => setGlobalUltimate(value === "" ? null : value)}
+          <MultiSelect
+            label="Supplier"
+            allLabel="All Suppliers"
+            options={globalUltimateOptions}
+            selected={filters.globalUltimateIds}
+            onChange={setGlobalUltimates}
           />
-          <FilterSelect
+          <MultiSelect
             label="Source System"
-            value={filters.sourceSystemId ?? ""}
-            options={[{ value: "", label: "All Source Systems" }, ...sourceSystemOptions]}
-            onChange={(value) => setSourceSystem(value === "" ? null : value)}
+            allLabel="All Source Systems"
+            options={sourceSystemOptions}
+            selected={filters.sourceSystemIds}
+            onChange={setSourceSystems}
           />
-          <FilterSelect
-            label="Plant/Site"
-            value={filters.plantId ?? ""}
-            options={[{ value: "", label: "All Plants/Sites" }, ...plantOptions]}
-            onChange={(value) => setPlant(value === "" ? null : value)}
+          <MultiSelect
+            label="BU / Plant"
+            allLabel="All Plants"
+            options={plantOptions}
+            selected={filters.plantIds}
+            onChange={setPlants}
           />
+          {hasActiveFilters && <ClearFiltersButton onClick={resetFilters} />}
         </FilterGroup>
 
         <FilterGroup title="Sourcing Risk">
@@ -120,18 +134,21 @@ export function FilterPanel() {
     [
       filters,
       selection,
-      monthOptions,
+      hasActiveFilters,
+      dateMin,
+      dateMax,
       categoryOptions,
       globalUltimateOptions,
       sourceSystemOptions,
       plantOptions,
-      setStartMonth,
-      setEndMonth,
-      setCategory,
-      setGlobalUltimate,
-      setSourceSystem,
-      setPlant,
+      setDateFrom,
+      setDateTo,
+      setCategories,
+      setGlobalUltimates,
+      setSourceSystems,
+      setPlants,
       setSupplierCountPerCategory,
+      resetFilters,
       clearSelection,
       isWidgetEnabled,
       toggleWidgetEnabled,

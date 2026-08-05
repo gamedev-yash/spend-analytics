@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, type ReactNode } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, FilterX } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface FilterGroupProps {
@@ -323,5 +323,35 @@ export function FilterToggle({ label, checked, onChange, id, className }: Filter
         />
       </button>
     </div>
+  );
+}
+
+interface ClearFiltersButtonProps {
+  onClick: () => void;
+  label?: string;
+  className?: string;
+}
+
+/**
+ * The one "Clear Filters" control every dashboard's Filter Drawer should
+ * use — same icon, label, and styling everywhere, so pages differ only in
+ * what `onClick` actually resets. Callers decide when to render it (e.g.
+ * `{hasActiveFilters && <ClearFiltersButton onClick={resetFilters} />}`) and
+ * where — the established convention is last, after every other control in
+ * the main "Filters" group.
+ */
+export function ClearFiltersButton({ onClick, label = "Clear Filters", className }: ClearFiltersButtonProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200",
+        className
+      )}
+    >
+      <FilterX className="h-3.5 w-3.5" />
+      {label}
+    </button>
   );
 }

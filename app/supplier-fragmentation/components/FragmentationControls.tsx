@@ -1,7 +1,7 @@
 "use client";
 
 import { useFilterSlot } from "@/context/FilterContext";
-import { FilterDateRange, FilterGroup, FilterToggle } from "@/components/ui/filter-controls";
+import { ClearFiltersButton, FilterDateRange, FilterGroup, FilterToggle } from "@/components/ui/filter-controls";
 import { MultiSelect } from "@/components/sap/multi-select";
 import { useFragmentation } from "./fragmentationStore";
 
@@ -14,21 +14,24 @@ import { useFragmentation } from "./fragmentationStore";
  * derivation exactly like any other filter interaction.
  */
 export function FragmentationControls() {
-  const { payload, filters, mode, setPlants, setL1s, setDateRange, setMode } = useFragmentation();
+  const { payload, filters, mode, options, setPlants, setL1s, setDateRange, setMode, resetFilters } = useFragmentation();
+
+  const hasActiveFilters =
+    filters.plants.length > 0 || filters.l1s.length > 0 || mode !== "vendor";
 
   useFilterSlot(
-    <FilterGroup title="Global Filters">
+    <FilterGroup title="Filters">
       <MultiSelect
-        label="Business Unit / Plant"
+        label="BU / Plant"
         allLabel="All business units"
-        options={payload.plantOptions.map((p) => ({ value: p.code, label: p.name }))}
+        options={options.plants.map((p) => ({ value: p.code, label: p.name }))}
         selected={filters.plants}
         onChange={setPlants}
       />
       <MultiSelect
-        label="Category (L1)"
+        label="Category"
         allLabel="All categories"
-        options={payload.l1Options.map((l1) => ({ value: l1, label: l1 }))}
+        options={options.l1s.map((l1) => ({ value: l1, label: l1 }))}
         selected={filters.l1s}
         onChange={setL1s}
       />
@@ -46,6 +49,7 @@ export function FragmentationControls() {
         checked={mode === "parent"}
         onChange={(checked) => setMode(checked ? "parent" : "vendor")}
       />
+      {hasActiveFilters && <ClearFiltersButton onClick={resetFilters} />}
     </FilterGroup>
   );
 

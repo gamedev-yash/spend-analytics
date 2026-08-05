@@ -1,21 +1,22 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { tailSpendMock } from "../tailSpendMock";
-import { ALL_CATEGORIES, ALL_PLANTS, ALL_SUPPLIERS } from "./reactiveFilters";
-
-export { ALL_CATEGORIES, ALL_SUPPLIERS, ALL_PLANTS };
-export const ALL_SOURCE_SYSTEMS = "All Source Systems";
+import { tailSpendMock, type TailSpendData } from "../tailSpendMock";
+import { allCategoryNames, allSupplierNames, cascadingCategoryOptions, cascadingSupplierOptions } from "./reactiveFilters";
 
 /** Picker bounds — a fixed 3-year window comfortably covering every mock/sample date. */
 export const DATE_MIN = "2024-01-01";
 export const DATE_MAX = "2026-12-31";
 
 export interface TailSpendFilterState {
-  category: string;
-  supplierGlobalUltimate: string;
-  plantSite: string;
-  sourceSystem: string;
+  /** Empty = all. */
+  categories: string[];
+  /** Empty = all. */
+  suppliers: string[];
+  /** Empty = all — display-only, see reactiveFilters.ts's applyTailSpendFilters doc comment for why. */
+  plants: string[];
+  /** Empty = all — display-only, never affects computed numbers. */
+  sourceSystems: string[];
   dateFrom: string;
   dateTo: string;
   paretoThreshold: number;
@@ -24,15 +25,25 @@ export interface TailSpendFilterState {
 
 export interface TailSpendStore {
   filters: TailSpendFilterState;
-  setCategory: (value: string) => void;
-  setSupplier: (value: string) => void;
-  setPlantSite: (value: string) => void;
-  setSourceSystem: (value: string) => void;
+  /** Options each dropdown should actually offer, narrowed by every OTHER active filter. */
+  options: {
+    categories: string[];
+    suppliers: string[];
+    plants: string[];
+    sourceSystems: string[];
+  };
+  /** Selecting a category prunes any now-invalid supplier selections, and vice versa — no 0-row lockouts. */
+  setCategories: (values: string[]) => void;
+  setSuppliers: (values: string[]) => void;
+  setPlants: (values: string[]) => void;
+  setSourceSystems: (values: string[]) => void;
   /** Setting FROM past the current TO pulls TO forward to match, and vice versa. */
   setDateFrom: (value: string) => void;
   setDateTo: (value: string) => void;
   setParetoThreshold: (value: number) => void;
   toggleBucket: (bucketLabel: string) => void;
+  /** Resets every dropdown, date, and toggle back to its default. */
+  resetFilters: () => void;
 }
 
 const ALL_BUCKET_LABELS = tailSpendMock.invoiceValueBuckets.map((b) => b.bucketLabel);
@@ -42,19 +53,57 @@ const ALL_BUCKET_LABELS = tailSpendMock.invoiceValueBuckets.map((b) => b.bucketL
  * (reactiveFilters.applyTailSpendFilters) every widget renders through — so
  * a change to any filter recomputes the whole page from one place instead of
  * each widget reading a differently-scoped local variable.
+ *
+ * Takes `data` (the unfiltered TailSpendData for whichever source is active)
+ * so it can cascade Category <-> Supplier options. The exposed
+ * `filters.categories`/`filters.suppliers` are always intersected against
+ * the current data's universe at render time — a pure derivation rather than
+ * state kept in sync via an effect, so a warehouse refetch that changes the
+ * universe underneath a selection can never leave a stale, now-invalid value
+ * selected, without any extra synchronization code.
  */
-export function useTailSpendStore(): TailSpendStore {
-  const [category, setCategory] = useState(ALL_CATEGORIES);
-  const [supplierGlobalUltimate, setSupplier] = useState(ALL_SUPPLIERS);
-  const [plantSite, setPlantSite] = useState(ALL_PLANTS);
-  const [sourceSystem, setSourceSystem] = useState(ALL_SOURCE_SYSTEMS);
+export function useTailSpendStore(data: TailSpendData): TailSpendStore {
+  const [categoriesRaw, setCategoriesRaw] = useState<string[]>([]);
+  const [suppliersRaw, setSuppliersRaw] = useState<string[]>([]);
+  const [plants, setPlants] = useState<string[]>([]);
+  const [sourceSystems, setSourceSystems] = useState<string[]>([]);
   const [dateFrom, setDateFromRaw] = useState(DATE_MIN);
   const [dateTo, setDateToRaw] = useState(DATE_MAX);
   const [paretoThreshold, setParetoThreshold] = useState(80);
   const [selectedBuckets, setSelectedBuckets] = useState<Set<string>>(() => new Set(ALL_BUCKET_LABELS));
 
-  // ISO "YYYY-MM-DD" strings sort correctly as plain strings, so the same
-  // clamp trick the old month-key version used still works unchanged.
+  const validCategories = useMemo(() => new Set(allCategoryNames(data)), [data]);
+  const validSuppliers = useMemo(() => new Set(allSupplierNames(data)), [data]);
+  const categories = useMemo(
+    () => categoriesRaw.filter((c) => validCategories.has(c)),
+    [categoriesRaw, validCategories]
+  );
+  const suppliers = useMemo(
+    () => suppliersRaw.filter((s) => validSuppliers.has(s)),
+    [suppliersRaw, validSuppliers]
+  );
+
+  function setCategories(values: string[]) {
+    setCategoriesRaw(values);
+    // Cascade: drop any selected supplier whose dominant category is no
+    // longer among the newly-selected categories.
+    if (suppliers.length > 0) {
+      const stillValid = new Set(cascadingSupplierOptions(data, values));
+      const pruned = suppliers.filter((s) => stillValid.has(s));
+      if (pruned.length !== suppliers.length) setSuppliersRaw(pruned);
+    }
+  }
+
+  function setSuppliers(values: string[]) {
+    setSuppliersRaw(values);
+    if (categories.length > 0) {
+      const stillValid = new Set(cascadingCategoryOptions(data, values));
+      const pruned = categories.filter((c) => stillValid.has(c));
+      if (pruned.length !== categories.length) setCategoriesRaw(pruned);
+    }
+  }
+
+  // ISO "YYYY-MM-DD" strings sort correctly as plain strings.
   function setDateFrom(value: string) {
     setDateFromRaw(value);
     setDateToRaw((currentTo) => (value > currentTo ? value : currentTo));
@@ -76,29 +125,43 @@ export function useTailSpendStore(): TailSpendStore {
     });
   }
 
+  function resetFilters() {
+    setCategoriesRaw([]);
+    setSuppliersRaw([]);
+    setPlants([]);
+    setSourceSystems([]);
+    setDateFromRaw(DATE_MIN);
+    setDateToRaw(DATE_MAX);
+    setParetoThreshold(80);
+    setSelectedBuckets(new Set(ALL_BUCKET_LABELS));
+  }
+
   const filters: TailSpendFilterState = useMemo(
+    () => ({ categories, suppliers, plants, sourceSystems, dateFrom, dateTo, paretoThreshold, selectedBuckets }),
+    [categories, suppliers, plants, sourceSystems, dateFrom, dateTo, paretoThreshold, selectedBuckets]
+  );
+
+  const options = useMemo(
     () => ({
-      category,
-      supplierGlobalUltimate,
-      plantSite,
-      sourceSystem,
-      dateFrom,
-      dateTo,
-      paretoThreshold,
-      selectedBuckets,
+      categories: cascadingCategoryOptions(data, suppliers),
+      suppliers: cascadingSupplierOptions(data, categories),
+      plants: data.sapFilterOptions.plantSites,
+      sourceSystems: data.sapFilterOptions.sourceSystems,
     }),
-    [category, supplierGlobalUltimate, plantSite, sourceSystem, dateFrom, dateTo, paretoThreshold, selectedBuckets]
+    [data, categories, suppliers]
   );
 
   return {
     filters,
-    setCategory,
-    setSupplier,
-    setPlantSite,
-    setSourceSystem,
+    options,
+    setCategories,
+    setSuppliers,
+    setPlants,
+    setSourceSystems,
     setDateFrom,
     setDateTo,
     setParetoThreshold,
     toggleBucket,
+    resetFilters,
   };
 }

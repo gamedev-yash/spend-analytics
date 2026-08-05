@@ -3,6 +3,7 @@ import { SpendOverviewDataBridge } from "./components/SpendOverviewDataBridge";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
 import {
+  getCascadingFilterOptions,
   getFilterOptions,
   getHeadlineKpis,
   getCategoryTreemapData,
@@ -49,6 +50,11 @@ export default async function SpendOverviewPage({ searchParams }: PageProps) {
     categoryPath: params.catPath,
   };
 
+  // Cascading options: picking a BU narrows which categories are still
+  // offered, and vice versa — computed from the same filtered PO items every
+  // other aggregate below reads from, so it can't drift out of sync.
+  const cascadingOptions = getCascadingFilterOptions(filters);
+
   const kpis = getHeadlineKpis(filters);
   const treemapNodes = getCategoryTreemapData(filters);
   const topSuppliers = getTopSuppliersData(filters, 500);
@@ -69,8 +75,8 @@ export default async function SpendOverviewPage({ searchParams }: PageProps) {
   return (
     <div className="flex flex-col gap-6">
       <SpendOverviewFilters
-        plantOptions={filterOptions.plants}
-        categoryOptions={filterOptions.categoriesL1}
+        plantOptions={cascadingOptions.plants}
+        categoryOptions={cascadingOptions.categoriesL1}
         defaultDateFrom={defaultFrom}
         defaultDateTo={defaultTo}
         dateMin={filterOptions.dateMin}

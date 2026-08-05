@@ -31,6 +31,7 @@ import {
 } from "@/lib/widget-data";
 import { AGGREGATION_LABELS, type WidgetConfig } from "@/types/custom-dashboard";
 import type { Dataset } from "@/context/DatasetsContext";
+import { useIsFullscreenChart } from "@/components/dashboard/fullscreen-overlay";
 
 interface CustomWidgetProps {
   dataset: Dataset;
@@ -87,6 +88,7 @@ function LoadingNote() {
  */
 export function CustomWidget({ dataset, config, preview = false }: CustomWidgetProps) {
   const palette = usePalette();
+  const isFullscreen = useIsFullscreenChart();
   const aggregation = config.aggregation ?? "sum";
   const measureName = columnName(dataset, config.yAxisColumn);
   const groupName = columnName(dataset, config.xAxisColumn);
@@ -136,7 +138,7 @@ export function CustomWidget({ dataset, config, preview = false }: CustomWidgetP
   const valueLabel = measureName
     ? `${AGGREGATION_LABELS[aggregation]} of ${measureName}`
     : AGGREGATION_LABELS[aggregation];
-  const chartHeight = preview ? 180 : 260;
+  const chartHeight = preview ? 180 : isFullscreen ? "100%" : 260;
 
   // --- KPI -----------------------------------------------------------------
   if (config.chartType === "kpi") {

@@ -4,6 +4,8 @@ import type { Invoice, FilterState, LinkedSelection, SourceSystemDim, SupplierCo
 // Date window
 // ---------------------------------------------------------------------------
 
+// "YYYY-MM" bucket key — still needed for the Exposure Trend chart's
+// month-over-month grouping, independent of the filter window below.
 function monthOf(dateStr: string): string {
   return dateStr.slice(0, 7); // "YYYY-MM"
 }
@@ -13,28 +15,33 @@ export function monthIndex(yyyyMm: string): number {
   return y * 12 + (m - 1);
 }
 
-/** Inclusive on both ends — startMonth and endMonth are both counted. */
-export function isWithinWindow(inv: Invoice, startMonth: string, endMonth: string): boolean {
-  const invIdx = monthIndex(monthOf(inv.invoice_date));
-  return invIdx >= monthIndex(startMonth) && invIdx <= monthIndex(endMonth);
+/** Inclusive on both ends — ISO "YYYY-MM-DD" strings sort lexicographically, so plain comparison works. */
+export function isWithinWindow(inv: Invoice, dateFrom: string, dateTo: string): boolean {
+  return inv.invoice_date >= dateFrom && inv.invoice_date <= dateTo;
 }
 
-/** All distinct invoice months present in the data, ascending — powers both month dropdowns. */
-export function getAvailableMonths(allInvoices: Invoice[]): string[] {
-  const months = new Set(allInvoices.map((inv) => monthOf(inv.invoice_date)));
-  return Array.from(months).sort();
+/** Earliest/latest invoice date present in the data — feeds the date-range picker's min/max. */
+export function getDateBounds(allInvoices: Invoice[]): { min: string; max: string } {
+  let min = allInvoices[0]?.invoice_date ?? "";
+  let max = min;
+  for (const inv of allInvoices) {
+    if (inv.invoice_date < min) min = inv.invoice_date;
+    if (inv.invoice_date > max) max = inv.invoice_date;
+  }
+  return { min, max };
 }
 
 /**
- * Default window: the trailing 12 months of data, i.e. the latest month present
- * back 11 months — clamped to the earliest month available so a dataset shorter
- * than a year still opens fully in range.
+ * Default window: the trailing 365 days of data, clamped to the earliest
+ * date available so a dataset shorter than a year still opens fully in range.
  */
-export function getDefaultMonthRange(allInvoices: Invoice[]): { startMonth: string; endMonth: string } {
-  const months = getAvailableMonths(allInvoices);
-  const endMonth = months[months.length - 1];
-  const startIdx = Math.max(0, months.length - 12);
-  return { startMonth: months[startIdx], endMonth };
+export function getDefaultDateRange(allInvoices: Invoice[]): { dateFrom: string; dateTo: string } {
+  const { min, max } = getDateBounds(allInvoices);
+  if (!max) return { dateFrom: min, dateTo: max };
+  const from = new Date(new Date(`${max}T00:00:00Z`).getTime() - 365 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  return { dateFrom: from > min ? from : min, dateTo: max };
 }
 
 // ---------------------------------------------------------------------------
@@ -49,11 +56,11 @@ export function getDefaultMonthRange(allInvoices: Invoice[]): { startMonth: stri
 // ---------------------------------------------------------------------------
 
 function matchesBaseFilters(inv: Invoice, filters: FilterState): boolean {
-  if (!isWithinWindow(inv, filters.startMonth, filters.endMonth)) return false;
-  if (filters.categoryCode !== null && inv.category_code !== filters.categoryCode) return false;
-  if (filters.globalUltimateId !== null && inv.global_ultimate_id !== filters.globalUltimateId) return false;
-  if (filters.sourceSystemId !== null && inv.source_system_id !== filters.sourceSystemId) return false;
-  if (filters.plantId !== null && inv.plant_id !== filters.plantId) return false;
+  if (!isWithinWindow(inv, filters.dateFrom, filters.dateTo)) return false;
+  if (filters.categoryCodes.length > 0 && !filters.categoryCodes.includes(inv.category_code)) return false;
+  if (filters.globalUltimateIds.length > 0 && !filters.globalUltimateIds.includes(inv.global_ultimate_id)) return false;
+  if (filters.sourceSystemIds.length > 0 && !filters.sourceSystemIds.includes(inv.source_system_id)) return false;
+  if (filters.plantIds.length > 0 && !filters.plantIds.includes(inv.plant_id)) return false;
   return true;
 }
 
@@ -259,86 +266,6 @@ export function aggregateByGlobalUltimate(invoices: Invoice[]): GlobalUltimateAg
 }
 
 // ---------------------------------------------------------------------------
-// Category Risk Quadrant — every category (regardless of the current
-// threshold), tagged with which side of it they fall on.
-// ---------------------------------------------------------------------------
-
-export interface CategoryRiskAgg extends CategoryAgg {
-  isAtRisk: boolean;
-}
-
-export function aggregateCategoryRisk(
-  baseFilteredInvoices: Invoice[],
-  threshold: SupplierCountThreshold
-): CategoryRiskAgg[] {
-  return aggregateByCategory(baseFilteredInvoices).map((agg) => ({
-    ...agg,
-    isAtRisk: agg.supplierCount <= threshold,
-  }));
-}
-
-// ---------------------------------------------------------------------------
-// Critical Supplier Blast Radius — suppliers who are the sole
-// (distinct-count === 1) source for one or more categories, plus an overall
-// concentration score for the current view.
-// ---------------------------------------------------------------------------
-
-export interface CriticalSupplierAgg {
-  key: string;
-  label: string;
-  soleSourcedCategoryCount: number;
-  /** Spend across only the categories this supplier sole-sources, not its total spend. */
-  spend: number;
-}
-
-export function aggregateCriticalSuppliers(invoices: Invoice[]): CriticalSupplierAgg[] {
-  const counts = categorySupplierCounts(invoices);
-  const soleSourcedCategoryCodes = new Set(
-    Array.from(counts.entries())
-      .filter(([, count]) => count === 1)
-      .map(([code]) => code)
-  );
-  const bySupplier = new Map<string, Invoice[]>();
-  for (const inv of invoices) {
-    if (!soleSourcedCategoryCodes.has(inv.category_code)) continue;
-    const bucket = bySupplier.get(inv.global_ultimate_id);
-    if (bucket) bucket.push(inv);
-    else bySupplier.set(inv.global_ultimate_id, [inv]);
-  }
-  return Array.from(bySupplier.entries()).map(([key, group]) => ({
-    key,
-    label: group[0].global_ultimate_name,
-    soleSourcedCategoryCount: distinctCount(group.map((inv) => inv.category_code)),
-    spend: totalSpend(group),
-  }));
-}
-
-export interface ConcentrationSummary {
-  criticalSupplierCount: number;
-  /** Total spend sitting in categories that are sole-sourced (distinct-supplier count === 1). */
-  blastRadiusSpend: number;
-  /** Herfindahl-Hirschman Index over supplier spend shares, 0-10000 (higher = more concentrated). */
-  hhi: number;
-}
-
-export function computeConcentrationSummary(invoices: Invoice[]): ConcentrationSummary {
-  const criticalSuppliers = aggregateCriticalSuppliers(invoices);
-  const blastRadiusSpend = criticalSuppliers.reduce((acc, supplier) => acc + supplier.spend, 0);
-
-  const grandTotal = totalSpend(invoices);
-  const spendBySupplier = new Map<string, number>();
-  for (const inv of invoices) {
-    spendBySupplier.set(inv.global_ultimate_id, (spendBySupplier.get(inv.global_ultimate_id) ?? 0) + inv.amount);
-  }
-  const hhi =
-    grandTotal > 0
-      ? Array.from(spendBySupplier.values()).reduce((acc, spend) => acc + (spend / grandTotal) ** 2, 0) * 10000
-      : 0;
-
-  return { criticalSupplierCount: criticalSuppliers.length, blastRadiusSpend, hhi };
-}
-
-// ---------------------------------------------------------------------------
 // Single-Source Exposure Trend — at-risk share of spend per month, computed
 // by reclassifying each month's own invoices against the current threshold
 // (a category's supplier count can differ month to month).
@@ -378,45 +305,6 @@ export function aggregateExposureTrend(
         totalSpend: monthTotal,
       };
     });
-}
-
-// ---------------------------------------------------------------------------
-// At-Risk Spend by Segment — categories rolled up to their parent UNSPSC
-// segment, spend split into at-risk vs. diversified within each segment.
-// ---------------------------------------------------------------------------
-
-export interface SegmentRiskAgg {
-  key: string; // segment_code
-  label: string; // segment_name
-  atRiskSpend: number;
-  diversifiedSpend: number;
-  totalSpend: number;
-}
-
-export function aggregateSegmentRisk(
-  baseFilteredInvoices: Invoice[],
-  threshold: SupplierCountThreshold
-): SegmentRiskAgg[] {
-  const counts = categorySupplierCounts(baseFilteredInvoices);
-  const bySegment = new Map<string, Invoice[]>();
-  for (const inv of baseFilteredInvoices) {
-    const bucket = bySegment.get(inv.segment_code);
-    if (bucket) bucket.push(inv);
-    else bySegment.set(inv.segment_code, [inv]);
-  }
-  return Array.from(bySegment.entries()).map(([key, group]) => {
-    const atRiskSpend = group
-      .filter((inv) => (counts.get(inv.category_code) ?? 0) <= threshold)
-      .reduce((acc, inv) => acc + inv.amount, 0);
-    const total = totalSpend(group);
-    return {
-      key,
-      label: group[0].segment_name,
-      atRiskSpend,
-      diversifiedSpend: total - atRiskSpend,
-      totalSpend: total,
-    };
-  });
 }
 
 // ---------------------------------------------------------------------------
@@ -492,6 +380,75 @@ export function getPlantFilterOptions(allInvoices: Invoice[]): FilterOption[] {
   const seen = new Map<string, string>();
   for (const inv of allInvoices) seen.set(inv.plant_id, inv.plant_name);
   return sortedOptions(Array.from(seen, ([value, label]) => ({ value, label })));
+}
+
+// ---------------------------------------------------------------------------
+// Cascading options — each dimension's option list is computed from rows
+// matching every OTHER active filter (date window and supplier-count-per-
+// category included), so picking one filter narrows what the rest can
+// offer. Implemented by re-running matchesBaseFilters with just that one
+// dimension relaxed back to "all" — no separate lookup structure to keep in
+// sync with matchesBaseFilters itself.
+// ---------------------------------------------------------------------------
+
+type CategoricalFilterKey = "categoryCodes" | "globalUltimateIds" | "sourceSystemIds" | "plantIds";
+
+function relax(filters: FilterState, key: CategoricalFilterKey): FilterState {
+  return { ...filters, [key]: [] };
+}
+
+export function cascadingCategoryOptions(allInvoices: Invoice[], filters: FilterState): FilterOption[] {
+  return getCategoryFilterOptions(allInvoices.filter((inv) => matchesBaseFilters(inv, relax(filters, "categoryCodes"))));
+}
+
+export function cascadingGlobalUltimateOptions(allInvoices: Invoice[], filters: FilterState): FilterOption[] {
+  return getGlobalUltimateFilterOptions(
+    allInvoices.filter((inv) => matchesBaseFilters(inv, relax(filters, "globalUltimateIds")))
+  );
+}
+
+export function cascadingSourceSystemOptions(
+  allInvoices: Invoice[],
+  filters: FilterState,
+  sourceSystemDims: SourceSystemDim[]
+): FilterOption[] {
+  return getSourceSystemFilterOptions(
+    allInvoices.filter((inv) => matchesBaseFilters(inv, relax(filters, "sourceSystemIds"))),
+    sourceSystemDims
+  );
+}
+
+export function cascadingPlantOptions(allInvoices: Invoice[], filters: FilterState): FilterOption[] {
+  return getPlantFilterOptions(allInvoices.filter((inv) => matchesBaseFilters(inv, relax(filters, "plantIds"))));
+}
+
+/**
+ * Drops any selected value that's no longer valid given every OTHER active
+ * filter — the fix for the "0-row lockout" a cascading narrow can otherwise
+ * cause (e.g. a previously-picked category disappearing once a Plant
+ * selection excludes it, silently filtering the dashboard to nothing).
+ * Single-pass: each dimension is checked against the RAW (pre-prune) state
+ * of the others, matching how this app's other cascading filters work.
+ */
+export function pruneFilterState(
+  allInvoices: Invoice[],
+  raw: FilterState,
+  sourceSystemDims: SourceSystemDim[]
+): FilterState {
+  const validCategory = new Set(cascadingCategoryOptions(allInvoices, raw).map((o) => o.value));
+  const validGlobalUltimate = new Set(cascadingGlobalUltimateOptions(allInvoices, raw).map((o) => o.value));
+  const validSourceSystem = new Set(
+    cascadingSourceSystemOptions(allInvoices, raw, sourceSystemDims).map((o) => o.value)
+  );
+  const validPlant = new Set(cascadingPlantOptions(allInvoices, raw).map((o) => o.value));
+
+  return {
+    ...raw,
+    categoryCodes: raw.categoryCodes.filter((v) => validCategory.has(v)),
+    globalUltimateIds: raw.globalUltimateIds.filter((v) => validGlobalUltimate.has(v)),
+    sourceSystemIds: raw.sourceSystemIds.filter((v) => validSourceSystem.has(v)),
+    plantIds: raw.plantIds.filter((v) => validPlant.has(v)),
+  };
 }
 
 export const SUPPLIER_COUNT_OPTIONS: { value: SupplierCountThreshold; label: string }[] = [

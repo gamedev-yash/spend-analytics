@@ -16,6 +16,10 @@
 // This runs identically over mock, CSV-derived, and warehouse-derived data:
 // it only reads the final TailSpendData shape, so it doesn't need to know
 // which of the three produced it.
+//
+// Category and Supplier are multi-select: an empty array means "all", a
+// non-empty array means "any of these" — the same convention MultiSelect
+// uses on every other dashboard page in this app.
 
 import type {
   CategoryTailBreakdown,
@@ -33,13 +37,9 @@ import type {
   TailSpendData,
 } from "../tailSpendMock";
 
-export const ALL_CATEGORIES = "All Categories";
-export const ALL_SUPPLIERS = "All Suppliers";
-export const ALL_PLANTS = "All Plants/Sites";
-
 export interface TailSpendFilterInputs {
-  category: string;
-  supplierGlobalUltimate: string;
+  categories: string[];
+  suppliers: string[];
   dateFrom: string;
   dateTo: string;
   selectedBuckets: Set<string>;
@@ -77,14 +77,15 @@ function round(value: number): number {
 
 function filterByCategory(
   data: TailSpendData,
-  category: string
+  categories: string[]
 ): { categoryBreakdown: CategoryTailBreakdown[]; sapCategoryRows: SapCategoryRow[]; categoryFraction: number } {
-  if (category === ALL_CATEGORIES) {
+  if (categories.length === 0) {
     return { categoryBreakdown: data.categoryBreakdown, sapCategoryRows: data.sapCategoryRows, categoryFraction: 1 };
   }
+  const selected = new Set(categories);
   const totalSpend = data.categoryBreakdown.reduce((sum, c) => sum + c.totalSpend, 0);
-  const categoryBreakdown = data.categoryBreakdown.filter((c) => c.category === category);
-  const sapCategoryRows = data.sapCategoryRows.filter((c) => c.category === category);
+  const categoryBreakdown = data.categoryBreakdown.filter((c) => selected.has(c.category));
+  const sapCategoryRows = data.sapCategoryRows.filter((c) => selected.has(c.category));
   const matchedSpend = categoryBreakdown.reduce((sum, c) => sum + c.totalSpend, 0);
   return { categoryBreakdown, sapCategoryRows, categoryFraction: totalSpend > 0 ? matchedSpend / totalSpend : 1 };
 }
@@ -93,11 +94,11 @@ function filterByCategory(
  * The supplier dimension is scattered across three sample-sized tables
  * (supplierBubbles, sapSupplierReport, supplierSpendRank) rather than one
  * canonical list, so the match — and the fraction it implies — comes from
- * whichever table actually contains the selected name.
+ * whichever table actually contains the selected names.
  */
 function filterBySupplier(
   data: TailSpendData,
-  supplier: string
+  suppliers: string[]
 ): {
   supplierBubbles: SupplierBubblePoint[];
   consolidationCandidates: ConsolidationCandidate[];
@@ -105,7 +106,7 @@ function filterBySupplier(
   supplierSpendRank: SupplierSpendRank[];
   supplierFraction: number;
 } {
-  if (supplier === ALL_SUPPLIERS) {
+  if (suppliers.length === 0) {
     return {
       supplierBubbles: data.supplierBubbles,
       consolidationCandidates: data.consolidationCandidates,
@@ -115,6 +116,7 @@ function filterBySupplier(
     };
   }
 
+  const selected = new Set(suppliers);
   let supplierFraction = 1;
   const spendLists: { supplierName: string; totalSpend: number }[][] = [
     data.supplierBubbles,
@@ -123,7 +125,7 @@ function filterBySupplier(
   ];
   for (const rows of spendLists) {
     const total = rows.reduce((sum, r) => sum + r.totalSpend, 0);
-    const matched = rows.filter((r) => r.supplierName === supplier).reduce((sum, r) => sum + r.totalSpend, 0);
+    const matched = rows.filter((r) => selected.has(r.supplierName)).reduce((sum, r) => sum + r.totalSpend, 0);
     if (total > 0 && matched > 0) {
       supplierFraction = matched / total;
       break;
@@ -131,10 +133,10 @@ function filterBySupplier(
   }
 
   return {
-    supplierBubbles: data.supplierBubbles.filter((s) => s.supplierName === supplier),
-    consolidationCandidates: data.consolidationCandidates.filter((c) => c.supplierName === supplier),
-    sapSupplierReport: data.sapSupplierReport.filter((s) => s.supplierName === supplier),
-    supplierSpendRank: data.supplierSpendRank.filter((s) => s.supplierName === supplier),
+    supplierBubbles: data.supplierBubbles.filter((s) => selected.has(s.supplierName)),
+    consolidationCandidates: data.consolidationCandidates.filter((c) => selected.has(c.supplierName)),
+    sapSupplierReport: data.sapSupplierReport.filter((s) => selected.has(s.supplierName)),
+    supplierSpendRank: data.supplierSpendRank.filter((s) => selected.has(s.supplierName)),
     supplierFraction,
   };
 }
@@ -153,6 +155,46 @@ function filterByDateRange(
 
   const matchedSpend = monthlyTrend.reduce((sum, m) => sum + m.strategicSpend + m.coreSpend + m.tailSpend, 0);
   return { monthlyTrend, dateFraction: totalSpend > 0 ? matchedSpend / totalSpend : 1 };
+}
+
+// ---------------------------------------------------------------------------
+// Cascading options — best-effort, keyed off each supplier's single
+// dominant category (supplierBubbles.category), the only supplier<->category
+// linkage this pre-aggregated data shape carries. This is coarser than a
+// full transaction-level cross-tab (a supplier's minor categories aren't
+// represented), but it's real data, not a guess, and matches the same
+// dominant-category modeling fromDataset.ts already uses elsewhere.
+// ---------------------------------------------------------------------------
+
+/** All category names, unfiltered — the option list's ceiling. */
+export function allCategoryNames(data: TailSpendData): string[] {
+  return Array.from(new Set(data.categoryBreakdown.map((c) => c.category)));
+}
+
+/** All supplier names, unfiltered — the option list's ceiling. De-duplicated: real extracts carry several ids under one display name. */
+export function allSupplierNames(data: TailSpendData): string[] {
+  return Array.from(new Set(data.sapSupplierReport.map((s) => s.supplierName))).sort((a, b) => a.localeCompare(b));
+}
+
+/** Category options valid given the current supplier selection — every category at least one selected supplier's dominant category. */
+export function cascadingCategoryOptions(data: TailSpendData, selectedSuppliers: string[]): string[] {
+  const all = allCategoryNames(data);
+  if (selectedSuppliers.length === 0) return all;
+  const selected = new Set(selectedSuppliers);
+  const linked = new Set(data.supplierBubbles.filter((s) => selected.has(s.supplierName)).map((s) => s.category));
+  // supplierBubbles is a curated sample, not the full universe — if none of
+  // the selected suppliers appear there, there's nothing to narrow against,
+  // so fall back to the full list rather than showing zero options.
+  return linked.size > 0 ? all.filter((c) => linked.has(c)) : all;
+}
+
+/** Supplier options valid given the current category selection — every supplier whose dominant category is one of the selected ones. */
+export function cascadingSupplierOptions(data: TailSpendData, selectedCategories: string[]): string[] {
+  const all = allSupplierNames(data);
+  if (selectedCategories.length === 0) return all;
+  const selected = new Set(selectedCategories);
+  const linked = new Set(data.supplierBubbles.filter((s) => selected.has(s.category)).map((s) => s.supplierName));
+  return linked.size > 0 ? all.filter((s) => linked.has(s)) : all;
 }
 
 // ---------------------------------------------------------------------------
@@ -216,7 +258,7 @@ function scaleMonthlyTrend(points: MonthlyTrendPoint[], factor: number): Monthly
 }
 
 /**
- * Category tables are already isolated to the selected category (or left
+ * Category tables are already isolated to the selected categories (or left
  * whole for "All"); this scales them by every OTHER active filter
  * (supplier/date/bucket) — generalizing the pre-existing behavior where the
  * category chart already scaled by bucket selection alone.
@@ -290,15 +332,15 @@ function scaleSupplierTables(
  * carries the filtered dimension is filtered exactly; every headline number
  * that doesn't is scaled by the combined fraction those exact filters imply.
  * Plant/BU is deliberately absent here — no TailSpendData field carries real
- * plant identity for mock or warehouse data, so it can't be estimated this
- * way; see fromDataset.ts for the one path (CSV transaction-grain uploads)
- * where plant filtering can be exact instead.
+ * plant identity for mock or warehouse data (and CSV-upload, the one path
+ * that could, has been removed from this page), so it can't be estimated
+ * this way and stays a display-only filter with no numeric effect.
  */
 export function applyTailSpendFilters(data: TailSpendData, filters: TailSpendFilterInputs): TailSpendData {
-  const { category, supplierGlobalUltimate, dateFrom, dateTo, selectedBuckets } = filters;
+  const { categories, suppliers, dateFrom, dateTo, selectedBuckets } = filters;
 
-  const categoryResult = filterByCategory(data, category);
-  const supplierResult = filterBySupplier(data, supplierGlobalUltimate);
+  const categoryResult = filterByCategory(data, categories);
+  const supplierResult = filterBySupplier(data, suppliers);
   const { monthlyTrend, dateFraction } = filterByDateRange(data, dateFrom, dateTo);
 
   const allBucketsSelected = selectedBuckets.size >= data.invoiceValueBuckets.length;
@@ -316,10 +358,10 @@ export function applyTailSpendFilters(data: TailSpendData, filters: TailSpendFil
     dateFraction * bucketFraction * categoryResult.categoryFraction * supplierResult.supplierFraction
   );
   const nonBucketFraction = Math.max(0, dateFraction * categoryResult.categoryFraction * supplierResult.supplierFraction);
-  // Category tables are already isolated to the chosen category; what's left
-  // to fold in is everything ELSE — supplier/date/bucket. Mirrored for the
-  // supplier tables. This is the same idea the original code used to scale
-  // supplier ranking by bucket selection, generalized to every filter.
+  // Category tables are already isolated to the chosen categories; what's
+  // left to fold in is everything ELSE — supplier/date/bucket. Mirrored for
+  // the supplier tables. This is the same idea the original code used to
+  // scale supplier ranking by bucket selection, generalized to every filter.
   const categoryOtherFraction = Math.max(0, dateFraction * bucketFraction * supplierResult.supplierFraction);
   const supplierOtherFraction = Math.max(0, dateFraction * bucketFraction * categoryResult.categoryFraction);
 

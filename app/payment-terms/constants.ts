@@ -59,11 +59,3 @@ export function formatCurrencyFull(value: number): string {
 export function formatDays(value: number | null): string {
   return value === null ? "—" : `${value.toFixed(1)} days`;
 }
-
-export function formatMonthLabel(yyyyMm: string): string {
-  const [year, month] = yyyyMm.split("-").map(Number);
-  return new Date(year, month - 1, 1).toLocaleDateString("en-US", {
-    month: "short",
-    year: "numeric",
-  });
-}

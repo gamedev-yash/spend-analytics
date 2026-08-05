@@ -5,6 +5,7 @@ import type { SupplierSpendRank } from "../tailSpendMock";
 import { formatINR } from "../tailSpendMock";
 import { useTailSpendTheme } from "../theme";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
+import { useIsFullscreenChart } from "@/components/dashboard/fullscreen-overlay";
 
 interface SupplierSpendRankChartProps {
   suppliers: SupplierSpendRank[];
@@ -16,10 +17,11 @@ interface SupplierSpendRankChartProps {
  */
 export function SupplierSpendRankChart({ suppliers }: SupplierSpendRankChartProps) {
   const theme = useTailSpendTheme();
+  const isFullscreen = useIsFullscreenChart();
   const sorted = [...suppliers].sort((a, b) => b.totalSpend - a.totalSpend).slice(0, 10);
 
   return (
-    <ResponsiveContainer width="100%" height={280}>
+    <ResponsiveContainer width="100%" height={isFullscreen ? "100%" : 280}>
       <BarChart
         data={sorted}
         layout="vertical"

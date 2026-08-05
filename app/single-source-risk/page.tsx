@@ -1,10 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
 import { SingleSourceRiskProvider } from "./provider";
-import { buildInvoicesFromDataset } from "./fromDataset";
-import { useDatasets } from "@/context/DatasetsContext";
-import { DatasetUpload } from "@/components/dashboard/dataset-upload";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
 import { KpiRibbon } from "./components/kpi-ribbon";
@@ -13,9 +9,6 @@ import { CategoriesBySupplierCountChart } from "./components/widgets/categories-
 import { ProductsChart } from "./components/widgets/products-chart";
 import { PlantsChart } from "./components/widgets/plants-chart";
 import { SuppliersChart } from "./components/widgets/suppliers-chart";
-import { CriticalSupplierChart } from "./components/widgets/critical-supplier-chart";
-import { CategoryQuadrantChart } from "./components/widgets/category-quadrant-chart";
-import { SegmentRiskChart } from "./components/widgets/segment-risk-chart";
 import { ExposureTrendChart } from "./components/widgets/exposure-trend-chart";
 import { DetailReportTable } from "./components/detail-report-table";
 import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
@@ -24,22 +17,9 @@ import { useSingleSourceRiskFocus } from "./components/useSingleSourceRiskFocus"
 
 export default function SingleSourceRiskPage() {
   const { activeParameters, toggleParameter, applyPreset, isWidgetVisible } = useSingleSourceRiskFocus();
-  const { getDatasetForPage } = useDatasets();
-  const dataset = getDatasetForPage("single-source-risk");
-
-  // Uploaded CSV (when present and usable) replaces the mock invoice list —
-  // every widget, KPI, and filter option derives from it. The key remounts
-  // the provider so filter state resets against the new data.
-  const datasetInvoices = useMemo(
-    () => (dataset ? buildInvoicesFromDataset(dataset) : null),
-    [dataset]
-  );
 
   return (
-    <SingleSourceRiskProvider
-      key={datasetInvoices ? dataset!.id : "static"}
-      invoices={datasetInvoices ?? undefined}
-    >
+    <SingleSourceRiskProvider>
       <FilterPanel />
       <div className="flex w-full flex-col gap-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -51,7 +31,6 @@ export default function SingleSourceRiskPage() {
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
-            <DatasetUpload pageKey="single-source-risk" usingFallback={datasetInvoices === null} />
             <ExportSnapshotButton targetId={DASHBOARD_CANVAS_ID} dashboardTitle="Single Source Risk" />
           </div>
         </div>
@@ -74,13 +53,6 @@ export default function SingleSourceRiskPage() {
             {isWidgetVisible("product-chart") && <ProductsChart />}
             {isWidgetVisible("plant-chart") && <PlantsChart />}
             {isWidgetVisible("supplier-chart") && <SuppliersChart />}
-          </div>
-
-          {isWidgetVisible("critical-supplier-chart") && <CriticalSupplierChart />}
-
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
-            {isWidgetVisible("category-quadrant-chart") && <CategoryQuadrantChart />}
-            {isWidgetVisible("segment-risk-chart") && <SegmentRiskChart />}
           </div>
 
           {isWidgetVisible("exposure-trend-chart") && <ExposureTrendChart />}

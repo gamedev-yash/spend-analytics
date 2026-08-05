@@ -218,11 +218,22 @@ export interface FilterOptionsState {
 /**
  * Distinct values for each of `fields`, for filter dropdowns. One query per
  * column, so the option lists come from the provider rather than a row scan.
+ *
+ * `activeFilters` (field id -> selected values) makes every column's option
+ * list cascading: each field's own query carries every OTHER field's current
+ * selection as a filter (never its own — that would collapse the dropdown to
+ * only the value already picked). Same provider mechanism every widget uses,
+ * so it narrows correctly in both CSV and Azure SQL mode.
  */
-export function useFilterOptions(datasetId: string | null, fields: string[]): FilterOptionsState {
+export function useFilterOptions(
+  datasetId: string | null,
+  fields: string[],
+  activeFilters: Record<string, string[]> = {}
+): FilterOptionsState {
   const provider = useDataProvider();
   const fieldsKey = JSON.stringify(fields);
-  const queryKey = datasetId === null || fields.length === 0 ? null : `${datasetId}|${fieldsKey}`;
+  const filtersKey = JSON.stringify(activeFilters);
+  const queryKey = datasetId === null || fields.length === 0 ? null : `${datasetId}|${fieldsKey}|${filtersKey}`;
   const [settled, setSettled] = useState<{ key: string | null; options: Map<string, string[]> }>({
     key: null,
     options: EMPTY_OPTIONS,
@@ -232,11 +243,19 @@ export function useFilterOptions(datasetId: string | null, fields: string[]): Fi
     if (datasetId === null) return;
     const columns = JSON.parse(fieldsKey) as string[];
     if (columns.length === 0) return;
-    const key = `${datasetId}|${fieldsKey}`;
+    const filtersForQuery = JSON.parse(filtersKey) as Record<string, string[]>;
+    const key = `${datasetId}|${fieldsKey}|${filtersKey}`;
     let active = true;
     Promise.all(
       columns.map(async (field): Promise<[string, string[]]> => {
-        const payload = buildDistinctValuesPayload(datasetId, field);
+        const contextFilters: QueryFilter[] = Object.entries(filtersForQuery)
+          .filter(([otherField, values]) => otherField !== field && values.length > 0)
+          .map(([otherField, values]) => ({
+            field: otherField,
+            operator: values.length > 1 ? "in" : "eq",
+            value: values.length > 1 ? values : values[0],
+          }));
+        const payload = buildDistinctValuesPayload(datasetId, field, contextFilters);
         const result = await provider.queryWidgetData(payload);
         return [field, distinctValuesFromResult(result, payload)];
       })
@@ -253,7 +272,7 @@ export function useFilterOptions(datasetId: string | null, fields: string[]): Fi
     return () => {
       active = false;
     };
-  }, [provider, datasetId, fieldsKey]);
+  }, [provider, datasetId, fieldsKey, filtersKey]);
 
   // Previous options stay on screen while a reload runs, so the dropdowns never
   // blink back to "All …" only.
