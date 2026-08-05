@@ -78,7 +78,7 @@ export const SSR_WIDGET_GROUPS: CustomizeWidgetGroupDef<SsrWidgetId>[] = [
       { id: "category-chart", label: "Spend by Categories with Suppliers ≤ N" },
       { id: "product-chart", label: "Spend by Products" },
       { id: "plant-chart", label: "Spend by Plants/Sites" },
-      { id: "supplier-chart", label: "Spend by Suppliers (Global Ultimate)" },
+      { id: "supplier-chart", label: "Spend by Suppliers" },
     ],
   },
   {

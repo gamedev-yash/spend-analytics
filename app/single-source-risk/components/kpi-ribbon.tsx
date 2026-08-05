@@ -20,7 +20,7 @@ export function KpiRibbon() {
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       <KpiCard label="Total Spend" value={formatCurrencyFull(totalSpend)} icon={<Wallet />} accent="blue" />
       <KpiCard
-        label="Suppliers (Global Ultimate)"
+        label="Suppliers"
         value={supplierCount.toLocaleString()}
         icon={<Users />}
         accent="violet"
