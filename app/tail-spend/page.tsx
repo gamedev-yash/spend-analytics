@@ -150,7 +150,7 @@ export default function TailSpendPage() {
     const parts: string[] = [];
     if (store.filters.categories.length) parts.push(`Category: ${store.filters.categories.join(", ")}`);
     if (store.filters.suppliers.length) parts.push(`Supplier: ${store.filters.suppliers.join(", ")}`);
-    if (store.filters.plants.length) parts.push(`BU / Plant: ${store.filters.plants.join(", ")}`);
+    if (store.filters.plants.length) parts.push(`Business Unit / Plant: ${store.filters.plants.join(", ")}`);
     if (store.filters.sourceSystems.length) parts.push(`Source System: ${store.filters.sourceSystems.join(", ")}`);
     if (store.filters.dateFrom !== DATE_MIN || store.filters.dateTo !== DATE_MAX) {
       parts.push(`Date: ${store.filters.dateFrom} to ${store.filters.dateTo}`);
@@ -191,7 +191,7 @@ export default function TailSpendPage() {
           onChange={store.setSourceSystems}
         />
         <MultiSelect
-          label="BU / Plant"
+          label="Business Unit / Plant"
           allLabel="All plants"
           options={toOptions(store.options.plants)}
           selected={store.filters.plants}

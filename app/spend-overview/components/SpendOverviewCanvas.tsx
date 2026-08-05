@@ -113,7 +113,7 @@ export function SpendOverviewCanvas({
           </ChartCard>
         )}
         {isWidgetVisible("spend-by-bu-chart") && (
-          <ChartCard className="h-[420px]" title="Spend by Business Unit" description="Total spend per BU" icon={<Building2 />} accent="orange">
+          <ChartCard className="h-[420px]" title="Spend by Business Unit" description="Total spend per business unit" icon={<Building2 />} accent="orange">
             <SpendByBuChart rows={buSpend} />
           </ChartCard>
         )}

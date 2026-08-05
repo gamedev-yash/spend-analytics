@@ -96,7 +96,7 @@ export function ComplianceCanvas({
         </ChartCard>
         <ChartCard
           className="h-[420px]"
-          title="Unmanaged Spend by BU"
+          title="Unmanaged Spend by Business Unit"
           description="Off-PO + off-contract combined, by business unit"
           icon={<Building2 />}
           accent="green"

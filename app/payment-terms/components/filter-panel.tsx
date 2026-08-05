@@ -87,7 +87,7 @@ export function FilterPanel() {
             onChange={setSourceSystems}
           />
           <MultiSelect
-            label="BU / Plant"
+            label="Business Unit / Plant"
             allLabel="All Plants"
             options={plantOptions}
             selected={filters.plantIds}

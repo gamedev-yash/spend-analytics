@@ -49,7 +49,7 @@ export function ComplianceFilters({
   useFilterSlot(
     <FilterGroup title="Global Filters">
       <MultiSelect
-        label="BU / Plant"
+        label="Business Unit / Plant"
         options={plantOptions.map((p) => ({ value: p.code, label: p.name }))}
         selected={selectedPlants}
         onChange={(values) =>

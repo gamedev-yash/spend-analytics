@@ -15,7 +15,7 @@ import type { LinkedDimension, SupplierCountThreshold } from "../types";
 const DIMENSION_LABELS: Record<LinkedDimension, string> = {
   category: "Category",
   product: "Product",
-  plant: "BU / Plant",
+  plant: "Business Unit / Plant",
   globalUltimate: "Supplier",
 };
 
@@ -87,7 +87,7 @@ export function FilterPanel() {
             onChange={setSourceSystems}
           />
           <MultiSelect
-            label="BU / Plant"
+            label="Business Unit / Plant"
             allLabel="All Plants"
             options={plantOptions}
             selected={filters.plantIds}
