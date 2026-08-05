@@ -29,7 +29,7 @@ const COLUMNS: ColumnDef[] = [
   { key: "categoryName", label: "Category Name", align: "left" },
   { key: "invoiceCount", label: "Invoices", align: "right" },
   { key: "plantCount", label: "Plants", align: "right" },
-  { key: "supplierCount", label: "Suppliers (Global Ultimate)", align: "right" },
+  { key: "supplierCount", label: "Suppliers", align: "right" },
   { key: "productCount", label: "Products", align: "right" },
   { key: "spend", label: "Spend", align: "right" },
   { key: "costCenterCount", label: "Cost Centers", align: "right" },

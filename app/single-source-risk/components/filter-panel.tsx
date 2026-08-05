@@ -93,16 +93,13 @@ export function FilterPanel() {
             selected={filters.plantIds}
             onChange={setPlants}
           />
-          {hasActiveFilters && <ClearFiltersButton onClick={resetFilters} />}
-        </FilterGroup>
-
-        <FilterGroup title="Sourcing Risk">
           <FilterSelect
             label="Number of Suppliers per Category"
             value={String(filters.supplierCountPerCategory)}
             options={SUPPLIER_COUNT_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }))}
             onChange={(value) => setSupplierCountPerCategory(Number(value) as SupplierCountThreshold)}
           />
+          {hasActiveFilters && <ClearFiltersButton onClick={resetFilters} />}
         </FilterGroup>
 
         <FilterGroup title="Page Options">

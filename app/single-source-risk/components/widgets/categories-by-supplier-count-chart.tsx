@@ -77,7 +77,7 @@ export function CategoriesBySupplierCountChart() {
                       heading={row.label}
                       rows={[
                         { label: "Spend", value: formatCurrencyFull(row.spend) },
-                        { label: "Suppliers (Global Ultimate)", value: row.supplierCount.toLocaleString() },
+                        { label: "Suppliers", value: row.supplierCount.toLocaleString() },
                         { label: "Products", value: row.productCount.toLocaleString() },
                         { label: "Invoices", value: row.invoiceCount.toLocaleString() },
                       ]}

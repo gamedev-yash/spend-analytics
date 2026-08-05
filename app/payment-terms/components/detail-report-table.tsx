@@ -25,7 +25,7 @@ interface ColumnDef {
 }
 
 const COLUMNS: ColumnDef[] = [
-  { key: "globalUltimateName", label: "Supplier (Global Ultimate) Name", align: "left" },
+  { key: "globalUltimateName", label: "Supplier Name", align: "left" },
   { key: "paymentTermCount", label: "Payment Terms", align: "right" },
   { key: "categoryCount", label: "Categories", align: "right" },
   { key: "plantCount", label: "Plants", align: "right" },

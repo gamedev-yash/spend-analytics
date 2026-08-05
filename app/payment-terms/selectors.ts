@@ -149,7 +149,7 @@ export function aggregateByCategory(invoices: Invoice[]): CategoryAgg[] {
 }
 
 // ---------------------------------------------------------------------------
-// Widget 2 — Payment Terms by Suppliers (Global Ultimate)
+// Widget 2 — Payment Terms by Suppliers
 // ---------------------------------------------------------------------------
 
 export interface GlobalUltimateAgg {
@@ -208,7 +208,7 @@ export function aggregateByPaymentTerm(invoices: Invoice[]): PaymentTermAgg[] {
 }
 
 // ---------------------------------------------------------------------------
-// Detail Report table — one row per Global Ultimate
+// Detail Report table — one row per top-level (ultimate parent) supplier
 // ---------------------------------------------------------------------------
 
 export interface TableRow {
