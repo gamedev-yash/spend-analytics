@@ -99,6 +99,8 @@ interface FullscreenOverlayProps {
   description?: string;
   /** A short, human-readable summary of the filters currently narrowing this widget's data, if the page can cheaply compute one. */
   activeFilters?: string;
+  /** Mirrors ChartCard's own `action` slot (e.g. a color legend) — the compact card renders it next to its title, and without threading it through here the overlay would silently drop it, leaving fullscreen with no way to explain what a multi-color chart's colors mean. */
+  action?: ReactNode;
   children: ReactNode;
 }
 
@@ -111,7 +113,7 @@ interface FullscreenOverlayProps {
  * for this app's chart sizes, and avoids fighting the inline card for the
  * same mounted instance.
  */
-export function FullscreenOverlay({ open, onClose, title, description, activeFilters, children }: FullscreenOverlayProps) {
+export function FullscreenOverlay({ open, onClose, title, description, activeFilters, action, children }: FullscreenOverlayProps) {
   if (!open || typeof document === "undefined") return null;
 
   return createPortal(
@@ -137,15 +139,18 @@ export function FullscreenOverlay({ open, onClose, title, description, activeFil
               </p>
             )}
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            title="Close (Esc)"
-            aria-label="Close fullscreen"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-200/70 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-700/60 dark:hover:text-slate-200"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex shrink-0 items-center gap-3">
+            {action}
+            <button
+              type="button"
+              onClick={onClose}
+              title="Close (Esc)"
+              aria-label="Close fullscreen"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-200/70 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-700/60 dark:hover:text-slate-200"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
         <div className="min-h-0 flex-1 overflow-auto p-6">
           {/* data-fullscreen-chart: see app/globals.css — forces every

@@ -84,7 +84,7 @@ export function DetailReportTable() {
   return (
     <ChartCard title="Detailed Report" description="Sortable by any column" icon={<Table2 />}>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[820px] text-sm">
+        <table className="fullscreen-natural-table w-full min-w-[820px] text-sm">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/50">
               {COLUMNS.map((col) => {
