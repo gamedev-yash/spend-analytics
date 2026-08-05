@@ -43,7 +43,6 @@ export default function SingleSourceRiskPage() {
             activeParameters={activeParameters}
             onToggleParameter={toggleParameter}
             onSelectAll={() => applyPreset(SSR_FOCUS_PARAMETERS.map((parameter) => parameter.id))}
-            thresholdsPageKey="single-source-risk"
           />
 
           {isWidgetVisible("kpi-ribbon") && <KpiRibbon />}

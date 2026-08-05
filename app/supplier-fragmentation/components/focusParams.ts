@@ -1,5 +1,4 @@
 import { Copy, Layers, Target, UserX } from "lucide-react";
-import type { CustomizeWidgetGroupDef } from "@/components/dashboard/customize-view-drawer";
 import type { FocusParameterDef, FocusPresetDef } from "@/components/dashboard/focus-parameter-bar";
 
 export type SfFocusId = "fragmentation" | "concentration" | "single-use" | "duplicates";
@@ -66,34 +65,3 @@ export const SF_WIDGET_TAGS: Record<SfWidgetId, SfFocusId[]> = {
   "onboarding-trend": ["fragmentation", "single-use"],
   "duplicate-table": ["duplicates"],
 };
-
-export const SF_WIDGET_GROUPS: CustomizeWidgetGroupDef<SfWidgetId>[] = [
-  {
-    id: "kpis",
-    title: "Headline KPIs",
-    widgets: [
-      { id: "kpi-active-suppliers", label: "Active Suppliers" },
-      { id: "kpi-single-use", label: "Single-Use Suppliers" },
-      { id: "kpi-concentration", label: "Top-10 Concentration" },
-      { id: "kpi-avg-per-category", label: "Avg. Suppliers per Category" },
-      { id: "kpi-duplicate-pairs", label: "Potential Duplicate Pairs" },
-      { id: "kpi-new-suppliers", label: "New Suppliers (12M)" },
-    ],
-  },
-  {
-    id: "charts",
-    title: "Charts",
-    widgets: [
-      { id: "category-fragmentation", label: "Supplier Count by Category" },
-      { id: "category-concentration", label: "Category Concentration" },
-      { id: "size-distribution", label: "Suppliers by Annual Spend" },
-      { id: "top-supplier-pareto", label: "Top 10 Suppliers" },
-      { id: "onboarding-trend", label: "12-Month Onboarding Trend" },
-    ],
-  },
-  {
-    id: "tables",
-    title: "Tables",
-    widgets: [{ id: "duplicate-table", label: "Potential Duplicate Suppliers" }],
-  },
-];

@@ -638,7 +638,7 @@ export function generateInsightText(filters: SapFilters): string {
     parts.push(`${topCategory.category} dominates at ${topCategory.percentOfTotal.toFixed(0)}% of total spend.`);
   }
   if (topBu) {
-    parts.push(`${topBu.plantName} is the highest-spending BU at ₹${crWhole(topBu.total)} Cr.`);
+    parts.push(`${topBu.plantName} is the highest-spending business unit at ₹${crWhole(topBu.total)} Cr.`);
   }
   if (kpis.offContractPercent > 25) {
     parts.push(`Off-contract spend is ${kpis.offContractPercent.toFixed(0)}%, above the 25% threshold — review recommended.`);

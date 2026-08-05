@@ -22,7 +22,7 @@ export function FragmentationControls() {
   useFilterSlot(
     <FilterGroup title="Filters">
       <MultiSelect
-        label="BU / Plant"
+        label="Business Unit / Plant"
         allLabel="All business units"
         options={options.plants.map((p) => ({ value: p.code, label: p.name }))}
         selected={filters.plants}

@@ -1,5 +1,4 @@
 import { AlertTriangle, Boxes, Building2, Crosshair, Users } from "lucide-react";
-import type { CustomizeWidgetGroupDef } from "@/components/dashboard/customize-view-drawer";
 import type { FocusParameterDef } from "@/components/dashboard/focus-parameter-bar";
 
 export type SsrFocusId =
@@ -52,8 +51,8 @@ export type SsrWidgetId =
   | "exposure-trend-chart";
 
 /**
- * Untagged (`[]`) means cross-cutting — always rendered regardless of which
- * sections are active, switchable only via the Customize View drawer.
+ * Untagged (`[]`) means cross-cutting — always rendered, regardless of which
+ * sections are active.
  */
 export const SSR_WIDGET_TAGS: Record<SsrWidgetId, SsrFocusId[]> = {
   "kpi-ribbon": [],
@@ -64,31 +63,3 @@ export const SSR_WIDGET_TAGS: Record<SsrWidgetId, SsrFocusId[]> = {
   "detail-table": ["supplier-concentration"],
   "exposure-trend-chart": ["risk-insights"],
 };
-
-export const SSR_WIDGET_GROUPS: CustomizeWidgetGroupDef<SsrWidgetId>[] = [
-  {
-    id: "kpis",
-    title: "KPIs",
-    widgets: [{ id: "kpi-ribbon", label: "Single Source Risk KPI Ribbon" }],
-  },
-  {
-    id: "charts",
-    title: "Charts",
-    widgets: [
-      { id: "category-chart", label: "Spend by Categories with Suppliers ≤ N" },
-      { id: "product-chart", label: "Spend by Products" },
-      { id: "plant-chart", label: "Spend by Plants/Sites" },
-      { id: "supplier-chart", label: "Spend by Suppliers" },
-    ],
-  },
-  {
-    id: "risk-insights",
-    title: "Risk Insights",
-    widgets: [{ id: "exposure-trend-chart", label: "Single-Source Exposure Trend" }],
-  },
-  {
-    id: "tables",
-    title: "Tables",
-    widgets: [{ id: "detail-table", label: "Detail Report Table" }],
-  },
-];

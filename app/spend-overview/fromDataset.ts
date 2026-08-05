@@ -123,7 +123,7 @@ function parseRecords(dataset: Dataset): Record_[] | null {
       l1: cellString(row, cols.l1) || "Other",
       l2: cellString(row, cols.l2) || "Other",
       plantCode: plantCode || plantName || "UNKNOWN",
-      plantName: plantName || plantCode || "Unknown BU",
+      plantName: plantName || plantCode || "Unknown Business Unit",
       region: cellString(row, cols.region) || "Unknown",
       value,
       flagged: cols.contract ? cellString(row, cols.contract) === "" : false,
@@ -433,7 +433,7 @@ export function buildSpendOverviewFromDataset(dataset: Dataset, filters: SapFilt
     insightParts.push(`${topCategory.category} dominates at ${topCategory.percentOfTotal.toFixed(0)}% of total spend.`);
   }
   if (topBu) {
-    insightParts.push(`${topBu.plantName} is the highest-spending BU at ₹${crWhole(topBu.total)} Cr.`);
+    insightParts.push(`${topBu.plantName} is the highest-spending business unit at ₹${crWhole(topBu.total)} Cr.`);
   }
   if (kpis.offContractPercent > 25) {
     insightParts.push(`Off-contract spend is ${kpis.offContractPercent.toFixed(0)}%, above the 25% threshold — review recommended.`);

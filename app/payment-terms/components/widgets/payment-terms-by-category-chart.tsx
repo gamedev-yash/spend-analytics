@@ -25,7 +25,16 @@ export function PaymentTermsByCategoryChart() {
       icon={<Layers />}
       accent="blue"
     >
-      <div className="overflow-x-auto">
+      {/*
+        overflow-y-hidden alongside overflow-x-auto: setting overflow-x to
+        anything but visible forces the CSS-computed overflow-y to `auto` too,
+        even though only horizontal scroll is ever intended here — on a system
+        that always renders a reserved-space (non-overlay) scrollbar track,
+        that stray auto can show a vertical scrollbar and steal height from
+        this flex-grown wrapper, which the chart's ResizeObserver picks up as
+        a real resize. Pinning it to `hidden` removes the possibility.
+      */}
+      <div className="overflow-x-auto overflow-y-hidden">
         <div style={{ minWidth: `${chartMinWidth}px`, height: 400 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={rows} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>

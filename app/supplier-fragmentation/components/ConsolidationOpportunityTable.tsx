@@ -121,7 +121,7 @@ export function ConsolidationOpportunityTable() {
     <div className="flex h-full flex-col">
       <div className="mb-2 flex shrink-0 items-center justify-between gap-2">
         <span className="text-xs text-slate-400 dark:text-slate-500">
-          {rows.length.toLocaleString("en-IN")} category × BU combinations
+          {rows.length.toLocaleString("en-IN")} category × business unit combinations
         </span>
         <button
           type="button"

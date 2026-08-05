@@ -67,7 +67,6 @@ export default function PaymentTermsPage() {
             activeParameters={activeParameters}
             onToggleParameter={toggleParameter}
             onSelectAll={() => applyPreset(PT_FOCUS_PARAMETERS.map((parameter) => parameter.id))}
-            thresholdsPageKey="payment-terms"
           />
 
           {providerType === "azure-sql" && <WarehouseGapNote />}

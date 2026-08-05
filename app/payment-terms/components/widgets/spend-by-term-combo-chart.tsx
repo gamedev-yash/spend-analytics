@@ -41,7 +41,8 @@ export function SpendByTermComboChart() {
       icon={<Banknote />}
       accent="orange"
     >
-        <div className="overflow-x-auto">
+        {/* overflow-y-hidden: see the comment in payment-terms-by-category-chart.tsx — only horizontal scroll is ever intended here. */}
+        <div className="overflow-x-auto overflow-y-hidden">
           <div style={{ width: "100%", minWidth: chartWidth }}>
             <FullscreenResponsiveContainer height={360}>
               <ComposedChart data={rows} margin={{ top: 8, right: 16, bottom: 56, left: 8 }}>

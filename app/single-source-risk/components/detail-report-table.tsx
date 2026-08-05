@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Table2 } from "lucide-react";
+import { Download, Table2 } from "lucide-react";
 import { ChartCard } from "@/components/dashboard/chart-card";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSingleSourceRisk } from "../provider";
 import { aggregateForTable, type TableRow } from "../selectors";
@@ -34,6 +35,29 @@ const COLUMNS: ColumnDef[] = [
   { key: "spend", label: "Spend", align: "right" },
   { key: "costCenterCount", label: "Cost Centers", align: "right" },
 ];
+
+function exportCsv(rows: TableRow[]) {
+  const header = ["Category Name", "Invoices", "Plants", "Suppliers", "Products", "Spend", "Cost Centers"];
+  const lines = rows.map((r) =>
+    [
+      `"${r.categoryName.replace(/"/g, '""')}"`,
+      r.invoiceCount,
+      r.plantCount,
+      r.supplierCount,
+      r.productCount,
+      r.spend,
+      r.costCenterCount,
+    ].join(",")
+  );
+  const csv = [header.join(","), ...lines].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "single-source-risk-detail-report.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 function compareRows(a: TableRow, b: TableRow, column: SortColumn): number {
   switch (column) {
@@ -83,8 +107,15 @@ export function DetailReportTable() {
 
   return (
     <ChartCard title="Detailed Report" description="Sortable by any column" icon={<Table2 />}>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[820px] text-sm">
+      <div className="flex h-full flex-col gap-2">
+        <div className="flex shrink-0 justify-end">
+          <Button size="sm" variant="outline" onClick={() => exportCsv(sortedRows)}>
+            <Download className="h-3.5 w-3.5" />
+            Export CSV
+          </Button>
+        </div>
+        <div className="overflow-x-auto">
+        <table className="fullscreen-natural-table w-full min-w-[820px] text-sm">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/50">
               {COLUMNS.map((col) => {
@@ -139,6 +170,7 @@ export function DetailReportTable() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </ChartCard>
   );

@@ -19,7 +19,7 @@ export function DuplicateSupplierTable({ pairs }: DuplicateSupplierTableProps) {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[720px] text-sm">
+      <table className="fullscreen-natural-table w-full min-w-[720px] text-sm">
         <thead>
           <tr className="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/50">
             <th className="px-4 py-2.5 text-left font-semibold text-slate-700 dark:text-slate-200">Primary Supplier</th>

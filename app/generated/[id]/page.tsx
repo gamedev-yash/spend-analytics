@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LayoutDashboard, Trash2 } from "lucide-react";
@@ -11,10 +11,26 @@ import {
   useGeneratedDashboard,
   useGeneratedDashboardsReady,
 } from "@/lib/generated-dashboard/store";
+import { useFilterSlot } from "@/context/FilterContext";
+import { ClearFiltersButton, FilterDateRange, FilterGroup } from "@/components/ui/filter-controls";
+import { MultiSelect } from "@/components/sap/multi-select";
+import {
+  applyGeneratedDashboardFilters,
+  distinctValuesForColumn,
+  filterableDimensionColumns,
+  hasActiveGeneratedFilters,
+  temporalColumn,
+  toDateInputValue,
+  EMPTY_GENERATED_FILTERS,
+  type GeneratedFilterState,
+} from "./filters";
 
 // Read-only viewer for an AI-generated dashboard: no editing, no add-widget
 // affordance, no AI assistant hook-up. Everything the page needs (plan,
 // widgets, raw rows) already lives in the stored GeneratedDashboard record.
+// Filters are the one interactive control this page owns — a plain
+// client-side narrowing of the stored rows (see ./filters.ts), independent
+// of everything else being static.
 
 function EmptyShell({ title, message, children }: { title: string; message: string; children?: React.ReactNode }) {
   return (
@@ -32,6 +48,66 @@ export default function GeneratedDashboardPage({ params }: { params: Promise<{ i
   const router = useRouter();
   const dashboard = useGeneratedDashboard(id);
   const ready = useGeneratedDashboardsReady();
+
+  const [filters, setFilters] = useState<GeneratedFilterState>(EMPTY_GENERATED_FILTERS);
+
+  const dimensionColumns = useMemo(
+    () => (dashboard ? filterableDimensionColumns(dashboard) : []),
+    [dashboard]
+  );
+  const dateColumn = useMemo(() => (dashboard ? temporalColumn(dashboard) : null), [dashboard]);
+  const dimensionOptions = useMemo(() => {
+    const map = new Map<string, string[]>();
+    if (!dashboard) return map;
+    for (const column of dimensionColumns) {
+      map.set(column.name, distinctValuesForColumn(dashboard.rows, column.name));
+    }
+    return map;
+  }, [dashboard, dimensionColumns]);
+
+  const filteredRows = useMemo(() => {
+    if (!dashboard) return [];
+    return applyGeneratedDashboardFilters(dashboard.rows, filters, dateColumn?.name ?? null);
+  }, [dashboard, filters, dateColumn]);
+
+  const activeFilters = hasActiveGeneratedFilters(filters);
+
+  useFilterSlot(
+    dimensionColumns.length === 0 && !dateColumn ? null : (
+      <FilterGroup title="Filters">
+        {dateColumn?.temporal && (
+          <FilterDateRange
+            // Empty state stays "" (so hasActiveGeneratedFilters and the
+            // row filter both read it as unbounded) — only the displayed
+            // value falls back to the column's real bounds, matching every
+            // other dashboard's date picker showing a populated range
+            // rather than an empty mm/dd/yyyy placeholder.
+            fromValue={filters.dateFrom || toDateInputValue(dateColumn.temporal.minDate)}
+            toValue={filters.dateTo || toDateInputValue(dateColumn.temporal.maxDate)}
+            min={toDateInputValue(dateColumn.temporal.minDate)}
+            max={toDateInputValue(dateColumn.temporal.maxDate)}
+            onFromChange={(value) => setFilters((f) => ({ ...f, dateFrom: value }))}
+            onToChange={(value) => setFilters((f) => ({ ...f, dateTo: value }))}
+          />
+        )}
+        {dimensionColumns.map((column) => (
+          <MultiSelect
+            key={column.name}
+            label={column.name}
+            allLabel={`All ${column.name}`}
+            options={(dimensionOptions.get(column.name) ?? []).map((value) => ({ value, label: value }))}
+            selected={filters.dimensions[column.name] ?? []}
+            onChange={(values) =>
+              setFilters((f) => ({ ...f, dimensions: { ...f.dimensions, [column.name]: values } }))
+            }
+          />
+        ))}
+        {activeFilters && (
+          <ClearFiltersButton onClick={() => setFilters(EMPTY_GENERATED_FILTERS)} />
+        )}
+      </FilterGroup>
+    )
+  );
 
   // Store hydrates on the client, so "not found" is only real once ready.
   if (!ready) return <WidgetGridSkeleton widgetCount={4} />;
@@ -68,7 +144,11 @@ export default function GeneratedDashboardPage({ params }: { params: Promise<{ i
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-2xl font-semibold text-slate-900 dark:text-slate-100">{dashboard.title}</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Generated from {dashboard.sourceFileName} · {dashboard.rows.length.toLocaleString("en-IN")} rows · {createdAt}
+            Generated from {dashboard.sourceFileName} ·{" "}
+            {activeFilters
+              ? `${filteredRows.length.toLocaleString("en-IN")} of ${dashboard.rows.length.toLocaleString("en-IN")} rows`
+              : `${dashboard.rows.length.toLocaleString("en-IN")} rows`}{" "}
+            · {createdAt}
           </p>
         </div>
         <button
@@ -81,7 +161,7 @@ export default function GeneratedDashboardPage({ params }: { params: Promise<{ i
         </button>
       </div>
 
-      <DashboardGrid plan={dashboard.plan} widgets={dashboard.widgets} rows={dashboard.rows} />
+      <DashboardGrid plan={dashboard.plan} widgets={dashboard.widgets} rows={filteredRows} />
     </div>
   );
 }

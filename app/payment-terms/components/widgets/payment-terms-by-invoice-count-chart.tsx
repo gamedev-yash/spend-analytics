@@ -41,7 +41,8 @@ export function PaymentTermsByInvoiceCountChart() {
       icon={<Receipt />}
       accent="green"
     >
-      <div className="overflow-x-auto">
+      {/* overflow-y-hidden: see the comment in payment-terms-by-category-chart.tsx — only horizontal scroll is ever intended here. */}
+      <div className="overflow-x-auto overflow-y-hidden">
         <div style={{ minWidth: rows.length * SLOT_WIDTH }}>
         <FullscreenResponsiveContainer height={340}>
           <BarChart data={rows} margin={{ top: 8, right: 16, left: 8, bottom: 48 }}>

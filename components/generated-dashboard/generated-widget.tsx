@@ -13,12 +13,12 @@ import {
   BarChart,
   Pie,
   PieChart,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import { ChartCard } from "@/components/dashboard/chart-card";
+import { FullscreenResponsiveContainer } from "@/components/dashboard/fullscreen-overlay";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import { usePalette } from "@/hooks/use-palette";
@@ -181,7 +181,7 @@ function BarLikeWidget({
 
   return (
     <ChartCard title={widget.title}>
-      <ResponsiveContainer width="100%" height={horizontal ? Math.max(260, data.length * 38 + 40) : 300}>
+      <FullscreenResponsiveContainer height={horizontal ? Math.max(260, data.length * 38 + 40) : 300}>
         <Chart
           data={data}
           layout={horizontal ? "vertical" : "horizontal"}
@@ -253,7 +253,7 @@ function BarLikeWidget({
             />
           )}
         </Chart>
-      </ResponsiveContainer>
+      </FullscreenResponsiveContainer>
     </ChartCard>
   );
 }
@@ -275,7 +275,7 @@ function LineLikeWidget({ widget, rows, area }: GeneratedWidgetProps & { area: b
 
   return (
     <ChartCard title={widget.title}>
-      <ResponsiveContainer width="100%" height={300}>
+      <FullscreenResponsiveContainer height={300}>
         <Chart data={data} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
           <CartesianGrid vertical={false} stroke={palette.ink.grid} />
           <XAxis
@@ -323,7 +323,7 @@ function LineLikeWidget({ widget, rows, area }: GeneratedWidgetProps & { area: b
             )
           )}
         </Chart>
-      </ResponsiveContainer>
+      </FullscreenResponsiveContainer>
     </ChartCard>
   );
 }
@@ -342,7 +342,7 @@ function DonutWidget({ widget, rows }: GeneratedWidgetProps) {
 
   return (
     <ChartCard title={widget.title}>
-      <ResponsiveContainer width="100%" height={280}>
+      <FullscreenResponsiveContainer height={280}>
         <PieChart>
           <Pie
             data={points}
@@ -379,7 +379,7 @@ function DonutWidget({ widget, rows }: GeneratedWidgetProps) {
             formatter={(value: string) => <span style={{ color: palette.ink.muted }}>{value}</span>}
           />
         </PieChart>
-      </ResponsiveContainer>
+      </FullscreenResponsiveContainer>
     </ChartCard>
   );
 }
@@ -397,8 +397,8 @@ function TableWidget({ widget, rows }: GeneratedWidgetProps) {
 
   return (
     <ChartCard title={widget.title}>
-      <div className="max-h-[320px] overflow-y-auto">
-        <table className="w-full border-collapse text-sm">
+      <div className="fullscreen-scroll-list max-h-[320px] overflow-y-auto">
+        <table className="fullscreen-natural-table w-full border-collapse text-sm">
           <thead className="sticky top-0 bg-white dark:bg-slate-900">
             <tr>
               <th className="pb-2 text-left text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">

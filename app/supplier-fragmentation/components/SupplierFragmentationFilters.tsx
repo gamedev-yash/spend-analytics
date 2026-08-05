@@ -2,9 +2,6 @@
 
 import { useFilterSlot } from "@/context/FilterContext";
 import { FilterGroup, FilterSelect, FilterSlider } from "@/components/ui/filter-controls";
-import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
-import { SF_WIDGET_GROUPS } from "./focusParams";
-import { useSupplierFragmentationFocus } from "./useSupplierFragmentationFocus";
 import type { SupplierFragmentationData } from "../supplierMock";
 
 const ALL_CATEGORIES = "All Categories";
@@ -37,8 +34,6 @@ export function SupplierFragmentationFilters({
   concentrationThreshold,
   onChange,
 }: SupplierFragmentationFiltersProps) {
-  const { isWidgetEnabled, toggleWidgetEnabled, resetWidgetsToDefault } = useSupplierFragmentationFocus();
-
   useFilterSlot(
     <>
       <FilterGroup title="Global Filters">
@@ -69,12 +64,6 @@ export function SupplierFragmentationFilters({
       </FilterGroup>
 
       <FilterGroup title="Page Options" className="mt-6">
-        <CustomizeViewDrawer
-          groups={SF_WIDGET_GROUPS}
-          isWidgetEnabled={isWidgetEnabled}
-          onToggleWidgetEnabled={toggleWidgetEnabled}
-          onResetToDefault={resetWidgetsToDefault}
-        />
         <FilterSlider
           label="Concentration Alert Threshold"
           min={20}
