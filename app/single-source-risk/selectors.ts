@@ -232,7 +232,7 @@ export function aggregateByPlant(invoices: Invoice[]): PlantAgg[] {
 }
 
 // ---------------------------------------------------------------------------
-// Widget 4 — Spend by Suppliers (Global Ultimate)
+// Widget 4 — Spend by Suppliers
 // ---------------------------------------------------------------------------
 
 export interface GlobalUltimateAgg {

@@ -19,7 +19,7 @@ export function SuppliersChart() {
 
   return (
     <ChartCard
-      title="Spend by Suppliers (Global Ultimate)"
+      title="Spend by Suppliers"
       description={`All ${rows.length} suppliers, ordered by spend`}
       icon={<Users />}
       accent="violet"

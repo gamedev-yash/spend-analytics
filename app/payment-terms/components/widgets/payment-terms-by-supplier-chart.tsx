@@ -46,7 +46,7 @@ export function PaymentTermsBySupplierChart() {
 
   return (
     <ChartCard
-      title="Payment Terms by Suppliers (Global Ultimate)"
+      title="Payment Terms by Suppliers"
       description={`All ${displayedRows.length} suppliers, ranked by total spend`}
       icon={<Users />}
       accent="violet"
