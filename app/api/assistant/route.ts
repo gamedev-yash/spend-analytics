@@ -89,6 +89,8 @@ Every create_widget field is required by the schema — seriesColumn is null on 
 
 You have DATA ACCESS ONLY for the dashboard whose dataset is in DATASET CONTEXT below. Other dashboards exist in this app — OTHER DASHBOARDS lists their names and scope only, never their data, so you can redirect the user there instead of guessing. If the request needs data that belongs to one of those instead, call redirect_to_dashboard with its id — even if you could plausibly guess the answer. Never answer using data you don't have.
 
+If the request is ambiguous among a small set of clear choices (which column, which chart type, which time window, sum vs. average), call ask_with_options with a short question and 2-5 concise options instead of guessing or asking an open-ended follow-up in prose.
+
 Keep prose answers short and concrete — a few sentences, no preamble, no markdown headers.`;
 
 const WAREHOUSE_SYSTEM_PROMPT = `You are the Procurement BI Assistant embedded in a Vedanta spend-analytics dashboard app, connected to a spend data warehouse.
@@ -107,6 +109,8 @@ Choosing the query:
 - timeGrain "year" buckets by the Indian fiscal year (April-March), so FY2025-26 covers April 2025 to March 2026.
 
 When the user asks to see, add, plot, chart, or visualize something, also call create_widget so it lands on their canvas. Query first, so your prose matches the widget.
+
+If the request is ambiguous among a small set of clear choices (which column, which chart type, which time window, sum vs. average), call ask_with_options with a short question and 2-5 concise options instead of guessing or asking an open-ended follow-up in prose.
 
 Keep prose answers short and concrete — a few sentences, no preamble, no markdown headers.`;
 
@@ -128,6 +132,29 @@ const REDIRECT_TOOL: Anthropic.Tool = {
       },
     },
     required: ["dashboardId", "reason"],
+    additionalProperties: false,
+  },
+};
+
+const ASK_OPTIONS_TOOL: Anthropic.Tool = {
+  name: "ask_with_options",
+  description:
+    "Call this INSTEAD of a prose question when the request is ambiguous among a small set of clear choices (which column, which chart type, which time range, sum vs. average, etc.). Gives the user clickable choices instead of making them type a follow-up. Do not use it for yes/no confirmations or when the right next step is free text.",
+  strict: true,
+  input_schema: {
+    type: "object",
+    properties: {
+      question: {
+        type: "string",
+        description: "The short clarifying question to show the user above the choices.",
+      },
+      options: {
+        type: "array",
+        items: { type: "string" },
+        description: "2 to 5 short, mutually exclusive choices the user can click instead of typing.",
+      },
+    },
+    required: ["question", "options"],
     additionalProperties: false,
   },
 };
@@ -278,13 +305,14 @@ export async function POST(request: Request): Promise<Response> {
     mode === "parse"
       ? [widgetTool]
       : warehouseMode
-        ? [queryWarehouseTool(), widgetTool, REDIRECT_TOOL]
-        : [widgetTool, REDIRECT_TOOL];
+        ? [queryWarehouseTool(), widgetTool, REDIRECT_TOOL, ASK_OPTIONS_TOOL]
+        : [widgetTool, REDIRECT_TOOL, ASK_OPTIONS_TOOL];
 
   try {
     let reply = "";
     let widget: AssistantResponse["widget"] = null;
     let redirect: AssistantResponse["redirect"] = null;
+    let options: AssistantResponse["options"] = null;
     let query: AssistantQuery | null = null;
 
     // Two passes at most: one where the model may query, one where it reads the
@@ -327,6 +355,15 @@ export async function POST(request: Request): Promise<Response> {
             redirect = { id: target.id, title: target.title, route: target.route };
             if (!reply.trim()) reply = `That's on the "${target.title}" dashboard — ${input.reason}`;
           }
+        } else if (block.type === "tool_use" && block.name === "ask_with_options") {
+          const input = block.input as { question: string; options: string[] };
+          const choices = Array.isArray(input.options)
+            ? input.options.filter((o): o is string => typeof o === "string" && o.trim() !== "").slice(0, 5)
+            : [];
+          if (choices.length >= 2) {
+            options = choices;
+            if (!reply.trim()) reply = input.question;
+          }
         }
       }
 
@@ -361,6 +398,7 @@ export async function POST(request: Request): Promise<Response> {
       widget,
       query,
       redirect,
+      options,
     };
     return Response.json(payload);
   } catch (err) {

@@ -38,6 +38,8 @@ interface DashboardChatRequest {
 interface DashboardChatResponse {
   reply: string;
   redirect: { key: DashboardKey; label: string; route: string } | null;
+  /** Set when the model called ask_with_options — clickable choices instead of free text. */
+  options: string[] | null;
 }
 
 const REDIRECT_TOOL: Anthropic.Tool = {
@@ -63,6 +65,29 @@ const REDIRECT_TOOL: Anthropic.Tool = {
   },
 };
 
+const ASK_OPTIONS_TOOL: Anthropic.Tool = {
+  name: "ask_with_options",
+  description:
+    "Call this INSTEAD of a prose question when the request is ambiguous among a small set of clear choices (which metric, which time range, etc.). Gives the user clickable choices instead of making them type a follow-up. Do not use it for yes/no confirmations or when the right next step is free text.",
+  strict: true,
+  input_schema: {
+    type: "object",
+    properties: {
+      question: {
+        type: "string",
+        description: "The short clarifying question to show the user above the choices.",
+      },
+      options: {
+        type: "array",
+        items: { type: "string" },
+        description: "2 to 5 short, mutually exclusive choices the user can click instead of typing.",
+      },
+    },
+    required: ["question", "options"],
+    additionalProperties: false,
+  },
+};
+
 function buildSystemPrompt(currentKey: DashboardKey): string {
   const current = dashboardMeta(currentKey);
   const others = DASHBOARD_REGISTRY.filter((d) => d.key !== currentKey);
@@ -82,6 +107,7 @@ Grounding rules — absolute:
 - If the user asks about something that belongs to one of the other dashboards listed above, do NOT answer it yourself — call redirect_to_dashboard with that dashboard's key, even if you could plausibly guess the answer.
 - If a query returns no rows, or the question needs a column that genuinely isn't listed above, say so plainly rather than softening it into an approximation.
 - Ordinary conversation (greetings, thanks, what can you help with) doesn't need the tool — answer it directly and briefly.
+- If the request is ambiguous among a small set of clear choices (which metric, which time range, this quarter vs. last), call ask_with_options with a short question and 2-5 concise options instead of guessing or asking an open-ended follow-up in prose.
 
 Keep answers short and concrete — a few sentences, no preamble, no markdown headers, no raw JSON.`;
 }
@@ -121,11 +147,16 @@ export async function POST(request: Request): Promise<Response> {
     { role: "user" as const, content: message },
   ];
 
-  const tools: Anthropic.Tool[] = [queryDashboardDataTool(dashboardKey as DashboardKey), REDIRECT_TOOL];
+  const tools: Anthropic.Tool[] = [
+    queryDashboardDataTool(dashboardKey as DashboardKey),
+    REDIRECT_TOOL,
+    ASK_OPTIONS_TOOL,
+  ];
 
   try {
     let reply = "";
     let redirect: DashboardChatResponse["redirect"] = null;
+    let options: DashboardChatResponse["options"] = null;
 
     // Two passes at most: one where the model may query this dashboard's data,
     // one where it reads the rows back and answers. Mirrors the loop
@@ -157,6 +188,15 @@ export async function POST(request: Request): Promise<Response> {
             redirect = { key: meta.key, label: meta.label, route: meta.route };
             if (!reply.trim()) reply = `That's on the ${meta.label} dashboard — ${input.reason}`;
           }
+        } else if (block.type === "tool_use" && block.name === "ask_with_options") {
+          const input = block.input as { question: string; options: string[] };
+          const choices = Array.isArray(input.options)
+            ? input.options.filter((o): o is string => typeof o === "string" && o.trim() !== "").slice(0, 5)
+            : [];
+          if (choices.length >= 2) {
+            options = choices;
+            if (!reply.trim()) reply = input.question;
+          }
         }
       }
 
@@ -178,7 +218,11 @@ export async function POST(request: Request): Promise<Response> {
       messages.push({ role: "user", content: results });
     }
 
-    const payload: DashboardChatResponse = { reply: reply.trim() || "I don't have an answer for that.", redirect };
+    const payload: DashboardChatResponse = {
+      reply: reply.trim() || "I don't have an answer for that.",
+      redirect,
+      options,
+    };
     return Response.json(payload);
   } catch (err) {
     if (err instanceof Anthropic.AuthenticationError) {

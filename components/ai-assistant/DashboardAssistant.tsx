@@ -4,14 +4,23 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Bot, Loader2, Send, Sparkles, Square, X, ArrowRight } from "lucide-react";
 import { dashboardKeyForPathname, dashboardMeta, type DashboardKey } from "@/lib/ai/dashboard-registry";
+import { stashPendingPrompt, takePendingPrompt } from "@/lib/ai/assistant-handoff";
+import { useDraggableBubble } from "@/hooks/use-draggable-bubble";
+import { useOutsideClick } from "@/hooks/use-outside-click";
 import { cn } from "@/lib/utils";
 
 interface ChatEntry {
   role: "user" | "assistant";
   content: string;
   redirect?: { key: DashboardKey; label: string; route: string };
+  /** Set when the assistant asked a clarifying question — renders clickable choices. */
+  options?: string[];
   isError?: boolean;
 }
+
+const BUBBLE_HEIGHT_PX = 48;
+const PANEL_GAP_PX = 12;
+const PANEL_WIDTH_PX = 384; // matches w-[min(24rem,...)] below
 
 function welcomeFor(key: DashboardKey): string {
   const { label } = dashboardMeta(key);
@@ -38,6 +47,13 @@ export function DashboardAssistant() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
+  const panelRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const { position, onPointerDown, onPointerMove, onPointerUp, suppressClickAfterDrag } =
+    useDraggableBubble();
+  const closeOnOutsideClick = useCallback(() => setOpen(false), []);
+  useOutsideClick(open, closeOnOutsideClick, [panelRef, buttonRef]);
+
   const stop = useCallback(() => {
     abortRef.current?.abort();
   }, []);
@@ -46,7 +62,16 @@ export function DashboardAssistant() {
   // an old exchange grounded in Payment Terms data would be misleading once
   // the assistant is answering for Tail Spend instead.
   useEffect(() => {
-    if (dashboardKey) setMessages([{ role: "assistant", content: welcomeFor(dashboardKey) }]);
+    if (!dashboardKey) return;
+    setMessages([{ role: "assistant", content: welcomeFor(dashboardKey) }]);
+    // A redirect from another dashboard's assistant may have handed off the
+    // question that got the user sent here — surface it in the input instead
+    // of making them retype it, and open the panel so it's visible.
+    const pending = takePendingPrompt();
+    if (pending) {
+      setInput(pending);
+      setOpen(true);
+    }
   }, [dashboardKey]);
 
   useEffect(() => {
@@ -78,12 +103,18 @@ export function DashboardAssistant() {
         const data: {
           reply?: string;
           redirect?: { key: DashboardKey; label: string; route: string } | null;
+          options?: string[] | null;
           error?: string;
         } = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status}).`);
         setMessages((prev) => [
           ...prev,
-          { role: "assistant", content: data.reply ?? "Done.", redirect: data.redirect ?? undefined },
+          {
+            role: "assistant",
+            content: data.reply ?? "Done.",
+            redirect: data.redirect ?? undefined,
+            options: data.options ?? undefined,
+          },
         ]);
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") {
@@ -112,12 +143,18 @@ export function DashboardAssistant() {
   return (
     <>
       <button
+        ref={buttonRef}
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={suppressClickAfterDrag(() => setOpen((v) => !v))}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
         aria-expanded={open}
         aria-label="AI Assistant"
+        style={position ? { left: position.x, top: position.y } : undefined}
         className={cn(
-          "fixed bottom-6 right-6 z-[60] inline-flex items-center gap-2 rounded-full px-4 py-3 text-sm font-medium shadow-lg transition-all",
+          "fixed z-[60] inline-flex touch-none items-center gap-2 rounded-full px-4 py-3 text-sm font-medium shadow-lg transition-colors select-none",
+          !position && "bottom-6 right-6",
           open
             ? "bg-slate-700 text-white hover:bg-slate-600"
             : "bg-slate-900 text-white hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
@@ -128,7 +165,26 @@ export function DashboardAssistant() {
       </button>
 
       {open && (
-        <div className="fixed bottom-24 right-6 z-[60] flex h-[min(34rem,calc(100vh-9rem))] w-[min(24rem,calc(100vw-3rem))] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+        <div
+          ref={panelRef}
+          style={
+            position
+              ? {
+                  left: Math.min(
+                    position.x,
+                    window.innerWidth - Math.min(PANEL_WIDTH_PX, window.innerWidth - 48) - 8
+                  ),
+                  ...(position.y < window.innerHeight / 2
+                    ? { top: position.y + BUBBLE_HEIGHT_PX + PANEL_GAP_PX }
+                    : { bottom: window.innerHeight - position.y + PANEL_GAP_PX }),
+                }
+              : undefined
+          }
+          className={cn(
+            "fixed z-[60] flex h-[min(34rem,calc(100vh-9rem))] w-[min(24rem,calc(100vw-3rem))] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900",
+            !position && "bottom-24 right-6"
+          )}
+        >
           <div className="shrink-0 border-b border-slate-200 px-4 py-3 dark:border-slate-800">
             <div className="flex items-center gap-2">
               <Bot className="h-4 w-4 text-slate-500 dark:text-slate-400" />
@@ -159,6 +215,8 @@ export function DashboardAssistant() {
                   <button
                     type="button"
                     onClick={() => {
+                      const lastUserMessage = messages.filter((x) => x.role === "user").at(-1)?.content;
+                      if (lastUserMessage) stashPendingPrompt(lastUserMessage);
                       setOpen(false);
                       router.push(m.redirect!.route);
                     }}
@@ -167,6 +225,21 @@ export function DashboardAssistant() {
                     Go to {m.redirect.label}
                     <ArrowRight className="h-3.5 w-3.5" />
                   </button>
+                )}
+                {m.options && m.options.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {m.options.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        disabled={busy}
+                        onClick={() => send(option)}
+                        className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
                 )}
               </div>
             ))}

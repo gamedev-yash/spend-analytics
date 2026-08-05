@@ -77,6 +77,12 @@ export interface AssistantResponse {
   query?: AssistantQuery | null;
   /** Set when the model called redirect_to_dashboard instead of answering. */
   redirect?: { id: string; title: string; route: string } | null;
+  /**
+   * Set when the model called ask_with_options instead of guessing — a short
+   * list of clickable choices to disambiguate the request, rendered as
+   * buttons instead of asking the user to type a follow-up.
+   */
+  options?: string[] | null;
   /** True when the server had no API key and answered from local data only. */
   offline?: boolean;
 }

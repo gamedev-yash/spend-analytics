@@ -23,6 +23,9 @@ import {
   generatePermutationSuggestions,
   AssistantError,
 } from "@/lib/ai/widget-parser";
+import { stashPendingPrompt, takePendingPrompt } from "@/lib/ai/assistant-handoff";
+import { useDraggableBubble } from "@/hooks/use-draggable-bubble";
+import { useOutsideClick } from "@/hooks/use-outside-click";
 import type { OtherDashboardInfo } from "@/types/assistant";
 import {
   CHART_TYPE_LABELS,
@@ -38,8 +41,14 @@ interface ChatEntry {
   addedWidget?: string;
   /** Set when the assistant redirected instead of answering — renders a "Go to X" link. */
   redirect?: { id: string; title: string; route: string };
+  /** Set when the assistant asked a clarifying question — renders clickable choices. */
+  options?: string[];
   isError?: boolean;
 }
+
+const BUBBLE_HEIGHT_PX = 48;
+const PANEL_GAP_PX = 12;
+const PANEL_WIDTH_PX = 416; // matches w-[min(26rem,...)] below
 
 function welcomeFor(dashboardTitle: string): string {
   return `Hi! I'm grounded in "${dashboardTitle}"'s own data only — ask me about what's on this dashboard, or describe a chart to add. If your question belongs to a different dashboard, I'll point you there instead of guessing.`;
@@ -101,6 +110,13 @@ export function AiAssistant() {
   const abortRef = useRef<AbortController | null>(null);
   const dismissToast = useCallback(() => setToast(null), []);
 
+  const panelRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const { position, onPointerDown, onPointerMove, onPointerUp, suppressClickAfterDrag } =
+    useDraggableBubble();
+  const closeOnOutsideClick = useCallback(() => setOpen(false), []);
+  useOutsideClick(open, closeOnOutsideClick, [panelRef, buttonRef]);
+
   function stop() {
     abortRef.current?.abort();
   }
@@ -150,7 +166,16 @@ export function AiAssistant() {
   // (not the activeDashboard object) so an unrelated widgets-array change
   // doesn't wipe the conversation.
   useEffect(() => {
-    if (activeDashboard) setMessages([{ role: "assistant", content: welcomeFor(activeDashboard.title) }]);
+    if (!activeDashboard) return;
+    setMessages([{ role: "assistant", content: welcomeFor(activeDashboard.title) }]);
+    // A redirect from another dashboard's assistant may have handed off the
+    // question that got the user sent here — surface it in the input instead
+    // of making them retype it, and open the panel so it's visible.
+    const pending = takePendingPrompt();
+    if (pending) {
+      setInput(pending);
+      setOpen(true);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeDashboard?.id, activeDashboard?.title]);
 
@@ -196,6 +221,7 @@ export function AiAssistant() {
           content: result.reply || (addedWidget ? `Added "${addedWidget}".` : "Done."),
           addedWidget,
           redirect: result.redirect ?? undefined,
+          options: result.options ?? undefined,
         },
       ]);
       if (result.validatedWidget && !addedWidget && !result.redirect) {
@@ -233,14 +259,20 @@ export function AiAssistant() {
 
   return (
     <>
-      {/* Floating action button */}
+      {/* Floating action button — draggable; drop position anchors the panel too */}
       <button
+        ref={buttonRef}
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={suppressClickAfterDrag(() => setOpen((v) => !v))}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
         aria-expanded={open}
         aria-label="AI Assistant"
+        style={position ? { left: position.x, top: position.y } : undefined}
         className={cn(
-          "fixed bottom-6 right-6 z-[60] inline-flex items-center gap-2 rounded-full px-4 py-3 text-sm font-medium shadow-lg transition-all",
+          "fixed z-[60] inline-flex touch-none items-center gap-2 rounded-full px-4 py-3 text-sm font-medium shadow-lg transition-colors select-none",
+          !position && "bottom-6 right-6",
           open
             ? "bg-slate-700 text-white hover:bg-slate-600"
             : "bg-slate-900 text-white hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
@@ -251,7 +283,26 @@ export function AiAssistant() {
       </button>
 
       {open && (
-        <div className="fixed bottom-24 right-6 z-[60] flex h-[min(38rem,calc(100vh-9rem))] w-[min(26rem,calc(100vw-3rem))] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+        <div
+          ref={panelRef}
+          style={
+            position
+              ? {
+                  left: Math.min(
+                    position.x,
+                    window.innerWidth - Math.min(PANEL_WIDTH_PX, window.innerWidth - 48) - 8
+                  ),
+                  ...(position.y < window.innerHeight / 2
+                    ? { top: position.y + BUBBLE_HEIGHT_PX + PANEL_GAP_PX }
+                    : { bottom: window.innerHeight - position.y + PANEL_GAP_PX }),
+                }
+              : undefined
+          }
+          className={cn(
+            "fixed z-[60] flex h-[min(38rem,calc(100vh-9rem))] w-[min(26rem,calc(100vw-3rem))] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900",
+            !position && "bottom-24 right-6"
+          )}
+        >
           {/* Header */}
           <div className="shrink-0 border-b border-slate-200 px-4 py-3 dark:border-slate-800">
             <div className="flex items-center gap-2">
@@ -325,6 +376,8 @@ export function AiAssistant() {
                       <button
                         type="button"
                         onClick={() => {
+                          const lastUserMessage = messages.filter((x) => x.role === "user").at(-1)?.content;
+                          if (lastUserMessage) stashPendingPrompt(lastUserMessage);
                           setOpen(false);
                           router.push(m.redirect!.route);
                         }}
@@ -333,6 +386,21 @@ export function AiAssistant() {
                         Go to {m.redirect.title}
                         <ArrowRight className="h-3.5 w-3.5" />
                       </button>
+                    )}
+                    {m.options && m.options.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {m.options.map((option) => (
+                          <button
+                            key={option}
+                            type="button"
+                            disabled={busy}
+                            onClick={() => send(option)}
+                            className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
                     )}
                   </div>
                 ))}
