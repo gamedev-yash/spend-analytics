@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Table2 } from "lucide-react";
+import { Download, Table2 } from "lucide-react";
 import { ChartCard } from "@/components/dashboard/chart-card";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { usePaymentTerms } from "../provider";
 import { aggregateForTable, type TableRow } from "../selectors";
@@ -32,6 +33,28 @@ const COLUMNS: ColumnDef[] = [
   { key: "avgPaidDays", label: "Average Number of Paid Days", align: "right" },
   { key: "spend", label: "Spend", align: "right" },
 ];
+
+function exportCsv(rows: TableRow[]) {
+  const header = ["Supplier Name", "Payment Terms", "Categories", "Plants", "Average Number of Paid Days", "Spend"];
+  const lines = rows.map((r) =>
+    [
+      `"${r.globalUltimateName.replace(/"/g, '""')}"`,
+      r.paymentTermCount,
+      r.categoryCount,
+      r.plantCount,
+      r.avgPaidDays ?? "",
+      r.spend,
+    ].join(",")
+  );
+  const csv = [header.join(","), ...lines].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "payment-terms-detail-report.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 function compareRows(a: TableRow, b: TableRow, column: SortColumn): number {
   switch (column) {
@@ -82,6 +105,13 @@ export function DetailReportTable() {
 
   return (
     <ChartCard title="Detail Report" description="Sortable by any column" icon={<Table2 />}>
+      <div className="flex h-full flex-col gap-2">
+        <div className="flex shrink-0 justify-end">
+          <Button size="sm" variant="outline" onClick={() => exportCsv(sortedRows)}>
+            <Download className="h-3.5 w-3.5" />
+            Export CSV
+          </Button>
+        </div>
         <div className="overflow-x-auto">
           <table className="fullscreen-natural-table w-full min-w-[720px] text-sm">
             <thead>
@@ -138,6 +168,7 @@ export function DetailReportTable() {
             </tbody>
           </table>
         </div>
+      </div>
     </ChartCard>
   );
 }
