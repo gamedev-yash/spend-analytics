@@ -10,8 +10,9 @@ export interface DashboardWidgetGroup {
 }
 
 /**
- * Single source of truth for every toggleable widget on the Tail Spend
- * dashboard. Group order here is display order in the Customize drawer.
+ * Single source of truth for every widget on the Tail Spend dashboard —
+ * `WidgetId` and `ALL_WIDGET_IDS` below are derived from it, which is what
+ * types the focus store and builds WIDGET_TAGS in ./focusParams.
  */
 export const DASHBOARD_WIDGET_GROUPS = [
   {

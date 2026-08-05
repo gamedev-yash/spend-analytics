@@ -4,18 +4,16 @@ import { useMemo } from "react";
 import { X } from "lucide-react";
 import { ClearFiltersButton, FilterDateRange, FilterGroup, FilterSelect } from "@/components/ui/filter-controls";
 import { MultiSelect } from "@/components/sap/multi-select";
-import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
+import { ThresholdSettings } from "@/components/dashboard/threshold-settings";
 import { useFilterSlot } from "@/context/FilterContext";
 import { useSingleSourceRisk } from "../provider";
 import { SUPPLIER_COUNT_OPTIONS } from "../selectors";
-import { SSR_WIDGET_GROUPS } from "./focusParams";
-import { useSingleSourceRiskFocus } from "./useSingleSourceRiskFocus";
 import type { LinkedDimension, SupplierCountThreshold } from "../types";
 
 const DIMENSION_LABELS: Record<LinkedDimension, string> = {
   category: "Category",
   product: "Product",
-  plant: "BU / Plant",
+  plant: "Business Unit / Plant",
   globalUltimate: "Supplier",
 };
 
@@ -43,8 +41,6 @@ export function FilterPanel() {
     sourceSystemOptions,
     plantOptions,
   } = useSingleSourceRisk();
-
-  const { isWidgetEnabled, toggleWidgetEnabled, resetWidgetsToDefault } = useSingleSourceRiskFocus();
 
   const hasActiveFilters =
     filters.categoryCodes.length > 0 ||
@@ -87,7 +83,7 @@ export function FilterPanel() {
             onChange={setSourceSystems}
           />
           <MultiSelect
-            label="BU / Plant"
+            label="Business Unit / Plant"
             allLabel="All Plants"
             options={plantOptions}
             selected={filters.plantIds}
@@ -103,12 +99,7 @@ export function FilterPanel() {
         </FilterGroup>
 
         <FilterGroup title="Page Options">
-          <CustomizeViewDrawer
-            groups={SSR_WIDGET_GROUPS}
-            isWidgetEnabled={isWidgetEnabled}
-            onToggleWidgetEnabled={toggleWidgetEnabled}
-            onResetToDefault={resetWidgetsToDefault}
-          />
+          <ThresholdSettings pageKey="single-source-risk" className="w-full justify-center" />
         </FilterGroup>
 
         {selection && (
@@ -147,9 +138,6 @@ export function FilterPanel() {
       setSupplierCountPerCategory,
       resetFilters,
       clearSelection,
-      isWidgetEnabled,
-      toggleWidgetEnabled,
-      resetWidgetsToDefault,
     ]
   );
 

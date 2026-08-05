@@ -1,16 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, PanelLeft, PanelLeftClose, Sparkles, Trash2 } from "lucide-react";
 import { NAV_ITEMS } from "@/lib/nav";
 import { useCustomDashboards } from "@/lib/custom-dashboards-store";
-import { NewDashboardButton } from "@/components/dashboard/new-dashboard-dialog";
 import { DeleteDashboardDialog } from "@/components/dashboard/delete-dashboard-dialog";
 import { useGeneratedDashboards, deleteGeneratedDashboard } from "@/lib/generated-dashboard/store";
 import { GenerateDashboardButton } from "@/components/generated-dashboard/generate-dashboard-dialog";
 import type { CustomDashboard } from "@/types/custom-dashboard";
+import {
+  SIDEBAR_COLLAPSED_WIDTH,
+  SIDEBAR_MAX_WIDTH,
+  SIDEBAR_MIN_WIDTH,
+  SIDEBAR_RESIZE_STEP,
+} from "@/hooks/use-sidebar-width";
 import { cn } from "@/lib/utils";
 
 const PEEK_DELAY_MS = 350;
@@ -18,16 +23,95 @@ const PEEK_DELAY_MS = 350;
 interface SidebarProps {
   collapsed: boolean;
   onToggleCollapsed: () => void;
+  /** Current pinned-expanded width in px — owned by DashboardShell, which also pads the content by it. */
+  width: number;
+  isResizing: boolean;
+  onStartResize: () => void;
+  onNudgeWidth: (delta: number) => void;
+  onResetWidth: () => void;
+}
+
+/**
+ * One row in the "My Dashboards" / "Generated Dashboards" lists — a link plus
+ * a hover-revealed delete button. Both lists render identical structure and
+ * differ only in icon, href shape, and what deleting does.
+ */
+function DashboardNavItem({
+  href,
+  title,
+  icon,
+  isActive,
+  showExpanded,
+  onDelete,
+}: {
+  href: string;
+  title: string;
+  icon: ReactNode;
+  isActive: boolean;
+  showExpanded: boolean;
+  onDelete: () => void;
+}) {
+  return (
+    <div
+      className={cn(
+        "group flex items-center rounded-md transition-colors",
+        isActive ? "bg-slate-900 dark:bg-slate-100" : "hover:bg-slate-100 dark:hover:bg-slate-800"
+      )}
+    >
+      <Link
+        href={href}
+        title={title}
+        className={cn(
+          "flex min-w-0 flex-1 items-center gap-3 px-3 py-2 text-sm font-medium",
+          !showExpanded && "justify-center px-0",
+          isActive ? "text-white dark:text-slate-900" : "text-slate-600 dark:text-slate-400"
+        )}
+      >
+        {icon}
+        {showExpanded && <span className="truncate">{title}</span>}
+      </Link>
+      {showExpanded && (
+        <button
+          type="button"
+          onClick={onDelete}
+          aria-label={`Delete ${title}`}
+          title="Delete dashboard"
+          className={cn(
+            "mr-1 shrink-0 rounded p-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100",
+            isActive
+              ? "text-white/70 hover:bg-white/10 hover:text-white dark:text-slate-900/70 dark:hover:bg-black/10 dark:hover:text-slate-900"
+              : "text-slate-400 hover:bg-slate-200 hover:text-rose-600 dark:text-slate-500 dark:hover:bg-slate-700 dark:hover:text-rose-400"
+          )}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      )}
+    </div>
+  );
 }
 
 /**
  * `collapsed` is the pinned state the toggle button controls; `peeking` is
  * ephemeral hover UI layered on top of it. While pinned collapsed, hovering
- * for PEEK_DELAY_MS visually expands the sidebar as an absolutely-positioned
- * overlay so it never touches DashboardShell's pl-16/pl-60 — the reflow that
- * pinning is meant to avoid.
+ * for PEEK_DELAY_MS visually expands the sidebar without touching
+ * DashboardShell's content padding — the reflow that pinning is meant to
+ * avoid.
+ *
+ * The peek overlay stays `fixed` (only its z-index and shadow change) rather
+ * than switching to `absolute`. Nothing in the ancestor chain is positioned,
+ * so an `absolute inset-y-0` sidebar resolves against the *document* instead
+ * of the viewport: on a scrolled page it scrolled away with the content,
+ * clipping its own header off the top and ending partway down the screen.
  */
-export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
+export function Sidebar({
+  collapsed,
+  onToggleCollapsed,
+  width,
+  isResizing,
+  onStartResize,
+  onNudgeWidth,
+  onResetWidth,
+}: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const customDashboards = useCustomDashboards();
@@ -63,15 +147,41 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
     onToggleCollapsed();
   }
 
+  function handleResizePointerDown(event: PointerEvent<HTMLDivElement>) {
+    // Suppress the native drag/text-selection gesture so the pointermove
+    // stream belongs entirely to the resize.
+    event.preventDefault();
+    onStartResize();
+  }
+
+  function handleResizeKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      onNudgeWidth(-SIDEBAR_RESIZE_STEP);
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      onNudgeWidth(SIDEBAR_RESIZE_STEP);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      onResetWidth();
+    }
+  }
+
   const isPeeking = collapsed && peeking;
   const showExpanded = !collapsed || peeking;
+  // The collapsed rail is a fixed icon strip — only the pinned-expanded
+  // sidebar honours the user's dragged width.
+  const currentWidth = showExpanded ? width : SIDEBAR_COLLAPSED_WIDTH;
 
   return (
     <aside
+      style={{ width: currentWidth }}
       className={cn(
-        "inset-y-0 left-0 flex flex-col overflow-hidden border-r border-slate-200 bg-white transition-all duration-300 dark:border-slate-800 dark:bg-slate-900",
-        isPeeking ? "absolute z-40 shadow-2xl" : "fixed z-20",
-        showExpanded ? "w-60" : "w-16"
+        "fixed inset-y-0 left-0 flex flex-col overflow-hidden border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900",
+        isPeeking ? "z-40 shadow-2xl" : "z-20",
+        // Animating width would fight the pointer during a drag, lagging the
+        // edge behind the cursor.
+        !isResizing && "transition-[width,box-shadow] duration-300"
       )}
     >
       <div
@@ -125,7 +235,10 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
             showExpanded ? "flex-1 opacity-100" : "w-0 flex-none opacity-0"
           )}
         >
-          <span className="flex-1 truncate text-sm font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+          <span
+            title="Procurement Analytics"
+            className="flex-1 truncate text-sm font-semibold tracking-tight text-slate-900 dark:text-slate-100"
+          >
             Procurement Analytics
           </span>
           <button
@@ -161,7 +274,10 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
             <Link
               key={item.href}
               href={item.href}
-              title={!showExpanded ? item.label : undefined}
+              // Always titled, not just when collapsed: the expanded labels
+              // are `truncate`d too, so a narrow sidebar clips them just as
+              // thoroughly as the icon rail hides them.
+              title={item.label}
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                 !showExpanded && "justify-center px-0",
@@ -176,63 +292,41 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
           );
         })}
 
-        {/* User-built dashboards, then the create entry point. */}
-        <div className="pt-3">
-          {showExpanded && (
-            <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-              My Dashboards
-            </p>
-          )}
-          <div className="space-y-1">
-            {customDashboards.map((dashboard) => {
-              const href = `/dashboards/${dashboard.id}`;
-              const isActive = pathname === href;
-              return (
-                <div
+        {/*
+          User-built dashboards, then the create entry point. Both dashboard
+          lists scroll within their own capped box, with the create/generate
+          button pinned outside it — an unbounded list otherwise pushes that
+          button (and the other section entirely) off the bottom of the nav.
+        */}
+        {/*
+          No creation entry point anymore — "New Custom Dashboard" is
+          retired, so this section only has anything to show for a browser
+          that already has custom dashboards from before. Render nothing at
+          all (not even the header) once that list is empty, rather than a
+          "My Dashboards" label sitting above a permanently blank body.
+        */}
+        {customDashboards.length > 0 && (
+          <div className="pt-3">
+            {showExpanded && (
+              <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                My Dashboards
+              </p>
+            )}
+            <div className="max-h-56 space-y-1 overflow-y-auto overscroll-contain">
+              {customDashboards.map((dashboard) => (
+                <DashboardNavItem
                   key={dashboard.id}
-                  className={cn(
-                    "group flex items-center rounded-md transition-colors",
-                    isActive
-                      ? "bg-slate-900 dark:bg-slate-100"
-                      : "hover:bg-slate-100 dark:hover:bg-slate-800"
-                  )}
-                >
-                  <Link
-                    href={href}
-                    title={!showExpanded ? dashboard.title : undefined}
-                    className={cn(
-                      "flex min-w-0 flex-1 items-center gap-3 px-3 py-2 text-sm font-medium",
-                      !showExpanded && "justify-center px-0",
-                      isActive
-                        ? "text-white dark:text-slate-900"
-                        : "text-slate-600 dark:text-slate-400"
-                    )}
-                  >
-                    <LayoutDashboard className="h-4 w-4 shrink-0" />
-                    {showExpanded && <span className="truncate">{dashboard.title}</span>}
-                  </Link>
-                  {showExpanded && (
-                    <button
-                      type="button"
-                      onClick={() => setDeleteTarget(dashboard)}
-                      aria-label={`Delete ${dashboard.title}`}
-                      title="Delete dashboard"
-                      className={cn(
-                        "mr-1 shrink-0 rounded p-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100",
-                        isActive
-                          ? "text-white/70 hover:bg-white/10 hover:text-white dark:text-slate-900/70 dark:hover:bg-black/10 dark:hover:text-slate-900"
-                          : "text-slate-400 hover:bg-slate-200 hover:text-rose-600 dark:text-slate-500 dark:hover:bg-slate-700 dark:hover:text-rose-400"
-                      )}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-            <NewDashboardButton variant="nav" collapsed={!showExpanded} />
+                  href={`/dashboards/${dashboard.id}`}
+                  title={dashboard.title}
+                  icon={<LayoutDashboard className="h-4 w-4 shrink-0" />}
+                  isActive={pathname === `/dashboards/${dashboard.id}`}
+                  showExpanded={showExpanded}
+                  onDelete={() => setDeleteTarget(dashboard)}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* AI-generated dashboards — a separate feature/store from "My Dashboards" above. */}
         <div className="pt-3">
@@ -242,57 +336,30 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
             </p>
           )}
           <div className="space-y-1">
-            {generatedDashboards.map((dashboard) => {
-              const href = `/generated/${dashboard.id}`;
-              const isActive = pathname === href;
-              return (
-                <div
-                  key={dashboard.id}
-                  className={cn(
-                    "group flex items-center rounded-md transition-colors",
-                    isActive
-                      ? "bg-slate-900 dark:bg-slate-100"
-                      : "hover:bg-slate-100 dark:hover:bg-slate-800"
-                  )}
-                >
-                  <Link
-                    href={href}
-                    title={!showExpanded ? dashboard.title : undefined}
-                    className={cn(
-                      "flex min-w-0 flex-1 items-center gap-3 px-3 py-2 text-sm font-medium",
-                      !showExpanded && "justify-center px-0",
-                      isActive
-                        ? "text-white dark:text-slate-900"
-                        : "text-slate-600 dark:text-slate-400"
-                    )}
-                  >
-                    <Sparkles className="h-4 w-4 shrink-0" />
-                    {showExpanded && <span className="truncate">{dashboard.title}</span>}
-                  </Link>
-                  {showExpanded && (
-                    <button
-                      type="button"
-                      onClick={() => {
+            {generatedDashboards.length > 0 && (
+              <div className="max-h-56 space-y-1 overflow-y-auto overscroll-contain">
+                {generatedDashboards.map((dashboard) => {
+                  const href = `/generated/${dashboard.id}`;
+                  const isActive = pathname === href;
+                  return (
+                    <DashboardNavItem
+                      key={dashboard.id}
+                      href={href}
+                      title={dashboard.title}
+                      icon={<Sparkles className="h-4 w-4 shrink-0" />}
+                      isActive={isActive}
+                      showExpanded={showExpanded}
+                      onDelete={() => {
                         if (window.confirm(`Delete "${dashboard.title}"? This cannot be undone.`)) {
                           deleteGeneratedDashboard(dashboard.id);
                           if (isActive) router.push("/");
                         }
                       }}
-                      aria-label={`Delete ${dashboard.title}`}
-                      title="Delete dashboard"
-                      className={cn(
-                        "mr-1 shrink-0 rounded p-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100",
-                        isActive
-                          ? "text-white/70 hover:bg-white/10 hover:text-white dark:text-slate-900/70 dark:hover:bg-black/10 dark:hover:text-slate-900"
-                          : "text-slate-400 hover:bg-slate-200 hover:text-rose-600 dark:text-slate-500 dark:hover:bg-slate-700 dark:hover:text-rose-400"
-                      )}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+                    />
+                  );
+                })}
+              </div>
+            )}
             <GenerateDashboardButton variant="nav" collapsed={!showExpanded} />
           </div>
         </div>
@@ -313,7 +380,7 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
       {/*
         Always mounted (not conditionally rendered) so only opacity animates —
         whitespace-nowrap + overflow-hidden keep it single-line and clipped
-        instead of wrapping while w-16/w-60 is mid-transition, which was
+        instead of wrapping while the width is mid-transition, which was
         producing a visible height jump. pointer-events-none while collapsed
         since it's clipped to nothing but still technically in the box.
       */}
@@ -326,6 +393,36 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
       >
         v0.1.0 · Internal Build
       </div>
+
+      {/*
+        Drag handle for the sidebar width. Only offered while pinned expanded:
+        the collapsed rail is a fixed-width icon strip, and resizing the peek
+        overlay would set a width the user cannot see applied.
+      */}
+      {!collapsed && (
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize sidebar"
+          aria-valuenow={width}
+          aria-valuemin={SIDEBAR_MIN_WIDTH}
+          aria-valuemax={SIDEBAR_MAX_WIDTH}
+          tabIndex={0}
+          onPointerDown={handleResizePointerDown}
+          onDoubleClick={onResetWidth}
+          onKeyDown={handleResizeKeyDown}
+          title="Drag to resize · double-click to reset"
+          className="group absolute inset-y-0 right-0 z-10 flex w-2 cursor-col-resize touch-none justify-end focus:outline-none"
+        >
+          <span
+            aria-hidden
+            className={cn(
+              "h-full w-0.5 transition-colors group-hover:bg-slate-300 group-focus-visible:bg-slate-400 dark:group-hover:bg-slate-600 dark:group-focus-visible:bg-slate-500",
+              isResizing ? "bg-slate-400 dark:bg-slate-500" : "bg-transparent"
+            )}
+          />
+        </div>
+      )}
     </aside>
   );
 }

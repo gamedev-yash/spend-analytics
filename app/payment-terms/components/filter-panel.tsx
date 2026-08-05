@@ -4,11 +4,9 @@ import { useMemo } from "react";
 import { X } from "lucide-react";
 import { ClearFiltersButton, FilterDateRange, FilterGroup } from "@/components/ui/filter-controls";
 import { MultiSelect } from "@/components/sap/multi-select";
-import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
+import { ThresholdSettings } from "@/components/dashboard/threshold-settings";
 import { useFilterSlot } from "@/context/FilterContext";
 import { usePaymentTerms } from "../provider";
-import { PT_WIDGET_GROUPS } from "./focusParams";
-import { usePaymentTermsFocus } from "./usePaymentTermsFocus";
 import type { LinkedDimension } from "../types";
 
 const DIMENSION_LABELS: Record<LinkedDimension, string> = {
@@ -43,8 +41,6 @@ export function FilterPanel() {
     plantOptions,
     paymentTermOptions,
   } = usePaymentTerms();
-
-  const { isWidgetEnabled, toggleWidgetEnabled, resetWidgetsToDefault } = usePaymentTermsFocus();
 
   const hasActiveFilters =
     filters.categoryCodes.length > 0 ||
@@ -87,7 +83,7 @@ export function FilterPanel() {
             onChange={setSourceSystems}
           />
           <MultiSelect
-            label="BU / Plant"
+            label="Business Unit / Plant"
             allLabel="All Plants"
             options={plantOptions}
             selected={filters.plantIds}
@@ -104,12 +100,7 @@ export function FilterPanel() {
         </FilterGroup>
 
         <FilterGroup title="Page Options">
-          <CustomizeViewDrawer
-            groups={PT_WIDGET_GROUPS}
-            isWidgetEnabled={isWidgetEnabled}
-            onToggleWidgetEnabled={toggleWidgetEnabled}
-            onResetToDefault={resetWidgetsToDefault}
-          />
+          <ThresholdSettings pageKey="payment-terms" className="w-full justify-center" />
         </FilterGroup>
 
         {selection && (
@@ -149,9 +140,6 @@ export function FilterPanel() {
       setPaymentTerms,
       resetFilters,
       clearSelection,
-      isWidgetEnabled,
-      toggleWidgetEnabled,
-      resetWidgetsToDefault,
     ]
   );
 

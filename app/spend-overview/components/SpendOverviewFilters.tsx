@@ -4,9 +4,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useFilterSlot } from "@/context/FilterContext";
 import { ClearFiltersButton, FilterDateRange, FilterGroup } from "@/components/ui/filter-controls";
 import { MultiSelect } from "@/components/sap/multi-select";
-import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
-import { SO_WIDGET_GROUPS } from "./focusParams";
-import { useSpendOverviewFocus } from "./useSpendOverviewFocus";
+import { ThresholdSettings } from "@/components/dashboard/threshold-settings";
 
 interface SpendOverviewFiltersProps {
   plantOptions: { code: string; name: string }[];
@@ -18,10 +16,6 @@ interface SpendOverviewFiltersProps {
 }
 
 /**
- * In-route fork of components/sap/spend-overview-filters.tsx (kept there,
- * unmodified, and no longer used by this page) — recreated here so the
- * "Clear filters" button stays inside app/spend-overview/.
- *
  * Registers Spend Overview's filters into the shell's sidebar Filter Drawer
  * (see context/FilterContext.tsx) instead of an in-canvas filter bar. Renders
  * nothing itself — it mutates the same URL search params the page's server
@@ -53,13 +47,11 @@ export function SpendOverviewFilters({
     router.push(query ? `${pathname}?${query}` : pathname);
   }
 
-  const { isWidgetEnabled, toggleWidgetEnabled, resetWidgetsToDefault } = useSpendOverviewFocus();
-
   useFilterSlot(
     <div className="space-y-6">
       <FilterGroup title="Filters">
         <MultiSelect
-          label="BU / Plant"
+          label="Business Unit / Plant"
           options={plantOptions.map((p) => ({ value: p.code, label: p.name }))}
           selected={selectedPlants}
           onChange={(values) =>
@@ -87,13 +79,14 @@ export function SpendOverviewFilters({
         {hasActiveFilters && <ClearFiltersButton onClick={() => router.push(pathname)} />}
       </FilterGroup>
 
+      {/*
+        Same pageKey literal the canvas used when this lived in its Focus
+        Parameter bar — the live values travel through ThresholdsContext
+        (mounted above DashboardShell), so no prop needs threading from the
+        canvas for an edit here to re-grade its YoY KPI badge.
+      */}
       <FilterGroup title="Page Options">
-        <CustomizeViewDrawer
-          groups={SO_WIDGET_GROUPS}
-          isWidgetEnabled={isWidgetEnabled}
-          onToggleWidgetEnabled={toggleWidgetEnabled}
-          onResetToDefault={resetWidgetsToDefault}
-        />
+        <ThresholdSettings pageKey="spend-overview" className="w-full justify-center" />
       </FilterGroup>
     </div>
   );

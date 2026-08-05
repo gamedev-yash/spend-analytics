@@ -24,7 +24,7 @@ export function SuppliersChart() {
       icon={<Users />}
       accent="violet"
     >
-      <div className="overflow-y-auto chart-fixed-height-scroll" style={{ maxHeight: MAX_HEIGHT }}>
+      <div className="fullscreen-scroll-list overflow-y-auto" style={{ maxHeight: MAX_HEIGHT }}>
         <div className="flex flex-col gap-1">
           {rows.map((row) => {
             const isSelected = selectedKey !== null && row.key === selectedKey;

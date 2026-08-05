@@ -84,6 +84,7 @@ export function ChartCard({
           title={title}
           description={description}
           activeFilters={activeFilters}
+          action={action}
         >
           {children}
         </FullscreenOverlay>

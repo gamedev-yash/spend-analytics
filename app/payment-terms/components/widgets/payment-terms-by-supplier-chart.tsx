@@ -58,11 +58,20 @@ export function PaymentTermsBySupplierChart() {
         not by stretching the chart to fill it. Switching to height="100%" in
         fullscreen would make Recharts compress all rows into the capped viewport
         height instead, shrinking 50 suppliers into unreadable ~10px slivers.
-        `chart-fixed-height-scroll` opts this out of globals.css's fullscreen
-        stretch rule, which would otherwise force the same height:100% onto
-        this chart's internals regardless of the prop value.
+
+        Two globals.css opt-outs, doing different jobs:
+        - `chart-fixed-height-scroll` keeps this chart's internals at their
+          natural height, instead of the fullscreen cascade forcing height:100%
+          onto them regardless of the prop value.
+        - `fullscreen-scroll-list` drops MAX_VIEWPORT_HEIGHT while maximized, so
+          the viewport uses the whole overlay rather than leaving ~280px of it
+          empty below a still-520px box. Rows keep ROW_HEIGHT — you just see
+          more of them at once, which is the point of maximizing this widget.
       */}
-      <div className="overflow-y-auto chart-fixed-height-scroll" style={{ maxHeight: MAX_VIEWPORT_HEIGHT }}>
+      <div
+        className="fullscreen-scroll-list overflow-y-auto chart-fixed-height-scroll"
+        style={{ maxHeight: MAX_VIEWPORT_HEIGHT }}
+      >
       <ResponsiveContainer width="100%" height={chartHeight}>
           <BarChart
             data={displayedRows}

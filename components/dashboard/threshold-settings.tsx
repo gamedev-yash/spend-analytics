@@ -130,6 +130,10 @@ function ThresholdRow({
  * "Target" popover for a page's alert targets. Edits apply live —
  * every KPI badge, chart accent, and table pill re-evaluates immediately —
  * and persist to localStorage['app_thresholds'] via ThresholdsContext.
+ *
+ * Every call site is now the left filter sidebar's "Page Options" group, so
+ * pass `className="w-full justify-center"` to match the full-bleed controls
+ * beside it — the trigger is `inline-flex` and would otherwise shrink to fit.
  */
 export function ThresholdSettings({ pageKey, className }: { pageKey: string; className?: string }) {
   const { thresholdsForPage, setTargetValue, setUpperBound, resetPage, pageHasOverrides } =
@@ -152,7 +156,15 @@ export function ThresholdSettings({ pageKey, className }: { pageKey: string; cla
         Target
         {dirty && <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-amber-500" />}
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-3">
+      {/*
+        align="start" (not "end") because the trigger now lives in the left
+        sidebar: end-alignment pins the popup's right edge to the trigger's,
+        pushing a 320px popup off the left of the viewport until the shift
+        middleware claws it back, at which point it no longer tracks the
+        trigger. Same reason MultiSelect uses start alignment in this column.
+        The popup is portaled, so overhanging the 280px column is fine.
+      */}
+      <PopoverContent align="start" className="w-80 p-3">
         <div className="flex items-center justify-between gap-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
             Alert targets

@@ -1,5 +1,4 @@
 import { Gauge, Layers, Users } from "lucide-react";
-import type { CustomizeWidgetGroupDef } from "@/components/dashboard/customize-view-drawer";
 import type { FocusParameterDef } from "@/components/dashboard/focus-parameter-bar";
 
 export type PaymentTermsFocusId = "term-mix" | "payment-performance" | "supplier-view";
@@ -45,10 +44,9 @@ export type PaymentTermsWidgetId =
   | "detail-table";
 
 /**
- * Untagged (`[]`) means cross-cutting — always rendered regardless of which
- * sections are active, switchable only via the Customize View drawer. The KPI
- * ribbon is untagged because both remaining stats are referenced by every
- * section rather than belonging to one.
+ * Untagged (`[]`) means cross-cutting — always rendered, regardless of which
+ * sections are active. The KPI ribbon is untagged because both remaining stats
+ * are referenced by every section rather than belonging to one.
  */
 export const PT_WIDGET_TAGS: Record<PaymentTermsWidgetId, PaymentTermsFocusId[]> = {
   "kpi-ribbon": [],
@@ -58,26 +56,3 @@ export const PT_WIDGET_TAGS: Record<PaymentTermsWidgetId, PaymentTermsFocusId[]>
   "supplier-chart": ["supplier-view"],
   "detail-table": ["supplier-view"],
 };
-
-export const PT_WIDGET_GROUPS: CustomizeWidgetGroupDef<PaymentTermsWidgetId>[] = [
-  {
-    id: "kpis",
-    title: "KPIs",
-    widgets: [{ id: "kpi-ribbon", label: "Payment Terms KPI Ribbon" }],
-  },
-  {
-    id: "charts",
-    title: "Charts",
-    widgets: [
-      { id: "category-chart", label: "Payment Terms by Category" },
-      { id: "invoice-count-chart", label: "Payment Terms by Invoice Count" },
-      { id: "combo-chart", label: "Spend by Term & Avg. Paid Days" },
-      { id: "supplier-chart", label: "Payment Terms by Supplier" },
-    ],
-  },
-  {
-    id: "tables",
-    title: "Tables",
-    widgets: [{ id: "detail-table", label: "Detail Report Table" }],
-  },
-];

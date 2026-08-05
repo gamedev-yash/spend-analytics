@@ -22,9 +22,8 @@ import { useFilterSlot } from "@/context/FilterContext";
 import { useThresholds } from "@/context/ThresholdsContext";
 import { ClearFiltersButton, FilterDateRange, FilterGroup, FilterSlider } from "@/components/ui/filter-controls";
 import { MultiSelect } from "@/components/sap/multi-select";
-import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
+import { ThresholdSettings } from "@/components/dashboard/threshold-settings";
 import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
-import { DASHBOARD_WIDGET_GROUPS } from "./components/dashboardParams";
 import { FOCUS_PARAMETERS, FOCUS_PRESETS } from "./components/focusParams";
 import { useDashboardCustomization } from "./components/useDashboardCustomization";
 import { DATE_MAX, DATE_MIN, useTailSpendStore } from "./lib/useTailSpendStore";
@@ -128,15 +127,7 @@ export default function TailSpendPage() {
     sapCategoryRows,
   } = filteredData;
 
-  const {
-    activeParameters,
-    toggleParameter,
-    applyPreset,
-    isWidgetEnabled,
-    toggleWidgetEnabled,
-    resetWidgetsToDefault,
-    isWidgetVisible,
-  } = useDashboardCustomization();
+  const { activeParameters, toggleParameter, applyPreset, isWidgetVisible } = useDashboardCustomization();
 
   const hasActiveFilters =
     store.filters.categories.length > 0 ||
@@ -150,7 +141,7 @@ export default function TailSpendPage() {
     const parts: string[] = [];
     if (store.filters.categories.length) parts.push(`Category: ${store.filters.categories.join(", ")}`);
     if (store.filters.suppliers.length) parts.push(`Supplier: ${store.filters.suppliers.join(", ")}`);
-    if (store.filters.plants.length) parts.push(`BU / Plant: ${store.filters.plants.join(", ")}`);
+    if (store.filters.plants.length) parts.push(`Business Unit / Plant: ${store.filters.plants.join(", ")}`);
     if (store.filters.sourceSystems.length) parts.push(`Source System: ${store.filters.sourceSystems.join(", ")}`);
     if (store.filters.dateFrom !== DATE_MIN || store.filters.dateTo !== DATE_MAX) {
       parts.push(`Date: ${store.filters.dateFrom} to ${store.filters.dateTo}`);
@@ -191,7 +182,7 @@ export default function TailSpendPage() {
           onChange={store.setSourceSystems}
         />
         <MultiSelect
-          label="BU / Plant"
+          label="Business Unit / Plant"
           allLabel="All plants"
           options={toOptions(store.options.plants)}
           selected={store.filters.plants}
@@ -201,12 +192,6 @@ export default function TailSpendPage() {
       </FilterGroup>
 
       <FilterGroup title="Page Options" className="mt-6">
-        <CustomizeViewDrawer
-          groups={DASHBOARD_WIDGET_GROUPS}
-          isWidgetEnabled={isWidgetEnabled}
-          onToggleWidgetEnabled={toggleWidgetEnabled}
-          onResetToDefault={resetWidgetsToDefault}
-        />
         <FilterSlider
           label="Micro-PO Threshold"
           min={5_000}
@@ -225,6 +210,14 @@ export default function TailSpendPage() {
           onChange={store.setParetoThreshold}
           formatValue={(v) => `${v}%`}
         />
+        {/*
+          NOTE: this popover also edits tail-spend.micro-po-value, the same
+          threshold the Micro-PO slider above writes — but free-form, where the
+          slider clamps to 5k–100k. They stay in sync through
+          ThresholdsContext; a value entered here beyond the slider's range
+          just pins its thumb at the end.
+        */}
+        <ThresholdSettings pageKey="tail-spend" className="w-full justify-center" />
       </FilterGroup>
     </>
   );
@@ -252,7 +245,6 @@ export default function TailSpendPage() {
             activeParameters={activeParameters}
             onToggleParameter={toggleParameter}
             onApplyPreset={applyPreset}
-            thresholdsPageKey="tail-spend"
           />
 
           {isInitialAzureLoad ? (

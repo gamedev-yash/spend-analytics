@@ -54,7 +54,7 @@ function Header() {
 function useActiveFiltersSummary(): string {
   const { filters, mode } = useFragmentation();
   const parts: string[] = [];
-  if (filters.plants.length) parts.push(`BU / Plant: ${filters.plants.length} selected`);
+  if (filters.plants.length) parts.push(`Business Unit / Plant: ${filters.plants.length} selected`);
   if (filters.l1s.length) parts.push(`Category: ${filters.l1s.join(", ")}`);
   parts.push(`Period: ${filters.dateFrom} to ${filters.dateTo}`);
   parts.push(mode === "parent" ? "Grouped by parent company" : "Grouped by vendor");
@@ -101,7 +101,7 @@ function WidgetGrid() {
 
       <ChartCard
         className="h-[440px]"
-        title="Cross-BU Supplier Overlap"
+        title="Cross-Business-Unit Supplier Overlap"
         description="Same supplier used by multiple BUs for the same category — consolidate contracts"
         icon={<Share2 />}
         accent="violet"

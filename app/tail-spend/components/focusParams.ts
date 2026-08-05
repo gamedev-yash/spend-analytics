@@ -12,9 +12,8 @@ export interface FocusParameter {
 /**
  * Widgets are tagged with every focus parameter they belong to — a widget
  * renders if ANY of its tags is active. Widgets with no tags here (KPI
- * Ribbon, Strategic vs. Core vs. Tail, 12-Month Spend Trend) are cross-cutting
- * and stay exempt from focus-bar filtering; the Customize drawer is still the
- * only way to hide those.
+ * Ribbon, Strategic vs. Core vs. Tail, 12-Month Spend Trend) are cross-cutting:
+ * they are exempt from focus-bar filtering and always render.
  */
 export const FOCUS_PARAMETERS = [
   {

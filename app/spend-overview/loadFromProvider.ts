@@ -620,7 +620,7 @@ function buildInsight(kpis: HeadlineKpis, metricsRows: MetricsTableRow[], buSpen
     parts.push(`${topCategory.category} dominates at ${Math.round(topCategory.percentOfTotal)}% of total spend.`);
   }
   if (topBu) {
-    parts.push(`${topBu.plantName} is the highest-spending BU at ${crore(topBu.total)}.`);
+    parts.push(`${topBu.plantName} is the highest-spending business unit at ${crore(topBu.total)}.`);
   }
   parts.push(`Off-contract spend is ${Math.round(kpis.offContractPercent)}%.`);
   return parts.join(" ");
