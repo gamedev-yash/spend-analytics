@@ -1,7 +1,6 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { ThresholdSettings } from "@/components/dashboard/threshold-settings";
 import { cn } from "@/lib/utils";
 
 export interface FocusParameterDef<Id extends string = string> {
@@ -34,8 +33,6 @@ interface FocusParameterBarProps<Id extends string> {
    * chips are all off has no obvious way back.
    */
   onSelectAll?: () => void;
-  /** When set, shows the "Thresholds" editor for that page's alert targets. */
-  thresholdsPageKey?: string;
 }
 
 /**
@@ -52,7 +49,6 @@ export function FocusParameterBar<Id extends string>({
   title = "Focus Parameters",
   description,
   onSelectAll,
-  thresholdsPageKey,
 }: FocusParameterBarProps<Id>) {
   const allActive = parameters.every((parameter) => activeParameters.includes(parameter.id));
 
@@ -93,7 +89,6 @@ export function FocusParameterBar<Id extends string>({
               ))}
             </div>
           )}
-          {thresholdsPageKey && <ThresholdSettings pageKey={thresholdsPageKey} />}
         </div>
       </div>
 

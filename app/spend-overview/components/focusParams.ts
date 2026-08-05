@@ -1,5 +1,4 @@
 import { Tags, TrendingUp, Users } from "lucide-react";
-import type { CustomizeWidgetGroupDef } from "@/components/dashboard/customize-view-drawer";
 import type { FocusParameterDef, FocusPresetDef } from "@/components/dashboard/focus-parameter-bar";
 
 export type SpendOverviewFocusId = "spend-trends" | "categories" | "suppliers";
@@ -31,9 +30,9 @@ export const SO_FOCUS_PRESETS: FocusPresetDef<SpendOverviewFocusId>[] = [
 ];
 
 /**
- * Every toggleable widget on the Summary tab. `insight-box` and
- * `metrics-table` are untagged (cross-cutting overview content): the Focus
- * Parameter bar can't hide them, only the Customize drawer can.
+ * Every widget on the Summary tab. `insight-box` and `metrics-table` are
+ * untagged (cross-cutting overview content), so the Focus Parameter bar can't
+ * hide them — they always render.
  */
 export type SpendOverviewWidgetId =
   | "kpi-spend-trends"
@@ -53,23 +52,3 @@ export const SO_WIDGET_TAGS: Record<SpendOverviewWidgetId, SpendOverviewFocusId[
   "spend-by-bu-chart": ["spend-trends"],
   "metrics-table": [],
 };
-
-export const SO_WIDGET_GROUPS: CustomizeWidgetGroupDef<SpendOverviewWidgetId>[] = [
-  {
-    id: "summary-kpis",
-    title: "Summary — KPIs",
-    widgets: [{ id: "kpi-spend-trends", label: "Headline Spend KPIs" }],
-  },
-  {
-    id: "summary-charts",
-    title: "Summary — Charts & Tables",
-    widgets: [
-      { id: "insight-box", label: "Auto-Generated Insight" },
-      { id: "category-treemap", label: "Spend by Category" },
-      { id: "top-suppliers-chart", label: "Spend by Suppliers" },
-      { id: "spend-trend-chart", label: "Spend Trend" },
-      { id: "spend-by-bu-chart", label: "Spend by Business Unit" },
-      { id: "metrics-table", label: "Detailed Report" },
-    ],
-  },
-];

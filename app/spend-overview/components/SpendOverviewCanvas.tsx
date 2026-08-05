@@ -70,7 +70,6 @@ export function SpendOverviewCanvas({
         activeParameters={activeParameters}
         onToggleParameter={toggleParameter}
         onApplyPreset={applyPreset}
-        thresholdsPageKey="spend-overview"
       />
 
       {isWidgetVisible("insight-box") && <InsightBox text={insightText} />}
