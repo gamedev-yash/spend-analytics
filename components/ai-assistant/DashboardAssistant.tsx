@@ -19,7 +19,7 @@ function welcomeFor(key: DashboardKey): string {
 }
 
 /**
- * Floating chat scoped to exactly one of the four real dashboards — whichever
+ * Floating chat scoped to exactly one of the dashboards in DASHBOARD_REGISTRY — whichever
  * the user is currently on. Unlike AiAssistant (the CSV-upload assistant),
  * this one needs no dataset upload: it's grounded server-side in that
  * dashboard's real, current aggregate data (see lib/ai/dashboard-context.ts).

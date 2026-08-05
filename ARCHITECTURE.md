@@ -619,16 +619,31 @@ Fix the query and try again, or tell the user what is missing. Do not invent num
 returns the executed payload plus its rows to the client, the model's prose can be
 audited against the query that produced it.
 
-### 4.4 Per-dashboard assistant — the 5 core dashboards
+### 4.4 Per-dashboard assistant — the core dashboards
 
-`DashboardAssistant.tsx` / `app/api/dashboard-chat/route.ts` serves the 5 core
-dashboards (Spend Overview, Compliance, Payment Terms, Tail Spend, Supplier
-Fragmentation) — a **separate** assistant from §4.3's warehouse one, because
-these dashboards' data doesn't live in the `fact_po_items`/`fact_invoices`
-registry. It used to answer only from a hardcoded per-dashboard text summary
-(a handful of headline KPIs); it now runs the same "structured query,
-validated, then answered" shape as §4.3, just scoped to one dashboard's own
-tables instead of the warehouse.
+`DashboardAssistant.tsx` / `app/api/dashboard-chat/route.ts` serves every
+dashboard registered in `lib/ai/dashboard-registry.ts` — currently Spend
+Overview, Compliance, Payment Terms, Tail Spend, Supplier Fragmentation, and
+Single Source Risk — a **separate** assistant from §4.3's warehouse one,
+because these dashboards' data doesn't live in the
+`fact_po_items`/`fact_invoices` registry. It used to answer only from a
+hardcoded per-dashboard text summary (a handful of headline KPIs); it now
+runs the same "structured query, validated, then answered" shape as §4.3,
+just scoped to one dashboard's own tables instead of the warehouse.
+
+**Registering a new dashboard here is a two-file change** — add its
+`DashboardMeta` to `dashboard-registry.ts` and its row table(s) to
+`dashboard-tables.ts`; `dashboard-context.ts`, `dashboard-query.ts`, and the
+route's loop are all keyed off `DashboardKey` generically and need no
+changes. Skipping this step is not a no-op: a dashboard that exists in
+`lib/nav.ts` but not here is invisible to every *other* dashboard's
+assistant too, since the "other dashboards" list a model can redirect to is
+read from this same registry — the model will try to answer from whatever
+data it does have instead, which produced a real, wrong-methodology answer
+before Single Source Risk was registered (a Compliance question about
+supplier concentration was answered from Compliance's own PO/invoice count
+instead of pointing at Single Source Risk's dedicated, differently-computed
+metric).
 
 ```
 lib/ai/
@@ -803,7 +818,7 @@ lib/server/                   ── server-only ──
   assistant-tools.ts          tool schemas, toQueryPayload, model-facing context
   sap-transforms.ts           FX rates, Indian fiscal calendar, group-name humanization
 
-lib/ai/                        ── the 5 core dashboards' assistant, see §4.4 ──
+lib/ai/                        ── the core dashboards' assistant, see §4.4 ──
   dashboard-registry.ts       routing/labels only — DashboardKey, route, description
   dashboard-tables.ts          Data Provider — named row tables per dashboard (CSV/mock today)
   query-engine.ts              dashboard-agnostic runQuery()/describeSchema() over row arrays
@@ -821,7 +836,7 @@ app/api/
   v1/query/route.ts           POST — the query engine
   v1/datasets/route.ts        GET  — warehouse metadata
   assistant/route.ts          POST — AI assistant with tool use (warehouse / uploaded CSV)
-  dashboard-chat/route.ts     POST — AI assistant for the 5 core dashboards (§4.4)
+  dashboard-chat/route.ts     POST — AI assistant for the core dashboards (§4.4)
 
 db/
   schema.sql                  star schema DDL: 6 dims, 2 facts, 12 FKs, 2 CCIs
@@ -849,7 +864,7 @@ npx eslint .
 | `tests/azure-sql-adapter.test.ts` | Local routing, fallback on every failure class, error rethrow, metadata caching |
 | `tests/page-data.test.ts` | Loaders issue only registry-valid payloads; totals reconcile against independent aggregation |
 | `tests/assistant-tools.test.ts` | `strict: true` enum containment, `toQueryPayload`, cross-dataset rejection |
-| `tests/dashboard-query.test.ts` | Same containment property for the 5 core dashboards' `query_dashboard_data` tool — per-table enum scoping, cross-table field rejection, independent reconciliation against each dashboard's own mock totals |
+| `tests/dashboard-query.test.ts` | Same containment property for the core dashboards' `query_dashboard_data` tool — per-table enum scoping, cross-table field rejection, independent reconciliation against each dashboard's own mock totals |
 
 The most valuable pattern in these suites is **independent reconciliation** — a
 loader's output is compared against a separate aggregation of the same source rows

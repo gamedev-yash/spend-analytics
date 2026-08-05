@@ -1,6 +1,6 @@
 import "server-only";
 
-// The Data Provider for the 5 core dashboards' AI assistant: one or more named
+// The Data Provider for the core dashboards' AI assistant: one or more named
 // row tables per dashboard, built from the same underlying data each dashboard
 // page itself renders from (never a separate copy). lib/ai/dashboard-query.ts
 // runs structured queries against these tables via lib/ai/query-engine.ts;
@@ -10,6 +10,7 @@ import "server-only";
 
 import { poItems, invoices as sapInvoices, vendorById, categoryByCode, plantByCode } from "@/lib/sap/raw-data";
 import { invoices as paymentTermsInvoices } from "@/app/payment-terms/data";
+import { invoices as singleSourceRiskInvoices } from "@/app/single-source-risk/data";
 import { tailSpendMock } from "@/app/tail-spend/tailSpendMock";
 import { supplierMock } from "@/app/supplier-fragmentation/supplierMock";
 import type { DashboardKey } from "@/lib/ai/dashboard-registry";
@@ -116,6 +117,32 @@ const PAYMENT_TERMS_INVOICES: DashboardTable = {
 };
 
 // ---------------------------------------------------------------------------
+// single-source-risk
+// ---------------------------------------------------------------------------
+
+const SINGLE_SOURCE_RISK_INVOICES: DashboardTable = {
+  id: "invoices",
+  label: "Invoices with supplier, product, and plant detail",
+  description:
+    "One row per invoice. Count distinct supplier_name (or global_ultimate_name) per category_name/product_id to find single- or dual-sourced exposure.",
+  rows: singleSourceRiskInvoices.map((inv) => ({
+    invoice_id: inv.invoice_id,
+    invoice_date: inv.invoice_date,
+    amount: inv.amount,
+    currency: inv.currency,
+    supplier_name: inv.supplier_name,
+    global_ultimate_name: inv.global_ultimate_name,
+    category_name: inv.category_name,
+    segment_name: inv.segment_name,
+    plant_name: inv.plant_name,
+    region: inv.region,
+    country: inv.country,
+    product_name: inv.product_name,
+    cost_center_name: inv.cost_center_name,
+  })),
+};
+
+// ---------------------------------------------------------------------------
 // tail-spend
 // ---------------------------------------------------------------------------
 
@@ -209,6 +236,7 @@ const DASHBOARD_TABLES: Record<DashboardKey, DashboardTable[]> = {
   "payment-terms": [PAYMENT_TERMS_INVOICES],
   "tail-spend": TAIL_SPEND_TABLES,
   "supplier-fragmentation": SUPPLIER_FRAGMENTATION_TABLES,
+  "single-source-risk": [SINGLE_SOURCE_RISK_INVOICES],
 };
 
 export function getDashboardTables(key: DashboardKey): DashboardTable[] {

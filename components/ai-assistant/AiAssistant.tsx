@@ -81,7 +81,7 @@ function AssistantToast({ message, onDismiss }: { message: string; onDismiss: ()
 /**
  * Floating AI Assistant, scoped to exactly one custom dashboard — whichever
  * /dashboards/[id] you're currently viewing, the same isolation model
- * DashboardAssistant uses for the four core dashboards. It never reads or
+ * DashboardAssistant uses for the core dashboards. It never reads or
  * writes any other dashboard: a question about data that lives elsewhere
  * gets a redirect link instead of a guess or a cross-dashboard write.
  */

@@ -1,10 +1,11 @@
-// Per-dashboard grounded assistant for the five real Vedanta dashboards
-// (Spend Overview, Compliance, Payment Terms, Tail Spend, Supplier
-// Fragmentation).
+// Per-dashboard grounded assistant for the real Vedanta dashboards registered
+// in lib/ai/dashboard-registry.ts (Spend Overview, Compliance, Payment Terms,
+// Tail Spend, Supplier Fragmentation, Single Source Risk, and any dashboard
+// added there later).
 //
 // Unlike /api/assistant (which answers from a user-uploaded CSV), this
 // endpoint is handed exactly one dashboard's own real, current data — never
-// another dashboard's — and is told the names of the other four purely so it
+// another dashboard's — and is told the names of the others purely so it
 // can redirect, never so it can answer from them. If the question needs data
 // this dashboard doesn't have, the model calls redirect_to_dashboard instead
 // of guessing; that tool call is structural, not prose, so the UI can render

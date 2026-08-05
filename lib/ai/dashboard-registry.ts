@@ -8,7 +8,8 @@ export type DashboardKey =
   | "compliance"
   | "payment-terms"
   | "tail-spend"
-  | "supplier-fragmentation";
+  | "supplier-fragmentation"
+  | "single-source-risk";
 
 export interface DashboardMeta {
   key: DashboardKey;
@@ -50,6 +51,13 @@ export const DASHBOARD_REGISTRY: DashboardMeta[] = [
     label: "Supplier Fragmentation",
     route: "/supplier-fragmentation",
     description: "Supplier counts, single-use/duplicate suppliers, and category concentration.",
+  },
+  {
+    key: "single-source-risk",
+    label: "Single Source Risk",
+    route: "/single-source-risk",
+    description:
+      "Categories dependent on too few distinct suppliers, and the product/plant/supplier exposure behind them.",
   },
 ];
 

@@ -1,6 +1,6 @@
 import "server-only";
 
-// The Query Engine for the 5 core dashboards' AI assistant, and its wiring to
+// The Query Engine for the core dashboards' AI assistant, and its wiring to
 // the model. lib/ai/query-engine.ts already implements the dashboard-agnostic
 // filter/groupBy/aggregate/sort/limit engine over plain row arrays; this file
 // is what turns that into a `strict: true` tool call scoped to exactly one
