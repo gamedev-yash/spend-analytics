@@ -4,6 +4,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useFilterSlot } from "@/context/FilterContext";
 import { ClearFiltersButton, FilterGroup } from "@/components/ui/filter-controls";
 import { MultiSelect } from "@/components/sap/multi-select";
+import { SnapshotHistoryDialog } from "@/components/dashboard/snapshot-history-dialog";
+import type { SnapshotState } from "@/lib/local-snapshots";
 
 interface ComplianceFiltersProps {
   plantOptions: { code: string; name: string }[];
@@ -97,4 +99,53 @@ export function ComplianceFilters({
   );
 
   return null;
+}
+
+interface ComplianceSnapshotButtonProps {
+  defaultDateFrom: string;
+  defaultDateTo: string;
+}
+
+/** Header-row counterpart to ComplianceFilters — same URL-search-param state, rendered as a visible button instead of registered into the Filter Drawer slot. */
+export function ComplianceSnapshotButton({ defaultDateFrom, defaultDateTo }: ComplianceSnapshotButtonProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const selectedPlants = searchParams.get("bu")?.split(",").filter(Boolean) ?? [];
+  const selectedCategories = searchParams.get("cat")?.split(",").filter(Boolean) ?? [];
+  const dateFrom = searchParams.get("from") ?? defaultDateFrom;
+  const dateTo = searchParams.get("to") ?? defaultDateTo;
+
+  function buildSnapshot(): SnapshotState {
+    return {
+      pageId: "compliance",
+      filters: { dateFrom, dateTo, plants: selectedPlants, categories: selectedCategories },
+      preview: [
+        { label: "Date range", value: `${dateFrom} to ${dateTo}` },
+        { label: "BU / Plant", value: selectedPlants.length ? `${selectedPlants.length} selected` : "All" },
+        { label: "Category", value: selectedCategories.length ? selectedCategories.join(", ") : "All" },
+      ],
+    };
+  }
+
+  function restoreSnapshot(state: SnapshotState) {
+    const f = state.filters;
+    const params = new URLSearchParams();
+    if (f.plants && f.plants.length > 0) params.set("bu", f.plants.join(","));
+    if (f.categories && f.categories.length > 0) params.set("cat", f.categories.join(","));
+    if (f.dateFrom) params.set("from", f.dateFrom);
+    if (f.dateTo) params.set("to", f.dateTo);
+    const query = params.toString();
+    router.push(query ? `${pathname}?${query}` : pathname);
+  }
+
+  return (
+    <SnapshotHistoryDialog
+      dashboardId="compliance"
+      dashboardLabel="Compliance"
+      buildSnapshot={buildSnapshot}
+      onRestore={restoreSnapshot}
+    />
+  );
 }

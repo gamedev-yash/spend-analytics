@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import {
   AlertTriangle,
   BarChart3,
@@ -11,6 +12,8 @@ import {
 } from "lucide-react";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { RevalidatingSection } from "@/components/dashboard/revalidating-section";
+import { SnapshotHistoryDialog } from "@/components/dashboard/snapshot-history-dialog";
+import type { SnapshotState } from "@/lib/local-snapshots";
 import { WidgetGridSkeleton } from "@/components/dashboard/widget-grid-skeleton";
 import { useMasterData } from "../lib/use-master-data";
 import { ConsolidationOpportunityTable } from "./ConsolidationOpportunityTable";
@@ -24,7 +27,7 @@ import { FragmentationStoreProvider, useFragmentation } from "./fragmentationSto
 import { FragmentationTrendChart } from "./FragmentationTrendChart";
 import { SuppliersPerCategoryChart } from "./SuppliersPerCategoryChart";
 
-function Header() {
+function Header({ actions }: { actions?: ReactNode }) {
   return (
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div>
@@ -39,6 +42,7 @@ function Header() {
         </p>
       </div>
       <div className="flex shrink-0 flex-wrap items-center gap-2">
+        {actions}
         <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
           SAP ECC on HANA
         </span>
@@ -47,6 +51,48 @@ function Header() {
         </span>
       </div>
     </div>
+  );
+}
+
+/** Lives inside FragmentationStoreProvider so it can build/restore snapshots against the live store — Header itself stays provider-agnostic since it's also rendered from the loading/error branches, outside the provider. */
+function HeaderActions() {
+  const { filters, mode, setPlants, setL1s, setDateRange, setMode } = useFragmentation();
+
+  function buildSnapshot(): SnapshotState {
+    return {
+      pageId: "supplier-fragmentation",
+      filters: {
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo,
+        plants: filters.plants,
+        categories: filters.l1s,
+        extra: { mode },
+      },
+      preview: [
+        { label: "Date range", value: `${filters.dateFrom} to ${filters.dateTo}` },
+        { label: "BU / Plant", value: filters.plants.length ? `${filters.plants.length} selected` : "All" },
+        { label: "Category", value: filters.l1s.length ? filters.l1s.join(", ") : "All" },
+        { label: "Grouping", value: mode === "parent" ? "Parent company" : "Vendor" },
+      ],
+    };
+  }
+
+  function restoreSnapshot(state: SnapshotState) {
+    const f = state.filters;
+    setPlants(f.plants ?? []);
+    setL1s(f.categories ?? []);
+    if (f.dateFrom && f.dateTo) setDateRange(f.dateFrom, f.dateTo);
+    const extra = f.extra ?? {};
+    if (extra.mode === "vendor" || extra.mode === "parent") setMode(extra.mode);
+  }
+
+  return (
+    <SnapshotHistoryDialog
+      dashboardId="supplier-fragmentation"
+      dashboardLabel="Supplier Fragmentation"
+      buildSnapshot={buildSnapshot}
+      onRestore={restoreSnapshot}
+    />
   );
 }
 
@@ -179,7 +225,7 @@ export function FragmentationDashboard() {
     <FragmentationStoreProvider payload={data}>
       <FragmentationControls />
       <div className="flex flex-col gap-6">
-        <Header />
+        <Header actions={<HeaderActions />} />
         <RevalidatingSection isRevalidating={revalidating}>
           <FragmentationInsight />
           <FragmentationKpis />

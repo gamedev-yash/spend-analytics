@@ -1,7 +1,10 @@
 "use client";
 
-import { SingleSourceRiskProvider } from "./provider";
+import { SingleSourceRiskProvider, useSingleSourceRisk } from "./provider";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
+import { SnapshotHistoryDialog } from "@/components/dashboard/snapshot-history-dialog";
+import type { SnapshotState } from "@/lib/local-snapshots";
+import type { SupplierCountThreshold } from "./types";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
 import { KpiRibbon } from "./components/kpi-ribbon";
 import { FilterPanel } from "./components/filter-panel";
@@ -14,6 +17,56 @@ import { DetailReportTable } from "./components/detail-report-table";
 import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
 import { SSR_FOCUS_PARAMETERS } from "./components/focusParams";
 import { useSingleSourceRiskFocus } from "./components/useSingleSourceRiskFocus";
+
+/** Lives inside SingleSourceRiskProvider so it can build/restore snapshots against the live provider state. */
+function HeaderActions() {
+  const { filters, setDateFrom, setDateTo, setCategories, setGlobalUltimates, setSourceSystems, setPlants, setSupplierCountPerCategory } =
+    useSingleSourceRisk();
+
+  function buildSnapshot(): SnapshotState {
+    return {
+      pageId: "single-source-risk",
+      filters: {
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo,
+        categories: filters.categoryCodes,
+        suppliers: filters.globalUltimateIds,
+        plants: filters.plantIds,
+        sourceSystems: filters.sourceSystemIds,
+        extra: { supplierCountPerCategory: filters.supplierCountPerCategory },
+      },
+      preview: [
+        { label: "Date range", value: `${filters.dateFrom} to ${filters.dateTo}` },
+        { label: "Category", value: filters.categoryCodes.length ? filters.categoryCodes.join(", ") : "All" },
+        { label: "BU / Plant", value: filters.plantIds.length ? `${filters.plantIds.length} selected` : "All" },
+        { label: "Suppliers per category", value: `≤ ${filters.supplierCountPerCategory}` },
+      ],
+    };
+  }
+
+  function restoreSnapshot(state: SnapshotState) {
+    const f = state.filters;
+    if (f.dateFrom) setDateFrom(f.dateFrom);
+    if (f.dateTo) setDateTo(f.dateTo);
+    setCategories(f.categories ?? []);
+    setGlobalUltimates(f.suppliers ?? []);
+    setPlants(f.plants ?? []);
+    setSourceSystems(f.sourceSystems ?? []);
+    const extra = f.extra ?? {};
+    if (extra.supplierCountPerCategory === 1 || extra.supplierCountPerCategory === 2 || extra.supplierCountPerCategory === 3) {
+      setSupplierCountPerCategory(extra.supplierCountPerCategory as SupplierCountThreshold);
+    }
+  }
+
+  return (
+    <SnapshotHistoryDialog
+      dashboardId="single-source-risk"
+      dashboardLabel="Single Source Risk"
+      buildSnapshot={buildSnapshot}
+      onRestore={restoreSnapshot}
+    />
+  );
+}
 
 export default function SingleSourceRiskPage() {
   const { activeParameters, toggleParameter, applyPreset, isWidgetVisible } = useSingleSourceRiskFocus();
@@ -31,6 +84,7 @@ export default function SingleSourceRiskPage() {
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <HeaderActions />
             <ExportSnapshotButton targetId={DASHBOARD_CANVAS_ID} dashboardTitle="Single Source Risk" />
           </div>
         </div>

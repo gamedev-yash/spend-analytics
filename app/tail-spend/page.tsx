@@ -6,6 +6,8 @@ import { useProviderPageData } from "@/hooks/use-provider-page-data";
 import { loadTailSpendFromProvider } from "@/lib/page-data/tail-spend-from-provider";
 import { useDatasets } from "@/context/DatasetsContext";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
+import { SnapshotHistoryDialog } from "@/components/dashboard/snapshot-history-dialog";
+import type { SnapshotState } from "@/lib/local-snapshots";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
 import { WidgetGridSkeleton } from "@/components/dashboard/widget-grid-skeleton";
 import { RevalidatingSection } from "@/components/dashboard/revalidating-section";
@@ -25,7 +27,7 @@ import { MultiSelect } from "@/components/sap/multi-select";
 import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
 import { FocusParameterBar } from "@/components/dashboard/focus-parameter-bar";
 import { DASHBOARD_WIDGET_GROUPS } from "./components/dashboardParams";
-import { FOCUS_PARAMETERS, FOCUS_PRESETS } from "./components/focusParams";
+import { ALL_FOCUS_PARAMETER_IDS, FOCUS_PARAMETERS, FOCUS_PRESETS, type FocusParameterId } from "./components/focusParams";
 import { useDashboardCustomization } from "./components/useDashboardCustomization";
 import { DATE_MAX, DATE_MIN, useTailSpendStore } from "./lib/useTailSpendStore";
 import { applyTailSpendFilters } from "./lib/reactiveFilters";
@@ -158,6 +160,55 @@ export default function TailSpendPage() {
     return parts.join(" · ");
   }, [store.filters]);
 
+  // Lightweight state snapshot — filters + focus params + the micro-PO
+  // threshold, never the computed widget data itself. Restoring re-runs the
+  // same setters a user would call by hand, so every widget re-derives from
+  // filteredData exactly as it would for a live filter change.
+  const buildSnapshot = (): SnapshotState => ({
+    pageId: "tail-spend",
+    filters: {
+      dateFrom: store.filters.dateFrom,
+      dateTo: store.filters.dateTo,
+      categories: store.filters.categories,
+      suppliers: store.filters.suppliers,
+      plants: store.filters.plants,
+      sourceSystems: store.filters.sourceSystems,
+      extra: {
+        paretoThreshold: store.filters.paretoThreshold,
+        selectedBuckets: Array.from(store.filters.selectedBuckets),
+        microPOThreshold,
+      },
+    },
+    activeFocusParameters: activeParameters,
+    preview: [
+      { label: "Date range", value: `${store.filters.dateFrom} to ${store.filters.dateTo}` },
+      { label: "Category", value: store.filters.categories.length ? store.filters.categories.join(", ") : "All" },
+      { label: "Supplier", value: store.filters.suppliers.length ? store.filters.suppliers.join(", ") : "All" },
+      { label: "Pareto split", value: `${store.filters.paretoThreshold}%` },
+    ],
+  });
+
+  function restoreSnapshot(state: SnapshotState) {
+    const f = state.filters;
+    if (f.dateFrom) store.setDateFrom(f.dateFrom);
+    if (f.dateTo) store.setDateTo(f.dateTo);
+    store.setCategories(f.categories ?? []);
+    store.setSuppliers(f.suppliers ?? []);
+    store.setPlants(f.plants ?? []);
+    store.setSourceSystems(f.sourceSystems ?? []);
+
+    const extra = f.extra ?? {};
+    if (typeof extra.paretoThreshold === "number") store.setParetoThreshold(extra.paretoThreshold);
+    if (Array.isArray(extra.selectedBuckets)) store.setSelectedBuckets(new Set(extra.selectedBuckets));
+    if (typeof extra.microPOThreshold === "number") setTargetValue("tail-spend.micro-po-value", extra.microPOThreshold);
+
+    if (state.activeFocusParameters) {
+      const validIds = new Set<string>(ALL_FOCUS_PARAMETER_IDS);
+      const restored = state.activeFocusParameters.filter((id) => validIds.has(id)) as FocusParameterId[];
+      if (restored.length > 0) applyPreset(restored);
+    }
+  }
+
   useFilterSlot(
     <>
       <FilterGroup title="Filters">
@@ -241,6 +292,12 @@ export default function TailSpendPage() {
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <SnapshotHistoryDialog
+              dashboardId="tail-spend"
+              dashboardLabel="Tail Spend"
+              buildSnapshot={buildSnapshot}
+              onRestore={restoreSnapshot}
+            />
             <ExportSnapshotButton targetId={DASHBOARD_CANVAS_ID} dashboardTitle="Tail Spend" />
           </div>
         </div>
