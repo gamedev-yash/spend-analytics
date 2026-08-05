@@ -31,8 +31,6 @@ import { WidgetConfigurator } from "@/components/dashboard/WidgetConfigurator";
 import { NewDashboardButton } from "@/components/dashboard/new-dashboard-dialog";
 import { DeleteDashboardDialog } from "@/components/dashboard/delete-dashboard-dialog";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
-import { SnapshotHistoryDialog } from "@/components/dashboard/snapshot-history-dialog";
-import type { SnapshotState } from "@/lib/local-snapshots";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
 import type { WidgetConfig } from "@/types/custom-dashboard";
 import {
@@ -229,41 +227,6 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
     setConfiguratorOpen(true);
   };
 
-  // Column filters here are keyed by whatever column ids this dashboard's own
-  // dataset happens to expose (see dashboard-filters.tsx's filterableColumns)
-  // — there's no fixed "categories"/"plants" shape to map onto the common
-  // SnapshotFilterState fields, so the whole Record<string, string[]> travels
-  // as one JSON string in `extra`, validated back into shape on restore.
-  function buildDashboardSnapshot(): SnapshotState {
-    const activeEntries = Object.entries(filters).filter(([, values]) => values.length > 0);
-    return {
-      pageId: "custom-dashboard",
-      filters: { extra: { columnFilters: JSON.stringify(filters) } },
-      preview:
-        activeEntries.length > 0
-          ? activeEntries.map(([columnId, values]) => ({ label: columnId, value: values.join(", ") }))
-          : [{ label: "Filters", value: "None" }],
-    };
-  }
-
-  function restoreDashboardSnapshot(state: SnapshotState) {
-    const raw = state.filters.extra?.columnFilters;
-    if (typeof raw !== "string") return;
-    try {
-      const parsed: unknown = JSON.parse(raw);
-      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return;
-      const next: DashboardFilterState = {};
-      for (const [columnId, values] of Object.entries(parsed as Record<string, unknown>)) {
-        if (Array.isArray(values) && values.every((v) => typeof v === "string")) {
-          next[columnId] = values;
-        }
-      }
-      setFilters(next);
-    } catch {
-      // Malformed snapshot payload — ignore rather than corrupt the current filters.
-    }
-  }
-
   return (
     <div className="flex flex-col gap-6">
       {/* Header: inline-editable title, dataset badge, actions */}
@@ -308,12 +271,6 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
             <Plus className="h-3.5 w-3.5" />
             Add Widget
           </button>
-          <SnapshotHistoryDialog
-            dashboardId={dashboard.id}
-            dashboardLabel={dashboard.title}
-            buildSnapshot={buildDashboardSnapshot}
-            onRestore={restoreDashboardSnapshot}
-          />
           <ExportSnapshotButton targetId={DASHBOARD_CANVAS_ID} dashboardTitle={dashboard.title} />
           <button
             type="button"

@@ -1,10 +1,8 @@
 "use client";
 
 import { useDatasets } from "@/context/DatasetsContext";
-import { PaymentTermsProvider, usePaymentTerms } from "./provider";
+import { PaymentTermsProvider } from "./provider";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
-import { SnapshotHistoryDialog } from "@/components/dashboard/snapshot-history-dialog";
-import type { SnapshotState } from "@/lib/local-snapshots";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
 import { KpiRibbon } from "./components/kpi-ribbon";
 import { FilterPanel } from "./components/filter-panel";
@@ -40,57 +38,6 @@ function WarehouseGapNote() {
   );
 }
 
-/** Lives inside PaymentTermsProvider so it can build/restore snapshots against the live provider state. */
-function HeaderActions() {
-  const { filters, setDateFrom, setDateTo, setCategories, setGlobalUltimates, setSourceSystems, setPlants, setPaymentTerms } =
-    usePaymentTerms();
-
-  function buildSnapshot(): SnapshotState {
-    return {
-      pageId: "payment-terms",
-      filters: {
-        dateFrom: filters.dateFrom,
-        dateTo: filters.dateTo,
-        categories: filters.categoryCodes,
-        suppliers: filters.globalUltimateIds,
-        plants: filters.plantIds,
-        sourceSystems: filters.sourceSystemIds,
-        extra: { paymentTermCodes: filters.paymentTermCodes },
-      },
-      preview: [
-        { label: "Date range", value: `${filters.dateFrom} to ${filters.dateTo}` },
-        { label: "Category", value: filters.categoryCodes.length ? filters.categoryCodes.join(", ") : "All" },
-        {
-          label: "Supplier",
-          value: filters.globalUltimateIds.length ? `${filters.globalUltimateIds.length} selected` : "All",
-        },
-        { label: "Payment Term", value: filters.paymentTermCodes.length ? filters.paymentTermCodes.join(", ") : "All" },
-      ],
-    };
-  }
-
-  function restoreSnapshot(state: SnapshotState) {
-    const f = state.filters;
-    if (f.dateFrom) setDateFrom(f.dateFrom);
-    if (f.dateTo) setDateTo(f.dateTo);
-    setCategories(f.categories ?? []);
-    setGlobalUltimates(f.suppliers ?? []);
-    setPlants(f.plants ?? []);
-    setSourceSystems(f.sourceSystems ?? []);
-    const extra = f.extra ?? {};
-    if (Array.isArray(extra.paymentTermCodes)) setPaymentTerms(extra.paymentTermCodes as string[]);
-  }
-
-  return (
-    <SnapshotHistoryDialog
-      dashboardId="payment-terms"
-      dashboardLabel="Payment Terms"
-      buildSnapshot={buildSnapshot}
-      onRestore={restoreSnapshot}
-    />
-  );
-}
-
 export default function PaymentTermsPage() {
   const { activeParameters, toggleParameter, applyPreset, isWidgetVisible } = usePaymentTermsFocus();
   const { providerType } = useDatasets();
@@ -108,7 +55,6 @@ export default function PaymentTermsPage() {
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
-            <HeaderActions />
             <ExportSnapshotButton targetId={DASHBOARD_CANVAS_ID} dashboardTitle="Payment Terms" />
           </div>
         </div>

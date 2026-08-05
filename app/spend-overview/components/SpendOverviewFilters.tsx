@@ -5,8 +5,6 @@ import { useFilterSlot } from "@/context/FilterContext";
 import { ClearFiltersButton, FilterDateRange, FilterGroup } from "@/components/ui/filter-controls";
 import { MultiSelect } from "@/components/sap/multi-select";
 import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
-import { SnapshotHistoryDialog } from "@/components/dashboard/snapshot-history-dialog";
-import type { SnapshotState } from "@/lib/local-snapshots";
 import { SO_WIDGET_GROUPS } from "./focusParams";
 import { useSpendOverviewFocus } from "./useSpendOverviewFocus";
 
@@ -103,57 +101,3 @@ export function SpendOverviewFilters({
   return null;
 }
 
-interface SpendOverviewSnapshotButtonProps {
-  defaultDateFrom: string;
-  defaultDateTo: string;
-}
-
-/**
- * Header-row counterpart to SpendOverviewFilters — same URL-search-param
- * state, but rendered as a visible button rather than registered into the
- * Filter Drawer slot. Reads/writes the same "bu"/"cat"/"from"/"to" params,
- * so a snapshot is just a saved copy of the URL's filter portion and restore
- * is the same router.push navigation a manual filter change would trigger.
- */
-export function SpendOverviewSnapshotButton({ defaultDateFrom, defaultDateTo }: SpendOverviewSnapshotButtonProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  const selectedPlants = searchParams.get("bu")?.split(",").filter(Boolean) ?? [];
-  const selectedCategories = searchParams.get("cat")?.split(",").filter(Boolean) ?? [];
-  const dateFrom = searchParams.get("from") ?? defaultDateFrom;
-  const dateTo = searchParams.get("to") ?? defaultDateTo;
-
-  function buildSnapshot(): SnapshotState {
-    return {
-      pageId: "spend-overview",
-      filters: { dateFrom, dateTo, plants: selectedPlants, categories: selectedCategories },
-      preview: [
-        { label: "Date range", value: `${dateFrom} to ${dateTo}` },
-        { label: "BU / Plant", value: selectedPlants.length ? `${selectedPlants.length} selected` : "All" },
-        { label: "Category", value: selectedCategories.length ? selectedCategories.join(", ") : "All" },
-      ],
-    };
-  }
-
-  function restoreSnapshot(state: SnapshotState) {
-    const f = state.filters;
-    const params = new URLSearchParams();
-    if (f.plants && f.plants.length > 0) params.set("bu", f.plants.join(","));
-    if (f.categories && f.categories.length > 0) params.set("cat", f.categories.join(","));
-    if (f.dateFrom) params.set("from", f.dateFrom);
-    if (f.dateTo) params.set("to", f.dateTo);
-    const query = params.toString();
-    router.push(query ? `${pathname}?${query}` : pathname);
-  }
-
-  return (
-    <SnapshotHistoryDialog
-      dashboardId="spend-overview"
-      dashboardLabel="Spend Overview"
-      buildSnapshot={buildSnapshot}
-      onRestore={restoreSnapshot}
-    />
-  );
-}

@@ -4,11 +4,8 @@ import { useState } from "react";
 import { useTheme } from "next-themes";
 import { Download, Loader2 } from "lucide-react";
 import { useHasMounted } from "@/hooks/use-has-mounted";
-import { exportDashboardSnapshot } from "@/lib/snapshot";
+import { DASHBOARD_PAGE_BACKGROUND, exportDashboardSnapshot } from "@/lib/snapshot";
 import { cn } from "@/lib/utils";
-
-/** Matches DashboardShell's page background (`bg-slate-50 dark:bg-slate-950`). */
-const PAGE_BACKGROUND = { light: "#f8fafc", dark: "#020617" };
 
 interface ExportSnapshotButtonProps {
   /** id of the element to capture — every dashboard page wraps its canvas in this id. */
@@ -36,7 +33,7 @@ export function ExportSnapshotButton({ targetId, dashboardTitle, className }: Ex
     setError(null);
     try {
       await exportDashboardSnapshot(targetId, dashboardTitle, {
-        backgroundColor: isDark ? PAGE_BACKGROUND.dark : PAGE_BACKGROUND.light,
+        backgroundColor: isDark ? DASHBOARD_PAGE_BACKGROUND.dark : DASHBOARD_PAGE_BACKGROUND.light,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not export snapshot.");

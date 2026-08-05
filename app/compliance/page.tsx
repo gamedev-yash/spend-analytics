@@ -7,7 +7,7 @@ import {
   getUnmanagedByBuData,
   getComplianceDetailReportData,
 } from "@/lib/sap/compliance";
-import { ComplianceFilters, ComplianceSnapshotButton } from "./components/ComplianceFilters";
+import { ComplianceFilters } from "./components/ComplianceFilters";
 import { ComplianceCanvas } from "./components/ComplianceCanvas";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
@@ -71,7 +71,6 @@ export default async function CompliancePage({ searchParams }: PageProps) {
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-3">
-          <ComplianceSnapshotButton defaultDateFrom={defaultFrom} defaultDateTo={defaultTo} />
           <ExportSnapshotButton targetId={DASHBOARD_CANVAS_ID} dashboardTitle="Compliance" />
           <p className="text-xs text-muted-foreground">
             Initiative 18{activeFilterCount > 0 ? ` · ${activeFilterCount} filter(s) active` : ""}

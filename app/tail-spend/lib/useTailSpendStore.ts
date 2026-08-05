@@ -42,8 +42,6 @@ export interface TailSpendStore {
   setDateTo: (value: string) => void;
   setParetoThreshold: (value: number) => void;
   toggleBucket: (bucketLabel: string) => void;
-  /** Replaces the whole bucket selection at once — e.g. restoring a saved snapshot, where toggling one label at a time isn't practical. An empty set is treated the same as "all buckets", matching toggleBucket's own convention. */
-  setSelectedBuckets: (buckets: Set<string>) => void;
   /** Resets every dropdown, date, and toggle back to its default. */
   resetFilters: () => void;
 }
@@ -72,7 +70,7 @@ export function useTailSpendStore(data: TailSpendData): TailSpendStore {
   const [dateFrom, setDateFromRaw] = useState(DATE_MIN);
   const [dateTo, setDateToRaw] = useState(DATE_MAX);
   const [paretoThreshold, setParetoThreshold] = useState(80);
-  const [selectedBuckets, setSelectedBucketsRaw] = useState<Set<string>>(() => new Set(ALL_BUCKET_LABELS));
+  const [selectedBuckets, setSelectedBuckets] = useState<Set<string>>(() => new Set(ALL_BUCKET_LABELS));
 
   const validCategories = useMemo(() => new Set(allCategoryNames(data)), [data]);
   const validSuppliers = useMemo(() => new Set(allSupplierNames(data)), [data]);
@@ -117,7 +115,7 @@ export function useTailSpendStore(data: TailSpendData): TailSpendStore {
   }
 
   function toggleBucket(bucketLabel: string) {
-    setSelectedBucketsRaw((prev) => {
+    setSelectedBuckets((prev) => {
       const allSelected = prev.size === ALL_BUCKET_LABELS.length;
       if (allSelected) return new Set([bucketLabel]);
       const next = new Set(prev);
@@ -125,10 +123,6 @@ export function useTailSpendStore(data: TailSpendData): TailSpendStore {
       else next.add(bucketLabel);
       return next.size === 0 ? new Set(ALL_BUCKET_LABELS) : next;
     });
-  }
-
-  function setSelectedBuckets(buckets: Set<string>) {
-    setSelectedBucketsRaw(buckets.size === 0 ? new Set(ALL_BUCKET_LABELS) : buckets);
   }
 
   function resetFilters() {
@@ -139,7 +133,7 @@ export function useTailSpendStore(data: TailSpendData): TailSpendStore {
     setDateFromRaw(DATE_MIN);
     setDateToRaw(DATE_MAX);
     setParetoThreshold(80);
-    setSelectedBucketsRaw(new Set(ALL_BUCKET_LABELS));
+    setSelectedBuckets(new Set(ALL_BUCKET_LABELS));
   }
 
   const filters: TailSpendFilterState = useMemo(
@@ -168,7 +162,6 @@ export function useTailSpendStore(data: TailSpendData): TailSpendStore {
     setDateTo,
     setParetoThreshold,
     toggleBucket,
-    setSelectedBuckets,
     resetFilters,
   };
 }
