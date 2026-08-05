@@ -75,7 +75,8 @@ export function SpendOverviewCanvas({
 
       {isWidgetVisible("insight-box") && <InsightBox text={insightText} />}
 
-      <section className="grid grid-cols-3 gap-3 lg:grid-cols-6">
+      {/* Five cards, five columns — a 6-col grid left a dead slot at the end of the row. */}
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {isWidgetVisible("kpi-spend-trends") && (
           <>
             <KpiCard size="compact" label="Total Spend" value={formatCr(kpis.totalSpendInr)} icon={<Wallet />} accent="blue" />
