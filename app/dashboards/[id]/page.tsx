@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   ChevronLeft,
   ChevronRight,
@@ -28,7 +29,6 @@ import {
 import { defaultWidgetForDataset } from "@/lib/suggest";
 import { CustomWidget } from "@/components/dashboard/custom-widget";
 import { WidgetConfigurator } from "@/components/dashboard/WidgetConfigurator";
-import { NewDashboardButton } from "@/components/dashboard/new-dashboard-dialog";
 import { DeleteDashboardDialog } from "@/components/dashboard/delete-dashboard-dialog";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
@@ -163,7 +163,12 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
         title="Dashboard not found"
         message="This dashboard no longer exists in this browser. Custom dashboards are stored locally, so a link opened elsewhere won't resolve."
       >
-        <NewDashboardButton label="Create a dashboard" />
+        <Link
+          href="/"
+          className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+        >
+          Back home
+        </Link>
       </EmptyShell>
     );
   }
@@ -190,7 +195,7 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
           message={
             providerType === "client-csv"
               ? `"${dashboard.title}" is bound to a dataset CSV Mode cannot reach. If it reads a warehouse table, switch to Azure SQL Mode in the header.`
-              : "The dataset this dashboard was built from has been removed. Create a new dashboard against a dataset you still have."
+              : "The dataset this dashboard was built from has been removed. Delete this dashboard, or switch to a mode where that dataset is reachable."
           }
         >
           <div className="flex flex-wrap justify-center gap-2">
@@ -203,7 +208,12 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
                 Switch to Azure SQL Mode
               </button>
             )}
-            <NewDashboardButton label="New dashboard" />
+            <Link
+              href="/"
+              className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              Back home
+            </Link>
           </div>
         </EmptyShell>
         <DeleteDashboardDialog
