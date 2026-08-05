@@ -26,6 +26,7 @@
 /* ---------------------------------------------------------------------------
    Teardown — uncomment to drop everything. Facts first: they hold the FKs.
    ---------------------------------------------------------------------------
+DROP TABLE IF EXISTS dbo.snapshots;
 DROP TABLE IF EXISTS dbo.fact_invoices;
 DROP TABLE IF EXISTS dbo.fact_po_items;
 DROP TABLE IF EXISTS dbo.dim_date;
@@ -263,5 +264,41 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'CCI_fact_invoices'
                  AND object_id = OBJECT_ID('dbo.fact_invoices'))
 BEGIN
     CREATE CLUSTERED COLUMNSTORE INDEX CCI_fact_invoices ON dbo.fact_invoices;
+END
+GO
+
+/* ===========================================================================
+   APPLICATION TABLES
+   =========================================================================== */
+
+-- Saved dashboard view states ("cloud snapshots"): the filters, thresholds, and
+-- widget configuration a user had on screen, serialized as JSON. Deliberately
+-- NOT part of the star schema and carries no foreign keys — dashboard_id names
+-- either a core route key ("tail-spend") or a custom dashboard's browser-side
+-- id, neither of which exists as a dimension. Rowstore, OLTP access pattern:
+-- point INSERTs and a per-dashboard timeline read.
+IF OBJECT_ID('dbo.snapshots', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.snapshots
+    (
+        -- UUID minted by the API route, never client-supplied.
+        id            VARCHAR(36)    NOT NULL,
+        name          NVARCHAR(255)  NOT NULL,
+        dashboard_id  NVARCHAR(100)  NOT NULL,
+        created_at    DATETIME2      NOT NULL CONSTRAINT DF_snapshots_created_at DEFAULT GETDATE(),
+        created_by    NVARCHAR(100)  NOT NULL CONSTRAINT DF_snapshots_created_by DEFAULT N'local-user',
+        -- JSON payload of metrics, filters, and widget states.
+        snapshot_data NVARCHAR(MAX)  NOT NULL,
+        CONSTRAINT PK_snapshots PRIMARY KEY CLUSTERED (id)
+    );
+END
+GO
+
+-- The timeline query: WHERE dashboard_id = @p ORDER BY created_at DESC.
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_snapshots_dashboard_created'
+                 AND object_id = OBJECT_ID('dbo.snapshots'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_snapshots_dashboard_created
+        ON dbo.snapshots (dashboard_id, created_at DESC);
 END
 GO

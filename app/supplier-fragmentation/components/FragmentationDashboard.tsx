@@ -17,6 +17,7 @@ import { ConsolidationOpportunityTable } from "./ConsolidationOpportunityTable";
 import { CrossBuSankeyChart } from "./CrossBuSankeyChart";
 import { FragmentationBubbleChart } from "./FragmentationBubbleChart";
 import { FragmentationControls } from "./FragmentationControls";
+import { SnapshotHistoryDialog } from "@/components/dashboard/snapshot-history-dialog";
 import { FragmentationHeatmap } from "./FragmentationHeatmap";
 import { FragmentationInsight } from "./FragmentationInsight";
 import { FragmentationKpis } from "./FragmentationKpis";
@@ -59,6 +60,18 @@ function useActiveFiltersSummary(): string {
   parts.push(`Period: ${filters.dateFrom} to ${filters.dateTo}`);
   parts.push(mode === "parent" ? "Grouped by parent company" : "Grouped by vendor");
   return parts.join(" · ");
+}
+
+/** Capture-only snapshots: records the active filters + grouping for the timeline. */
+function FragmentationSnapshots() {
+  const { filters, mode } = useFragmentation();
+  return (
+    <SnapshotHistoryDialog
+      dashboardId="supplier-fragmentation"
+      dashboardTitle="Supplier Fragmentation"
+      buildSnapshotData={() => ({ filters, mode })}
+    />
+  );
 }
 
 function WidgetGrid() {
@@ -180,6 +193,7 @@ export function FragmentationDashboard() {
       <FragmentationControls />
       <div className="flex flex-col gap-6">
         <Header />
+        <div className="flex justify-end"><FragmentationSnapshots /></div>
         <RevalidatingSection isRevalidating={revalidating}>
           <FragmentationInsight />
           <FragmentationKpis />

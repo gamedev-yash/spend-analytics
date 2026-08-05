@@ -4,8 +4,8 @@ import { useMemo, type ReactNode } from "react";
 import { tailSpendMock, formatINR } from "./tailSpendMock";
 import { useProviderPageData } from "@/hooks/use-provider-page-data";
 import { loadTailSpendFromProvider } from "@/lib/page-data/tail-spend-from-provider";
-import { useDatasets } from "@/context/DatasetsContext";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
+import { SnapshotHistoryDialog } from "@/components/dashboard/snapshot-history-dialog";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
 import { WidgetGridSkeleton } from "@/components/dashboard/widget-grid-skeleton";
 import { RevalidatingSection } from "@/components/dashboard/revalidating-section";
@@ -74,31 +74,28 @@ function Widget({
 }
 
 export default function TailSpendPage() {
-  const { providerType } = useDatasets();
-
   // The micro-PO boundary lives in ThresholdsContext so the sidebar slider,
   // the Thresholds popover, KPI badges, and chart accents all share one live,
   // localStorage-persisted value.
   const { getThreshold, setTargetValue } = useThresholds();
   const microPOThreshold = getThreshold("tail-spend.micro-po-value")?.targetValue ?? 25_000;
 
-  // In Azure SQL mode the page reads fact_po_items through IDataProvider; the
-  // threshold is part of the key because it changes the micro-PO query.
+  // The page reads fact_po_items through IDataProvider (Azure SQL, enforced);
+  // the threshold is part of the key because it changes the micro-PO query.
   const warehouse = useProviderPageData(
     (provider) => loadTailSpendFromProvider(provider, microPOThreshold),
-    providerType === "azure-sql",
+    true,
     `tail-spend:${microPOThreshold}`
   );
 
-  const isAzureSqlMode = providerType === "azure-sql";
   // True only until the very first Azure SQL fetch of the session settles —
   // useProviderPageData's `ready` is sticky, so a later filter/threshold
   // change never re-triggers this once real data has rendered once.
-  const isInitialAzureLoad = isAzureSqlMode && !warehouse.ready;
+  const isInitialAzureLoad = !warehouse.ready;
   // True while a filter/threshold change is re-querying Azure SQL for data
   // that's already on screen — drives the subtle in-place loading cue below,
   // never a reset to the skeleton or a flash of the mock fallback.
-  const isRevalidating = isAzureSqlMode && warehouse.loading && warehouse.ready;
+  const isRevalidating = warehouse.loading && warehouse.ready;
 
   // The active Data Provider (Azure SQL, sample-CSV fallback under the hood
   // when no warehouse is configured), else the static mock — never a
@@ -241,6 +238,49 @@ export default function TailSpendPage() {
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <SnapshotHistoryDialog
+              dashboardId="tail-spend"
+              dashboardTitle="Tail Spend"
+              buildSnapshotData={() => ({
+                microPOThreshold,
+                activeParameters,
+                filters: { ...store.filters, selectedBuckets: [...store.filters.selectedBuckets] },
+              })}
+              onRestore={(data) => {
+                // Each field restores independently; anything missing stays as-is.
+                if (typeof data.microPOThreshold === "number") {
+                  setTargetValue("tail-spend.micro-po-value", data.microPOThreshold);
+                }
+                if (Array.isArray(data.activeParameters)) {
+                  const saved = data.activeParameters;
+                  applyPreset(FOCUS_PARAMETERS.map((p) => p.id).filter((id) => saved.includes(id)));
+                }
+                const f = data.filters as Record<string, unknown> | undefined;
+                if (!f || typeof f !== "object") return;
+                const strings = (v: unknown) =>
+                  Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : null;
+                const categories = strings(f.categories);
+                if (categories) store.setCategories(categories);
+                const suppliers = strings(f.suppliers);
+                if (suppliers) store.setSuppliers(suppliers);
+                const plants = strings(f.plants);
+                if (plants) store.setPlants(plants);
+                const sourceSystems = strings(f.sourceSystems);
+                if (sourceSystems) store.setSourceSystems(sourceSystems);
+                if (typeof f.dateFrom === "string") store.setDateFrom(f.dateFrom);
+                if (typeof f.dateTo === "string") store.setDateTo(f.dateTo);
+                if (typeof f.paretoThreshold === "number") store.setParetoThreshold(f.paretoThreshold);
+                const savedBuckets = strings(f.selectedBuckets);
+                if (savedBuckets) {
+                  // No bulk setter — toggle exactly the labels whose state differs.
+                  const target = new Set(savedBuckets);
+                  const current = store.filters.selectedBuckets;
+                  for (const label of new Set([...target, ...current])) {
+                    if (target.has(label) !== current.has(label)) store.toggleBucket(label);
+                  }
+                }
+              }}
+            />
             <ExportSnapshotButton targetId={DASHBOARD_CANVAS_ID} dashboardTitle="Tail Spend" />
           </div>
         </div>

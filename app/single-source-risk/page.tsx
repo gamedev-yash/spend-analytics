@@ -2,6 +2,7 @@
 
 import { SingleSourceRiskProvider } from "./provider";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
+import { SnapshotHistoryDialog } from "@/components/dashboard/snapshot-history-dialog";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
 import { KpiRibbon } from "./components/kpi-ribbon";
 import { FilterPanel } from "./components/filter-panel";
@@ -31,6 +32,17 @@ export default function SingleSourceRiskPage() {
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <SnapshotHistoryDialog
+              dashboardId="single-source-risk"
+              dashboardTitle="Single Source Risk"
+              buildSnapshotData={() => ({ activeParameters })}
+              onRestore={(data) => {
+                if (Array.isArray(data.activeParameters)) {
+                  const saved = data.activeParameters;
+                  applyPreset(SSR_FOCUS_PARAMETERS.map((p) => p.id).filter((id) => saved.includes(id)));
+                }
+              }}
+            />
             <ExportSnapshotButton targetId={DASHBOARD_CANVAS_ID} dashboardTitle="Single Source Risk" />
           </div>
         </div>

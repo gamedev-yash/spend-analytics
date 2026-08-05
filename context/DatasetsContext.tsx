@@ -33,14 +33,6 @@ export const DASHBOARD_PAGE_KEYS = [
 
 export type DashboardPageKey = (typeof DASHBOARD_PAGE_KEYS)[number];
 
-/** Which IDataProvider implementation answers widget queries. */
-export type DataProviderType = "client-csv" | "azure-sql";
-
-export const DATA_PROVIDER_LABELS: Record<DataProviderType, string> = {
-  "client-csv": "CSV Mode",
-  "azure-sql": "Azure SQL Mode",
-};
-
 export interface CreateJoinedDatasetParams {
   name: string;
   leftId: string;
@@ -61,15 +53,12 @@ interface DatasetsState {
 
 interface DatasetsContextValue extends DatasetsState {
   /**
-   * Where every widget reads its numbers from — the CSV engine in this browser
-   * or the REST query engine over Azure SQL. Widgets never branch on this; they
-   * send the same QueryPayload either way.
+   * Where every widget reads its numbers from — always the Azure SQL REST query
+   * engine. Datasets whose rows live only in this browser (uploads and joins)
+   * are answered locally inside the adapter; everything else is a warehouse
+   * query. There is no user-facing provider switch.
    */
   activeProvider: IDataProvider;
-  /** Which implementation activeProvider is. */
-  providerType: DataProviderType;
-  /** Switch providers live. Persists, so a reload keeps the chosen mode. */
-  setProviderType: (type: DataProviderType) => void;
   setActiveDatasetId: (id: string | null) => void;
   /** Parse a CSV file, infer columns, store the dataset, and persist. */
   uploadCsv: (file: File, pageTarget?: string) => Promise<Dataset>;
@@ -190,84 +179,23 @@ function newDatasetId(): string {
 
 const clientCsvAdapter = new ClientCsvAdapter(() => getSnapshot().datasets);
 
+/**
+ * The one and only app provider: Azure SQL, enforced. The local engine behind it
+ * exists solely for datasets whose rows live in this browser (uploads/joins),
+ * which no server could answer.
+ */
 const azureSqlAdapter = new AzureSqlAdapter({
-  fallback: clientCsvAdapter,
-  // An uploaded CSV only exists in this browser, so it is answered here rather
-  // than posted to an API that has never heard of it.
+  local: clientCsvAdapter,
   isLocalDataset: (datasetId) => getSnapshot().datasets.some((d) => d.id === datasetId),
 });
 
-const PROVIDERS: Record<DataProviderType, IDataProvider> = {
-  "client-csv": clientCsvAdapter,
-  "azure-sql": azureSqlAdapter,
-};
-
-// ---------------------------------------------------------------------------
-// Provider-mode store
-//
-// Same externalized pattern as the dataset store: the server snapshot is the
-// env default so SSR is deterministic, then the client snapshot (hydrated from
-// localStorage) takes over. Persisting means a mode chosen from the header
-// survives a reload.
-// ---------------------------------------------------------------------------
-
-const PROVIDER_STORAGE_KEY = "app_data_provider";
-
-function isProviderType(value: unknown): value is DataProviderType {
-  return value === "client-csv" || value === "azure-sql";
-}
-
-/** NEXT_PUBLIC_DATA_SOURCE_PROVIDER, defaulting to azure-sql. */
-function envProviderType(): DataProviderType {
-  const configured = process.env.NEXT_PUBLIC_DATA_SOURCE_PROVIDER;
-  if (configured === undefined || configured === "") return "azure-sql";
-  if (isProviderType(configured)) return configured;
+// CSV Mode was removed: the provider is no longer configurable per environment
+// or switchable from the header. Warn once if a leftover configuration still
+// asks for it, so the silence isn't mysterious.
+if (process.env.NEXT_PUBLIC_DATA_SOURCE_PROVIDER === "client-csv") {
   console.warn(
-    `DatasetsContext: NEXT_PUBLIC_DATA_SOURCE_PROVIDER="${configured}" is not a known provider; using azure-sql.`
+    "DatasetsContext: NEXT_PUBLIC_DATA_SOURCE_PROVIDER=client-csv is no longer supported — Azure SQL is the enforced data provider."
   );
-  return "azure-sql";
-}
-
-let providerState: DataProviderType | null = null;
-const providerListeners = new Set<() => void>();
-
-function loadPersistedProvider(): DataProviderType {
-  if (typeof window === "undefined") return envProviderType();
-  try {
-    const raw = window.localStorage.getItem(PROVIDER_STORAGE_KEY);
-    return isProviderType(raw) ? raw : envProviderType();
-  } catch {
-    return envProviderType();
-  }
-}
-
-function getProviderSnapshot(): DataProviderType {
-  if (providerState === null) providerState = loadPersistedProvider();
-  return providerState;
-}
-
-function getProviderServerSnapshot(): DataProviderType {
-  return envProviderType();
-}
-
-function subscribeProvider(listener: () => void): () => void {
-  providerListeners.add(listener);
-  return () => {
-    providerListeners.delete(listener);
-  };
-}
-
-function setStoredProviderType(type: DataProviderType): void {
-  if (getProviderSnapshot() === type) return;
-  providerState = type;
-  try {
-    window.localStorage.setItem(PROVIDER_STORAGE_KEY, type);
-  } catch (err) {
-    console.warn("DatasetsContext: unable to persist the provider mode", err);
-  }
-  // Warehouse metadata may have changed while we were away.
-  if (type === "azure-sql") azureSqlAdapter.invalidateMetadata();
-  for (const listener of providerListeners) listener();
 }
 
 // ---------------------------------------------------------------------------
@@ -283,10 +211,7 @@ export function DatasetsProvider({
   provider,
 }: {
   children: ReactNode;
-  /**
-   * Pin the provider, ignoring providerType and the header switcher — an escape
-   * hatch for tests and embedded views.
-   */
+  /** Pin the provider — an escape hatch for tests and embedded views. */
   provider?: IDataProvider;
 }) {
   const { datasets: storedDatasets, activeDatasetId } = useSyncExternalStore(
@@ -294,39 +219,29 @@ export function DatasetsProvider({
     getSnapshot,
     getServerSnapshot
   );
-  const providerType = useSyncExternalStore(
-    subscribeProvider,
-    getProviderSnapshot,
-    getProviderServerSnapshot
-  );
-  const activeProvider = provider ?? PROVIDERS[providerType];
+  const activeProvider = provider ?? azureSqlAdapter;
 
   // Warehouse tables the query API advertises. Held in React state rather than
   // the persisted store: they are discovered per session, not owned by this
-  // browser, and must not survive a switch back to CSV mode.
-  const [discovered, setDiscovered] = useState<Dataset[]>(NO_SERVER_DATASETS);
+  // browser.
+  const [serverDatasets, setServerDatasets] = useState<Dataset[]>(NO_SERVER_DATASETS);
 
   useEffect(() => {
-    if (providerType !== "azure-sql") return;
     let active = true;
     activeProvider.getDatasets().then(
       (all) => {
-        if (active) setDiscovered(all.filter((dataset) => dataset.source === "server"));
+        if (active) setServerDatasets(all.filter((dataset) => dataset.source === "server"));
       },
       (err: unknown) => {
         if (!active) return;
         console.warn("DatasetsContext: could not load warehouse datasets", err);
-        setDiscovered(NO_SERVER_DATASETS);
+        setServerDatasets(NO_SERVER_DATASETS);
       }
     );
     return () => {
       active = false;
     };
-  }, [providerType, activeProvider]);
-
-  // Derived rather than cleared in the effect, so CSV mode hides them
-  // immediately instead of one render later.
-  const serverDatasets = providerType === "azure-sql" ? discovered : NO_SERVER_DATASETS;
+  }, [activeProvider]);
 
   const datasets = useMemo(
     () => (serverDatasets.length === 0 ? storedDatasets : [...serverDatasets, ...storedDatasets]),
@@ -420,17 +335,11 @@ export function DatasetsProvider({
     [datasets, activeDatasetId]
   );
 
-  const setProviderType = useCallback((type: DataProviderType) => {
-    setStoredProviderType(type);
-  }, []);
-
   const value = useMemo<DatasetsContextValue>(
     () => ({
       datasets,
       activeDatasetId,
       activeProvider,
-      providerType,
-      setProviderType,
       setActiveDatasetId,
       uploadCsv,
       createJoinedDataset,
@@ -441,8 +350,6 @@ export function DatasetsProvider({
       datasets,
       activeDatasetId,
       activeProvider,
-      providerType,
-      setProviderType,
       setActiveDatasetId,
       uploadCsv,
       createJoinedDataset,

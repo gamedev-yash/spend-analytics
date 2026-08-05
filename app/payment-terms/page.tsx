@@ -1,8 +1,8 @@
 "use client";
 
-import { useDatasets } from "@/context/DatasetsContext";
 import { PaymentTermsProvider } from "./provider";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
+import { SnapshotHistoryDialog } from "@/components/dashboard/snapshot-history-dialog";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
 import { KpiRibbon } from "./components/kpi-ribbon";
 import { FilterPanel } from "./components/filter-panel";
@@ -40,7 +40,6 @@ function WarehouseGapNote() {
 
 export default function PaymentTermsPage() {
   const { activeParameters, toggleParameter, applyPreset, isWidgetVisible } = usePaymentTermsFocus();
-  const { providerType } = useDatasets();
 
   return (
     <PaymentTermsProvider>
@@ -55,6 +54,17 @@ export default function PaymentTermsPage() {
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <SnapshotHistoryDialog
+              dashboardId="payment-terms"
+              dashboardTitle="Payment Terms"
+              buildSnapshotData={() => ({ activeParameters })}
+              onRestore={(data) => {
+                if (Array.isArray(data.activeParameters)) {
+                  const saved = data.activeParameters;
+                  applyPreset(PT_FOCUS_PARAMETERS.map((p) => p.id).filter((id) => saved.includes(id)));
+                }
+              }}
+            />
             <ExportSnapshotButton targetId={DASHBOARD_CANVAS_ID} dashboardTitle="Payment Terms" />
           </div>
         </div>
@@ -70,7 +80,7 @@ export default function PaymentTermsPage() {
             thresholdsPageKey="payment-terms"
           />
 
-          {providerType === "azure-sql" && <WarehouseGapNote />}
+          <WarehouseGapNote />
 
           {isWidgetVisible("kpi-ribbon") && <KpiRibbon />}
           {/* Trailing odd child spans the full row so hiding/filtering widgets never leaves a gap. */}

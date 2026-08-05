@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { useDatasets } from "@/context/DatasetsContext";
 import { useProviderPageData } from "@/hooks/use-provider-page-data";
 import { loadSpendOverviewFromProvider } from "../loadFromProvider";
 import { WidgetGridSkeleton } from "@/components/dashboard/widget-grid-skeleton";
@@ -27,15 +26,12 @@ interface SpendOverviewDataBridgeProps {
  *      DatasetsContext's upload path.
  */
 export function SpendOverviewDataBridge({ serverData, filters }: SpendOverviewDataBridgeProps) {
-  const { providerType } = useDatasets();
-  const isAzureSqlMode = providerType === "azure-sql";
-
   // Keying on the serialized filters (not a constant string) is what makes a
   // BU/Category/Date/vendor change actually trigger a new warehouse fetch —
   // useProviderPageData only refetches when this key changes.
   const warehouse = useProviderPageData(
     (provider) => loadSpendOverviewFromProvider(provider, filters),
-    isAzureSqlMode,
+    true,
     `spend-overview:${JSON.stringify(filters)}`
   );
 
@@ -44,8 +40,8 @@ export function SpendOverviewDataBridge({ serverData, filters }: SpendOverviewDa
   // real data has rendered once. `isRevalidating` covers everything after: a
   // background refetch of data that's already on screen (see
   // RevalidatingSection) rather than a reset to the skeleton.
-  const isInitialAzureLoad = isAzureSqlMode && !warehouse.ready;
-  const isRevalidating = isAzureSqlMode && warehouse.loading && warehouse.ready;
+  const isInitialAzureLoad = !warehouse.ready;
+  const isRevalidating = warehouse.loading && warehouse.ready;
 
   const data = useMemo(() => warehouse.data ?? serverData, [warehouse.data, serverData]);
 

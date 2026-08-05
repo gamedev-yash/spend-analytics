@@ -124,6 +124,17 @@ export function removeWidget(dashboardId: string, widgetId: string): void {
   );
 }
 
+/**
+ * Replace a dashboard's whole widget list in one write — restoring a saved
+ * snapshot, where per-widget add/remove churn would persist (and re-render)
+ * once per widget.
+ */
+export function replaceWidgets(dashboardId: string, widgets: WidgetConfig[]): void {
+  updateStore((prev) =>
+    prev.map((d) => (d.id === dashboardId ? touch({ ...d, widgets }) : d))
+  );
+}
+
 /** Move a widget one slot earlier/later in the grid order. */
 export function moveWidget(dashboardId: string, widgetId: string, direction: -1 | 1): void {
   updateStore((prev) =>

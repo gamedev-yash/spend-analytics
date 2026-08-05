@@ -21,10 +21,12 @@ import {
   moveWidget,
   removeWidget,
   renameDashboard,
+  replaceWidgets,
   updateWidget,
   useCustomDashboard,
   useDashboardsReady,
 } from "@/lib/custom-dashboards-store";
+import { SnapshotHistoryDialog } from "@/components/dashboard/snapshot-history-dialog";
 import { defaultWidgetForDataset } from "@/lib/suggest";
 import { CustomWidget } from "@/components/dashboard/custom-widget";
 import { WidgetConfigurator } from "@/components/dashboard/WidgetConfigurator";
@@ -140,7 +142,7 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
   const { id } = use(params);
   const dashboard = useCustomDashboard(id);
   const ready = useDashboardsReady();
-  const { datasets, providerType, setProviderType } = useDatasets();
+  const { datasets } = useDatasets();
 
   const [filters, setFilters] = useState<DashboardFilterState>({});
   const [configuratorOpen, setConfiguratorOpen] = useState(false);
@@ -182,27 +184,11 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
             Delete Dashboard
           </button>
         </div>
-        {/* In CSV mode a warehouse-backed dashboard is not "deleted" — its table
-            simply is not reachable from this provider, so offer the switch
-            rather than telling the user their upload is gone. */}
         <EmptyShell
           title="Bound dataset is missing"
-          message={
-            providerType === "client-csv"
-              ? `"${dashboard.title}" is bound to a dataset CSV Mode cannot reach. If it reads a warehouse table, switch to Azure SQL Mode in the header.`
-              : "The dataset this dashboard was built from has been removed. Create a new dashboard against a dataset you still have."
-          }
+          message="The dataset this dashboard was built from has been removed. Create a new dashboard against a dataset you still have."
         >
           <div className="flex flex-wrap justify-center gap-2">
-            {providerType === "client-csv" && (
-              <button
-                type="button"
-                onClick={() => setProviderType("azure-sql")}
-                className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
-              >
-                Switch to Azure SQL Mode
-              </button>
-            )}
             <NewDashboardButton label="New dashboard" />
           </div>
         </EmptyShell>
@@ -271,6 +257,31 @@ export default function CustomDashboardPage({ params }: { params: Promise<{ id: 
             <Plus className="h-3.5 w-3.5" />
             Add Widget
           </button>
+          <SnapshotHistoryDialog
+            dashboardId={dashboard.id}
+            dashboardTitle={dashboard.title}
+            buildSnapshotData={() => ({
+              title: dashboard.title,
+              filters,
+              widgets: dashboard.widgets,
+            })}
+            onRestore={(data) => {
+              // Each part restores independently, so an older snapshot missing a
+              // field simply leaves that part of the view alone.
+              if (typeof data.title === "string" && data.title.trim() !== "") {
+                renameDashboard(dashboard.id, data.title);
+              }
+              if (data.filters && typeof data.filters === "object" && !Array.isArray(data.filters)) {
+                setFilters(data.filters as DashboardFilterState);
+              }
+              if (Array.isArray(data.widgets)) {
+                const widgets = (data.widgets as WidgetConfig[]).filter(
+                  (w) => w && typeof w.id === "string" && typeof w.chartType === "string"
+                );
+                if (widgets.length > 0) replaceWidgets(dashboard.id, widgets);
+              }
+            }}
+          />
           <ExportSnapshotButton targetId={DASHBOARD_CANVAS_ID} dashboardTitle={dashboard.title} />
           <button
             type="button"

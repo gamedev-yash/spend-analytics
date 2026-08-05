@@ -71,16 +71,28 @@ export function isDatabaseConfigured(): boolean {
   return resolveConnectionString() !== null;
 }
 
-// One pool per process. Cached as the promise so concurrent requests share a
-// single connect() rather than racing to open their own.
-let poolPromise: Promise<MssqlPool> | null = null;
+/**
+ * The writable connection string, for the few application tables the app itself
+ * inserts into (dbo.snapshots). Never falls back to the read-only credential —
+ * a db_datareader login would fail the INSERT with a confusing permission error
+ * instead of this actionable one.
+ */
+export function resolveWritableConnectionString(): string | null {
+  return process.env.AZURE_SQL_CONNECTION_STRING || null;
+}
+
+// One pool per connection string (read-only and writable credentials each get
+// their own). Cached as the promise so concurrent requests share a single
+// connect() rather than racing to open their own.
+const poolPromises = new Map<string, Promise<MssqlPool>>();
 
 async function getPool(connectionString: string): Promise<MssqlPool> {
-  if (poolPromise) return poolPromise;
+  const cached = poolPromises.get(connectionString);
+  if (cached) return cached;
   // Kept in a variable so nothing can fold this into a static specifier and
   // reintroduce the build-time resolution (see requireOptional above).
   const specifier = "mssql";
-  poolPromise = (async () => {
+  const created = (async () => {
     let driver: MssqlModule;
     try {
       driver = requireOptional(specifier) as MssqlModule;
@@ -98,10 +110,11 @@ async function getPool(connectionString: string): Promise<MssqlPool> {
     });
   })().catch((err: unknown) => {
     // Never cache a failed connect, or the process can never recover.
-    poolPromise = null;
+    poolPromises.delete(connectionString);
     throw err;
   });
-  return poolPromise;
+  poolPromises.set(connectionString, created);
+  return created;
 }
 
 export interface SqlQueryOutcome {
@@ -131,12 +144,50 @@ export async function executeQuery(built: BuiltQuery): Promise<SqlQueryOutcome> 
   return { rows, totalMatchingRows: Number.isFinite(total) ? total : rows.length };
 }
 
-/** Drop the pool — for tests and graceful shutdown. */
+export interface SqlParameter {
+  /** Placeholder name without the leading @, e.g. "id". */
+  name: string;
+  value: unknown;
+}
+
+/**
+ * Run one parameterized statement outside the query-builder path — the
+ * application tables (dbo.snapshots), not the star schema. The SQL text must be
+ * a literal owned by server code; only values travel as parameters.
+ *
+ * `write: true` uses the writable credential (AZURE_SQL_CONNECTION_STRING) and
+ * refuses to run without it, so an INSERT never lands on the db_datareader
+ * login just because it happened to be the one configured.
+ */
+export async function executeSql(
+  sql: string,
+  parameters: SqlParameter[],
+  options: { write?: boolean } = {}
+): Promise<Record<string, unknown>[][]> {
+  const connectionString = options.write
+    ? resolveWritableConnectionString()
+    : resolveConnectionString();
+  if (!connectionString) {
+    throw new SqlUnavailableError(
+      options.write
+        ? "Saving needs the writable Azure SQL credential. Set AZURE_SQL_CONNECTION_STRING in the server environment."
+        : "No Azure SQL connection string is configured."
+    );
+  }
+
+  const pool = await getPool(connectionString);
+  const request = pool.request();
+  for (const parameter of parameters) request.input(parameter.name, parameter.value);
+  const { recordsets } = await request.query(sql);
+  return recordsets;
+}
+
+/** Drop every pool — for tests and graceful shutdown. */
 export async function closePool(): Promise<void> {
-  const pending = poolPromise;
-  poolPromise = null;
-  if (pending) {
-    const pool = await pending.catch(() => null);
+  const pending = [...poolPromises.values()];
+  poolPromises.clear();
+  for (const promise of pending) {
+    const pool = await promise.catch(() => null);
     await pool?.close();
   }
 }

@@ -105,10 +105,9 @@ Recharts widget  ──uses──▶  useWidgetQuery(dataset, config, filters)  
 ```
 
 `components/dashboard/custom-widget.tsx` renders `SeriesPoint[]`. It never learns
-whether those points were summed by `Array.reduce` or by `SUM()`. The only
-component that mentions a provider at all is the header badge
-(`components/layout/provider-mode-badge.tsx`), whose entire job is to *display*
-which one is active.
+whether those points were summed by `Array.reduce` or by `SUM()`. No component
+mentions a provider at all: Azure SQL is enforced app-wide, and the one-time
+CSV/Azure mode badge was removed along with the mode itself.
 
 The same decoupling is why the four core dashboards can be provider-backed while
 still falling back to static mock data per widget — see
@@ -248,21 +247,14 @@ This distinction is load-bearing, so state it precisely:
 Verified behaviour: an uploaded-CSV dashboard in Azure SQL Mode issues **zero**
 `POST /api/v1/query` requests and logs nothing.
 
-#### Graceful fallback, and why the original error is rethrown
+#### Strict failure — no client-side recomputation
 
-```ts
-try {
-  return await this.fallback.queryWidgetData(payload);
-} catch {
-  throw apiError;   // not the fallback's error
-}
-```
-
-For a warehouse dataset the fallback has no rows, so `ClientCsvAdapter` throws
-`Dataset "fact_po_items" is no longer loaded in this browser.` That message is
-true but useless — it describes a consequence, not the cause. Rethrowing
-`apiError` surfaces *"the query API returned 503: mssql driver not installed"*,
-which is actionable. A widget's error state should name the real problem.
+A warehouse query either succeeds against the API or rejects with the API's own
+error, which surfaces in the widget's error state. There is deliberately no
+degrade-to-CSV path: Azure SQL is the mandatory engine, and a silent client-side
+recomputation would hide an outage behind subtly different numbers. Only the
+metadata surface (dataset listing, column metadata) may still degrade to local
+knowledge — it drives pickers, not figures.
 
 #### Metadata caching
 
@@ -274,8 +266,8 @@ this.datasetsPromise ??= this.request<Dataset[]>(DATASETS_PATH, { method: "GET" 
 
 A dashboard mounting eight widgets at once therefore shares one `GET
 /api/v1/datasets` round trip rather than racing eight. A rejection clears the cache
-so the next attempt retries. `invalidateMetadata()` clears it explicitly when the
-user toggles back into Azure SQL Mode.
+so the next attempt retries. `invalidateMetadata()` forces a re-fetch of the
+warehouse metadata on the next read.
 
 Server-backed datasets come back with `rows: []` and `source: "server"` — they are
 *queried*, never downloaded.
@@ -696,28 +688,16 @@ is why it shipped once already.
 
 ## 5. Environment & feature toggle configuration
 
-### 5.1 Provider selection
+### 5.1 Provider enforcement
 
-| Variable | Values | Default |
-|---|---|---|
-| `NEXT_PUBLIC_DATA_SOURCE_PROVIDER` | `azure-sql` \| `client-csv` | `azure-sql` |
+Azure SQL is the **mandatory** provider — there is no CSV Mode, no header
+switcher, and no per-environment selection. `DatasetsContext` always constructs
+the `AzureSqlAdapter` (with the local engine behind it for browser-held
+uploads/joins). `DatasetsProvider` still accepts a `provider` prop as an escape
+hatch for tests and embedded views.
 
-Resolution order in `context/DatasetsContext.tsx`:
-
-1. `localStorage["app_data_provider"]` — set by the header badge, survives reload
-2. `NEXT_PUBLIC_DATA_SOURCE_PROVIDER`
-3. `"azure-sql"`
-
-An unrecognized non-empty value logs a warning and falls back to `azure-sql`. The
-env var is the **server-rendered default** (`getServerSnapshot`), so SSR is
-deterministic; the localStorage value takes over on the client via
-`useSyncExternalStore`.
-
-`setProviderType(type)` switches live — no reload. It persists the choice and calls
-`azureSqlAdapter.invalidateMetadata()` when switching back into Azure SQL Mode.
-`DatasetsProvider` also accepts a `provider` prop that pins the provider and
-ignores both the toggle and the env var — an escape hatch for tests and embedded
-views.
+`NEXT_PUBLIC_DATA_SOURCE_PROVIDER` is no longer honoured; setting it to
+`client-csv` logs a one-time warning explaining that the mode was removed.
 
 ### 5.2 Azure SQL connection
 
@@ -791,7 +771,7 @@ hooks/
   use-provider-page-data.ts   drives the core dashboards' provider loaders
 
 context/
-  DatasetsContext.tsx         dataset store, providerType, activeProvider, setProviderType
+  DatasetsContext.tsx         dataset store, activeProvider (Azure SQL, enforced)
   WidgetFiltersContext.tsx    active filters for a subtree of widgets
 
 lib/server/                   ── server-only ──
@@ -820,6 +800,7 @@ lib/page-data/                core dashboards: provider aggregates → page shap
 app/api/
   v1/query/route.ts           POST — the query engine
   v1/datasets/route.ts        GET  — warehouse metadata
+  v1/snapshots/route.ts       GET/POST — cloud snapshots (dbo.snapshots)
   assistant/route.ts          POST — AI assistant with tool use (warehouse / uploaded CSV)
   dashboard-chat/route.ts     POST — AI assistant for the 5 core dashboards (§4.4)
 

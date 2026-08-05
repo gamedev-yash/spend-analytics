@@ -1,16 +1,18 @@
 // IDataProvider over the REST query engine: widgets keep sending QueryPayloads,
 // but the aggregation happens in Azure SQL instead of the browser.
 //
-// Two routing rules, and the distinction matters:
+// Azure SQL is the mandatory engine — there is no CSV mode to fall back to. The
+// one routing rule that remains is about where rows physically exist:
 //
 //   Uploaded CSVs never leave the browser. The server has no idea a dataset
 //   called "ds-4f2c…" exists, so posting one would earn a 400 per widget. Those
-//   go straight to the CSV adapter — not as a failure, as the correct route.
+//   are answered by the local engine — not as a failure, as the only possible
+//   route for browser-held rows.
 //
-//   Warehouse datasets go to the API, and a failure there falls back so a
-//   widget degrades instead of going blank. If the fallback cannot serve it
-//   either, the original API error is rethrown: "the query API returned 503" is
-//   the actionable message, "dataset is not loaded in this browser" is not.
+//   Warehouse datasets go to the API, strictly: a failure there propagates to
+//   the widget's error state instead of silently degrading to a client-side
+//   recomputation. The metadata surface (dataset listing, column metadata) may
+//   still degrade to local knowledge — it drives pickers, not numbers.
 
 import type { ColumnMeta } from "@/lib/infer";
 import type { IDataProvider, QueryPayload, QueryResult } from "@/types/data-provider";
@@ -23,8 +25,8 @@ const QUERY_PATH = "/api/v1/query";
 const DATASETS_PATH = "/api/v1/datasets";
 
 export interface AzureSqlAdapterOptions {
-  /** Serves browser-held datasets, and anything the API cannot answer. */
-  fallback: IDataProvider;
+  /** Serves datasets whose rows live in this browser (uploads and joins). */
+  local: IDataProvider;
   /**
    * True when the dataset's rows live in this browser. Defaults to "never",
    * which routes everything through the API.
@@ -46,7 +48,7 @@ interface ApiEnvelope<T> {
 export class AzureSqlAdapter implements IDataProvider {
   readonly id = "azure-sql";
 
-  private readonly fallback: IDataProvider;
+  private readonly local: IDataProvider;
   private readonly isLocalDataset: (datasetId: string) => boolean;
   private readonly baseUrl: string;
   private readonly fetchImpl: typeof fetch;
@@ -54,7 +56,7 @@ export class AzureSqlAdapter implements IDataProvider {
   private datasetsPromise: Promise<Dataset[]> | null = null;
 
   constructor(options: AzureSqlAdapterOptions) {
-    this.fallback = options.fallback;
+    this.local = options.local;
     this.isLocalDataset = options.isLocalDataset ?? (() => false);
     this.baseUrl = options.baseUrl ?? "";
     this.fetchImpl = options.fetchImpl ?? ((...args) => fetch(...args));
@@ -67,14 +69,14 @@ export class AzureSqlAdapter implements IDataProvider {
         console.warn(`AzureSqlAdapter: could not list warehouse datasets — ${message(err)}`);
         return [] as Dataset[];
       }),
-      this.fallback.getDatasets(),
+      this.local.getDatasets(),
     ]);
     return [...server, ...local];
   }
 
   async getDatasetMetadata(datasetId: string): Promise<ColumnMeta[]> {
     if (this.isLocalDataset(datasetId)) {
-      return this.fallback.getDatasetMetadata(datasetId);
+      return this.local.getDatasetMetadata(datasetId);
     }
     try {
       const datasets = await this.fetchServerDatasets();
@@ -83,32 +85,23 @@ export class AzureSqlAdapter implements IDataProvider {
     } catch (err) {
       console.warn(`AzureSqlAdapter: metadata lookup for "${datasetId}" failed — ${message(err)}`);
     }
-    return this.fallback.getDatasetMetadata(datasetId);
+    return this.local.getDatasetMetadata(datasetId);
   }
 
+  /**
+   * Strict: a warehouse query either succeeds against the API or rejects with
+   * the API's own error — no client-side recomputation. The only branch is for
+   * datasets whose rows exist solely in this browser, which the server could
+   * never answer at all.
+   */
   async queryWidgetData(payload: QueryPayload): Promise<QueryResult> {
-    // Not a fallback: the browser is the only place these rows exist.
     if (this.isLocalDataset(payload.datasetId)) {
-      return this.fallback.queryWidgetData(payload);
+      return this.local.queryWidgetData(payload);
     }
-
-    try {
-      return await this.postQuery(payload);
-    } catch (apiError) {
-      console.warn(
-        `AzureSqlAdapter: ${QUERY_PATH} failed for "${payload.datasetId}" — ${message(apiError)}. Falling back to client-side aggregation.`
-      );
-      try {
-        return await this.fallback.queryWidgetData(payload);
-      } catch {
-        // The fallback has no rows for a warehouse dataset, so its complaint
-        // would only obscure the real problem.
-        throw apiError;
-      }
-    }
+    return this.postQuery(payload);
   }
 
-  /** Forget the cached dataset list — after a switch back into Azure SQL mode. */
+  /** Forget the cached dataset list, so the next read re-fetches the warehouse metadata. */
   invalidateMetadata(): void {
     this.datasetsPromise = null;
   }

@@ -1,5 +1,10 @@
-// AzureSqlAdapter routing and fallback behaviour, with fetch and the fallback
+// AzureSqlAdapter routing and strict-failure behaviour, with fetch and the local
 // provider both injected so no server or browser is involved.
+//
+// Azure SQL is the enforced engine: a warehouse query that fails REJECTS with
+// the API's own error — it must never degrade to a client-side recomputation.
+// The local provider exists only for datasets whose rows live in the browser
+// (uploads/joins), which the server could never answer.
 //
 //   npm test
 
@@ -19,8 +24,8 @@ const PAYLOAD: QueryPayload = {
   measures: [{ field: "net_order_value_inr", aggregation: "sum", alias: "value" }],
 };
 
-const FALLBACK_RESULT: QueryResult = {
-  rows: [{ category_l1_name: "from-fallback", value: 1 }],
+const LOCAL_RESULT: QueryResult = {
+  rows: [{ category_l1_name: "from-local", value: 1 }],
   totalMatchingRows: 1,
   executionTimeMs: 0.1,
 };
@@ -31,11 +36,11 @@ const API_RESULT: QueryResult = {
   executionTimeMs: 42,
 };
 
-/** Stub fallback whose calls can be counted, and which can be made to fail. */
-function makeFallback(options: { throws?: boolean } = {}): IDataProvider & { calls: string[] } {
+/** Stub local provider whose calls can be counted. */
+function makeLocal(): IDataProvider & { calls: string[] } {
   const calls: string[] = [];
   return {
-    id: "stub-fallback",
+    id: "stub-local",
     calls,
     async getDatasets(): Promise<Dataset[]> {
       calls.push("getDatasets");
@@ -56,8 +61,7 @@ function makeFallback(options: { throws?: boolean } = {}): IDataProvider & { cal
     },
     async queryWidgetData(payload: QueryPayload): Promise<QueryResult> {
       calls.push(`queryWidgetData:${payload.datasetId}`);
-      if (options.throws) throw new Error("fallback has no rows for this dataset");
-      return FALLBACK_RESULT;
+      return LOCAL_RESULT;
     },
   };
 }
@@ -91,32 +95,31 @@ describe("AzureSqlAdapter routing", () => {
   let warn: ReturnType<typeof mock.method>;
 
   beforeEach(() => {
-    // The adapter narrates fallbacks; keep the test output readable.
     warn = mock.method(console, "warn", () => undefined);
   });
 
   it("answers browser-held datasets locally without touching the network", async () => {
-    const fallback = makeFallback();
+    const local = makeLocal();
     const { impl, requests } = makeFetch(okQuery);
     const adapter = new AzureSqlAdapter({
-      fallback,
+      local,
       fetchImpl: impl,
       isLocalDataset: (id) => id === LOCAL_DATASET_ID,
     });
 
     const result = await adapter.queryWidgetData({ ...PAYLOAD, datasetId: LOCAL_DATASET_ID });
 
-    assert.deepEqual(result, FALLBACK_RESULT);
-    assert.deepEqual(fallback.calls, [`queryWidgetData:${LOCAL_DATASET_ID}`]);
+    assert.deepEqual(result, LOCAL_RESULT);
+    assert.deepEqual(local.calls, [`queryWidgetData:${LOCAL_DATASET_ID}`]);
     assert.equal(requests.length, 0, "an uploaded CSV must not be posted to the API");
     // Routing locally is correct behaviour, not a degradation, so nothing is logged.
     assert.equal(warn.mock.callCount(), 0);
   });
 
   it("posts warehouse datasets to /api/v1/query and unwraps the envelope", async () => {
-    const fallback = makeFallback();
+    const local = makeLocal();
     const { impl, requests } = makeFetch(okQuery);
-    const adapter = new AzureSqlAdapter({ fallback, fetchImpl: impl });
+    const adapter = new AzureSqlAdapter({ local, fetchImpl: impl });
 
     const result = await adapter.queryWidgetData(PAYLOAD);
 
@@ -125,12 +128,12 @@ describe("AzureSqlAdapter routing", () => {
     assert.equal(requests[0].method, "POST");
     assert.ok(requests[0].url.endsWith("/api/v1/query"), requests[0].url);
     assert.deepEqual(JSON.parse(requests[0].body ?? "{}"), PAYLOAD);
-    assert.equal(fallback.calls.length, 0, "a healthy API must not invoke the fallback");
+    assert.equal(local.calls.length, 0, "a healthy API must not invoke the local engine");
   });
 
   it("matches the QueryResult contract IDataProvider expects", async () => {
     const { impl } = makeFetch(okQuery);
-    const adapter = new AzureSqlAdapter({ fallback: makeFallback(), fetchImpl: impl });
+    const adapter = new AzureSqlAdapter({ local: makeLocal(), fetchImpl: impl });
 
     const result: QueryResult = await adapter.queryWidgetData(PAYLOAD);
 
@@ -141,7 +144,7 @@ describe("AzureSqlAdapter routing", () => {
   });
 
   it("satisfies IDataProvider structurally", () => {
-    const adapter: IDataProvider = new AzureSqlAdapter({ fallback: makeFallback() });
+    const adapter: IDataProvider = new AzureSqlAdapter({ local: makeLocal() });
     assert.equal(adapter.id, "azure-sql");
     assert.equal(typeof adapter.getDatasets, "function");
     assert.equal(typeof adapter.getDatasetMetadata, "function");
@@ -149,65 +152,55 @@ describe("AzureSqlAdapter routing", () => {
   });
 });
 
-describe("AzureSqlAdapter fallback on failure", () => {
+describe("AzureSqlAdapter strict failure propagation", () => {
   beforeEach(() => {
     mock.method(console, "warn", () => undefined);
   });
 
-  const failures: [string, () => { status: number; body: unknown } | Error][] = [
-    ["500 from the route", () => ({ status: 500, body: { success: false, error: "boom" } })],
-    ["400 validation error", () => ({ status: 400, body: { success: false, error: "Unknown field" } })],
-    ["503 database unavailable", () => ({ status: 503, body: { success: false, error: "no driver" } })],
-    ["network failure", () => new TypeError("Failed to fetch")],
-    ["200 with success:false", () => ({ status: 200, body: { success: false, error: "odd" } })],
-    ["non-JSON body", () => ({ status: 502, body: undefined })],
+  const failures: [string, () => { status: number; body: unknown } | Error, RegExp][] = [
+    ["500 from the route", () => ({ status: 500, body: { success: false, error: "boom" } }), /boom/],
+    ["400 validation error", () => ({ status: 400, body: { success: false, error: "Unknown field" } }), /Unknown field/],
+    ["503 database unavailable", () => ({ status: 503, body: { success: false, error: "no driver" } }), /no driver/],
+    ["network failure", () => new TypeError("Failed to fetch"), /Failed to fetch/],
+    ["200 with success:false", () => ({ status: 200, body: { success: false, error: "odd" } }), /odd/],
+    ["non-JSON body", () => ({ status: 502, body: undefined }), /502/],
   ];
 
-  for (const [label, responder] of failures) {
-    it(`falls back to the CSV adapter on ${label}`, async () => {
-      const fallback = makeFallback();
+  for (const [label, responder, messagePattern] of failures) {
+    it(`rejects with the API's own error on ${label} — never a client-side recomputation`, async () => {
+      const local = makeLocal();
       const { impl, requests } = makeFetch(responder);
-      const adapter = new AzureSqlAdapter({ fallback, fetchImpl: impl });
+      const adapter = new AzureSqlAdapter({ local, fetchImpl: impl });
 
-      const result = await adapter.queryWidgetData(PAYLOAD);
-
-      assert.deepEqual(result, FALLBACK_RESULT, "the UI must still receive rows");
+      await assert.rejects(
+        () => adapter.queryWidgetData(PAYLOAD),
+        (err: Error) => {
+          assert.match(err.message, messagePattern);
+          return true;
+        }
+      );
       assert.equal(requests.length, 1, "the API was attempted once");
-      assert.deepEqual(fallback.calls, [`queryWidgetData:${SERVER_DATASET_ID}`]);
+      assert.equal(
+        local.calls.length,
+        0,
+        "strict mode: the local engine must never be consulted for a warehouse dataset"
+      );
     });
   }
 
-  it("logs the reason it fell back", async () => {
-    const logged: string[] = [];
-    mock.restoreAll();
-    mock.method(console, "warn", (...args: unknown[]) => {
-      logged.push(args.map(String).join(" "));
+  it("still answers a local dataset when the API is down — that route never needed the API", async () => {
+    const local = makeLocal();
+    const { impl, requests } = makeFetch(() => new TypeError("Failed to fetch"));
+    const adapter = new AzureSqlAdapter({
+      local,
+      fetchImpl: impl,
+      isLocalDataset: (id) => id === LOCAL_DATASET_ID,
     });
-    const { impl } = makeFetch(() => ({ status: 500, body: { success: false, error: "engine offline" } }));
-    const adapter = new AzureSqlAdapter({ fallback: makeFallback(), fetchImpl: impl });
 
-    await adapter.queryWidgetData(PAYLOAD);
+    const result = await adapter.queryWidgetData({ ...PAYLOAD, datasetId: LOCAL_DATASET_ID });
 
-    assert.equal(logged.length, 1);
-    assert.match(logged[0], /engine offline/);
-    assert.match(logged[0], /Falling back/);
-  });
-
-  it("rethrows the API error when the fallback cannot help either", async () => {
-    // The real case: a warehouse dataset has no rows in the browser, so the
-    // fallback's own complaint would bury the actual cause.
-    const fallback = makeFallback({ throws: true });
-    const { impl } = makeFetch(() => ({ status: 503, body: { success: false, error: "query engine offline" } }));
-    const adapter = new AzureSqlAdapter({ fallback, fetchImpl: impl });
-
-    await assert.rejects(
-      () => adapter.queryWidgetData(PAYLOAD),
-      (err: Error) => {
-        assert.match(err.message, /query engine offline/);
-        assert.doesNotMatch(err.message, /fallback has no rows/);
-        return true;
-      }
-    );
+    assert.deepEqual(result, LOCAL_RESULT);
+    assert.equal(requests.length, 0);
   });
 });
 
@@ -228,7 +221,7 @@ describe("AzureSqlAdapter metadata", () => {
 
   it("lists warehouse datasets alongside local ones and marks their source", async () => {
     const { impl } = makeFetch(() => ({ status: 200, body: { success: true, data: serverDatasets } }));
-    const adapter = new AzureSqlAdapter({ fallback: makeFallback(), fetchImpl: impl });
+    const adapter = new AzureSqlAdapter({ local: makeLocal(), fetchImpl: impl });
 
     const datasets = await adapter.getDatasets();
 
@@ -245,7 +238,7 @@ describe("AzureSqlAdapter metadata", () => {
         ? { status: 200, body: { success: true, data: serverDatasets } }
         : okQuery()
     );
-    const adapter = new AzureSqlAdapter({ fallback: makeFallback(), fetchImpl: impl });
+    const adapter = new AzureSqlAdapter({ local: makeLocal(), fetchImpl: impl });
 
     await Promise.all([
       adapter.getDatasetMetadata(SERVER_DATASET_ID),
@@ -258,7 +251,7 @@ describe("AzureSqlAdapter metadata", () => {
 
   it("re-fetches after invalidateMetadata", async () => {
     const { impl, requests } = makeFetch(() => ({ status: 200, body: { success: true, data: serverDatasets } }));
-    const adapter = new AzureSqlAdapter({ fallback: makeFallback(), fetchImpl: impl });
+    const adapter = new AzureSqlAdapter({ local: makeLocal(), fetchImpl: impl });
 
     await adapter.getDatasets();
     adapter.invalidateMetadata();
@@ -269,29 +262,31 @@ describe("AzureSqlAdapter metadata", () => {
 
   it("returns registry columns for a warehouse dataset", async () => {
     const { impl } = makeFetch(() => ({ status: 200, body: { success: true, data: serverDatasets } }));
-    const fallback = makeFallback();
-    const adapter = new AzureSqlAdapter({ fallback, fetchImpl: impl });
+    const local = makeLocal();
+    const adapter = new AzureSqlAdapter({ local, fetchImpl: impl });
 
     const columns = await adapter.getDatasetMetadata(SERVER_DATASET_ID);
 
     assert.deepEqual(columns.map((c) => c.id), ["vendor_name"]);
-    assert.equal(fallback.calls.length, 0);
+    assert.equal(local.calls.length, 0);
   });
 
-  it("falls back to local metadata when the endpoint is down", async () => {
+  it("degrades metadata (not numbers) to local knowledge when the endpoint is down", async () => {
+    // Metadata drives pickers, not figures — a lenient control plane is
+    // deliberate, in contrast to the strict data plane above.
     const { impl } = makeFetch(() => new TypeError("Failed to fetch"));
-    const fallback = makeFallback();
-    const adapter = new AzureSqlAdapter({ fallback, fetchImpl: impl });
+    const local = makeLocal();
+    const adapter = new AzureSqlAdapter({ local, fetchImpl: impl });
 
     const columns = await adapter.getDatasetMetadata(SERVER_DATASET_ID);
 
     assert.deepEqual(columns.map((c) => c.id), ["local_col"]);
-    assert.ok(fallback.calls.includes(`getDatasetMetadata:${SERVER_DATASET_ID}`));
+    assert.ok(local.calls.includes(`getDatasetMetadata:${SERVER_DATASET_ID}`));
   });
 
   it("still lists local datasets when the endpoint is down", async () => {
     const { impl } = makeFetch(() => new TypeError("Failed to fetch"));
-    const adapter = new AzureSqlAdapter({ fallback: makeFallback(), fetchImpl: impl });
+    const adapter = new AzureSqlAdapter({ local: makeLocal(), fetchImpl: impl });
 
     const datasets = await adapter.getDatasets();
 
