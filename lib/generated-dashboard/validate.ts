@@ -15,6 +15,11 @@ const DEFAULT_LIMIT = 10;
 const MIN_LIMIT = 1;
 const MAX_LIMIT = 100;
 const DONUT_MAX_LIMIT = 6;
+// A heatmap row-count and a waterfall step-count both need to stay browsable
+// the way a donut's slice-count does — a 100-row matrix or a 100-step bridge
+// is unreadable regardless of how correct the underlying data is.
+const HEATMAP_MAX_LIMIT = 15;
+const WATERFALL_MAX_LIMIT = 15;
 const MAX_SERIES_ITEMS = 8;
 
 /** lowercase + strip everything but letters/digits, so "Site Name", "site_name",
@@ -54,11 +59,24 @@ function clampColSpan(value: unknown): ColSpan {
   return best;
 }
 
-function clampLimit(value: unknown, isDonut: boolean): number {
-  const cap = isDonut ? DONUT_MAX_LIMIT : MAX_LIMIT;
+function limitCapFor(kind: ChartKind): number {
+  switch (kind) {
+    case "donut":
+      return DONUT_MAX_LIMIT;
+    case "heatmap":
+      return HEATMAP_MAX_LIMIT;
+    case "waterfall":
+      return WATERFALL_MAX_LIMIT;
+    default:
+      return MAX_LIMIT;
+  }
+}
+
+function clampLimit(value: unknown, kind: ChartKind): number {
+  const cap = limitCapFor(kind);
   const n = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(n) || n < MIN_LIMIT) {
-    return isDonut ? Math.min(DEFAULT_LIMIT, DONUT_MAX_LIMIT) : DEFAULT_LIMIT;
+    return Math.min(DEFAULT_LIMIT, cap);
   }
   return Math.max(MIN_LIMIT, Math.min(Math.round(n), cap));
 }
@@ -69,7 +87,6 @@ function clampLimit(value: unknown, isDonut: boolean): number {
  */
 function resolveWidget(widget: WidgetSpec, lookup: Map<string, string>): WidgetSpec | null {
   const kind: ChartKind = widget.kind;
-  const isDonut = kind === "donut";
 
   // Resolve the dimension column, if this kind needs one.
   let dimension = widget.dimension;
@@ -116,7 +133,7 @@ function resolveWidget(widget: WidgetSpec, lookup: Map<string, string>): WidgetS
     ...widget,
     dimension,
     series,
-    limit: clampLimit(widget.limit, isDonut),
+    limit: clampLimit(widget.limit, kind),
     colSpan: clampColSpan(widget.colSpan),
   };
 }
