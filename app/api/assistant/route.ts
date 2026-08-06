@@ -44,14 +44,17 @@ export const runtime = "nodejs";
 
 const MAX_TOKENS = 8_000;
 
+// Hard cap on tool-calling rounds. The last allowed pass always forces a
+// prose-only reply (tool_choice: "none") so a query issued on an earlier pass
+// is guaranteed to be read back and answered instead of left stranded — see
+// the tool_choice logic in POST below.
+const MAX_TOOL_PASSES = 4;
+
 // The model id comes from resolveAnthropicClient(), which honours
 // AZURE_FOUNDRY_MODEL so a Foundry deployment name routes correctly.
 
-// Mirrors .claude/skills/chart-generation/SKILL.md — keep both in sync. That
-// skill governs how *we* (Claude Code) hand-build dashboard charts for this
-// repo; this constant is the same rules loaded into the live create_widget
-// tool call so end users' generated widgets follow the identical form,
-// aggregation, column, limit, and title rules.
+// Governs the chart form, aggregation, column, limit, and title rules the
+// live create_widget tool call follows for user-facing chart requests.
 //
 // Used for an uploaded CSV, where the model answers from column statistics.
 // WAREHOUSE_SYSTEM_PROMPT below replaces it when the question is about a
@@ -315,21 +318,31 @@ export async function POST(request: Request): Promise<Response> {
     let options: AssistantResponse["options"] = null;
     let query: AssistantQuery | null = null;
 
-    // Two passes at most: one where the model may query, one where it reads the
-    // rows back and answers. A single extra round trip is enough because every
-    // question here resolves to one aggregate.
-    for (let pass = 0; pass < 2; pass += 1) {
+    // Up to MAX_TOOL_PASSES rounds: the model may query the warehouse across
+    // several passes, but the last pass always forces a prose-only reply so a
+    // query issued on an earlier pass is guaranteed to be read back and
+    // answered instead of left stranded when the pass budget runs out.
+    for (let pass = 0; pass < MAX_TOOL_PASSES; pass += 1) {
+      const forceProseOnly = pass === MAX_TOOL_PASSES - 1;
       const response = await client.messages.create({
         model,
         max_tokens: MAX_TOKENS,
-        system: warehouseMode ? WAREHOUSE_SYSTEM_PROMPT : CSV_SYSTEM_PROMPT,
+        system: [
+          {
+            type: "text",
+            text: warehouseMode ? WAREHOUSE_SYSTEM_PROMPT : CSV_SYSTEM_PROMPT,
+            cache_control: { type: "ephemeral" },
+          },
+        ],
         tools,
         // "parse" must produce a widget; "chat" decides for itself. Forcing the
         // tool on the second pass would stop the model from answering in prose.
         tool_choice:
           mode === "parse" && pass === 0 && !warehouseMode
             ? { type: "tool", name: "create_widget" }
-            : { type: "auto" },
+            : forceProseOnly
+              ? { type: "none" }
+              : { type: "auto" },
         messages,
       });
 
@@ -339,7 +352,21 @@ export async function POST(request: Request): Promise<Response> {
           { status: 422 }
         );
       }
+      if (response.stop_reason === "max_tokens") {
+        return Response.json(
+          { error: "The response was too long to complete. Try a narrower or more specific question." },
+          { status: 502 }
+        );
+      }
 
+      // Reset per pass, not accumulated across passes: when a query comes
+      // back empty or wrong, the model sometimes narrates its own
+      // troubleshooting ("let me check the date range instead...") in a text
+      // block on an intermediate pass. Concatenating that into the final
+      // reply would show the user a debugging transcript instead of an
+      // answer — only the pass that actually stops (no further query calls)
+      // should be what they see.
+      reply = "";
       const queryCalls: Anthropic.ToolUseBlock[] = [];
       for (const block of response.content) {
         if (block.type === "text") {
@@ -394,7 +421,11 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const payload: AssistantResponse = {
-      reply: reply.trim() || (widget ? `Added "${widget.title}".` : ""),
+      reply:
+        reply.trim() ||
+        (widget
+          ? `Added "${widget.title}".`
+          : "I looked into that but couldn't put together a complete answer — try rephrasing or narrowing the question."),
       widget,
       query,
       redirect,

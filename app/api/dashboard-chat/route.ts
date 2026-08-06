@@ -26,7 +26,17 @@ import { DASHBOARD_REGISTRY, dashboardMeta, type DashboardKey } from "@/lib/ai/d
 
 export const runtime = "nodejs";
 
-const MAX_TOKENS = 1_536;
+// Was 1,536 — too tight on claude-opus-5, where adaptive thinking is on by
+// default and shares this same budget with the tool call and the reply, so a
+// non-trivial answer risked truncating mid-thought or mid-reply.
+const MAX_TOKENS = 4_096;
+
+// Hard cap on tool-calling rounds. The last allowed pass always forces a
+// prose-only reply (tool_choice: "none") so a query issued on an earlier pass
+// is guaranteed to be read back and answered instead of left stranded — see
+// the tool_choice logic in POST below.
+const MAX_TOOL_PASSES = 4;
+
 const DASHBOARD_KEYS = DASHBOARD_REGISTRY.map((d) => d.key);
 
 interface DashboardChatRequest {
@@ -158,23 +168,46 @@ export async function POST(request: Request): Promise<Response> {
     let redirect: DashboardChatResponse["redirect"] = null;
     let options: DashboardChatResponse["options"] = null;
 
-    // Two passes at most: one where the model may query this dashboard's data,
-    // one where it reads the rows back and answers. Mirrors the loop
-    // app/api/assistant/route.ts uses for the warehouse.
-    for (let pass = 0; pass < 2; pass += 1) {
+    // Up to MAX_TOOL_PASSES rounds: the model may query this dashboard's data
+    // across several passes, but the last pass always forces a prose-only
+    // reply so a query issued on an earlier pass is guaranteed to be read back
+    // and answered instead of left stranded when the pass budget runs out.
+    // Mirrors the loop app/api/assistant/route.ts uses for the warehouse.
+    for (let pass = 0; pass < MAX_TOOL_PASSES; pass += 1) {
+      const forceProseOnly = pass === MAX_TOOL_PASSES - 1;
       const response = await client.messages.create({
         model,
         max_tokens: MAX_TOKENS,
-        system: buildSystemPrompt(dashboardKey as DashboardKey),
+        system: [
+          {
+            type: "text",
+            text: buildSystemPrompt(dashboardKey as DashboardKey),
+            cache_control: { type: "ephemeral" },
+          },
+        ],
         tools,
-        tool_choice: { type: "auto" },
+        tool_choice: forceProseOnly ? { type: "none" } : { type: "auto" },
         messages,
       });
 
       if (response.stop_reason === "refusal") {
         return Response.json({ error: "The assistant declined to answer that request." }, { status: 422 });
       }
+      if (response.stop_reason === "max_tokens") {
+        return Response.json(
+          { error: "The response was too long to complete. Try a narrower or more specific question." },
+          { status: 502 }
+        );
+      }
 
+      // Reset per pass, not accumulated across passes: when a query comes
+      // back empty or wrong, the model sometimes narrates its own
+      // troubleshooting ("let me check the date range instead...") in a text
+      // block on an intermediate pass. Concatenating that into the final
+      // reply would show the user a debugging transcript instead of an
+      // answer — only the pass that actually stops (no further query calls)
+      // should be what they see.
+      reply = "";
       const queryCalls: Anthropic.ToolUseBlock[] = [];
       for (const block of response.content) {
         if (block.type === "text") {

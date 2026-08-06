@@ -9,6 +9,8 @@ import {
   Check,
   Database,
   Loader2,
+  Maximize2,
+  Minimize2,
   Send,
   Sparkles,
   Square,
@@ -26,6 +28,7 @@ import {
 import { stashPendingPrompt, takePendingPrompt } from "@/lib/ai/assistant-handoff";
 import { useDraggableBubble } from "@/hooks/use-draggable-bubble";
 import { useOutsideClick } from "@/hooks/use-outside-click";
+import { AssistantMarkdown } from "./AssistantMarkdown";
 import type { OtherDashboardInfo } from "@/types/assistant";
 import {
   CHART_TYPE_LABELS,
@@ -101,6 +104,7 @@ export function AiAssistant() {
   const dashboards = useCustomDashboards();
 
   const [open, setOpen] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
   const [tab, setTab] = useState<"chat" | "permutations">("chat");
   const [messages, setMessages] = useState<ChatEntry[]>([]);
   const [input, setInput] = useState("");
@@ -286,7 +290,7 @@ export function AiAssistant() {
         <div
           ref={panelRef}
           style={
-            position
+            !fullscreen && position
               ? {
                   left: Math.min(
                     position.x,
@@ -299,8 +303,10 @@ export function AiAssistant() {
               : undefined
           }
           className={cn(
-            "fixed z-[60] flex h-[min(38rem,calc(100vh-9rem))] w-[min(26rem,calc(100vw-3rem))] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900",
-            !position && "bottom-24 right-6"
+            "fixed z-[60] flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900",
+            fullscreen
+              ? "inset-4 md:inset-10"
+              : cn("h-[min(38rem,calc(100vh-9rem))] w-[min(26rem,calc(100vw-3rem))]", !position && "bottom-24 right-6")
           )}
         >
           {/* Header */}
@@ -310,6 +316,15 @@ export function AiAssistant() {
               <p className="flex-1 truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
                 {activeDashboard.title}
               </p>
+              <button
+                type="button"
+                onClick={() => setFullscreen((v) => !v)}
+                aria-label={fullscreen ? "Exit full screen" : "Full screen"}
+                title={fullscreen ? "Exit full screen" : "Full screen"}
+                className="shrink-0 rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+              >
+                {fullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+              </button>
             </div>
             <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
               <Database className="h-3 w-3 shrink-0" />
@@ -357,15 +372,16 @@ export function AiAssistant() {
                   <div
                     key={i}
                     className={cn(
-                      "max-w-[90%] rounded-lg px-3 py-2 text-sm leading-snug",
+                      "rounded-lg px-3 py-2 text-sm leading-snug",
+                      fullscreen ? "max-w-[70%]" : "max-w-[90%]",
                       m.role === "user"
-                        ? "ml-auto bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                        ? "ml-auto whitespace-pre-wrap bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
                         : m.isError
                           ? "border border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-300"
                           : "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200"
                     )}
                   >
-                    {m.content}
+                    {m.role === "user" ? m.content : <AssistantMarkdown text={m.content} />}
                     {m.addedWidget && (
                       <span className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
                         <Check className="h-3 w-3" />

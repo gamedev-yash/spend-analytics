@@ -99,7 +99,7 @@ describe("runDashboardQuery — correctness against an independent total", () =>
       aggregation: "sum",
     });
     assert.equal(outcome.error, undefined);
-    assert.ok(Math.abs((outcome.result.value ?? 0) - independentTotal) < 1);
+    assert.ok(Math.abs(Number(outcome.result.value ?? 0) - independentTotal) < 1);
   });
 
   it("compliance and spend-overview answer from the identical purchase_orders/invoices tables", () => {
@@ -144,8 +144,8 @@ describe("runDashboardQuery — correctness against an independent total", () =>
     });
     assert.equal(grouped.error, undefined);
     assert.equal(grouped.result.truncated, false, "fewer than 50 L1 categories — nothing should be truncated");
-    const groupSum = (grouped.result.groups ?? []).reduce((s, g) => s + g.value, 0);
-    assert.ok(Math.abs(groupSum - (ungrouped.result.value ?? 0)) < 1);
+    const groupSum = (grouped.result.groups ?? []).reduce((s, g) => s + Number(g.value), 0);
+    assert.ok(Math.abs(groupSum - Number(ungrouped.result.value ?? 0)) < 1);
   });
 });
 
