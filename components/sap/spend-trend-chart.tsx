@@ -1,9 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { PlotlyChart, type PlotlyTrace } from "@/components/sap/plotly-chart";
+import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import { usePalette } from "@/hooks/use-palette";
+import { formatInr } from "@/lib/sap/format-inr";
 import type { MonthlyTrendPoint } from "@/lib/sap/aggregate";
 
 interface SpendTrendChartProps {
@@ -12,6 +14,18 @@ interface SpendTrendChartProps {
 
 type TrendMode = "total" | "yoy";
 
+interface TotalDatum {
+  month: string;
+  valueCr: number;
+  totalInr: number;
+}
+
+interface YoyDatum {
+  month: string;
+  y2025: number | null;
+  y2024: number | null;
+}
+
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const CRORE = 10_000_000;
 
@@ -19,48 +33,22 @@ export function SpendTrendChart({ trend }: SpendTrendChartProps) {
   const palette = usePalette();
   const [mode, setMode] = useState<TrendMode>("total");
 
-  const data: PlotlyTrace[] = useMemo(() => {
-    if (mode === "total") {
-      return [
-        {
-          type: "bar",
-          name: "Spend",
-          x: trend.map((t) => t.month),
-          y: trend.map((t) => t.total / CRORE),
-          customdata: trend.map((t) => t.total),
-          marker: { color: palette.categorical.blue, cornerradius: 4 },
-          hovertemplate: "<b>%{x}</b><br>Spend: ₹%{customdata:,.0f}<extra></extra>",
-        },
-      ];
-    }
-    // yoy: overlay 2025 vs 2024 by month-of-year
+  const totalData: TotalDatum[] = useMemo(
+    () => trend.map((t) => ({ month: t.month, valueCr: t.total / CRORE, totalInr: t.total })),
+    [trend]
+  );
+
+  const yoyData: YoyDatum[] = useMemo(() => {
     const byYear = (year: number) =>
       MONTH_NAMES.map((_, idx) => {
         const key = `${year}-${String(idx + 1).padStart(2, "0")}`;
         const total = trend.find((t) => t.month === key)?.total;
         return total !== undefined ? total / CRORE : null;
       });
-    return [
-      {
-        type: "scatter",
-        mode: "lines+markers",
-        name: "2025",
-        x: MONTH_NAMES,
-        y: byYear(2025),
-        line: { color: palette.categorical.blue, width: 2 },
-        hovertemplate: "%{x} 2025: ₹%{y:,.1f} Cr<extra></extra>",
-      },
-      {
-        type: "scatter",
-        mode: "lines+markers",
-        name: "2024",
-        x: MONTH_NAMES,
-        y: byYear(2024),
-        line: { color: palette.categorical.orange, width: 2, dash: "dot" },
-        hovertemplate: "%{x} 2024: ₹%{y:,.1f} Cr<extra></extra>",
-      },
-    ];
-  }, [mode, trend, palette]);
+    const y2025 = byYear(2025);
+    const y2024 = byYear(2024);
+    return MONTH_NAMES.map((m, idx) => ({ month: m, y2025: y2025[idx], y2024: y2024[idx] }));
+  }, [trend]);
 
   return (
     <div className="flex h-full flex-col gap-1.5">
@@ -71,16 +59,84 @@ export function SpendTrendChart({ trend }: SpendTrendChartProps) {
         </TabsList>
       </Tabs>
       <div className="min-h-0 flex-1">
-        <PlotlyChart
-          data={data}
-          layout={{
-            legend: { orientation: "h", y: -0.18 },
-            xaxis: { type: mode === "yoy" ? "category" : undefined },
-            yaxis: { title: { text: "Spend (₹ Cr)" } },
-            bargap: 0.2,
-            margin: { t: 16, r: 24, b: 16, l: 48 },
-          }}
-        />
+        <ResponsiveContainer width="100%" height="100%">
+          {mode === "total" ? (
+            <BarChart data={totalData} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
+              <CartesianGrid vertical={false} strokeDasharray="3 3" stroke={palette.ink.grid} />
+              <XAxis
+                dataKey="month"
+                stroke={palette.ink.baseline}
+                tick={{ fontSize: 11, fill: palette.ink.muted }}
+                tickLine={false}
+              />
+              <YAxis
+                tickFormatter={(v: number) => v.toFixed(0)}
+                stroke={palette.ink.baseline}
+                tick={{ fontSize: 11, fill: palette.ink.muted }}
+                tickLine={false}
+                width={44}
+                label={{ value: "₹ Cr", angle: -90, position: "insideLeft", fontSize: 11, fill: palette.ink.muted }}
+              />
+              <Tooltip
+                content={({ active, payload, label }) => {
+                  const row = (payload?.[0]?.payload ?? null) as TotalDatum | null;
+                  if (!row) return null;
+                  return (
+                    <ChartTooltipCard active={active} heading={String(label)} rows={[{ label: "Spend", value: formatInr(row.totalInr) }]} />
+                  );
+                }}
+                cursor={{ fill: palette.isDark ? "rgba(148,163,184,0.08)" : "rgba(15,23,42,0.05)" }}
+              />
+              <Bar dataKey="valueCr" name="Spend" fill={palette.categorical.blue} radius={[4, 4, 0, 0]} maxBarSize={28} />
+            </BarChart>
+          ) : (
+            <LineChart data={yoyData} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
+              <CartesianGrid vertical={false} strokeDasharray="3 3" stroke={palette.ink.grid} />
+              <XAxis
+                dataKey="month"
+                stroke={palette.ink.baseline}
+                tick={{ fontSize: 11, fill: palette.ink.muted }}
+                tickLine={false}
+              />
+              <YAxis
+                tickFormatter={(v: number) => v.toFixed(0)}
+                stroke={palette.ink.baseline}
+                tick={{ fontSize: 11, fill: palette.ink.muted }}
+                tickLine={false}
+                width={44}
+                label={{ value: "₹ Cr", angle: -90, position: "insideLeft", fontSize: 11, fill: palette.ink.muted }}
+              />
+              <Tooltip
+                content={({ active, payload, label }) => {
+                  if (!active || !payload?.length) return null;
+                  return (
+                    <ChartTooltipCard
+                      active={active}
+                      heading={String(label)}
+                      rows={payload.map((p) => ({
+                        label: p.dataKey === "y2025" ? "2025" : "2024",
+                        value: p.value == null ? "–" : `₹${Number(p.value).toFixed(1)} Cr`,
+                        color: String(p.color ?? ""),
+                      }))}
+                    />
+                  );
+                }}
+                cursor={{ stroke: palette.ink.baseline, strokeWidth: 1 }}
+              />
+              <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, color: palette.ink.muted }} />
+              <Line dataKey="y2025" name="2025" stroke={palette.categorical.blue} strokeWidth={2} dot={{ r: 3 }} connectNulls={false} />
+              <Line
+                dataKey="y2024"
+                name="2024"
+                stroke={palette.categorical.orange}
+                strokeWidth={2}
+                strokeDasharray="4 3"
+                dot={{ r: 3 }}
+                connectNulls={false}
+              />
+            </LineChart>
+          )}
+        </ResponsiveContainer>
       </div>
     </div>
   );
