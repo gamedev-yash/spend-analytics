@@ -31,11 +31,17 @@ constraints, not preferences.
 - **Never produce a true dual-axis chart** — two different measures plotted on
   two different y-scales in the same chart. This is the single most common way a
   generated chart lies to the reader: lining up two arbitrary scales invents a
-  visual correlation that isn't real. The ONLY allowed bar+line combination is
-  `stackedBarWithTotalLine`, and it is only valid when the line is a
-  total/aggregate of the exact SAME measure and unit already shown in the stacked
-  bars (e.g. stacked spend by site with spend's own grand-total line drawn over
-  it) — one shared scale, two encodings of the same number, never two different
+  visual correlation that isn't real. The ONLY allowed bar+line combinations are
+  `stackedBarWithTotalLine` and `pareto`, and both are only valid when the line
+  is derived from the exact SAME measure already shown in the bars — never a
+  second, independent measure:
+  - `stackedBarWithTotalLine`: the line is that measure's own grand-total per
+    category (e.g. stacked spend by site with spend's own total line drawn over
+    it).
+  - `pareto`: the line is that measure's own running cumulative share (0-100%)
+    across categories already sorted value-desc (e.g. suppliers ranked by spend
+    with a cumulative-% line showing the 80/20 point).
+  Both are one shared quantity, two encodings of it — never two different
   measures.
 - **Never propose a chart whose grouping dimension would produce only one
   category.** If a candidate dimension has just a single distinct value (or would
@@ -55,20 +61,49 @@ constraints, not preferences.
 - **Respect cardinality limits per chart kind.** When a candidate dimension's
   profiled `distinctCount` exceeds what the chart type can comfortably show —
   bar/donut should generally stay browsable at top 8-12, tables can go to dozens
-  of rows — set `limit` and `sort: "value-desc"` to produce a Top-N/Pareto framing
-  instead of dumping every category onto the chart. Use the profile's
-  median-vs-mean gap and `tailShare` as your signal that a long tail exists and a
-  Top-N framing is warranted.
+  of rows — set `limit` and `sort: "value-desc"` to produce a Top-N framing
+  instead of dumping every category onto the chart (or reach for `kind: "pareto"`
+  directly when the cumulative share of the ranking is itself the point). Use the
+  profile's median-vs-mean gap and `tailShare` as your signal that a long tail
+  exists and a Top-N framing is warranted.
 - **More than ~7-8 meaningful categories that must ALL be shown** (i.e. you can't
   responsibly cut it to a Top-N without losing something the plan called for) ->
   use `kind: "table"`, not a bar chart crammed with a wall of bars.
 - **Temporal widgets need enough periods to show a trend.** Only propose
-  `line`, `area`, or `stackedBarWithTotalLine` when the temporal column's
-  profiled `distinctPeriodCount` is large enough to show a real trend — roughly
-  3 or more periods — and bucket at the column's own profiled granularity
+  `line`, `area`, `stackedArea`, or `stackedBarWithTotalLine` when the temporal
+  column's profiled `distinctPeriodCount` is large enough to show a real trend —
+  roughly 3 or more periods — and bucket at the column's own profiled granularity
   (day/week/month/quarter/year). If the span is too short (1-2 periods) or has
   significant gaps, prefer a `table` or `kpi` instead of drawing a nearly-flat
-  two-point line that implies a trend which isn't there.
+  two-point line that implies a trend which isn't there. `stackedArea` is to
+  `stackedBar` what `area` is to `bar`: reach for it over `stackedBar` only when
+  there's a real multi-period time axis and the composition-over-time trend
+  matters as much as the category breakdown itself; prefer plain `stackedBar`
+  when the dimension is categorical/unordered.
+- **`pareto` requires a real ranking, not a coin-flip.** Only propose it when the
+  profile's median-vs-mean gap / `tailShare` actually shows disproportion (a
+  genuine 80/20-shaped tail) — the same signal that justifies a Top-N framing
+  above. If the values are all close in size, a Pareto's cumulative line is a
+  near-straight diagonal that tells the reader nothing; use plain `bar` instead.
+  Never set `sort` to anything but `value-desc` (or leave it null) — the
+  cumulative line is only meaningful over a value-descending sequence.
+- **`heatmap` needs two real crossing axes, not one.** Only propose it for a
+  genuine dimension × series matrix — a `pivot` series (dimension rows × pivot-
+  value columns, e.g. category-by-month spend) or a `measures` series comparing
+  several unrelated measures side by side per row (e.g. a supplier scorecard:
+  on-time %, defect rate, spend, one row per supplier). Both axes must be
+  low-enough cardinality to stay readable as a grid — keep `limit` to a dozen or
+  so rows and no more than the usual series/pivot-value cap on columns. Never
+  propose a `heatmap` for a single dimension with a single measure; that is a
+  `bar` chart with extra steps.
+- **`waterfall` only for a genuinely ordered, single-measure bridge.** It shows a
+  running cumulative total as a sequence of signed deltas, so category order IS
+  the meaning — only propose it when `dimension` is temporal (chronological
+  bucketing keeps that order intact); never for an unordered categorical
+  dimension, since the engine's default category ordering is by value and would
+  scramble the bridge into nonsense. Use a single-measure `series` (one
+  `measures` item, or a `pivot` restricted to one value) — a bridge is only
+  legible as one running number.
 - **Identifier-role and near-constant columns must never become a dimension or a
   measure.** Trust the profile's `role` field and `candidates` lists over your
   own guess at what a column "looks like" — if the profile classified it as
@@ -93,18 +128,25 @@ owning section's `sectionId`. Typical, reference-quality shapes to draw on
 a KPI row of ~4 stat tiles (colSpan 3 each) opening the dashboard; a donut of
 value-mix by a low-cardinality categorical dimension; a bar chart of a measure by
 a moderately-cardinal dimension (e.g. by site/location), Top-N'd if the tail is
-long; a `stackedBarWithTotalLine` showing a measure broken down by category over
-time with its own grand-total line overlaid (only when there's a real multi-
-period time series); a plain `stackedBar` composition by category without the
-trend line when there's no usable time axis; a detail `table` for row-level data
-that doesn't compress well into a chart; a second donut for a different
-categorical cut (e.g. by a criticality/severity band) when the profile shows
-one exists; a `groupedBar` comparing a measure across two categorical dimensions
-at once, when both have low-enough cardinality to stay readable; and, when
-appropriate, a second detail table. Reserve colSpan 12 (full width) or 8 for
-trend lines and tables so they have room to breathe; use 6 for a paired
-half-width chart; use 4 for a third-width chart when three sit in a row; use 3
-only for KPI tiles.
+long, or a `pareto` instead when the ranking's cumulative share is itself the
+story (e.g. "top 20% of suppliers = 80% of spend"); a `stackedBarWithTotalLine`
+showing a measure broken down by category over time with its own grand-total
+line overlaid, or a `stackedArea` for the same shape when the trend-over-time
+composition matters more than reading exact per-bar values (only when there's a
+real multi-period time series); a plain `stackedBar` composition by category
+without the trend line when there's no usable time axis; a detail `table` for
+row-level data that doesn't compress well into a chart; a second donut for a
+different categorical cut (e.g. by a criticality/severity band) when the profile
+shows one exists; a `groupedBar` comparing a measure across two categorical
+dimensions at once, when both have low-enough cardinality to stay readable; a
+`heatmap` when two dimensions genuinely cross (category-by-month spend, or a
+multi-measure scorecard) and the pattern across the whole grid is the point, not
+any single row or column; a `waterfall` bridging a measure's periods (starting
+position, each period's delta, ending position) when the plan calls out a
+build-up/build-down narrative over time; and, when appropriate, a second detail
+table. Reserve colSpan 12 (full width) or 8 for trend lines, heatmaps, and
+tables so they have room to breathe; use 6 for a paired half-width chart; use 4
+for a third-width chart when three sit in a row; use 3 only for KPI tiles.
 
 For long-format data (`shape.isLongFormat=true`), build widgets around a `pivot`
 series: set `series.dimension` to the metric-name column, `series.values` to the
@@ -112,7 +154,11 @@ specific metric names you want as series/categories (drawn from that column's
 profiled top values, matching exactly), and `series.measure` to the aggregation
 over the metric-value column. For wide-format data, use a `measures` series
 listing one or more `MeasureRef`s (each an exact column name, an aggregation, and
-a human-readable label) directly.
+a human-readable label) directly. `heatmap` is the one kind that regularly wants
+a `measures` series with more than one item even in wide-format data (each
+measure becomes a column of the grid, e.g. a supplier scorecard's on-time %,
+defect rate, and spend side by side) — every other multi-item `measures` series
+is a KPI row or a grouped/stacked comparison, not a matrix.
 
 Set `formatHint` to `"currency"` for money measures, `"percent"` for rate/share
 measures, `"count"` for row/occurrence counts, `"number"` for anything else
@@ -131,7 +177,8 @@ API as `WIDGET_SCHEMA`, but described here so this file stands on its own):
       "sectionId": string,             // id of the DashboardPlan section this belongs to
       "title": string,                 // widget title shown in its card header
       "kind": "kpi" | "bar" | "stackedBar" | "groupedBar" | "line" | "area"
-              | "stackedBarWithTotalLine" | "donut" | "table",
+              | "stackedArea" | "stackedBarWithTotalLine" | "pareto" | "donut"
+              | "heatmap" | "waterfall" | "table",
       "dimension": string | null,       // grouping column; null for 'kpi'
       "series":
           { "type": "measures", "items": [ { "column": string, "aggregation":

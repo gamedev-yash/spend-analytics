@@ -334,6 +334,24 @@ input[type="range"]::-moz-range-thumb {
 }
 
 /*
+ * `.fullscreen-grid-matrix` — same class of problem as `.fullscreen-natural-table`
+ * just above, for a CSS-grid matrix instead of a `<table>` (generated-widget.tsx's
+ * HeatmapWidget: `<div class="fullscreen-scroll-list"><div class="fullscreen-grid-matrix">`,
+ * a sticky-header/sticky-first-column grid of colored cells). The generic
+ * cascade's second level lands on this inner grid div and swaps its
+ * `display: inline-grid` for `display: flex`, which drops the grid's row/
+ * column track sizing — the sticky row and column headers stop lining up
+ * with their cells, the same way the table rule's comment describes for
+ * `<thead>`/`<tbody>`. Restore the grid the same way that rule restores the
+ * table formatting context; pair this class on the inner grid with
+ * `.fullscreen-scroll-list` on its scrolling parent, same as the table.
+ */
+[data-fullscreen-chart] .fullscreen-grid-matrix {
+  display: inline-grid !important;
+  flex: none !important;
+}
+
+/*
  * `.fullscreen-scroll-list` — for a fixed-height scrolling list of plain HTML
  * rows (single-source-risk's products/plants/suppliers bar lists), which
  * contain no Recharts at all.

@@ -12,8 +12,12 @@ export type ChartKind =
   | "groupedBar"
   | "line"
   | "area"
+  | "stackedArea"
   | "stackedBarWithTotalLine"
+  | "pareto"
   | "donut"
+  | "heatmap"
+  | "waterfall"
   | "table";
 
 export type Aggregation = "sum" | "avg" | "count" | "distinct" | "min" | "max";
@@ -81,8 +85,12 @@ export const CHART_KIND_LABELS: Record<ChartKind, string> = {
   groupedBar: "Grouped Bar",
   line: "Line Chart",
   area: "Area Chart",
+  stackedArea: "Stacked Area",
   stackedBarWithTotalLine: "Stacked Bar (with trend)",
+  pareto: "Pareto Chart",
   donut: "Donut Chart",
+  heatmap: "Heatmap",
+  waterfall: "Waterfall",
   table: "Data Table",
 };
 
