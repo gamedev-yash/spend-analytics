@@ -10,67 +10,49 @@ interface CategorySpendListProps {
   nodes: TreemapNode[];
 }
 
-const ROW_HEIGHT = 36;
-const GRID_COLS = "minmax(0,1fr) 190px";
+const ROW_HEIGHT = 32;
+const LABEL_WIDTH = 150;
 
 /**
- * Row list of top-level (L1) categories by spend: a plain-text label column
- * next to a Recharts horizontal bar chart column (hidden axes — the label is
- * already rendered in the first column, and the value is labelled directly
- * on each bar) — mirrors the "Spend by Categories" widget's table layout in
- * the SAP Spend Control Tower dashboards.
+ * Top-level (L1) categories ranked by spend — a single horizontal bar chart
+ * with the category on the Y-axis, so bar length always tracks the actual
+ * plot width instead of sitting in a fixed-width column pinned to one side.
  */
 export function CategorySpendList({ nodes }: CategorySpendListProps) {
   const palette = usePalette();
-  const rows = nodes.filter((n) => n.parent === "All Spend").sort((a, b) => b.value - a.value);
-  const accent = palette.categorical.blue;
-  const chartHeight = rows.length * ROW_HEIGHT;
+  const rows = nodes
+    .filter((n) => n.parent === "All Spend")
+    .sort((a, b) => b.value - a.value)
+    .map((n) => ({ ...n, valueLabel: formatInr(n.value) }));
+  const chartHeight = Math.max(rows.length * ROW_HEIGHT, 120);
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="grid shrink-0 gap-3 border-b border-slate-200 pb-1.5 dark:border-slate-800" style={{ gridTemplateColumns: GRID_COLS }}>
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          Category
-        </span>
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          Spend
-        </span>
-      </div>
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="grid gap-3" style={{ gridTemplateColumns: GRID_COLS, height: chartHeight }}>
-          <div className="flex flex-col">
-            {rows.map((row) => (
-              <div
-                key={row.id}
-                className="flex items-center truncate text-sm text-slate-700 dark:text-slate-300"
-                style={{ height: ROW_HEIGHT }}
-                title={row.label}
-              >
-                {row.label}
-              </div>
-            ))}
-          </div>
-          <ResponsiveContainer width="100%" height={chartHeight}>
-            <BarChart data={rows} layout="vertical" margin={{ top: 0, right: 8, bottom: 0, left: 0 }} barSize={20}>
-              <XAxis type="number" hide />
-              <YAxis type="category" dataKey="id" hide />
-              <Tooltip
-                content={({ active, payload }) => {
-                  const row = (payload?.[0]?.payload ?? null) as TreemapNode | null;
-                  if (!row) return null;
-                  return (
-                    <ChartTooltipCard active={active} heading={row.label} rows={[{ label: "Spend", value: formatInr(row.value) }]} />
-                  );
-                }}
-                cursor={{ fill: palette.isDark ? "rgba(148,163,184,0.08)" : "rgba(15,23,42,0.05)" }}
-              />
-              <Bar dataKey="value" fill={accent} radius={[0, 3, 3, 0]}>
-                <LabelList dataKey="value" position="right" formatter={(v) => formatInr(Number(v))} fontSize={11} fill={palette.ink.secondary} />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+    <div className="h-full overflow-y-auto">
+      <ResponsiveContainer width="100%" height={chartHeight}>
+        <BarChart data={rows} layout="vertical" margin={{ top: 4, right: 84, bottom: 4, left: 4 }} barSize={16}>
+          <XAxis type="number" hide />
+          <YAxis
+            type="category"
+            dataKey="label"
+            width={LABEL_WIDTH}
+            axisLine={false}
+            tickLine={false}
+            interval={0}
+            tick={{ fontSize: 11, fill: palette.ink.secondary }}
+          />
+          <Tooltip
+            content={({ active, payload }) => {
+              const row = (payload?.[0]?.payload ?? null) as TreemapNode | null;
+              if (!row) return null;
+              return <ChartTooltipCard active={active} heading={row.label} rows={[{ label: "Spend", value: formatInr(row.value) }]} />;
+            }}
+            cursor={{ fill: palette.isDark ? "rgba(148,163,184,0.08)" : "rgba(15,23,42,0.05)" }}
+          />
+          <Bar dataKey="value" fill={palette.categorical.blue} radius={[0, 3, 3, 0]}>
+            <LabelList dataKey="valueLabel" position="right" fontSize={11} fill={palette.ink.secondary} />
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }

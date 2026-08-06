@@ -18,3 +18,8 @@ export function initials(name: string): string {
   const parts = name.trim().split(/\s+/);
   return parts.slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("");
 }
+
+/** Ellipsis-truncates a string to at most maxChars — for chart axis tick labels, where the full value belongs in a tooltip instead. */
+export function truncate(label: string, maxChars: number): string {
+  return label.length > maxChars ? `${label.slice(0, maxChars - 1)}…` : label;
+}

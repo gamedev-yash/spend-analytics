@@ -104,7 +104,6 @@ export function ComplianceCanvas({
           <SpendBarList
             rows={unmanagedByBu.map((b) => ({ key: b.plantCode, label: b.plantName, value: b.value, percent: b.percent }))}
             colorSlot="aqua"
-            labelHeader="Business Unit"
             percentHeader="% of Unmanaged"
           />
         </ChartCard>
@@ -118,7 +117,6 @@ export function ComplianceCanvas({
           <SpendBarList
             rows={unmanagedBySupplier.map((s) => ({ key: s.key, label: s.displayName, value: s.value, percent: s.percent }))}
             colorSlot="magenta"
-            labelHeader="Supplier"
             percentHeader="% of Unmanaged"
           />
         </ChartCard>
