@@ -29,7 +29,9 @@ import {
   queryWarehouseTool,
   renderQueryResult,
   renderRegistryContext,
+  RESULT_ROW_LIMIT,
   toQueryPayload,
+  WAREHOUSE_SYSTEM_PROMPT,
 } from "@/lib/server/assistant-tools";
 import type { Aggregation, ChartType, WidgetConfig } from "@/types/custom-dashboard";
 import type {
@@ -57,8 +59,10 @@ const MAX_TOOL_PASSES = 4;
 // live create_widget tool call follows for user-facing chart requests.
 //
 // Used for an uploaded CSV, where the model answers from column statistics.
-// WAREHOUSE_SYSTEM_PROMPT below replaces it when the question is about a
-// registry dataset, whose rows are only reachable by querying.
+// WAREHOUSE_SYSTEM_PROMPT (imported above from assistant-tools.ts, alongside
+// the tool schemas it shares a metric vocabulary with) replaces it when the
+// question is about a registry dataset, whose rows are only reachable by
+// querying.
 const CSV_SYSTEM_PROMPT = `You are the Procurement BI Assistant embedded in a Vedanta spend-analytics dashboard app.
 
 You help procurement analysts understand their uploaded spend data and build dashboard widgets from it.
@@ -91,27 +95,6 @@ gridSpan: 2 for line, table, and stackedBar (trends, tables, and a stack's legen
 Every create_widget field is required by the schema — seriesColumn is null on every chart type except stackedBar, the same way xAxisColumn is null on kpi.
 
 You have DATA ACCESS ONLY for the dashboard whose dataset is in DATASET CONTEXT below. Other dashboards exist in this app — OTHER DASHBOARDS lists their names and scope only, never their data, so you can redirect the user there instead of guessing. If the request needs data that belongs to one of those instead, call redirect_to_dashboard with its id — even if you could plausibly guess the answer. Never answer using data you don't have.
-
-If the request is ambiguous among a small set of clear choices (which column, which chart type, which time window, sum vs. average), call ask_with_options with a short question and 2-5 concise options instead of guessing or asking an open-ended follow-up in prose.
-
-Keep prose answers short and concrete — a few sentences, no preamble, no markdown headers.`;
-
-const WAREHOUSE_SYSTEM_PROMPT = `You are the Procurement BI Assistant embedded in a Vedanta spend-analytics dashboard app, connected to a spend data warehouse.
-
-Grounding rules — these are absolute:
-- To state any figure, first call query_warehouse and read the number off the result. Never estimate, never recall a figure from a previous turn as if it were fresh, never fabricate.
-- Use only the column names in the schema block below. There are no others.
-- If a question needs data the schema does not carry, say exactly which column is missing instead of substituting a proxy.
-- If a query returns no rows, say so — do not soften it into an approximation.
-- The warehouse holds a fixed window of history. If the user asks about a period the data does not cover, query it, report that it is empty, and say which periods do have data.
-
-Choosing the query:
-- fact_po_items is committed spend (purchase orders). fact_invoices is actual spend (supplier invoices). Pick the one the question is about; say which you used.
-- Amounts in columns ending _inr are Indian rupees. Report them in Cr (10,000,000) or L (100,000) as the dashboards do.
-- "top N" means a descending sort on the measure alias plus limit N.
-- timeGrain "year" buckets by the Indian fiscal year (April-March), so FY2025-26 covers April 2025 to March 2026.
-
-When the user asks to see, add, plot, chart, or visualize something, also call create_widget so it lands on their canvas. Query first, so your prose matches the widget.
 
 If the request is ambiguous among a small set of clear choices (which column, which chart type, which time window, sum vs. average), call ask_with_options with a short question and 2-5 concise options instead of guessing or asking an open-ended follow-up in prose.
 
@@ -396,20 +379,28 @@ export async function POST(request: Request): Promise<Response> {
 
       if (queryCalls.length === 0) break;
 
-      // Execute each query through the same engine /api/v1/query uses, so a
-      // payload the model composed is validated identically to a widget's.
+      // Execute every query_warehouse call from this pass concurrently — a
+      // multi-query turn (e.g. "compare this quarter to last") finishes in
+      // one SQL round trip's worth of latency instead of N. Promise.all
+      // preserves array order regardless of which call resolves first, so
+      // zipping the results back up against `queryCalls` below stays
+      // deterministic — no race on which result lands where.
       messages.push({ role: "assistant", content: response.content });
-      const results: Anthropic.ToolResultBlockParam[] = [];
-      for (const call of queryCalls) {
-        const executed = await runAssistantQuery(call.input as Record<string, unknown>);
-        query = executed;
-        results.push({
+      const executedQueries = await Promise.all(
+        queryCalls.map((call) => runAssistantQuery(call.input as Record<string, unknown>))
+      );
+      const results: Anthropic.ToolResultBlockParam[] = queryCalls.map((call, i) => {
+        const executed = executedQueries[i];
+        return {
           type: "tool_result",
           tool_use_id: call.id,
           is_error: executed.error !== undefined,
           content: renderQueryResult(executed),
-        });
-      }
+        };
+      });
+      // Same "last call wins" behavior as before, just decided by call order
+      // in this pass rather than by whichever await happened to finish last.
+      query = executedQueries[executedQueries.length - 1];
       messages.push({ role: "user", content: results });
     }
 
@@ -420,6 +411,15 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
+    // `query.rows` can carry up to MAX_ROWS (1,000) from SQL, but the model
+    // itself only ever reasoned over the first RESULT_ROW_LIMIT (see
+    // renderQueryResult) — sending more than that over HTTP is pure payload
+    // weight with nothing downstream consuming it. Truncate to match what
+    // the model actually saw.
+    const truncatedQuery: AssistantQuery | null = query
+      ? { ...query, result: { ...query.result, rows: query.result.rows.slice(0, RESULT_ROW_LIMIT) } }
+      : null;
+
     const payload: AssistantResponse = {
       reply:
         reply.trim() ||
@@ -427,7 +427,7 @@ export async function POST(request: Request): Promise<Response> {
           ? `Added "${widget.title}".`
           : "I looked into that but couldn't put together a complete answer — try rephrasing or narrowing the question."),
       widget,
-      query,
+      query: truncatedQuery,
       redirect,
       options,
     };

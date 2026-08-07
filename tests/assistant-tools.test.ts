@@ -15,6 +15,7 @@ import {
   renderQueryResult,
   renderRegistryContext,
   toQueryPayload,
+  WAREHOUSE_SYSTEM_PROMPT,
 } from "@/lib/server/assistant-tools";
 import { buildQuery, MAX_ROWS, QueryValidationError } from "@/lib/server/query-builder";
 import { getDataset, listColumns, listDatasets } from "@/lib/server/metadata-registry";
@@ -277,5 +278,31 @@ describe("model-facing context", () => {
     });
     assert.match(rendered, /450 more rows omitted/);
     assert.equal(rendered.split("\n").length, 52, "50 rows + header + omission note");
+  });
+});
+
+describe("warehouse system prompt — semantic metric catalog", () => {
+  it("embeds a metric dictionary covering profitability, fragmentation, tail spend, and growth", () => {
+    assert.match(WAREHOUSE_SYSTEM_PROMPT, /SEMANTIC METRIC DICTIONARY/);
+    for (const metric of [
+      "supplier_fragmentation",
+      "vendor_profitability",
+      "tail_spend_share",
+      "consolidation_opportunity",
+      "spend_growth",
+    ]) {
+      assert.match(WAREHOUSE_SYSTEM_PROMPT, new RegExp(metric), `missing definition for ${metric}`);
+    }
+  });
+
+  it("names only columns that exist in the registry — a rename here must break this test, not drift silently", () => {
+    const known = new Set(allColumnIds());
+    // The columns each formula is written in terms of. If metadata-registry.ts
+    // ever renames one of these, this fails instead of the prompt quietly
+    // pointing the model at a column enum-constrained tools will reject.
+    for (const id of ["vendor_id", "category_l1_name", "net_order_value_inr", "net_amount_inr"]) {
+      assert.ok(known.has(id), `${id}, referenced by the metric catalog, is not a real column id`);
+      assert.match(WAREHOUSE_SYSTEM_PROMPT, new RegExp(id));
+    }
   });
 });
