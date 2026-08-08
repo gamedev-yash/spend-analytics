@@ -29,7 +29,7 @@ import { stashPendingPrompt, takePendingPrompt } from "@/lib/ai/assistant-handof
 import { useDraggableBubble } from "@/hooks/use-draggable-bubble";
 import { useOutsideClick } from "@/hooks/use-outside-click";
 import { AssistantMarkdown } from "./AssistantMarkdown";
-import type { OtherDashboardInfo } from "@/types/assistant";
+import type { AssistantQuery, OtherDashboardInfo } from "@/types/assistant";
 import {
   CHART_TYPE_LABELS,
   type CustomDashboard,
@@ -46,7 +46,39 @@ interface ChatEntry {
   redirect?: { id: string; title: string; route: string };
   /** Set when the assistant asked a clarifying question — renders clickable choices. */
   options?: string[];
+  /**
+   * Set when the assistant queried the warehouse for this turn — an
+   * experimental "show the query" panel so we can judge whether surfacing
+   * query provenance is actually useful before committing to it.
+   */
+  query?: AssistantQuery | null;
   isError?: boolean;
+}
+
+/** One line per payload field the model set, for the "show the query" panel. */
+function describeQueryPayload(payload: AssistantQuery["payload"]): string {
+  const parts: string[] = [];
+  if (payload.dimensions?.length) parts.push(`grouped by ${payload.dimensions.join(", ")}`);
+  if (payload.measures?.length) {
+    parts.push(payload.measures.map((m) => `${m.aggregation}(${m.field}) as ${m.alias}`).join(", "));
+  }
+  if (payload.filters?.length) {
+    parts.push(`filtered: ${payload.filters.map((f) => `${f.field} ${f.operator} ${JSON.stringify(f.value)}`).join(", ")}`);
+  }
+  if (payload.timeGrain) parts.push(`by ${payload.timeGrain}`);
+  if (payload.sort) parts.push(`sorted ${payload.sort.field} ${payload.sort.direction}`);
+  if (payload.limit) parts.push(`limit ${payload.limit}`);
+  return parts.length > 0 ? parts.join(" · ") : "no grouping — single total";
+}
+
+function queryRowColumns(rows: Record<string, unknown>[]): string[] {
+  return rows.length > 0 ? Object.keys(rows[0]) : [];
+}
+
+function formatQueryCell(value: unknown): string {
+  if (value === null || value === undefined) return "—";
+  if (typeof value === "number") return value.toLocaleString("en-IN");
+  return String(value);
 }
 
 const BUBBLE_HEIGHT_PX = 48;
@@ -226,6 +258,7 @@ export function AiAssistant() {
           addedWidget,
           redirect: result.redirect ?? undefined,
           options: result.options ?? undefined,
+          query: result.query ?? undefined,
         },
       ]);
       if (result.validatedWidget && !addedWidget && !result.redirect) {
@@ -417,6 +450,57 @@ export function AiAssistant() {
                           </button>
                         ))}
                       </div>
+                    )}
+                    {m.query && (
+                      <details className="mt-2 rounded-md border border-slate-200 bg-white/70 p-2 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-300">
+                        <summary className="cursor-pointer select-none font-medium">
+                          Show the query · {m.query.result.rows.length} row
+                          {m.query.result.rows.length === 1 ? "" : "s"}
+                        </summary>
+                        <div className="mt-2 space-y-2">
+                          {m.query.error ? (
+                            <p className="text-rose-600 dark:text-rose-400">{m.query.error}</p>
+                          ) : (
+                            <>
+                              <p className="text-slate-500 dark:text-slate-400">
+                                <span className="font-mono">{m.query.payload.datasetId}</span> —{" "}
+                                {describeQueryPayload(m.query.payload)}
+                              </p>
+                              {m.query.result.rows.length > 0 && (
+                                <div className="overflow-x-auto rounded border border-slate-200 dark:border-slate-800">
+                                  <table className="w-full border-collapse text-left">
+                                    <thead>
+                                      <tr className="bg-slate-50 dark:bg-slate-900">
+                                        {queryRowColumns(m.query.result.rows).map((col) => (
+                                          <th key={col} className="whitespace-nowrap px-2 py-1 font-medium">
+                                            {col}
+                                          </th>
+                                        ))}
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {m.query.result.rows.map((row, ri) => (
+                                        <tr key={ri} className="border-t border-slate-200 dark:border-slate-800">
+                                          {queryRowColumns(m.query!.result.rows).map((col) => (
+                                            <td key={col} className="whitespace-nowrap px-2 py-1 font-mono">
+                                              {formatQueryCell(row[col])}
+                                            </td>
+                                          ))}
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              )}
+                              <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                                source: {m.query.source}
+                                {typeof m.query.result.totalMatchingRows === "number" &&
+                                  ` · ${m.query.result.totalMatchingRows.toLocaleString("en-IN")} rows matched before grouping`}
+                              </p>
+                            </>
+                          )}
+                        </div>
+                      </details>
                     )}
                   </div>
                 ))}

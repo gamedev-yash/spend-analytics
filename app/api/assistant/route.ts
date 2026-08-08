@@ -31,7 +31,6 @@ import {
   renderRegistryContext,
   RESULT_ROW_LIMIT,
   toQueryPayload,
-  WAREHOUSE_SYSTEM_PROMPT,
 } from "@/lib/server/assistant-tools";
 import type { Aggregation, ChartType, WidgetConfig } from "@/types/custom-dashboard";
 import type {
@@ -386,12 +385,11 @@ export async function POST(request: Request): Promise<Response> {
       // zipping the results back up against `queryCalls` below stays
       // deterministic — no race on which result lands where.
       messages.push({ role: "assistant", content: response.content });
-      const executedQueries = await Promise.all(
-        queryCalls.map((call) => runAssistantQuery(call.input as Record<string, unknown>))
-      );
-      const results: Anthropic.ToolResultBlockParam[] = queryCalls.map((call, i) => {
-        const executed = executedQueries[i];
-        return {
+      const results: Anthropic.ToolResultBlockParam[] = [];
+      for (const call of queryCalls) {
+        const executed = await runAssistantQuery(call.input as Record<string, unknown>);
+        query = executed;
+        results.push({
           type: "tool_result",
           tool_use_id: call.id,
           is_error: executed.error !== undefined,

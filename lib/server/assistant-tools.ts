@@ -19,8 +19,14 @@ import { MAX_ROWS } from "@/lib/server/query-builder";
 import type { QueryAggregation, QueryFilter, QueryPayload, TimeGrain } from "@/types/data-provider";
 import type { AssistantQuery } from "@/types/assistant";
 
-/** Rows fed back to the model per query — enough to reason over, cheap to send. */
-export const RESULT_ROW_LIMIT = 50;
+/**
+ * Rows fed back to the model per query — enough to reason over, cheap to
+ * send. Also the default query limit when the model doesn't set one (see
+ * toQueryPayload below), and the ceiling for AssistantResponse.query (see
+ * truncateQueryForResponse below): the client should never be shown more
+ * rows than what actually grounded the model's answer.
+ */
+export export const RESULT_ROW_LIMIT = 50;
 
 // Business-metric formulas the model must use verbatim rather than
 // approximating from a plain aggregate, whenever a question uses one of
@@ -297,6 +303,14 @@ export function toQueryPayload(input: Record<string, unknown>): QueryPayload {
 
   if (typeof input.limit === "number" && Number.isFinite(input.limit) && input.limit > 0) {
     payload.limit = Math.min(Math.floor(input.limit), MAX_ROWS);
+  } else {
+    // The model can satisfy the schema's required `limit` with `null` (no
+    // top-N cap intended). Without a default here that falls through to
+    // buildQuery()'s own fallback, MAX_ROWS (1000) — a SELECT TOP (1000)
+    // against Azure SQL for a query where only RESULT_ROW_LIMIT (50) rows
+    // will ever be shown to the model. Defaulting here instead means the
+    // database is never asked for more than what actually gets used.
+    payload.limit = RESULT_ROW_LIMIT;
   }
 
   if (typeof input.sortBy === "string" && input.sortBy !== "") {
@@ -344,4 +358,18 @@ export function renderQueryResult(query: AssistantQuery): string {
     ...shown.map((row) => JSON.stringify(row)),
     ...(total > shown.length ? [`… ${total - shown.length} more rows omitted`] : []),
   ].join("\n");
+}
+
+/**
+ * Caps AssistantQuery.result.rows to RESULT_ROW_LIMIT before it reaches
+ * AssistantResponse — the client-facing "show the query" panel should never
+ * display more rows than the model itself was shown; anything beyond that
+ * never informed the reply and would just be extra bytes on the wire.
+ */
+export function truncateQueryForResponse(query: AssistantQuery): AssistantQuery {
+  if (query.result.rows.length <= RESULT_ROW_LIMIT) return query;
+  return {
+    ...query,
+    result: { ...query.result, rows: query.result.rows.slice(0, RESULT_ROW_LIMIT) },
+  };
 }
