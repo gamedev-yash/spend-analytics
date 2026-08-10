@@ -177,6 +177,34 @@ input[type="range"]::-moz-range-thumb {
 }
 
 /*
+ * Thin scrollbar for the AI assistant's message list (DashboardAssistant.tsx)
+ * — the popup and its full-screen mode are small, self-contained scroll
+ * areas where the browser's default wide scrollbar reads as un-styled next
+ * to the rest of the panel's deliberate spacing/border treatment.
+ */
+.ai-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-slate-300, #cbd5e1) transparent;
+}
+.ai-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.ai-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ai-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1; /* slate-300 */
+  border-radius: 9999px;
+}
+.dark .ai-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #334155; /* slate-700 */
+}
+.dark .ai-scrollbar {
+  scrollbar-color: #334155 transparent;
+}
+
+/*
  * Fullscreen widget overlay (components/dashboard/fullscreen-overlay.tsx):
  * every chart across the app hardcodes a fixed pixel height on its own
  * <ResponsiveContainer>, since that's the right default for a compact card.
