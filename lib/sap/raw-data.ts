@@ -9,6 +9,7 @@ import "server-only";
 // registry's column ids.
 
 import { readCsv } from "@/lib/server/sample-data-source";
+import { humanizeGroupName } from "@/lib/server/sap-transforms";
 import type { Vendor, Category, Plant, Material, PoItem, Invoice } from "@/lib/sap/types";
 
 function text(value: string | undefined): string {
@@ -24,16 +25,25 @@ function bool(value: string | undefined): boolean {
   return text(value).toLowerCase() === "true";
 }
 
-export const vendors: Vendor[] = readCsv("dim_vendor.csv").map((row) => ({
-  vendor_id: text(row.vendor_id),
-  vendor_name: text(row.vendor_name),
-  parent_company_group: text(row.parent_company_group) || null,
-  country: text(row.country),
-  city: text(row.city),
-  account_group: text(row.account_group) as Vendor["account_group"],
-  payment_terms_key: text(row.payment_terms_key),
-  is_active: bool(row.is_active),
-}));
+export const vendors: Vendor[] = readCsv("dim_vendor.csv").map((row) => {
+  const vendorId = text(row.vendor_id);
+  const group = text(row.parent_company_group);
+  // "IND-<own vendor_id>" is this extract's placeholder for "no group" (a
+  // vendor that is its own ultimate parent) — the same self-placeholder
+  // sample-data-source.ts filters for the registry-keyed path. Only a value
+  // shared by more than one vendor is a real group worth humanizing.
+  const isSelfPlaceholder = group === `IND-${vendorId}`;
+  return {
+    vendor_id: vendorId,
+    vendor_name: text(row.vendor_name),
+    parent_company_group: group && !isSelfPlaceholder ? humanizeGroupName(group) : null,
+    country: text(row.country),
+    city: text(row.city),
+    account_group: text(row.account_group) as Vendor["account_group"],
+    payment_terms_key: text(row.payment_terms_key),
+    is_active: bool(row.is_active),
+  };
+});
 
 export const categories: Category[] = readCsv("dim_category.csv").map((row) => ({
   category_code: text(row.category_code),

@@ -1,6 +1,7 @@
 export interface Vendor {
   vendor_id: string;
   vendor_name: string;
+  /** Humanized display name ("Tata Group"), not the raw KONZS code — null when the vendor is its own ultimate parent. */
   parent_company_group: string | null;
   country: string;
   city: string;

@@ -11,19 +11,19 @@
 // the identical problem.
 //
 // Real gap, disclosed rather than papered over: this dashboard's Invoice
-// shape carries product_id/product_name and cost_center_id/cost_center_name,
-// and neither concept exists anywhere in the ten-table warehouse —
-// fact_po_items has no material_number FK (dim_material only relates to a
-// category, not a PO line), and there is no cost-center dimension at all.
-// Inventing a specific material or cost center per PO line would misrepresent
-// which one the transaction actually used, so every row instead carries one
-// clearly-labeled sentinel for each. Category, supplier, plant, and
+// shape carries a product dimension and cost_center_id/cost_center_name, and
+// fact_po_items has no material_number FK for either (dim_material only
+// relates to a category, not a PO line) — there is no cost-center dimension
+// at all. The "Products" widget instead reads category_l2 (75 real
+// subcategories, e.g. Bearings, Conveyor Components) via product_id/
+// product_name — the finest product-like grain fact_po_items actually
+// carries, per the data dictionary. Cost center has no such fallback, so it
+// keeps one clearly-labeled sentinel. Category, supplier, plant, and
 // global-ultimate concentration — this dashboard's actual subject — are all
 // real fact_po_items data.
 import type { CategoryDim, Invoice, SourceSystemDim } from "@/app/single-source-risk/types";
 import type { DatasetRow } from "@/types/dataset";
 
-const PRODUCT_NOT_TRACKED = "Not tracked (no PO-line material link in the warehouse)";
 const COST_CENTER_NOT_TRACKED = "Not tracked (no cost-center dimension in the warehouse)";
 
 function text(value: unknown, fallback = ""): string {
@@ -95,8 +95,10 @@ export async function loadSingleSourceRiskFromProvider(): Promise<SingleSourceRi
       region: text(row.region),
       country: "IN",
       source_system_id: companyCode,
-      product_id: "",
-      product_name: PRODUCT_NOT_TRACKED,
+      // No material_number FK on fact_po_items — category_l2 is the finest
+      // product-like grain available, so "Products" is a category view.
+      product_id: categoryCode,
+      product_name: categoryName,
       cost_center_id: "",
       cost_center_name: COST_CENTER_NOT_TRACKED,
     };

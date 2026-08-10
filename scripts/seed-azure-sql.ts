@@ -231,12 +231,16 @@ function buildVendors(rows: Row[]): VendorDim[] {
     if (!vendorId || seen.has(vendorId)) continue;
     seen.add(vendorId);
     const group = text(row.parent_company_group);
+    // "IND-<own vendor_id>" is this extract's placeholder for "no group" (a
+    // vendor that is its own ultimate parent) — same convention
+    // sample-data-source.ts and lib/sap/raw-data.ts filter for.
+    const isSelfPlaceholder = group === `IND-${vendorId}`;
     out.push({
       vendorKey: out.length + 1,
       vendorId,
       vendorName: text(row.vendor_name) || vendorId,
-      parentGroupKey: group || null,
-      parentCompanyName: group ? humanizeGroupName(group) : null,
+      parentGroupKey: group && !isSelfPlaceholder ? group : null,
+      parentCompanyName: group && !isSelfPlaceholder ? humanizeGroupName(group) : null,
       country: text(row.country) || null,
       city: text(row.city) || null,
       // Not present in the supplier extract; left NULL rather than fabricated.

@@ -106,7 +106,7 @@ const PO_ITEMS: DatasetDefinition = {
     // Vendor
     column("vendor_name", "Vendor", "category", "dim_vendor", "dim_vendor.vendor_name", "dim_vendor", 800),
     column("vendor_id", "Vendor ID", "category", "dim_vendor", "dim_vendor.vendor_id", "dim_vendor", 800),
-    column("parent_company_name", "Supplier Group", "category", "dim_vendor", "dim_vendor.parent_company_name", "dim_vendor", 690),
+    column("parent_company_name", "Supplier Group", "category", "dim_vendor", "dim_vendor.parent_company_name", "dim_vendor", 33),
     column("vendor_country", "Vendor Country", "category", "dim_vendor", "dim_vendor.country", "dim_vendor", 9),
     column("vendor_city", "Vendor City", "category", "dim_vendor", "dim_vendor.city", "dim_vendor", 26),
     // db/schema.sql's dim_vendor has no is_active column yet (CSV-only, like
@@ -188,7 +188,7 @@ const INVOICES: DatasetDefinition = {
     // Vendor
     column("vendor_name", "Vendor", "category", "dim_vendor", "dim_vendor.vendor_name", "dim_vendor", 800),
     column("vendor_id", "Vendor ID", "category", "dim_vendor", "dim_vendor.vendor_id", "dim_vendor", 800),
-    column("parent_company_name", "Supplier Group", "category", "dim_vendor", "dim_vendor.parent_company_name", "dim_vendor", 690),
+    column("parent_company_name", "Supplier Group", "category", "dim_vendor", "dim_vendor.parent_company_name", "dim_vendor", 33),
     column("vendor_country", "Vendor Country", "category", "dim_vendor", "dim_vendor.country", "dim_vendor", 9),
     // Dates, one per role
     column("posting_date", "Posting Date", "date", "dim_date", "dim_date.full_date", "dim_date", 1096),
@@ -260,7 +260,7 @@ const PAYMENTS: DatasetDefinition = {
     // Vendor
     column("vendor_id", "Vendor ID", "category", "fact_payments", "fact_payments.vendor_id", undefined, 800),
     column("vendor_name", "Vendor", "category", "dim_vendor", "dim_vendor.vendor_name", "dim_vendor", 800),
-    column("parent_company_name", "Supplier Group", "category", "dim_vendor", "dim_vendor.parent_company_name", "dim_vendor", 690),
+    column("parent_company_name", "Supplier Group", "category", "dim_vendor", "dim_vendor.parent_company_name", "dim_vendor", 33),
     // Category / plant
     column("category_code", "Category Code", "category", "fact_payments", "fact_payments.category_code", undefined, 75),
     column("category_l1_name", "Category L1", "category", "dim_category", "dim_category.category_l1_name", "dim_category", 13),
@@ -315,7 +315,7 @@ const AGG_VENDOR_ANNUAL: DatasetDefinition = {
   columns: indexById([
     column("vendor_id", "Vendor ID", "category", "agg_vendor_annual", "agg_vendor_annual.vendor_id", undefined, 385),
     column("vendor_name", "Vendor", "category", "agg_vendor_annual", "agg_vendor_annual.vendor_name", undefined, 385),
-    column("parent_company_group", "Supplier Group", "category", "agg_vendor_annual", "agg_vendor_annual.parent_company_group", undefined, 340),
+    column("parent_company_group", "Supplier Group", "category", "agg_vendor_annual", "agg_vendor_annual.parent_company_group", undefined, 33),
     column("vendor_country", "Vendor Country", "category", "dim_vendor", "dim_vendor.country", "dim_vendor", 9),
     column("account_group", "Account Group", "category", "dim_vendor", "dim_vendor.account_group", "dim_vendor", 3),
     column("year", "Year", "category", "agg_vendor_annual", "agg_vendor_annual.year", undefined, 3),

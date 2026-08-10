@@ -418,12 +418,16 @@ async function loadTopSuppliers(
   total: number,
   filters: SapFilters
 ): Promise<{ rows: TopSupplierRow[]; top5Percent: number; allL1: string[] }> {
-  // Single query, one row per supplier — the chart no longer stacks by category,
-  // so there's no need for a second per-L1 breakdown pass.
+  // Single query, one row per vendor — the chart no longer stacks by category,
+  // so there's no need for a second per-L1 breakdown pass. parent_company_name
+  // rides along on the same row (functionally dependent on vendor_name, so it
+  // adds no extra groups) and is folded below, mirroring lib/sap/aggregate.ts's
+  // getTopSuppliersData so this widget groups by parent company the same way
+  // regardless of provider.
   const ranked = await runner.run(
     grouped({
       datasetId: PO_ITEMS_DATASET,
-      dimensions: ["vendor_name"],
+      dimensions: ["vendor_name", "parent_company_name"],
       measures: { [VALUE]: ["net_order_value_inr", "sum"] },
       filters: buildProviderFilters(filters),
       sortBy: VALUE,
@@ -432,19 +436,25 @@ async function loadTopSuppliers(
   );
   if (ranked.length === 0) return { rows: [], top5Percent: 0, allL1: [] };
 
+  const merged = new Map<string, number>();
+  for (const row of ranked) {
+    const key = toLabel(row.parent_company_name, "") || toLabel(row.vendor_name);
+    merged.set(key, (merged.get(key) ?? 0) + toNumber(row[VALUE]));
+  }
+
   let cumulative = 0;
-  const rows: TopSupplierRow[] = ranked.map((row) => {
-    const key = toLabel(row.vendor_name);
-    const value = toNumber(row[VALUE]);
-    cumulative += value;
-    return {
-      key,
-      displayName: key,
-      totalValue: round2(value),
-      byL1: {},
-      cumulativePercent: percent(cumulative, total),
-    };
-  });
+  const rows: TopSupplierRow[] = Array.from(merged.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([key, value]) => {
+      cumulative += value;
+      return {
+        key,
+        displayName: key,
+        totalValue: round2(value),
+        byL1: {},
+        cumulativePercent: percent(cumulative, total),
+      };
+    });
 
   const top5 = rows.slice(0, 5).reduce((sum, row) => sum + row.totalValue, 0);
   return { rows, top5Percent: percent(top5, total), allL1: [] };
@@ -456,6 +466,15 @@ async function loadTopSuppliers(
  * other widget on this page uses; invoices are a separate row grain, counted
  * from fact_invoices rather than reused from the PO count.
  */
+// Vendor-grained, not parent-grained: unlike loadTopSuppliers' single spend
+// measure, plants/categories are distinct-counts already computed per vendor
+// by the query engine, and summing two vendors' distinct-count results after
+// the fact would double-count a plant/category they both used (there's no
+// way to re-derive an exact merged distinct count without either raw rows or
+// a third query grouped directly by parent — lib/sap/aggregate.ts's CSV path
+// gets this for free by building its Sets from raw PO rows, which this
+// provider path doesn't have). Left at vendor grain rather than showing a
+// merged number that can be wrong on its face (e.g. more plants than exist).
 async function loadSupplierDetailReport(runner: QueryRunner, filters: SapFilters): Promise<SupplierDetailRow[]> {
   const invoiceFilters = await buildInvoiceFilters(runner, filters);
   const [poRows, invoiceRows] = await Promise.all([

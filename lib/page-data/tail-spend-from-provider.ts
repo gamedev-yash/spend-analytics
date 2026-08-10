@@ -77,12 +77,25 @@ export interface TailSpendProviderResult {
   issued: number;
 }
 
-async function loadSupplierRecords(runner: QueryRunner, microThreshold: number): Promise<SupplierRecord[]> {
+interface SupplierRecordsResult {
+  records: SupplierRecord[];
+  /**
+   * Distinct count of (parent_company_name ?? vendor_name) — "Global
+   * Ultimate" per the SAP KPI ribbon's own label, folding subsidiary vendors
+   * under their parent so e.g. three Tata-group vendors count once. Computed
+   * separately from `records` (which stays vendor-grained — Pareto,
+   * segmentation, and consolidation all key off the individual vendor and
+   * shouldn't be re-derived to parent grain) rather than as a field on it.
+   */
+  globalUltimateCount: number;
+}
+
+async function loadSupplierRecords(runner: QueryRunner, microThreshold: number): Promise<SupplierRecordsResult> {
   const [spendRows, microRows, categoryRows, invoiceRows] = await Promise.all([
     runner.run(
       grouped({
         datasetId: PO_ITEMS_DATASET,
-        dimensions: ["vendor_name"],
+        dimensions: ["vendor_name", "parent_company_name"],
         measures: {
           [VALUE]: ["net_order_value_inr", "sum"],
           [ROWS]: [COUNT_ALL, "count"],
@@ -171,7 +184,14 @@ async function loadSupplierRecords(runner: QueryRunner, microThreshold: number):
   });
 
   assignSegments(records);
-  return records;
+
+  const globalUltimateKeys = new Set<string>();
+  for (const row of spendRows) {
+    const parentName = toLabel(row.parent_company_name, "");
+    globalUltimateKeys.add(parentName || toLabel(row.vendor_name));
+  }
+
+  return { records, globalUltimateCount: globalUltimateKeys.size };
 }
 
 /** Strategic / Core / Tail by cumulative spend share — same rule as the CSV path. */
@@ -345,7 +365,7 @@ export async function loadTailSpendFromProvider(
   microThreshold: number
 ): Promise<TailSpendProviderResult | null> {
   const runner = createRunner(provider);
-  const records = await loadSupplierRecords(runner, microThreshold);
+  const { records, globalUltimateCount } = await loadSupplierRecords(runner, microThreshold);
   if (records.length === 0) return null;
 
   const [monthlySegmentSpend, buckets, categories] = await Promise.all([
@@ -368,5 +388,9 @@ export async function loadTailSpendFromProvider(
 
   // Exact category figures replace the ones derived from primary categories.
   const data = categories ? { ...derived, ...categories } : derived;
+  // buildTailSpendFromParsed can only compute this as records.length (plain
+  // vendor count) — it has no parent-company concept. Overridden here with
+  // the real Global-Ultimate count so the KPI ribbon's own label is accurate.
+  data.sapKpiRibbon = { ...data.sapKpiRibbon, supplierCountGlobalUltimate: globalUltimateCount };
   return { data, buckets, issued: runner.issued.length };
 }

@@ -330,7 +330,10 @@ function buildAggVendorAnnualRows(dims: Dimensions): DatasetRow[] {
     rows.push({
       vendor_id: vendorId,
       vendor_name: text(row.vendor_name) || vendor?.vendor_name || vendorId,
-      parent_company_group: textOrNull(row.parent_company_group),
+      // Not agg_vendor_annual's own parent_company_group column — that carries
+      // the raw SAP-style code (GRP-013, or IND-<self> for no group) verbatim.
+      // dim_vendor's own row is already humanized and self-placeholder-null'd.
+      parent_company_group: vendor?.parent_company_name ?? null,
       vendor_country: vendor?.vendor_country ?? null,
       account_group: vendor?.account_group ?? null,
       year: text(row.year),
