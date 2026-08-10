@@ -36,11 +36,6 @@ export type DashboardPageKey = (typeof DASHBOARD_PAGE_KEYS)[number];
 /** Which IDataProvider implementation answers widget queries. */
 export type DataProviderType = "client-csv" | "azure-sql";
 
-export const DATA_PROVIDER_LABELS: Record<DataProviderType, string> = {
-  "client-csv": "CSV Mode",
-  "azure-sql": "Azure SQL Mode",
-};
-
 export interface CreateJoinedDatasetParams {
   name: string;
   leftId: string;
