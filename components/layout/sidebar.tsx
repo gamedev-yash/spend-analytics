@@ -3,13 +3,10 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, PanelLeft, PanelLeftClose, Sparkles, Trash2 } from "lucide-react";
+import { PanelLeft, PanelLeftClose, Sparkles, Trash2 } from "lucide-react";
 import { NAV_ITEMS } from "@/lib/nav";
-import { useCustomDashboards } from "@/lib/custom-dashboards-store";
-import { DeleteDashboardDialog } from "@/components/dashboard/delete-dashboard-dialog";
 import { useGeneratedDashboards, deleteGeneratedDashboard } from "@/lib/generated-dashboard/store";
 import { GenerateDashboardButton } from "@/components/generated-dashboard/generate-dashboard-dialog";
-import type { CustomDashboard } from "@/types/custom-dashboard";
 import {
   SIDEBAR_COLLAPSED_WIDTH,
   SIDEBAR_MAX_WIDTH,
@@ -32,9 +29,8 @@ interface SidebarProps {
 }
 
 /**
- * One row in the "My Dashboards" / "Generated Dashboards" lists — a link plus
- * a hover-revealed delete button. Both lists render identical structure and
- * differ only in icon, href shape, and what deleting does.
+ * One row in the "Generated Dashboards" list — a link plus a hover-revealed
+ * delete button.
  */
 function DashboardNavItem({
   href,
@@ -114,10 +110,8 @@ export function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const customDashboards = useCustomDashboards();
   const generatedDashboards = useGeneratedDashboards();
   const [peeking, setPeeking] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<CustomDashboard | null>(null);
   const peekTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -293,42 +287,10 @@ export function Sidebar({
         })}
 
         {/*
-          User-built dashboards, then the create entry point. Both dashboard
-          lists scroll within their own capped box, with the create/generate
-          button pinned outside it — an unbounded list otherwise pushes that
-          button (and the other section entirely) off the bottom of the nav.
+          AI-generated dashboards, then the create entry point — the list
+          scrolls within its own capped box, with the generate button pinned
+          outside it so an unbounded list can't push it off the bottom.
         */}
-        {/*
-          No creation entry point anymore — "New Custom Dashboard" is
-          retired, so this section only has anything to show for a browser
-          that already has custom dashboards from before. Render nothing at
-          all (not even the header) once that list is empty, rather than a
-          "My Dashboards" label sitting above a permanently blank body.
-        */}
-        {customDashboards.length > 0 && (
-          <div className="pt-3">
-            {showExpanded && (
-              <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                My Dashboards
-              </p>
-            )}
-            <div className="max-h-56 space-y-1 overflow-y-auto overscroll-contain">
-              {customDashboards.map((dashboard) => (
-                <DashboardNavItem
-                  key={dashboard.id}
-                  href={`/dashboards/${dashboard.id}`}
-                  title={dashboard.title}
-                  icon={<LayoutDashboard className="h-4 w-4 shrink-0" />}
-                  isActive={pathname === `/dashboards/${dashboard.id}`}
-                  showExpanded={showExpanded}
-                  onDelete={() => setDeleteTarget(dashboard)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* AI-generated dashboards — a separate feature/store from "My Dashboards" above. */}
         <div className="pt-3">
           {showExpanded && (
             <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
@@ -364,18 +326,6 @@ export function Sidebar({
           </div>
         </div>
       </nav>
-
-      {deleteTarget && (
-        <DeleteDashboardDialog
-          open={!!deleteTarget}
-          onOpenChange={(open) => {
-            if (!open) setDeleteTarget(null);
-          }}
-          dashboardId={deleteTarget.id}
-          dashboardTitle={deleteTarget.title}
-          redirectAfterDelete={pathname === `/dashboards/${deleteTarget.id}`}
-        />
-      )}
 
       {/*
         Always mounted (not conditionally rendered) so only opacity animates —

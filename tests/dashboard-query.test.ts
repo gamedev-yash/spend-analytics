@@ -1,22 +1,21 @@
 // The per-dashboard query engine wiring (lib/ai/dashboard-tables.ts,
 // lib/ai/dashboard-query.ts) that replaced the hardcoded KPI-prose assistant.
 //
-// The property under test mirrors tests/assistant-tools.test.ts: containment
-// (strict enum) is the first layer, and runDashboardQuery's own validation
-// against the actual table is the second — a field real on one table but not
-// the one requested must still be rejected, not silently ignored or answered
-// from the wrong table. Independent reconciliation (comparing a query's
-// result against a separately-computed total) is used wherever a dashboard's
-// mock data already carries an authoritative total to check against.
+// The property under test mirrors what app/api/assistant/route.ts's now-removed
+// tests checked: containment (strict enum) is the first layer, and
+// runDashboardQuery's own validation against the actual table is the second —
+// a field real on one table but not the one requested must still be rejected,
+// not silently ignored or answered from the wrong table. Independent
+// reconciliation (comparing a query's result against a separately-computed
+// total straight off the warehouse sample dataset) is used wherever that's
+// meaningful.
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { queryDashboardDataTool, runDashboardQuery, renderDashboardQueryResult } from "@/lib/ai/dashboard-query";
 import { getDashboardTables } from "@/lib/ai/dashboard-tables";
 import { DASHBOARD_REGISTRY, type DashboardKey } from "@/lib/ai/dashboard-registry";
-import { poItems } from "@/lib/sap/raw-data";
-import { tailSpendMock } from "@/app/tail-spend/tailSpendMock";
-import { invoices as paymentTermsInvoices } from "@/app/payment-terms/data";
+import { getSampleDataset } from "@/lib/server/sample-data-source";
 
 type Schema = Record<string, unknown>;
 
@@ -47,8 +46,10 @@ describe("query_dashboard_data tool schema", () => {
 
   it("never offers another dashboard's table id", () => {
     const spendOverviewTables = new Set(enumOf(properties(queryDashboardDataTool("spend-overview")).table));
-    const tailSpendTables = new Set(enumOf(properties(queryDashboardDataTool("tail-spend")).table));
-    for (const id of tailSpendTables) assert.equal(spendOverviewTables.has(id), false, `${String(id)} leaked across dashboards`);
+    const paymentTermsTables = new Set(enumOf(properties(queryDashboardDataTool("payment-terms")).table));
+    for (const id of paymentTermsTables) {
+      assert.equal(spendOverviewTables.has(id), false, `${String(id)} leaked across dashboards`);
+    }
   });
 });
 
@@ -61,7 +62,7 @@ describe("runDashboardQuery — validation before execution", () => {
 
   it("rejects a groupBy field that does not exist on the requested table", () => {
     const outcome = runDashboardQuery("spend-overview", {
-      table: "purchase_orders",
+      table: "fact_po_items",
       groupBy: "not_a_field",
       aggregation: "count",
     });
@@ -70,39 +71,43 @@ describe("runDashboardQuery — validation before execution", () => {
   });
 
   it("rejects a field that is real on a sibling table but not the requested one", () => {
-    // invoice_number only exists on the "invoices" table of this same dashboard.
+    // invoice_number only exists on the "fact_invoices" table of this same dashboard.
     const outcome = runDashboardQuery("spend-overview", {
-      table: "purchase_orders",
+      table: "fact_po_items",
       select: ["invoice_number"],
     });
     assert.ok(outcome.error);
-    assert.match(outcome.error!, /Unknown field "invoice_number" on table "purchase_orders"/);
+    assert.match(outcome.error!, /Unknown field "invoice_number" on table "fact_po_items"/);
   });
 
   it("rejects a filter field that does not exist on the requested table", () => {
+    // spend_rank only exists on tail-spend's other table, agg_vendor_annual.
     const outcome = runDashboardQuery("tail-spend", {
-      table: "category_breakdown",
-      filters: [{ field: "vendor_name", op: "eq", value: "x" }],
+      table: "fact_po_items",
+      filters: [{ field: "spend_rank", op: "eq", value: 1 }],
       aggregation: "count",
     });
     assert.ok(outcome.error);
-    assert.match(outcome.error!, /Unknown field "vendor_name"/);
+    assert.match(outcome.error!, /Unknown field "spend_rank"/);
   });
 });
 
 describe("runDashboardQuery — correctness against an independent total", () => {
-  it("spend-overview purchase_orders sums to the same total as the raw (non-deleted) PO rows", () => {
-    const independentTotal = poItems.filter((p) => !p.is_deleted).reduce((s, p) => s + p.net_value_inr, 0);
+  it("spend-overview fact_po_items sums to the same total as the warehouse sample dataset", () => {
+    const independentTotal = (getSampleDataset("fact_po_items")?.rows ?? []).reduce(
+      (s, r) => s + (Number(r.net_order_value_inr) || 0),
+      0
+    );
     const outcome = runDashboardQuery("spend-overview", {
-      table: "purchase_orders",
-      measure: "net_value_inr",
+      table: "fact_po_items",
+      measure: "net_order_value_inr",
       aggregation: "sum",
     });
     assert.equal(outcome.error, undefined);
     assert.ok(Math.abs(Number(outcome.result.value ?? 0) - independentTotal) < 1);
   });
 
-  it("compliance and spend-overview answer from the identical purchase_orders/invoices tables", () => {
+  it("compliance and spend-overview answer from the identical fact_po_items/fact_invoices tables", () => {
     const spendOverview = getDashboardTables("spend-overview");
     const compliance = getDashboardTables("compliance");
     assert.deepEqual(spendOverview.map((t) => t.id), compliance.map((t) => t.id));
@@ -113,33 +118,44 @@ describe("runDashboardQuery — correctness against an independent total", () =>
     }
   });
 
-  it("tail-spend category_breakdown's totalSpend reconciles against the dashboard's own headline KPI", () => {
-    const outcome = runDashboardQuery("tail-spend", {
-      table: "category_breakdown",
-      measure: "totalSpend",
+  it("agg_vendor_annual's total_spend_inr reconciles against fact_po_items' net_order_value_inr", () => {
+    // agg_vendor_annual is pre-aggregated from fact_po_items (metadata-registry.ts) —
+    // summed across every vendor and year, the two totals must agree.
+    const aggOutcome = runDashboardQuery("tail-spend", {
+      table: "agg_vendor_annual",
+      measure: "total_spend_inr",
       aggregation: "sum",
     });
-    assert.equal(outcome.error, undefined);
-    assert.equal(outcome.result.value, tailSpendMock.kpi.totalAnnualSpend);
+    const poOutcome = runDashboardQuery("tail-spend", {
+      table: "fact_po_items",
+      measure: "net_order_value_inr",
+      aggregation: "sum",
+    });
+    assert.equal(aggOutcome.error, undefined);
+    assert.equal(poOutcome.error, undefined);
+    assert.ok(
+      Math.abs(Number(aggOutcome.result.value ?? 0) - Number(poOutcome.result.value ?? 0)) < 1,
+      `agg_vendor_annual sum ${aggOutcome.result.value} != fact_po_items sum ${poOutcome.result.value}`
+    );
   });
 
-  it("payment-terms invoices table carries every mock invoice row", () => {
-    const outcome = runDashboardQuery("payment-terms", { table: "invoices", aggregation: "count" });
+  it("payment-terms fact_payments table carries every warehouse payment row", () => {
+    const outcome = runDashboardQuery("payment-terms", { table: "fact_payments", aggregation: "count" });
     assert.equal(outcome.error, undefined);
-    assert.equal(outcome.result.value, paymentTermsInvoices.length);
+    assert.equal(outcome.result.value, getSampleDataset("fact_payments")?.rows.length);
   });
 
   it("groups sum back up to the ungrouped total (grouping never drops or double-counts rows)", () => {
     const grouped = runDashboardQuery("spend-overview", {
-      table: "purchase_orders",
-      groupBy: "category_l1",
-      measure: "net_value_inr",
+      table: "fact_po_items",
+      groupBy: "category_l1_name",
+      measure: "net_order_value_inr",
       aggregation: "sum",
       limit: 50,
     });
     const ungrouped = runDashboardQuery("spend-overview", {
-      table: "purchase_orders",
-      measure: "net_value_inr",
+      table: "fact_po_items",
+      measure: "net_order_value_inr",
       aggregation: "sum",
     });
     assert.equal(grouped.error, undefined);
@@ -157,22 +173,30 @@ describe("renderDashboardQueryResult", () => {
     assert.match(rendered, /Do not invent numbers/);
   });
 
-  it("renders a grouped result with each group's value and row count", () => {
+  it("renders a grouped result with each group's value and row count, matching an independent sum", () => {
+    const rows = getSampleDataset("fact_po_items")?.rows ?? [];
+    const independentItTelecom = rows
+      .filter((r) => r.category_l1_name === "IT & Telecom")
+      .reduce((s, r) => s + (Number(r.net_order_value_inr) || 0), 0);
+
     const outcome = runDashboardQuery("supplier-fragmentation", {
-      table: "categories",
-      groupBy: "category",
-      measure: "spendCr",
+      table: "fact_po_items",
+      groupBy: "category_l1_name",
+      measure: "net_order_value_inr",
       aggregation: "sum",
     });
     const rendered = renderDashboardQueryResult(outcome);
-    assert.match(rendered, /QUERY RESULT on "categories"/);
-    assert.match(rendered, /IT & Telecom: 126/);
+    assert.match(rendered, /QUERY RESULT on "fact_po_items"/);
+    const itLine = rendered.split("\n").find((line) => line.startsWith("IT & Telecom:"));
+    assert.ok(itLine, `no "IT & Telecom" group in:\n${rendered}`);
+    const renderedValue = Number(itLine!.slice("IT & Telecom:".length).split("(")[0].trim());
+    assert.ok(Math.abs(renderedValue - independentItTelecom) < 1);
   });
 
   it("says so plainly when an aggregate query matches nothing", () => {
     const outcome = runDashboardQuery("tail-spend", {
-      table: "suppliers",
-      filters: [{ field: "segment", op: "eq", value: "does-not-exist" }],
+      table: "fact_po_items",
+      filters: [{ field: "vendor_id", op: "eq", value: "does-not-exist" }],
       aggregation: "count",
     });
     const rendered = renderDashboardQueryResult(outcome);
@@ -181,9 +205,9 @@ describe("renderDashboardQueryResult", () => {
 
   it("says so plainly when a row-level lookup matches nothing", () => {
     const outcome = runDashboardQuery("tail-spend", {
-      table: "suppliers",
-      filters: [{ field: "segment", op: "eq", value: "does-not-exist" }],
-      select: ["supplierName"],
+      table: "fact_po_items",
+      filters: [{ field: "vendor_id", op: "eq", value: "does-not-exist" }],
+      select: ["vendor_name"],
     });
     const rendered = renderDashboardQueryResult(outcome);
     assert.match(rendered, /no rows matched/);
