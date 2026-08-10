@@ -125,6 +125,19 @@ function distinctCount<T>(values: T[]): number {
   return new Set(values).size;
 }
 
+/**
+ * Like distinctCount, but null when every value is the "" not-tracked
+ * sentinel (cost_center_id — no cost-center dimension exists in the
+ * warehouse) — otherwise a plain new Set([...""]).size would report a
+ * confident-looking "1", which reads as real data rather than untracked.
+ */
+function distinctCountOrNull(values: string[]): number | null {
+  const set = new Set(values);
+  if (set.size === 1 && set.has("")) return null;
+  set.delete("");
+  return set.size;
+}
+
 // ---------------------------------------------------------------------------
 // KPIs
 // ---------------------------------------------------------------------------
@@ -319,7 +332,8 @@ export interface TableRow {
   supplierCount: number;
   productCount: number;
   spend: number;
-  costCenterCount: number;
+  /** null when not tracked — see distinctCountOrNull. */
+  costCenterCount: number | null;
 }
 
 export function aggregateForTable(invoices: Invoice[]): TableRow[] {
@@ -337,7 +351,7 @@ export function aggregateForTable(invoices: Invoice[]): TableRow[] {
     supplierCount: distinctCount(group.map((inv) => inv.global_ultimate_id)),
     productCount: distinctCount(group.map((inv) => inv.product_id)),
     spend: totalSpend(group),
-    costCenterCount: distinctCount(group.map((inv) => inv.cost_center_id)),
+    costCenterCount: distinctCountOrNull(group.map((inv) => inv.cost_center_id)),
   }));
 }
 

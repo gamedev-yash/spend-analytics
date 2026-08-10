@@ -4,7 +4,7 @@ import { useMemo, type ReactNode } from "react";
 import { tailSpendMock, formatINR } from "./tailSpendMock";
 import { useProviderPageData } from "@/hooks/use-provider-page-data";
 import { loadTailSpendFromProvider } from "@/lib/page-data/tail-spend-from-provider";
-import { useDatasets } from "@/context/DatasetsContext";
+import { azureSqlAdapter } from "@/context/DatasetsContext";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
 import { WidgetGridSkeleton } from "@/components/dashboard/widget-grid-skeleton";
@@ -73,36 +73,39 @@ function Widget({
 }
 
 export default function TailSpendPage() {
-  const { providerType } = useDatasets();
-
   // The micro-PO boundary lives in ThresholdsContext so the sidebar slider,
   // the Thresholds popover, KPI badges, and chart accents all share one live,
   // localStorage-persisted value.
   const { getThreshold, setTargetValue } = useThresholds();
   const microPOThreshold = getThreshold("tail-spend.micro-po-value")?.targetValue ?? 25_000;
 
-  // In Azure SQL mode the page reads fact_po_items through IDataProvider; the
-  // threshold is part of the key because it changes the micro-PO query.
+  // Always queries azureSqlAdapter directly — not activeProvider — so this
+  // page reads canonical fact_po_items/fact_invoices data regardless of the
+  // CSV/Azure toggle. That toggle's ClientCsvAdapter side answers from this
+  // browser's uploaded datasets (empty until the user uploads one), which
+  // has nothing to do with the canonical sample this page needs; azureSqlAdapter
+  // itself round-trips through /api/v1/query, falling back to the same sample
+  // server-side when no warehouse is configured. The threshold is part of the
+  // key because it changes the micro-PO query.
   const warehouse = useProviderPageData(
-    (provider) => loadTailSpendFromProvider(provider, microPOThreshold),
-    providerType === "azure-sql",
+    () => loadTailSpendFromProvider(azureSqlAdapter, microPOThreshold),
+    true,
     `tail-spend:${microPOThreshold}`
   );
 
-  const isAzureSqlMode = providerType === "azure-sql";
-  // True only until the very first Azure SQL fetch of the session settles —
+  // True only until the very first fetch of the session settles —
   // useProviderPageData's `ready` is sticky, so a later filter/threshold
   // change never re-triggers this once real data has rendered once.
-  const isInitialAzureLoad = isAzureSqlMode && !warehouse.ready;
-  // True while a filter/threshold change is re-querying Azure SQL for data
-  // that's already on screen — drives the subtle in-place loading cue below,
-  // never a reset to the skeleton or a flash of the mock fallback.
-  const isRevalidating = isAzureSqlMode && warehouse.loading && warehouse.ready;
+  const isInitialLoad = !warehouse.ready;
+  // True while a filter/threshold change is re-querying for data that's
+  // already on screen — drives the subtle in-place loading cue below, never
+  // a reset to the skeleton or a flash of the mock fallback.
+  const isRevalidating = warehouse.loading && warehouse.ready;
 
-  // The active Data Provider (Azure SQL, sample-CSV fallback under the hood
-  // when no warehouse is configured), else the static mock — never a
-  // client-uploaded CSV, so this page never depends on DatasetsContext's
-  // upload path.
+  // Canonical warehouse/sample data, falling back to the static mock only if
+  // that fetch genuinely returns nothing (e.g. a real warehouse temporarily
+  // empty) — never a client-uploaded CSV, so this page never depends on
+  // DatasetsContext's upload path.
   const data = useMemo(() => warehouse.data?.data ?? tailSpendMock, [warehouse.data]);
 
   // Owns every sidebar filter (category, supplier, plant, source system,
@@ -247,7 +250,7 @@ export default function TailSpendPage() {
             onApplyPreset={applyPreset}
           />
 
-          {isInitialAzureLoad ? (
+          {isInitialLoad ? (
             <WidgetGridSkeleton kpiCount={8} widgetCount={7} />
           ) : (
             <RevalidatingSection isRevalidating={isRevalidating}>

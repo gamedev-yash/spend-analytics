@@ -1,161 +1,801 @@
 vendor_id,vendor_name,parent_company_group,country,city,account_group,payment_terms_key,is_active
-0000100001,Tata Steel Ltd,,IN,Visakhapatnam,ZDOM,ZN60,true
-0000100002,Larsen & Toubro Ltd,,IN,Udaipur,ZDOM,ZN90,true
-0000100003,Thermax Ltd,,IN,New Delhi,ZDOM,ZN45,true
-0000100004,ABB India Ltd,ADANI-GRP,IN,Korba,ZDOM,ZN90,true
-0000100005,Siemens India Ltd,,IN,Hyderabad,ZDOM,ZN30,true
-0000100006,SKF India Ltd,,IN,Hyderabad,ZDOM,ZN60,true
-0000100007,Timken India Ltd,,IN,Jharsuguda,ZDOM,ZN60,true
-0000100008,Metso Outotec,,DE,Essen,ZIMP,ZN30,true
-0000100009,FLSmidth,SANDVIK-GRP,DE,Essen,ZIMP,ZN45,true
-0000100010,Sandvik Mining,,DE,Essen,ZIMP,ZN90,true
-0000100011,Caterpillar Inc,,US,Houston,ZIMP,ZN90,true
-0000100012,Komatsu Ltd,,JP,Osaka,ZIMP,ZN45,true
-0000100013,Cummins India Ltd,,IN,Korba,ZDOM,ZN90,true
-0000100014,Kirloskar Brothers Ltd,,IN,Nagpur,ZDOM,ZN30,false
-0000100015,Voltas Ltd,,IN,Tuticorin,ZDOM,ZN45,true
-0000100016,BHEL,,IN,Kolkata,ZDOM,ZN45,true
-0000100017,JSW Steel Ltd,,IN,Korba,ZDOM,ZN90,true
-0000100018,Grasim Industries Ltd,,IN,Udaipur,ZDOM,ZN45,true
-0000100019,UltraTech Cement Ltd,,IN,Tuticorin,ZDOM,ZN90,true
-0000100020,Adani Ports & SEZ Ltd,CATERPILLAR-GRP,IN,Hyderabad,ZDOM,ZN60,true
-0000100021,Container Corporation of India,,IN,Hyderabad,ZDOM,ZN60,true
-0000100022,Indian Oil Corporation Ltd,,IN,Ahmedabad,ZDOM,ZN60,true
-0000100023,Bharat Petroleum Corporation Ltd,SIEMENS-GRP,IN,New Delhi,ZDOM,ZN60,true
-0000100024,GAIL India Ltd,,IN,Chennai,ZDOM,ZN45,true
-0000100025,Weir Minerals India,,IN,Pune,ZDOM,ZN60,true
-0000100026,Flowserve India,,IN,Kolkata,ZDOM,ZN90,true
-0000100027,Honeywell Automation India,,IN,New Delhi,ZDOM,ZN45,true
-0000100028,Schneider Electric India,,IN,Jaipur,ZDOM,ZN30,true
-0000100029,Grundfos Pumps India,,IN,Tuticorin,ZDOM,ZN30,true
-0000100030,Tega Industries Ltd,,IN,Nagpur,ZDOM,ZN45,true
-0000100031,Malwa Engineering Works,,IN,Udaipur,ZDOM,ZN90,true
-0000100032,Desert Engineering Works,,CN,Shanghai,ZIMP,ZN60,true
-0000100033,Konkan Trading Co,,IN,New Delhi,ZDOM,ZN90,true
-0000100034,Rajasthan Fabricators,METSO-GRP,IN,Nagpur,ZDOM,ZN90,true
-0000100035,Shree Balaji Equipment Ltd,,IN,Hyderabad,ZDOM,ZN60,true
-0000100036,Nilgiri Engineering Works,,IN,Pune,ZDOM,ZN45,true
-0000100037,Konkan Engineering Works,,DE,Essen,ZIMP,ZN30,true
-0000100038,Sterling Industrial Corporation,,IN,Nagpur,ZDOM,ZN30,true
-0000100039,Desert Enterprises,,IN,Korba,ZIMP,ZN30,true
-0000100040,Krishna Trading Co,,IN,Bengaluru,ZSER,ZN90,true
-0000100041,Shree Balaji Manufacturing Co,,IN,Hyderabad,ZDOM,ZN90,true
-0000100042,Konkan Manufacturing Co,,DE,Essen,ZIMP,ZN90,true
-0000100043,Vindhyachal Suppliers Pvt Ltd,,IN,Ahmedabad,ZIMP,ZN45,true
-0000100044,Apex Suppliers Pvt Ltd,,IN,Mumbai,ZDOM,ZN30,true
-0000100045,Godavari Industrial Corporation,METSO-GRP,IN,Nagpur,ZDOM,ZN90,true
-0000100046,Rajasthan Industrial Corporation,,IN,Bengaluru,ZDOM,ZN45,true
-0000100047,Ganga Industrial Corporation,,IN,Jaipur,ZDOM,ZN90,true
-0000100048,Sahyadri Trading Co,,US,Chicago,ZIMP,ZN60,true
-0000100049,Vindhya Engineering Works,,US,Houston,ZIMP,ZN60,true
-0000100050,Bharat Overseas Pvt Ltd,,IN,Bengaluru,ZDOM,ZN60,true
-0000100051,Orient Equipment Ltd,ABB-GRP,IN,Bengaluru,ZDOM,ZN30,true
-0000100052,Ganga Engineering Works,,IN,Mumbai,ZDOM,ZN45,true
-0000100053,Desert Engineering Works (0053),,IN,Tuticorin,ZDOM,ZN45,true
-0000100054,Narmada Industries,,IN,Bengaluru,ZIMP,ZN45,true
-0000100055,Krishna Industrial Corporation,,CN,Shanghai,ZIMP,ZN90,true
-0000100056,Vindhya Trading Co,,US,Houston,ZIMP,ZN90,true
-0000100057,Sterling Equipment Ltd,CATERPILLAR-GRP,IN,Tuticorin,ZIMP,ZN30,true
-0000100058,Sahyadri Industrial Corporation,,JP,Tokyo,ZIMP,ZN45,true
-0000100059,Deccan Suppliers Pvt Ltd,,IN,Udaipur,ZDOM,ZN30,true
-0000100060,Precision Manufacturing Co,,CN,Shanghai,ZIMP,ZN30,true
-0000100061,Rajasthan Industries,,IN,Ahmedabad,ZDOM,ZN45,true
-0000100062,Malwa Overseas Pvt Ltd,,IN,Bhilwara,ZDOM,ZN45,true
-0000100063,Rajasthan Overseas Pvt Ltd,,IN,New Delhi,ZDOM,ZN90,true
-0000100064,Vindhyachal Overseas Pvt Ltd,SANDVIK-GRP,IN,Visakhapatnam,ZDOM,ZN30,true
-0000100065,Vindhyachal Engineering Works,,IN,Kolkata,ZDOM,ZN90,true
-0000100066,Apex Overseas Pvt Ltd,,IN,Tuticorin,ZIMP,ZN90,true
-0000100067,National Enterprises,,IN,New Delhi,ZDOM,ZN45,false
-0000100068,Precision Industrial Corporation,,IN,New Delhi,ZDOM,ZN60,true
-0000100069,Deccan Overseas Pvt Ltd,,IN,Bengaluru,ZDOM,ZN90,true
-0000100070,Mewar Overseas Pvt Ltd,WEIR-GRP,IN,Chennai,ZDOM,ZN60,true
-0000100071,Godavari Engineering Works,,IN,Jaipur,ZDOM,ZN60,true
-0000100072,Krishna Engineering Works,,IN,New Delhi,ZIMP,ZN30,true
-0000100073,Cauvery Manufacturing Co,,IN,Nagpur,ZDOM,ZN60,true
-0000100074,Rajasthan Technologies Pvt Ltd,,AU,Perth,ZIMP,ZN60,true
-0000100075,Yamuna Fabricators,,DE,Munich,ZIMP,ZN30,true
-0000100076,Bharat Technologies Pvt Ltd,,IN,Bengaluru,ZIMP,ZN90,true
-0000100077,Narmada Engineering Works,,IN,Ahmedabad,ZDOM,ZN60,true
-0000100078,Aravali Engineering Works,ABB-GRP,IN,Ahmedabad,ZDOM,ZN60,true
-0000100079,Vindhyachal Trading Co,WEIR-GRP,IN,Jaipur,ZDOM,ZN60,true
-0000100080,Mewar Fabricators,,KR,Seoul,ZIMP,ZN60,true
-0000100081,Om Sai Suppliers Pvt Ltd,,IN,Tuticorin,ZDOM,ZN30,false
-0000100082,Precision Industries,,IN,Udaipur,ZDOM,ZN60,true
-0000100083,Deccan Technologies Pvt Ltd,,CN,Shanghai,ZIMP,ZN45,true
-0000100084,Shree Balaji Fabricators,,IN,Pune,ZDOM,ZN30,true
-0000100085,Sahyadri Industrial Corporation (0085),METSO-GRP,IN,Tuticorin,ZDOM,ZN60,false
-0000100086,Marwar Engineering Works,,IN,Hyderabad,ZDOM,ZN45,true
-0000100087,Desert Trading Co,,IN,Pune,ZDOM,ZN90,false
-0000100088,Aravali Manufacturing Co,,IN,Hyderabad,ZDOM,ZN30,true
-0000100089,Nilgiri Equipment Ltd,,IN,Jaipur,ZDOM,ZN90,true
-0000100090,Krishna Engineering Works (0090),,IN,Udaipur,ZSER,ZN45,true
-0000100091,Aravali Manufacturing Co (0091),,IN,Ahmedabad,ZDOM,ZN90,false
-0000100092,Cauvery Trading Co,,IN,Chennai,ZIMP,ZN45,true
-0000100093,Konkan Overseas Pvt Ltd,,IN,New Delhi,ZIMP,ZN30,true
-0000100094,Shree Balaji Trading Co,,AU,Perth,ZIMP,ZN30,true
-0000100095,Godavari Manufacturing Co,,IN,Pune,ZDOM,ZN30,true
-0000100096,Krishna Industries,,IN,Korba,ZDOM,ZN30,true
-0000100097,Sterling Industrial Corporation (0097),,IN,Pune,ZSER,ZN60,true
-0000100098,Mewar Industries,,IN,Bhilwara,ZDOM,ZN30,true
-0000100099,Mewar Overseas Pvt Ltd (0099),,IN,Udaipur,ZDOM,ZN90,false
-0000100100,Bharat Fabricators,,IN,Chennai,ZDOM,ZN30,true
-0000100101,Sahyadri Technologies Pvt Ltd,,IN,Mumbai,ZDOM,ZN30,false
-0000100102,Yamuna Industrial Corporation,,DE,Essen,ZIMP,ZN90,true
-0000100103,Ganga Technologies Pvt Ltd,,IN,Jharsuguda,ZDOM,ZN60,true
-0000100104,Vindhya Equipment Ltd,,IN,Jaipur,ZDOM,ZN90,true
-0000100105,Ganga Equipment Ltd,,US,Houston,ZIMP,ZN45,true
-0000100106,Chambal Equipment Ltd,,IN,New Delhi,ZDOM,ZN90,false
-0000100107,Om Sai Enterprises,,IN,Jaipur,ZIMP,ZN30,true
-0000100108,Malwa Fabricators,,IN,Nagpur,ZDOM,ZN60,true
-0000100109,Mewar Suppliers Pvt Ltd,,IN,Nagpur,ZDOM,ZN30,true
-0000100110,Godavari Enterprises,,IN,Jaipur,ZDOM,ZN45,true
-0000100111,Apex Trading Co,METSO-GRP,IN,New Delhi,ZIMP,ZN60,true
-0000100112,Cauvery Trading Co (0112),SCHNEIDER-GRP,IN,Jharsuguda,ZDOM,ZN90,true
-0000100113,Vindhya Engineering Works (0113),,IN,Mumbai,ZDOM,ZN30,true
-0000100114,Yamuna Equipment Ltd,,IN,Kolkata,ZDOM,ZN90,true
-0000100115,Mewar Equipment Ltd,,IN,Bhilwara,ZDOM,ZN90,true
-0000100116,Deccan Industries,,IN,Visakhapatnam,ZSER,ZN60,true
-0000100117,Yamuna Suppliers Pvt Ltd,WEIR-GRP,IN,Ahmedabad,ZDOM,ZN60,true
-0000100118,Malwa Suppliers Pvt Ltd,,IN,Udaipur,ZDOM,ZN60,true
-0000100119,Godavari Manufacturing Co (0119),FLS-GRP,IN,Jharsuguda,ZDOM,ZN30,true
-0000100120,Cauvery Trading Co (0120),,IN,Hyderabad,ZDOM,ZN30,true
-0000100121,Satpura Overseas Pvt Ltd,,IN,Nagpur,ZDOM,ZN45,true
-0000100122,Precision Equipment Ltd,,KR,Seoul,ZIMP,ZN45,false
-0000100123,Satpura Enterprises,,CN,Shenzhen,ZIMP,ZN90,true
-0000100124,Konkan Trading Co (0124),,IN,Kolkata,ZDOM,ZN60,true
-0000100125,Hind Industrial Corporation,,IN,Jharsuguda,ZIMP,ZN60,true
-0000100126,Marwar Equipment Ltd,,IN,Bhilwara,ZSER,ZN45,true
-0000100127,Desert Enterprises (0127),METSO-GRP,IN,Korba,ZDOM,ZN30,true
-0000100128,Sahyadri Industries,,IN,Bengaluru,ZIMP,ZN60,true
-0000100129,Nilgiri Enterprises,,IN,Chennai,ZDOM,ZN90,true
-0000100130,Marwar Industries,,IN,Hyderabad,ZDOM,ZN90,true
-0000100131,Deccan Enterprises,,IN,Visakhapatnam,ZDOM,ZN45,true
-0000100132,Nilgiri Industrial Corporation,,IN,Bengaluru,ZDOM,ZN45,true
-0000100133,Desert Fabricators,,IN,Hyderabad,ZIMP,ZN45,true
-0000100134,Nilgiri Equipment Ltd (0134),,IN,Kolkata,ZDOM,ZN45,true
-0000100135,Krishna Equipment Ltd,,IN,Hyderabad,ZDOM,ZN45,true
-0000100136,Rajasthan Trading Co,ABB-GRP,IN,Nagpur,ZSER,ZN60,true
-0000100137,Sterling Overseas Pvt Ltd,,KR,Seoul,ZIMP,ZN60,false
-0000100138,Aravali Suppliers Pvt Ltd,,US,Houston,ZIMP,ZN45,true
-0000100139,Satpura Manufacturing Co,TATA-GRP,IN,Bhilwara,ZDOM,ZN45,true
-0000100140,Narmada Industries (0140),SANDVIK-GRP,IN,Jharsuguda,ZSER,ZN30,true
-0000100141,Satpura Industrial Corporation,ABB-GRP,IN,Tuticorin,ZSER,ZN60,true
-0000100142,Nilgiri Equipment Ltd (0142),,US,Chicago,ZIMP,ZN45,true
-0000100143,Deccan Overseas Pvt Ltd (0143),,IN,Pune,ZDOM,ZN60,true
-0000100144,Sterling Manufacturing Co,,IN,Bhilwara,ZIMP,ZN60,true
-0000100145,Satpura Trading Co,,IN,Ahmedabad,ZDOM,ZN30,true
-0000100146,Aravali Industries,,IN,Pune,ZDOM,ZN90,true
-0000100147,Vindhyachal Industrial Corporation,,IN,Jaipur,ZDOM,ZN45,true
-0000100148,Shree Balaji Enterprises,WEIR-GRP,IN,Tuticorin,ZDOM,ZN90,true
-0000100149,Krishna Equipment Ltd (0149),,IN,Korba,ZDOM,ZN90,true
-0000100150,Konkan Trading Co (0150),,IN,Kolkata,ZDOM,ZN60,true
-0000100151,National Industrial Corporation,,IN,Nagpur,ZDOM,ZN45,true
-0000100152,Coastal Manufacturing Co,FLS-GRP,IN,Mumbai,ZIMP,ZN30,true
-0000100153,Precision Engineering Works,,IN,New Delhi,ZIMP,ZN60,true
-0000100154,National Trading Co,,IN,Bhilwara,ZDOM,ZN90,true
-0000100155,Narmada Technologies Pvt Ltd,,US,Chicago,ZIMP,ZN30,true
-0000100156,Cauvery Fabricators,,JP,Osaka,ZIMP,ZN90,true
-0000100157,Vindhyachal Suppliers Pvt Ltd (0157),,IN,Udaipur,ZSER,ZN60,true
-0000100158,Apex Fabricators,,IN,Korba,ZSER,ZN45,true
-0000100159,Cauvery Equipment Ltd,,IN,Ahmedabad,ZDOM,ZN45,true
-0000100160,Deccan Fabricators,,IN,Bhilwara,ZDOM,ZN90,false
+0000012345,Tata Steel Ltd,TATA GROUP,IN,Mumbai,ZDOM,ZN45,True
+0000012348,Tata Steel BSL Ltd,TATA GROUP,IN,Kolkata,ZDOM,ZN30,True
+0000012354,Tata Bearings,TATA GROUP,IN,Pune,ZSER,ZN60,True
+0000012359,Larsen & Toubro Ltd,L&T GROUP,IN,Mumbai,ZDOM,ZN45,True
+0000012364,L&T Construction,L&T GROUP,IN,Chennai,ZDOM,ZN90,True
+0000012369,L&T Valves Ltd,L&T GROUP,IN,Coimbatore,ZDOM,ZN45,True
+0000012373,SKF India Ltd,SKF GROUP,IN,Pune,ZDOM,ZN45,True
+0000012379,SKF Technologies India,SKF GROUP,IN,Bengaluru,ZDOM,ZN45,True
+0000012380,Timken India Ltd,TIMKEN GROUP,IN,Jamshedpur,ZDOM,ZN30,True
+0000012381,Timken Engineering India,TIMKEN GROUP,IN,Chennai,ZSER,ZN60,True
+0000012387,ABB India Ltd,ABB GROUP,IN,Bengaluru,ZDOM,ZN45,True
+0000012390,ABB Power Products India,ABB GROUP,IN,Vadodara,ZDOM,ZN45,True
+0000012391,Siemens India Ltd,SIEMENS GROUP,IN,Mumbai,ZDOM,ZN90,True
+0000012394,Siemens Energy India,SIEMENS GROUP,IN,Gurugram,ZDOM,ZN45,True
+0000012396,Thermax Ltd,THERMAX GROUP,IN,Pune,ZDOM,ZN30,True
+0000012401,Thermax Chemicals,THERMAX GROUP,IN,Pune,ZDOM,ZN45,True
+0000012404,Grindwell Norton Ltd,SAINT-GOBAIN,IN,Mumbai,ZDOM,ZN60,True
+0000012408,Saint-Gobain India,SAINT-GOBAIN,IN,Chennai,ZDOM,ZN60,True
+0000012413,Cummins India Ltd,CUMMINS GROUP,IN,Pune,ZDOM,ZN30,True
+0000012419,Cummins Sales & Service,CUMMINS GROUP,IN,Nagpur,ZDOM,ZN30,True
+0000012421,Kirloskar Brothers Ltd,KIRLOSKAR GROUP,IN,Pune,ZDOM,ZN30,True
+0000012426,Kirloskar Pneumatic,KIRLOSKAR GROUP,IN,Pune,ZDOM,ZN60,True
+0000012431,Atlas Copco India Ltd,ATLAS COPCO,IN,Pune,ZDOM,ZN45,True
+0000012435,Epiroc Mining India,ATLAS COPCO,IN,Nashik,ZDOM,ZN30,True
+0000012439,Metso Outotec Oyj,METSO GROUP,FI,Helsinki,ZIMP,ZN45,True
+0000012443,Metso India Pvt Ltd,METSO GROUP,IN,Alwar,ZDOM,ZN60,True
+0000012446,FLSmidth A/S,FLSMIDTH GROUP,DK,Copenhagen,ZIMP,ZN45,True
+0000012450,FLSmidth Pvt Ltd,FLSMIDTH GROUP,IN,Chennai,ZDOM,ZN30,True
+0000012454,Sandvik AB,SANDVIK GROUP,SE,Stockholm,ZIMP,ZN30,True
+0000012457,Sandvik Mining India,SANDVIK GROUP,IN,Pune,ZDOM,ZN45,True
+0000012460,Caterpillar Inc,CATERPILLAR,US,Peoria,ZIMP,ZN60,True
+0000012461,Caterpillar India Pvt Ltd,CATERPILLAR,IN,Thiruvallur,ZDOM,ZN30,True
+0000012463,Komatsu Ltd,KOMATSU GROUP,JP,Tokyo,ZIMP,ZN30,True
+0000012466,Komatsu India Pvt Ltd,KOMATSU GROUP,IN,Chennai,ZDOM,ZN60,True
+0000012470,Weir Minerals Netherlands,IND-0000012470,DE,Venlo,ZIMP,ZN45,True
+0000012473,Flottweg SE,IND-0000012473,DE,Vilsbiburg,ZIMP,ZN60,True
+0000012476,Orica Ltd,IND-0000012476,AU,Melbourne,ZIMP,ZN30,True
+0000012479,BASF SE,IND-0000012479,DE,Ludwigshafen,ZIMP,ZN30,True
+0000012480,Solvay SA,IND-0000012480,DE,Hannover,ZIMP,ZN60,True
+0000012485,Cyanco International,IND-0000012485,US,Houston,ZIMP,ZN30,True
+0000012488,Bharat Petroleum Corp Ltd,IND-0000012488,IN,Mumbai,ZDOM,ZN30,True
+0000012491,Indian Oil Corporation Ltd,IND-0000012491,IN,New Delhi,ZDOM,ZN30,True
+0000012496,Coal India Ltd,IND-0000012496,IN,Kolkata,ZDOM,ZN45,True
+0000012500,Hindalco Industries Ltd,IND-0000012500,IN,Mumbai,ZDOM,ZN30,True
+0000012503,Jindal Steel & Power Ltd,IND-0000012503,IN,New Delhi,ZSER,ZN90,True
+0000012506,Grasim Industries Ltd,IND-0000012506,IN,Mumbai,ZDOM,ZN90,True
+0000012511,Gujarat Fluorochemicals,IND-0000012511,IN,Vadodara,ZDOM,ZN60,True
+0000012516,Aarti Industries Ltd,IND-0000012516,IN,Mumbai,ZDOM,ZN30,True
+0000012519,Deepak Nitrite Ltd,IND-0000012519,IN,Vadodara,ZSER,ZN45,True
+0000012524,Elgi Equipments Ltd,IND-0000012524,IN,Coimbatore,ZDOM,ZN45,True
+0000012526,Wilo Mather & Platt,IND-0000012526,IN,Pune,ZDOM,ZN60,True
+0000012527,Voltas Ltd,IND-0000012527,IN,Mumbai,ZDOM,ZN45,True
+0000012532,Crompton Greaves Ltd,IND-0000012532,IN,Mumbai,ZDOM,ZN45,True
+0000012533,Havells India Ltd,IND-0000012533,IN,Noida,ZDOM,ZN45,True
+0000012537,Polycab India Ltd,IND-0000012537,IN,Mumbai,ZDOM,ZN45,True
+0000012539,KEI Industries Ltd,IND-0000012539,IN,New Delhi,ZDOM,ZN30,True
+0000012541,Finolex Cables Ltd,IND-0000012541,IN,Pune,ZDOM,ZN30,True
+0000012543,Bharat Heavy Electricals Ltd,IND-0000012543,IN,New Delhi,ZDOM,ZN30,True
+0000012549,Wipro Ltd,IND-0000012549,IN,Bengaluru,ZDOM,ZN30,True
+0000012550,HCL Technologies Ltd,IND-0000012550,IN,Noida,ZDOM,ZN60,True
+0000012556,Tech Mahindra Ltd,IND-0000012556,IN,Pune,ZDOM,ZN45,True
+0000012561,Redington India Ltd,IND-0000012561,IN,Chennai,ZSER,ZN45,True
+0000012564,3M India Ltd,IND-0000012564,IN,Bengaluru,ZDOM,ZN30,True
+0000012570,Honeywell Automation India,IND-0000012570,IN,Pune,ZDOM,ZN45,True
+0000012572,Emerson Process Management,IND-0000012572,IN,Mumbai,ZDOM,ZN60,True
+0000012573,Endress+Hauser India,IND-0000012573,IN,Aurangabad,ZDOM,ZN45,True
+0000012579,Yokogawa India Ltd,IND-0000012579,IN,Bengaluru,ZDOM,ZN45,True
+0000012580,Forbes Marshall Pvt Ltd,IND-0000012580,IN,Pune,ZDOM,ZN60,True
+0000012582,Uflex Ltd,IND-0000012582,IN,Noida,ZDOM,ZN30,True
+0000012586,Balmer Lawrie & Co Ltd,IND-0000012586,IN,Kolkata,ZDOM,ZN30,True
+0000012592,Southern Chemicals,IND-0000012592,CN,Shanghai,ZIMP,ZN30,True
+0000012593,United Instruments Ltd,IND-0000012593,IN,Bhubaneswar,ZDOM,ZN30,False
+0000012595,Standard Instruments,IND-0000012595,US,Houston,ZIMP,ZN30,True
+0000012601,Western Engineering Corporation,GRP-000,IN,Jamshedpur,ZSER,ZN30,True
+0000012603,Sri Minerals & Sons,IND-0000012603,IN,Kota,ZDOM,ZN60,False
+0000012606,Laxmi Refractories,IND-0000012606,IN,Vadodara,ZIMP,ZN60,True
+0000012610,Balaji Automation Corporation,IND-0000012610,IN,Raipur,ZDOM,ZN45,True
+0000012616,Indo Fabricators & Sons,IND-0000012616,IN,Jodhpur,ZDOM,ZN30,True
+0000012620,Universal Packaging Industries,IND-0000012620,IN,Faridabad,ZDOM,ZN90,True
+0000012626,Western Systems,IND-0000012626,IN,Kolkata,ZIMP,ZN45,True
+0000012630,Rajesh Instruments,GRP-000,IN,Indore,ZDOM,ZN30,True
+0000012635,Rajesh Automation Corporation,IND-0000012635,IN,Cuttack,ZDOM,ZN90,True
+0000012638,Amar Minerals Industries,IND-0000012638,IN,Bhubaneswar,ZIMP,ZN30,True
+0000012642,Northern Systems & Sons,IND-0000012642,IN,Rajkot,ZDOM,ZN60,True
+0000012646,Sai Traders Industries,IND-0000012646,IN,Howrah,ZSER,ZN45,True
+0000012647,Krishna Marketing,GRP-000,IN,Jaipur,ZDOM,ZN30,True
+0000012653,United Enterprises Corporation,IND-0000012653,IN,Bhilwara,ZDOM,ZN30,True
+0000012655,Deccan Systems India Pvt Ltd,IND-0000012655,IN,Ranchi,ZIMP,ZN60,True
+0000012661,Sai Traders Pvt Ltd,IND-0000012661,IN,Udaipur,ZDOM,ZN45,False
+0000012662,Modern Fabricators Pvt Ltd,IND-0000012662,IN,Kolkata,ZDOM,ZN90,True
+0000012664,Techno Packaging,IND-0000012664,IN,Ghaziabad,ZSER,ZN30,True
+0000012666,Ganga Packaging Corporation,IND-0000012666,IN,Rajkot,ZDOM,ZN30,True
+0000012672,Super Packaging Pvt Ltd,GRP-000,IN,Hyderabad,ZSER,ZN30,True
+0000012673,Hindustan Bearings,IND-0000012673,IN,Bharuch,ZIMP,ZN90,True
+0000012674,Sai Fabricators Ltd,IND-0000012674,IN,Coimbatore,ZDOM,ZN45,True
+0000012678,Balaji Marketing Pvt Ltd,IND-0000012678,IN,Cuttack,ZDOM,ZN60,True
+0000012680,Sri Industrial,IND-0000012680,IN,Jamshedpur,ZDOM,ZN60,True
+0000012681,Universal Instruments,IND-0000012681,IN,Hyderabad,ZSER,ZN45,True
+0000012684,Modern Polymers,IND-0000012684,IN,Jodhpur,ZDOM,ZN45,True
+0000012688,Eastern Refractories & Sons,IND-0000012688,IN,Kolkata,ZDOM,ZN30,True
+0000012689,Perfect Rubber Ltd,GRP-000,IN,Kota,ZDOM,ZN30,True
+0000012692,Sri Systems & Sons,GRP-001,IN,Vadodara,ZDOM,ZN45,True
+0000012696,Deccan Alloys,IND-0000012696,IN,Korba,ZDOM,ZN45,True
+0000012700,Balaji Marketing,IND-0000012700,IN,Cuttack,ZDOM,ZN90,True
+0000012705,Eastern Metals Pvt Ltd,IND-0000012705,IN,Jamshedpur,ZDOM,ZN30,True
+0000012706,Super Electricals & Co,IND-0000012706,US,Chicago,ZIMP,ZN30,True
+0000012712,Perfect Chemicals Ltd,IND-0000012712,IN,Mumbai,ZSER,ZN30,True
+0000012716,Techno Fabricators,IND-0000012716,IN,Ahmedabad,ZIMP,ZN60,True
+0000012718,Shree Marketing & Sons,IND-0000012718,IN,Ludhiana,ZDOM,ZN30,True
+0000012724,Laxmi Lubricants & Sons,IND-0000012724,IN,Ankleshwar,ZIMP,ZN30,True
+0000012727,Standard Refractories Ltd,IND-0000012727,IN,Pune,ZDOM,ZN90,False
+0000012731,Techno Instruments Pvt Ltd,IND-0000012731,IN,Jodhpur,ZDOM,ZN30,True
+0000012732,Ganga Corporation Industries,IND-0000012732,IN,Rourkela,ZDOM,ZN30,True
+0000012738,Western Marketing,IND-0000012738,IN,Ludhiana,ZDOM,ZN45,True
+0000012740,New Industrial,IND-0000012740,IN,Bhubaneswar,ZDOM,ZN45,True
+0000012743,Universal Instruments Corporation,IND-0000012743,IN,Bhilwara,ZDOM,ZN30,True
+0000012747,Eastern Rubber,IND-0000012747,IN,Mumbai,ZDOM,ZN45,True
+0000012753,Super Lubricants,GRP-001,IN,Hyderabad,ZIMP,ZN60,True
+0000012757,Modern Packaging,IND-0000012757,IN,Vishakhapatnam,ZDOM,ZN90,True
+0000012762,Shree Traders & Sons,IND-0000012762,IN,Vishakhapatnam,ZDOM,ZN45,True
+0000012767,Techno Engineering Industries,IND-0000012767,IN,Bhilwara,ZDOM,ZN45,True
+0000012769,Sri Chemicals & Co,IND-0000012769,IN,Vadodara,ZDOM,ZN45,True
+0000012770,Om Polymers Industries,IND-0000012770,IN,Mumbai,ZIMP,ZN30,True
+0000012772,Modern Automation,IND-0000012772,AU,Perth,ZIMP,ZN30,True
+0000012777,Perfect Hydraulics Industries,IND-0000012777,IN,Bengaluru,ZDOM,ZN30,True
+0000012783,Indo Hydraulics Ltd,IND-0000012783,IN,Rajkot,ZSER,ZN30,True
+0000012786,Ganesh Polymers Pvt Ltd,IND-0000012786,IN,Coimbatore,ZDOM,ZN90,True
+0000012790,Perfect Equipments & Sons,IND-0000012790,IN,Ahmedabad,ZSER,ZN30,True
+0000012793,Super Fabricators,IND-0000012793,DE,Munich,ZIMP,ZN30,True
+0000012799,Techno Steel,IND-0000012799,IN,Bharuch,ZDOM,ZN30,True
+0000012805,Bharat Instruments,IND-0000012805,IN,Bengaluru,ZIMP,ZN30,True
+0000012807,Shree Steel Ltd,GRP-001,IN,Bhilwara,ZSER,ZN60,True
+0000012812,Techno Bearings,IND-0000012812,IN,Bharuch,ZDOM,ZN60,True
+0000012817,New Alloys Corporation,IND-0000012817,IN,Bhilwara,ZDOM,ZN45,False
+0000012823,Sri Bearings Corporation,IND-0000012823,IN,Bharuch,ZDOM,ZN45,True
+0000012826,National Rubber & Co,GRP-001,AU,Perth,ZIMP,ZN45,True
+0000012832,United Industrial & Co,IND-0000012832,IN,Kota,ZDOM,ZN30,True
+0000012838,Global Electricals,IND-0000012838,IN,Pune,ZDOM,ZN30,True
+0000012843,Continental Alloys Ltd,IND-0000012843,IN,Bengaluru,ZDOM,ZN90,False
+0000012846,Southern Engineering Pvt Ltd,IND-0000012846,IN,Kolkata,ZDOM,ZN30,True
+0000012852,New Safety India Pvt Ltd,IND-0000012852,US,Houston,ZIMP,ZN45,True
+0000012857,Super Hydraulics,IND-0000012857,AU,Perth,ZIMP,ZN30,True
+0000012863,Northern Fabricators,IND-0000012863,IN,Tuticorin,ZSER,ZN90,True
+0000012868,National Instruments & Sons,IND-0000012868,IN,Coimbatore,ZIMP,ZN30,True
+0000012871,Prime Chemicals Pvt Ltd,IND-0000012871,KR,Seoul,ZIMP,ZN60,True
+0000012873,United Instruments Industries,IND-0000012873,IN,Vishakhapatnam,ZSER,ZN45,True
+0000012874,Techno Minerals,IND-0000012874,IN,Rajkot,ZDOM,ZN45,True
+0000012875,Om Agencies India Pvt Ltd,IND-0000012875,IN,Surat,ZDOM,ZN30,True
+0000012876,Universal Industrial Ltd,GRP-002,IN,Kota,ZIMP,ZN60,True
+0000012878,Northern Safety Corporation,IND-0000012878,IN,Indore,ZDOM,ZN45,False
+0000012879,Amar Enterprises,IND-0000012879,IN,Chennai,ZDOM,ZN30,True
+0000012882,Krishna Equipments,IND-0000012882,IN,Nagpur,ZDOM,ZN90,True
+0000012885,Ganga Chemicals Pvt Ltd,IND-0000012885,IN,Kolkata,ZSER,ZN60,True
+0000012890,New Safety,IND-0000012890,IN,Kanpur,ZSER,ZN30,True
+0000012896,Shree Lubricants,IND-0000012896,IN,Kolkata,ZSER,ZN60,True
+0000012899,Southern Polymers,IND-0000012899,IN,Ludhiana,ZDOM,ZN90,True
+0000012902,Reliable Marketing Pvt Ltd,GRP-002,IN,Ludhiana,ZDOM,ZN45,True
+0000012903,Continental Marketing,IND-0000012903,IN,Bharuch,ZDOM,ZN30,True
+0000012909,Precision Bearings Pvt Ltd,IND-0000012909,IN,Indore,ZDOM,ZN90,True
+0000012912,New Traders,IND-0000012912,IN,Madurai,ZDOM,ZN60,True
+0000012914,Amar Steel & Co,IND-0000012914,IN,Cuttack,ZSER,ZN60,True
+0000012915,United Fabricators,GRP-002,IN,Jamshedpur,ZDOM,ZN45,True
+0000012916,Reliable Enterprises,IND-0000012916,IN,Tuticorin,ZDOM,ZN30,True
+0000012921,Vijay Polymers,IND-0000012921,IN,Jodhpur,ZDOM,ZN30,True
+0000012923,Hindustan Traders,IND-0000012923,IN,Indore,ZDOM,ZN30,True
+0000012929,Hindustan Industrial,IND-0000012929,IN,Bhilwara,ZDOM,ZN60,True
+0000012935,Western Metals & Sons,GRP-002,IN,Kolkata,ZDOM,ZN30,True
+0000012936,Reliable Electricals Ltd,IND-0000012936,IN,Howrah,ZDOM,ZN30,True
+0000012938,Global Engineering & Sons,IND-0000012938,IN,Mumbai,ZDOM,ZN45,True
+0000012944,Reliable Systems Industries,IND-0000012944,IN,Ankleshwar,ZIMP,ZN30,False
+0000012950,Laxmi Engineering,IND-0000012950,IN,Ahmedabad,ZDOM,ZN30,True
+0000012955,Ganga Electricals Corporation,GRP-002,IN,Kota,ZDOM,ZN30,True
+0000012960,Continental Polymers,IND-0000012960,IN,Rajkot,ZDOM,ZN30,True
+0000012965,Maa Systems,IND-0000012965,IN,Kolkata,ZDOM,ZN30,True
+0000012966,Rajesh Marketing,GRP-003,IN,Bhilai,ZDOM,ZN45,True
+0000012968,Rajesh Marketing Corporation,IND-0000012968,IN,Kota,ZDOM,ZN60,True
+0000012972,Standard Polymers & Co,IND-0000012972,IN,Bhilwara,ZDOM,ZN45,True
+0000012977,Rajesh Packaging Corporation,IND-0000012977,IN,Surat,ZDOM,ZN30,True
+0000012979,Hindustan Agencies Pvt Ltd,GRP-003,IN,Hyderabad,ZDOM,ZN30,True
+0000012981,Modern Electricals,GRP-003,IN,Bhilai,ZDOM,ZN90,True
+0000012986,Ashok Lubricants & Sons,IND-0000012986,IN,Udaipur,ZDOM,ZN30,True
+0000012991,Southern Agencies,IND-0000012991,IN,Bharuch,ZDOM,ZN30,True
+0000012997,Deccan Metals,IND-0000012997,IN,Kanpur,ZDOM,ZN90,True
+0000012999,Rajesh Bearings Industries,IND-0000012999,IN,Mumbai,ZIMP,ZN45,True
+0000013003,Precision Instruments & Co,IND-0000013003,IN,Raipur,ZDOM,ZN60,True
+0000013005,Shree Fabricators,IND-0000013005,IN,Faridabad,ZDOM,ZN30,True
+0000013010,Perfect Steel Ltd,IND-0000013010,IN,Rajkot,ZSER,ZN45,True
+0000013016,Amar Traders,IND-0000013016,IN,Vadodara,ZDOM,ZN30,True
+0000013018,Northern Agencies & Sons,IND-0000013018,IN,Raipur,ZIMP,ZN45,True
+0000013022,Techno Industrial & Sons,IND-0000013022,IN,Mumbai,ZSER,ZN60,True
+0000013024,Bharat Engineering,GRP-003,IN,Bhilwara,ZDOM,ZN30,True
+0000013029,Perfect Alloys,IND-0000013029,IN,Coimbatore,ZDOM,ZN60,True
+0000013031,Vijay Enterprises & Co,IND-0000013031,IN,Bengaluru,ZSER,ZN30,False
+0000013035,Standard Hydraulics Industries,IND-0000013035,US,Chicago,ZIMP,ZN45,True
+0000013038,Indo Metals & Sons,IND-0000013038,IN,Indore,ZSER,ZN30,True
+0000013043,Indo Equipments,IND-0000013043,IN,Bhubaneswar,ZIMP,ZN45,True
+0000013047,Bharat Lubricants Pvt Ltd,GRP-003,IN,Cuttack,ZIMP,ZN30,True
+0000013048,Sai Traders,IND-0000013048,IN,Coimbatore,ZSER,ZN45,True
+0000013050,Precision Agencies & Sons,IND-0000013050,IN,Madurai,ZSER,ZN30,True
+0000013054,Western Chemicals India Pvt Ltd,IND-0000013054,IN,Vishakhapatnam,ZIMP,ZN30,True
+0000013057,Indo Marketing,IND-0000013057,IN,Howrah,ZDOM,ZN45,True
+0000013062,Precision Electricals,IND-0000013062,IN,Udaipur,ZDOM,ZN30,False
+0000013063,Laxmi Agencies,GRP-003,IN,Jaipur,ZDOM,ZN45,True
+0000013069,Prime Equipments & Sons,IND-0000013069,SE,Gothenburg,ZIMP,ZN45,True
+0000013071,Bharat Automation Ltd,IND-0000013071,IN,Ghaziabad,ZDOM,ZN60,True
+0000013074,Eastern Chemicals Corporation,IND-0000013074,DE,Hamburg,ZIMP,ZN30,True
+0000013078,New Engineering,IND-0000013078,IN,Korba,ZDOM,ZN30,True
+0000013079,Balaji Traders Corporation,IND-0000013079,IN,Surat,ZDOM,ZN45,True
+0000013082,Amar Agencies,IND-0000013082,IN,Bharuch,ZIMP,ZN45,True
+0000013084,Laxmi Instruments India Pvt Ltd,IND-0000013084,IN,Bharuch,ZDOM,ZN30,True
+0000013086,Southern Packaging & Co,GRP-004,IN,Pune,ZDOM,ZN45,True
+0000013091,Indo Fabricators & Co,IND-0000013091,IN,Vadodara,ZDOM,ZN45,True
+0000013094,Prime Automation Pvt Ltd,IND-0000013094,IN,Bharuch,ZDOM,ZN60,True
+0000013100,Western Bearings,IND-0000013100,IN,Jaipur,ZIMP,ZN90,True
+0000013101,Ganga Minerals Pvt Ltd,IND-0000013101,JP,Osaka,ZIMP,ZN45,False
+0000013107,Krishna Refractories & Sons,IND-0000013107,SE,Gothenburg,ZIMP,ZN60,True
+0000013109,Northern Corporation Corporation,IND-0000013109,IN,Howrah,ZDOM,ZN30,True
+0000013115,United Traders & Sons,IND-0000013115,IN,Bhilai,ZIMP,ZN90,True
+0000013120,Modern Hydraulics Pvt Ltd,IND-0000013120,IN,Tuticorin,ZDOM,ZN60,True
+0000013121,Techno Refractories & Co,IND-0000013121,IN,Cuttack,ZDOM,ZN45,True
+0000013127,Ashok Steel,IND-0000013127,IN,Chennai,ZDOM,ZN30,True
+0000013131,Deccan Packaging Industries,GRP-004,IN,Kolkata,ZDOM,ZN30,True
+0000013135,Bharat Electricals Ltd,IND-0000013135,IN,Vadodara,ZDOM,ZN30,True
+0000013137,Hindustan Enterprises,IND-0000013137,IN,Ghaziabad,ZSER,ZN60,True
+0000013140,Bharat Automation,IND-0000013140,IN,Kanpur,ZDOM,ZN90,False
+0000013142,Reliable Engineering,IND-0000013142,IN,Korba,ZSER,ZN60,True
+0000013144,Ashok Automation,IND-0000013144,IN,Ahmedabad,ZDOM,ZN45,True
+0000013149,Universal Lubricants Industries,IND-0000013149,CN,Shanghai,ZIMP,ZN30,True
+0000013151,Om Electricals,IND-0000013151,IN,Bhilai,ZDOM,ZN60,True
+0000013156,Laxmi Polymers,IND-0000013156,IN,Vadodara,ZDOM,ZN90,True
+0000013160,Precision Steel & Co,IND-0000013160,IN,Kolkata,ZDOM,ZN30,True
+0000013164,Sai Instruments & Co,IND-0000013164,IN,Chennai,ZSER,ZN30,True
+0000013165,Eastern Hydraulics Corporation,IND-0000013165,IN,Faridabad,ZSER,ZN30,True
+0000013171,Reliable Refractories India Pvt Ltd,IND-0000013171,IN,Ahmedabad,ZDOM,ZN30,True
+0000013175,Om Traders & Co,IND-0000013175,IN,Raipur,ZSER,ZN30,True
+0000013179,National Electricals India Pvt Ltd,IND-0000013179,IN,Bharuch,ZIMP,ZN45,True
+0000013181,Hindustan Refractories,IND-0000013181,IN,Coimbatore,ZIMP,ZN30,True
+0000013183,Eastern Minerals,GRP-004,IN,Ranchi,ZDOM,ZN45,True
+0000013186,Maa Bearings,GRP-004,IN,Ankleshwar,ZDOM,ZN30,True
+0000013188,Vijay Safety,GRP-004,IN,Howrah,ZDOM,ZN45,True
+0000013189,Deccan Corporation India Pvt Ltd,IND-0000013189,IN,Kolkata,ZSER,ZN45,True
+0000013195,Deccan Metals Pvt Ltd,IND-0000013195,IN,Bharuch,ZDOM,ZN45,True
+0000013200,National Chemicals,IND-0000013200,IN,Ludhiana,ZDOM,ZN60,True
+0000013204,Modern Steel Ltd,IND-0000013204,IN,Surat,ZDOM,ZN45,True
+0000013209,Ganesh Chemicals Industries,IND-0000013209,IN,Hyderabad,ZDOM,ZN30,True
+0000013210,Western Traders Pvt Ltd,IND-0000013210,IN,Korba,ZDOM,ZN60,True
+0000013211,Indo Bearings Ltd,IND-0000013211,IN,Coimbatore,ZIMP,ZN45,True
+0000013213,Ganesh Agencies Ltd,IND-0000013213,IN,Bengaluru,ZDOM,ZN45,True
+0000013219,Maa Minerals India Pvt Ltd,IND-0000013219,IN,Faridabad,ZIMP,ZN60,True
+0000013223,Vijay Automation Industries,IND-0000013223,IN,Kanpur,ZSER,ZN30,False
+0000013227,Precision Electricals India Pvt Ltd,IND-0000013227,IN,Howrah,ZDOM,ZN30,True
+0000013233,Sai Packaging,IND-0000013233,IN,Ahmedabad,ZSER,ZN30,True
+0000013239,Southern Fabricators & Co,GRP-004,IN,Coimbatore,ZSER,ZN30,True
+0000013241,Deccan Minerals Pvt Ltd,IND-0000013241,US,Houston,ZIMP,ZN45,True
+0000013247,Balaji Refractories Corporation,IND-0000013247,IN,Jodhpur,ZDOM,ZN45,True
+0000013250,Northern Bearings Corporation,IND-0000013250,IN,Jodhpur,ZSER,ZN30,True
+0000013253,Reliable Metals Ltd,IND-0000013253,IN,Rourkela,ZIMP,ZN45,True
+0000013259,Rajesh Metals Pvt Ltd,IND-0000013259,IN,Pune,ZDOM,ZN60,True
+0000013262,Bharat Fabricators,IND-0000013262,IN,Indore,ZDOM,ZN45,True
+0000013265,Perfect Bearings Corporation,IND-0000013265,IN,Nagpur,ZDOM,ZN60,True
+0000013271,Universal Agencies Ltd,IND-0000013271,IN,Surat,ZDOM,ZN60,True
+0000013273,Indo Traders Ltd,GRP-005,IN,Cuttack,ZDOM,ZN90,True
+0000013279,Indo Industrial Industries,IND-0000013279,IN,Jodhpur,ZDOM,ZN60,True
+0000013283,Sai Engineering Ltd,IND-0000013283,IN,Cuttack,ZIMP,ZN60,True
+0000013284,National Corporation,IND-0000013284,IN,Cuttack,ZDOM,ZN60,True
+0000013285,Sri Metals,IND-0000013285,IN,Madurai,ZIMP,ZN30,True
+0000013291,Eastern Instruments Industries,IND-0000013291,IN,Jodhpur,ZDOM,ZN90,True
+0000013296,Krishna Corporation,IND-0000013296,IN,Kota,ZDOM,ZN90,True
+0000013298,Techno Chemicals India Pvt Ltd,IND-0000013298,IN,Nagpur,ZDOM,ZN90,True
+0000013302,Eastern Corporation India Pvt Ltd,GRP-005,IN,Ghaziabad,ZDOM,ZN60,True
+0000013308,Prime Steel,GRP-005,IN,Jaipur,ZDOM,ZN30,True
+0000013312,Northern Systems Pvt Ltd,GRP-005,IN,Bhilwara,ZDOM,ZN60,False
+0000013318,Prime Marketing & Sons,IND-0000013318,IN,Ghaziabad,ZDOM,ZN60,True
+0000013324,Western Corporation Ltd,GRP-006,IN,Ranchi,ZIMP,ZN30,True
+0000013327,Amar Automation Pvt Ltd,IND-0000013327,IN,Korba,ZIMP,ZN45,True
+0000013330,Balaji Lubricants India Pvt Ltd,IND-0000013330,IN,Tuticorin,ZDOM,ZN90,True
+0000013335,Super Equipments Ltd,IND-0000013335,IN,Vadodara,ZDOM,ZN30,True
+0000013336,National Automation Industries,GRP-006,US,Chicago,ZIMP,ZN60,True
+0000013339,Amar Safety India Pvt Ltd,IND-0000013339,IN,Madurai,ZDOM,ZN45,True
+0000013342,Hindustan Packaging,IND-0000013342,IN,Chennai,ZDOM,ZN60,True
+0000013344,Global Fabricators,IND-0000013344,IN,Jaipur,ZDOM,ZN30,True
+0000013349,Western Fabricators,IND-0000013349,IN,Ludhiana,ZDOM,ZN30,True
+0000013353,Krishna Marketing & Sons,IND-0000013353,IN,Rourkela,ZDOM,ZN30,True
+0000013355,Sai Metals Pvt Ltd,IND-0000013355,IN,Kanpur,ZDOM,ZN45,True
+0000013360,Amar Minerals,IND-0000013360,IN,Korba,ZDOM,ZN60,True
+0000013364,Continental Alloys & Sons,IND-0000013364,IN,Bhilai,ZSER,ZN90,True
+0000013368,Southern Industrial & Co,GRP-006,IN,Indore,ZDOM,ZN60,False
+0000013373,United Lubricants,IND-0000013373,IN,Ankleshwar,ZSER,ZN30,True
+0000013375,Ganesh Bearings Corporation,IND-0000013375,IN,Kota,ZDOM,ZN60,True
+0000013378,Prime Bearings India Pvt Ltd,IND-0000013378,IN,Ankleshwar,ZDOM,ZN90,True
+0000013382,Ganga Polymers Corporation,IND-0000013382,IN,Ludhiana,ZSER,ZN45,True
+0000013384,Precision Lubricants,IND-0000013384,IN,Kota,ZSER,ZN60,True
+0000013385,Universal Automation,GRP-006,IN,Bhilwara,ZDOM,ZN45,True
+0000013390,Standard Agencies,IND-0000013390,IN,Ludhiana,ZDOM,ZN45,True
+0000013391,Techno Alloys Ltd,IND-0000013391,IN,Hyderabad,ZDOM,ZN30,True
+0000013395,Northern Corporation,IND-0000013395,SE,Gothenburg,ZIMP,ZN30,True
+0000013396,Standard Fabricators,IND-0000013396,IN,Bhilai,ZDOM,ZN30,True
+0000013401,Western Refractories,IND-0000013401,IN,Ludhiana,ZDOM,ZN60,True
+0000013403,Continental Refractories & Sons,IND-0000013403,IN,Madurai,ZDOM,ZN30,False
+0000013404,Hindustan Instruments,IND-0000013404,IN,Ludhiana,ZDOM,ZN60,True
+0000013405,Ashok Bearings Corporation,GRP-006,IN,Surat,ZDOM,ZN45,True
+0000013407,Balaji Fabricators,IND-0000013407,IN,Nagpur,ZSER,ZN30,True
+0000013409,Shree Safety,IND-0000013409,IN,Jamshedpur,ZIMP,ZN90,True
+0000013415,Sai Engineering,IND-0000013415,US,Chicago,ZIMP,ZN45,True
+0000013419,Rajesh Safety,IND-0000013419,IN,Raipur,ZDOM,ZN45,True
+0000013424,Modern Industrial & Co,IND-0000013424,IN,Vadodara,ZIMP,ZN30,True
+0000013428,Modern Hydraulics Ltd,IND-0000013428,IN,Vadodara,ZDOM,ZN30,True
+0000013434,Indo Rubber Corporation,IND-0000013434,IN,Rajkot,ZDOM,ZN30,True
+0000013440,Perfect Systems,IND-0000013440,DE,Hamburg,ZIMP,ZN30,True
+0000013441,Sri Fabricators,IND-0000013441,IN,Tuticorin,ZIMP,ZN45,True
+0000013444,Indo Traders,GRP-007,IN,Madurai,ZDOM,ZN30,True
+0000013447,Western Automation & Co,IND-0000013447,IN,Nagpur,ZDOM,ZN45,True
+0000013448,New Fabricators Ltd,IND-0000013448,IN,Hyderabad,ZDOM,ZN30,True
+0000013449,United Industrial Industries,IND-0000013449,IN,Faridabad,ZDOM,ZN45,True
+0000013452,Amar Lubricants,IND-0000013452,IN,Tuticorin,ZDOM,ZN30,True
+0000013456,Amar Marketing Pvt Ltd,IND-0000013456,IN,Udaipur,ZSER,ZN45,True
+0000013461,Maa Fabricators,IND-0000013461,IN,Ludhiana,ZDOM,ZN30,True
+0000013462,Techno Bearings Pvt Ltd,IND-0000013462,IN,Ankleshwar,ZDOM,ZN45,True
+0000013463,Modern Hydraulics,IND-0000013463,IN,Ankleshwar,ZDOM,ZN45,True
+0000013467,Perfect Refractories Corporation,IND-0000013467,IN,Madurai,ZDOM,ZN30,False
+0000013470,Precision Agencies,IND-0000013470,IN,Ghaziabad,ZDOM,ZN30,True
+0000013473,Ganga Chemicals,IND-0000013473,IN,Ludhiana,ZDOM,ZN45,True
+0000013474,Northern Systems Corporation,IND-0000013474,IN,Bengaluru,ZDOM,ZN60,True
+0000013476,Ashok Packaging Corporation,IND-0000013476,IN,Bengaluru,ZDOM,ZN30,True
+0000013481,Prime Industrial,IND-0000013481,IN,Ranchi,ZDOM,ZN30,False
+0000013487,Balaji Industrial Ltd,IND-0000013487,IN,Surat,ZDOM,ZN30,True
+0000013489,Global Instruments Pvt Ltd,IND-0000013489,IN,Ludhiana,ZDOM,ZN60,True
+0000013492,Amar Alloys,GRP-007,IN,Vadodara,ZDOM,ZN60,True
+0000013495,Ashok Corporation Pvt Ltd,IND-0000013495,IN,Bengaluru,ZIMP,ZN30,True
+0000013501,Sri Marketing,IND-0000013501,IN,Pune,ZDOM,ZN60,True
+0000013506,Perfect Packaging & Sons,GRP-007,IN,Ankleshwar,ZDOM,ZN30,True
+0000013507,Amar Fabricators Industries,IND-0000013507,IN,Madurai,ZSER,ZN45,True
+0000013511,United Instruments & Sons,IND-0000013511,IN,Pune,ZDOM,ZN60,True
+0000013516,Northern Metals Corporation,IND-0000013516,IN,Bharuch,ZSER,ZN30,True
+0000013520,Indo Minerals Pvt Ltd,GRP-007,IN,Bhilwara,ZSER,ZN60,False
+0000013523,Eastern Automation Pvt Ltd,IND-0000013523,IN,Bhubaneswar,ZDOM,ZN30,True
+0000013527,Universal Traders,IND-0000013527,IN,Udaipur,ZDOM,ZN45,True
+0000013531,Techno Alloys Corporation,IND-0000013531,IN,Korba,ZDOM,ZN90,True
+0000013537,Prime Alloys India Pvt Ltd,IND-0000013537,IN,Rajkot,ZSER,ZN45,True
+0000013540,Indo Instruments Pvt Ltd,IND-0000013540,IN,Tuticorin,ZDOM,ZN45,True
+0000013544,Om Marketing,IND-0000013544,IN,Raipur,ZSER,ZN30,True
+0000013550,Sai Engineering & Sons,IND-0000013550,IN,Faridabad,ZDOM,ZN30,True
+0000013552,Deccan Bearings & Co,IND-0000013552,IN,Bhilwara,ZDOM,ZN60,True
+0000013554,National Refractories,IND-0000013554,IN,Bhubaneswar,ZDOM,ZN30,True
+0000013560,Shree Enterprises Pvt Ltd,IND-0000013560,IN,Korba,ZDOM,ZN60,True
+0000013561,Om Minerals,IND-0000013561,IN,Tuticorin,ZDOM,ZN60,True
+0000013565,Northern Safety,IND-0000013565,US,Chicago,ZIMP,ZN45,True
+0000013567,Prime Alloys Ltd,IND-0000013567,IN,Bengaluru,ZDOM,ZN60,True
+0000013568,United Safety,IND-0000013568,IN,Jaipur,ZSER,ZN30,True
+0000013573,Vijay Industrial,IND-0000013573,IN,Pune,ZDOM,ZN90,True
+0000013575,New Alloys & Sons,IND-0000013575,IN,Kolkata,ZDOM,ZN45,True
+0000013578,Maa Industrial Ltd,IND-0000013578,IN,Coimbatore,ZDOM,ZN30,True
+0000013579,Sai Industrial Pvt Ltd,GRP-007,IN,Hyderabad,ZSER,ZN30,True
+0000013582,Bharat Traders India Pvt Ltd,IND-0000013582,IN,Bhilwara,ZDOM,ZN45,True
+0000013584,New Packaging,IND-0000013584,IN,Coimbatore,ZDOM,ZN30,True
+0000013588,Eastern Safety Pvt Ltd,IND-0000013588,IN,Ahmedabad,ZDOM,ZN30,True
+0000013593,New Refractories,IND-0000013593,IN,Ahmedabad,ZDOM,ZN30,True
+0000013594,Laxmi Industrial,IND-0000013594,IN,Kota,ZDOM,ZN30,True
+0000013598,Continental Enterprises,IND-0000013598,DE,Munich,ZIMP,ZN45,True
+0000013604,Reliable Bearings & Sons,IND-0000013604,IN,Ahmedabad,ZDOM,ZN30,True
+0000013610,Bharat Instruments & Sons,IND-0000013610,IN,Faridabad,ZSER,ZN60,True
+0000013615,Shree Steel,GRP-008,IN,Rourkela,ZDOM,ZN30,True
+0000013620,Southern Alloys Industries,IND-0000013620,AU,Perth,ZIMP,ZN30,True
+0000013622,Eastern Traders India Pvt Ltd,IND-0000013622,IN,Ankleshwar,ZDOM,ZN60,True
+0000013626,Balaji Automation & Sons,IND-0000013626,IN,Ghaziabad,ZDOM,ZN30,True
+0000013630,Bharat Automation & Co,IND-0000013630,IN,Bhilai,ZDOM,ZN30,True
+0000013631,Ganesh Marketing Ltd,IND-0000013631,AU,Perth,ZIMP,ZN60,True
+0000013637,Deccan Engineering,IND-0000013637,IN,Tuticorin,ZIMP,ZN45,True
+0000013642,Modern Agencies India Pvt Ltd,IND-0000013642,IN,Indore,ZDOM,ZN60,True
+0000013645,Prime Systems Pvt Ltd,GRP-008,IN,Nagpur,ZDOM,ZN45,True
+0000013646,Ganga Agencies,IND-0000013646,IN,Ludhiana,ZIMP,ZN45,True
+0000013650,New Metals,IND-0000013650,IN,Hyderabad,ZDOM,ZN45,True
+0000013654,Bharat Refractories Industries,IND-0000013654,IN,Indore,ZIMP,ZN45,True
+0000013659,Reliable Automation & Co,IND-0000013659,IN,Kolkata,ZIMP,ZN30,True
+0000013660,Amar Lubricants Ltd,IND-0000013660,IN,Vadodara,ZDOM,ZN30,True
+0000013666,Northern Enterprises,IND-0000013666,IN,Faridabad,ZIMP,ZN90,True
+0000013668,Ganga Automation India Pvt Ltd,IND-0000013668,IN,Pune,ZSER,ZN60,True
+0000013670,Modern Safety Ltd,IND-0000013670,JP,Osaka,ZIMP,ZN90,True
+0000013671,Krishna Polymers Ltd,IND-0000013671,IN,Ranchi,ZDOM,ZN30,True
+0000013672,Hindustan Lubricants Ltd,IND-0000013672,IN,Mumbai,ZDOM,ZN45,True
+0000013677,Modern Refractories,IND-0000013677,IN,Cuttack,ZDOM,ZN60,True
+0000013681,Eastern Industrial,IND-0000013681,IN,Cuttack,ZDOM,ZN45,True
+0000013682,Balaji Automation Pvt Ltd,IND-0000013682,DE,Hamburg,ZIMP,ZN30,True
+0000013685,Reliable Fabricators Ltd,GRP-008,IN,Madurai,ZSER,ZN30,True
+0000013687,Global Steel,IND-0000013687,IN,Howrah,ZSER,ZN30,True
+0000013689,Balaji Rubber,IND-0000013689,CN,Shanghai,ZIMP,ZN60,True
+0000013694,Rajesh Enterprises,IND-0000013694,IN,Bhubaneswar,ZDOM,ZN90,False
+0000013698,Reliable Electricals,IND-0000013698,IN,Rourkela,ZIMP,ZN45,True
+0000013704,Super Metals Industries,IND-0000013704,IN,Rajkot,ZDOM,ZN30,True
+0000013706,United Enterprises,IND-0000013706,IN,Jaipur,ZDOM,ZN60,True
+0000013709,Super Systems Pvt Ltd,GRP-008,IN,Coimbatore,ZSER,ZN90,True
+0000013712,Ashok Marketing Pvt Ltd,IND-0000013712,IN,Ghaziabad,ZDOM,ZN45,True
+0000013713,Prime Refractories Industries,IND-0000013713,IN,Pune,ZSER,ZN60,True
+0000013714,Northern Metals,IND-0000013714,IN,Howrah,ZSER,ZN60,True
+0000013717,United Polymers & Co,IND-0000013717,IN,Jodhpur,ZDOM,ZN30,True
+0000013720,Continental Electricals India Pvt Ltd,IND-0000013720,IN,Bhubaneswar,ZSER,ZN45,True
+0000013724,Ashok Safety,IND-0000013724,IN,Jaipur,ZDOM,ZN45,True
+0000013726,Amar Corporation,IND-0000013726,IN,Kota,ZIMP,ZN60,True
+0000013728,Bharat Polymers & Sons,IND-0000013728,IN,Kanpur,ZIMP,ZN30,True
+0000013729,Perfect Agencies,IND-0000013729,IN,Bengaluru,ZDOM,ZN60,True
+0000013732,Precision Electricals & Sons,IND-0000013732,IN,Ghaziabad,ZDOM,ZN45,True
+0000013734,Ashok Marketing India Pvt Ltd,IND-0000013734,IN,Jamshedpur,ZIMP,ZN60,True
+0000013739,Super Chemicals,IND-0000013739,IN,Raipur,ZIMP,ZN30,True
+0000013741,Reliable Bearings,IND-0000013741,IN,Faridabad,ZSER,ZN30,True
+0000013747,Perfect Minerals,IND-0000013747,SE,Gothenburg,ZIMP,ZN45,True
+0000013753,Ashok Automation Corporation,IND-0000013753,IN,Rourkela,ZDOM,ZN30,True
+0000013758,Balaji Traders,IND-0000013758,IN,Bharuch,ZDOM,ZN30,True
+0000013762,Standard Electricals Corporation,IND-0000013762,SE,Gothenburg,ZIMP,ZN30,True
+0000013767,Rajesh Alloys Pvt Ltd,IND-0000013767,IN,Udaipur,ZIMP,ZN60,False
+0000013772,Western Steel Industries,GRP-009,IN,Kota,ZDOM,ZN45,True
+0000013774,New Automation,IND-0000013774,IN,Ankleshwar,ZIMP,ZN30,True
+0000013776,Universal Lubricants Pvt Ltd,IND-0000013776,IN,Hyderabad,ZDOM,ZN60,True
+0000013777,Vijay Hydraulics,IND-0000013777,IN,Ahmedabad,ZIMP,ZN45,True
+0000013780,Southern Alloys India Pvt Ltd,IND-0000013780,IN,Raipur,ZDOM,ZN45,True
+0000013786,Sri Instruments,IND-0000013786,IN,Coimbatore,ZDOM,ZN45,True
+0000013789,National Enterprises India Pvt Ltd,IND-0000013789,IN,Howrah,ZDOM,ZN30,True
+0000013791,Precision Polymers,IND-0000013791,IN,Bhilai,ZSER,ZN30,True
+0000013793,Western Rubber & Sons,IND-0000013793,IN,Ankleshwar,ZDOM,ZN60,True
+0000013798,Maa Instruments Pvt Ltd,IND-0000013798,IN,Bhubaneswar,ZDOM,ZN30,True
+0000013803,Bharat Hydraulics,IND-0000013803,IN,Indore,ZDOM,ZN30,False
+0000013806,Indo Fabricators,IND-0000013806,IN,Rourkela,ZDOM,ZN30,True
+0000013810,Amar Marketing Ltd,IND-0000013810,IN,Pune,ZSER,ZN60,True
+0000013812,Precision Equipments,IND-0000013812,IN,Tuticorin,ZDOM,ZN45,True
+0000013817,Reliable Agencies Industries,GRP-009,IN,Jamshedpur,ZDOM,ZN45,True
+0000013822,Southern Engineering,IND-0000013822,IN,Jaipur,ZDOM,ZN30,True
+0000013824,Precision Packaging Ltd,GRP-009,IN,Kanpur,ZDOM,ZN45,True
+0000013829,Global Polymers & Co,IND-0000013829,IN,Jaipur,ZDOM,ZN45,True
+0000013831,Ganesh Rubber Pvt Ltd,IND-0000013831,SE,Gothenburg,ZIMP,ZN30,True
+0000013832,Indo Alloys & Sons,GRP-009,IN,Rajkot,ZDOM,ZN30,True
+0000013834,Global Equipments & Sons,IND-0000013834,IN,Ranchi,ZDOM,ZN30,True
+0000013840,Techno Rubber,GRP-010,IN,Madurai,ZDOM,ZN30,True
+0000013844,Deccan Traders,GRP-010,IN,Madurai,ZDOM,ZN30,True
+0000013847,Ganga Instruments,IND-0000013847,IN,Bhilai,ZSER,ZN45,True
+0000013848,Western Traders & Sons,IND-0000013848,IN,Jamshedpur,ZDOM,ZN30,True
+0000013854,Western Industrial Pvt Ltd,IND-0000013854,IN,Pune,ZSER,ZN30,True
+0000013859,Northern Equipments Industries,IND-0000013859,IN,Ghaziabad,ZDOM,ZN45,True
+0000013865,Shree Metals,IND-0000013865,IN,Korba,ZDOM,ZN30,True
+0000013867,Global Industrial,IND-0000013867,IN,Rajkot,ZIMP,ZN30,True
+0000013873,Vijay Equipments & Co,IND-0000013873,IN,Kolkata,ZDOM,ZN30,True
+0000013878,Vijay Enterprises Pvt Ltd,IND-0000013878,IN,Bengaluru,ZSER,ZN45,True
+0000013880,Northern Bearings,IND-0000013880,IN,Nagpur,ZDOM,ZN30,True
+0000013883,Balaji Packaging,IND-0000013883,IN,Ghaziabad,ZDOM,ZN60,True
+0000013888,New Equipments Pvt Ltd,IND-0000013888,IN,Vishakhapatnam,ZDOM,ZN30,True
+0000013894,Amar Metals Corporation,IND-0000013894,IN,Nagpur,ZIMP,ZN45,True
+0000013898,Bharat Marketing,IND-0000013898,IN,Rajkot,ZSER,ZN45,True
+0000013899,New Packaging India Pvt Ltd,IND-0000013899,IN,Ahmedabad,ZIMP,ZN30,True
+0000013901,Precision Safety Corporation,IND-0000013901,IN,Kota,ZIMP,ZN90,True
+0000013906,Hindustan Chemicals Industries,IND-0000013906,IN,Kanpur,ZDOM,ZN45,True
+0000013909,Shree Instruments & Sons,IND-0000013909,IN,Nagpur,ZSER,ZN30,True
+0000013914,Techno Safety India Pvt Ltd,IND-0000013914,IN,Nagpur,ZDOM,ZN30,True
+0000013920,Precision Fabricators,IND-0000013920,IN,Faridabad,ZIMP,ZN90,True
+0000013922,Ganga Industrial,IND-0000013922,IN,Raipur,ZDOM,ZN45,True
+0000013927,Bharat Equipments India Pvt Ltd,IND-0000013927,IN,Tuticorin,ZDOM,ZN30,True
+0000013929,Maa Fabricators & Sons,IND-0000013929,IN,Faridabad,ZDOM,ZN60,True
+0000013935,Southern Corporation Ltd,IND-0000013935,IN,Mumbai,ZDOM,ZN30,True
+0000013937,Amar Equipments Industries,IND-0000013937,IN,Chennai,ZDOM,ZN90,True
+0000013941,Sai Traders & Sons,IND-0000013941,IN,Indore,ZSER,ZN30,True
+0000013945,Bharat Equipments,IND-0000013945,IN,Udaipur,ZSER,ZN60,True
+0000013946,Super Steel & Co,IND-0000013946,IN,Bhilai,ZDOM,ZN45,True
+0000013951,United Metals Ltd,IND-0000013951,IN,Nagpur,ZDOM,ZN30,True
+0000013956,Krishna Equipments Ltd,IND-0000013956,IN,Bhilwara,ZDOM,ZN45,True
+0000013957,Vijay Packaging,IND-0000013957,IN,Jodhpur,ZDOM,ZN60,True
+0000013958,Ganesh Engineering & Co,IND-0000013958,US,Chicago,ZIMP,ZN30,True
+0000013959,United Hydraulics & Co,IND-0000013959,IN,Ahmedabad,ZDOM,ZN45,True
+0000013960,Universal Engineering Pvt Ltd,IND-0000013960,IN,Ghaziabad,ZDOM,ZN90,True
+0000013965,Sri Safety,IND-0000013965,IN,Ankleshwar,ZDOM,ZN45,True
+0000013966,Laxmi Instruments,IND-0000013966,US,Houston,ZIMP,ZN45,True
+0000013970,National Hydraulics India Pvt Ltd,IND-0000013970,IN,Ankleshwar,ZDOM,ZN45,True
+0000013971,Continental Industrial Pvt Ltd,IND-0000013971,IN,Coimbatore,ZDOM,ZN60,True
+0000013972,Southern Industrial & Sons,IND-0000013972,IN,Nagpur,ZDOM,ZN45,True
+0000013977,New Electricals,IND-0000013977,IN,Rourkela,ZDOM,ZN90,True
+0000013983,Amar Enterprises Pvt Ltd,IND-0000013983,IN,Jamshedpur,ZDOM,ZN30,True
+0000013987,Techno Instruments Industries,IND-0000013987,IN,Ludhiana,ZIMP,ZN30,False
+0000013992,Balaji Steel India Pvt Ltd,IND-0000013992,IN,Ahmedabad,ZDOM,ZN60,True
+0000013995,Universal Fabricators Pvt Ltd,IND-0000013995,IN,Jaipur,ZDOM,ZN30,True
+0000013999,Modern Bearings & Co,IND-0000013999,IN,Kolkata,ZDOM,ZN60,True
+0000014004,Om Electricals Ltd,IND-0000014004,IN,Vadodara,ZDOM,ZN60,True
+0000014009,Western Minerals & Sons,IND-0000014009,IN,Jamshedpur,ZDOM,ZN60,True
+0000014014,Shree Enterprises,IND-0000014014,IN,Bhilwara,ZDOM,ZN30,True
+0000014020,Techno Marketing,GRP-010,IN,Ludhiana,ZDOM,ZN30,True
+0000014022,Universal Systems Pvt Ltd,IND-0000014022,IN,Bhubaneswar,ZDOM,ZN30,True
+0000014024,Indo Enterprises Pvt Ltd,IND-0000014024,US,Chicago,ZIMP,ZN45,True
+0000014025,Precision Chemicals,IND-0000014025,IN,Kanpur,ZDOM,ZN45,True
+0000014027,Modern Systems Pvt Ltd,IND-0000014027,IN,Howrah,ZIMP,ZN90,True
+0000014028,Techno Alloys Pvt Ltd,IND-0000014028,IN,Madurai,ZDOM,ZN30,True
+0000014030,Western Electricals,IND-0000014030,IN,Ahmedabad,ZSER,ZN30,True
+0000014032,Laxmi Alloys Corporation,IND-0000014032,IN,Vishakhapatnam,ZDOM,ZN60,True
+0000014035,Sai Enterprises Industries,GRP-010,IN,Jaipur,ZDOM,ZN30,True
+0000014038,Maa Bearings Ltd,IND-0000014038,DE,Munich,ZIMP,ZN45,True
+0000014041,Eastern Marketing Industries,IND-0000014041,IN,Bengaluru,ZDOM,ZN30,True
+0000014044,Om Corporation Corporation,IND-0000014044,IN,Bhilai,ZDOM,ZN30,False
+0000014045,Continental Electricals & Sons,IND-0000014045,IN,Jaipur,ZDOM,ZN45,True
+0000014051,Om Instruments India Pvt Ltd,IND-0000014051,IN,Bhilwara,ZDOM,ZN45,True
+0000014053,Standard Automation,IND-0000014053,IN,Faridabad,ZSER,ZN30,True
+0000014054,Shree Automation,IND-0000014054,IN,Cuttack,ZSER,ZN30,True
+0000014057,Northern Electricals India Pvt Ltd,GRP-011,IN,Raipur,ZDOM,ZN90,True
+0000014058,Rajesh Hydraulics Corporation,IND-0000014058,IN,Udaipur,ZDOM,ZN30,True
+0000014061,Eastern Metals & Sons,IND-0000014061,JP,Osaka,ZIMP,ZN60,True
+0000014067,Indo Safety,IND-0000014067,IN,Faridabad,ZDOM,ZN30,True
+0000014068,Super Rubber,IND-0000014068,CN,Shanghai,ZIMP,ZN60,False
+0000014070,Sai Steel India Pvt Ltd,IND-0000014070,IN,Kota,ZDOM,ZN30,True
+0000014075,Standard Metals Ltd,IND-0000014075,IN,Surat,ZSER,ZN90,True
+0000014079,Northern Lubricants & Co,IND-0000014079,US,Houston,ZIMP,ZN30,True
+0000014081,Om Chemicals,IND-0000014081,IN,Udaipur,ZDOM,ZN30,True
+0000014086,Sri Packaging India Pvt Ltd,IND-0000014086,IN,Hyderabad,ZIMP,ZN30,True
+0000014087,Amar Industrial,IND-0000014087,IN,Kota,ZSER,ZN45,True
+0000014088,Super Marketing,IND-0000014088,DE,Hamburg,ZIMP,ZN45,True
+0000014093,Modern Automation & Sons,IND-0000014093,IN,Chennai,ZDOM,ZN45,True
+0000014098,Universal Minerals Ltd,IND-0000014098,IN,Kanpur,ZSER,ZN60,True
+0000014101,Ashok Equipments,IND-0000014101,IN,Ranchi,ZIMP,ZN30,True
+0000014106,Shree Automation India Pvt Ltd,IND-0000014106,IN,Ankleshwar,ZSER,ZN60,True
+0000014111,Vijay Polymers & Co,IND-0000014111,IN,Hyderabad,ZSER,ZN45,True
+0000014112,Continental Instruments India Pvt Ltd,IND-0000014112,IN,Vishakhapatnam,ZIMP,ZN90,True
+0000014113,Vijay Marketing,IND-0000014113,IN,Ankleshwar,ZSER,ZN30,True
+0000014118,Eastern Lubricants & Sons,IND-0000014118,IN,Hyderabad,ZSER,ZN30,True
+0000014124,Techno Industrial Pvt Ltd,IND-0000014124,CN,Shanghai,ZIMP,ZN60,True
+0000014125,Southern Bearings,IND-0000014125,IN,Korba,ZDOM,ZN45,True
+0000014127,Global Polymers,IND-0000014127,IN,Rajkot,ZDOM,ZN30,True
+0000014130,Sri Corporation & Sons,IND-0000014130,IN,Raipur,ZDOM,ZN45,True
+0000014136,Eastern Refractories,IND-0000014136,IN,Bhubaneswar,ZSER,ZN60,True
+0000014138,Sai Agencies Industries,IND-0000014138,IN,Rourkela,ZDOM,ZN30,True
+0000014140,Standard Bearings,IND-0000014140,IN,Bhilwara,ZIMP,ZN30,True
+0000014144,Perfect Refractories,IND-0000014144,IN,Chennai,ZIMP,ZN30,True
+0000014149,Maa Alloys,IND-0000014149,IN,Chennai,ZIMP,ZN30,False
+0000014152,Global Minerals India Pvt Ltd,IND-0000014152,IN,Ankleshwar,ZSER,ZN30,True
+0000014154,Amar Automation Ltd,GRP-011,IN,Kanpur,ZDOM,ZN30,True
+0000014157,Shree Refractories,IND-0000014157,IN,Raipur,ZDOM,ZN45,True
+0000014160,Eastern Rubber Industries,IND-0000014160,IN,Nagpur,ZSER,ZN60,True
+0000014163,Om Refractories India Pvt Ltd,IND-0000014163,IN,Hyderabad,ZDOM,ZN30,True
+0000014167,Super Engineering,IND-0000014167,IN,Bhubaneswar,ZDOM,ZN30,True
+0000014171,National Metals & Sons,IND-0000014171,IN,Ranchi,ZDOM,ZN60,True
+0000014172,Hindustan Marketing & Co,IND-0000014172,IN,Udaipur,ZSER,ZN30,True
+0000014177,Vijay Systems,IND-0000014177,IN,Bhilwara,ZDOM,ZN30,True
+0000014183,Sai Instruments Pvt Ltd,IND-0000014183,IN,Ludhiana,ZDOM,ZN60,True
+0000014186,Northern Hydraulics,IND-0000014186,IN,Vadodara,ZDOM,ZN30,True
+0000014187,Prime Instruments India Pvt Ltd,IND-0000014187,IN,Surat,ZDOM,ZN30,True
+0000014191,Techno Fabricators India Pvt Ltd,IND-0000014191,IN,Surat,ZIMP,ZN30,True
+0000014192,Hindustan Lubricants India Pvt Ltd,IND-0000014192,IN,Surat,ZDOM,ZN30,True
+0000014194,Ashok Hydraulics,IND-0000014194,IN,Bhilai,ZIMP,ZN90,True
+0000014200,Perfect Corporation,IND-0000014200,IN,Tuticorin,ZIMP,ZN45,True
+0000014204,Rajesh Metals,IND-0000014204,IN,Jamshedpur,ZDOM,ZN90,True
+0000014208,Bharat Refractories India Pvt Ltd,IND-0000014208,IN,Korba,ZSER,ZN30,True
+0000014212,Rajesh Corporation & Sons,IND-0000014212,IN,Howrah,ZIMP,ZN30,True
+0000014217,Bharat Bearings,IND-0000014217,IN,Jamshedpur,ZDOM,ZN30,True
+0000014223,United Marketing & Co,IND-0000014223,IN,Surat,ZDOM,ZN30,True
+0000014226,United Systems & Co,IND-0000014226,IN,Jodhpur,ZSER,ZN30,False
+0000014229,Ganga Minerals,IND-0000014229,IN,Chennai,ZDOM,ZN45,True
+0000014232,Deccan Enterprises,IND-0000014232,IN,Chennai,ZDOM,ZN90,True
+0000014235,Prime Automation,IND-0000014235,IN,Tuticorin,ZDOM,ZN90,True
+0000014241,Krishna Alloys Industries,IND-0000014241,IN,Ludhiana,ZDOM,ZN45,True
+0000014242,Laxmi Industrial Ltd,IND-0000014242,IN,Howrah,ZDOM,ZN30,True
+0000014246,Sri Agencies,IND-0000014246,US,Houston,ZIMP,ZN45,True
+0000014248,Om Electricals Industries,IND-0000014248,IN,Chennai,ZDOM,ZN30,True
+0000014251,Krishna Rubber,IND-0000014251,IN,Nagpur,ZIMP,ZN45,False
+0000014256,Western Traders,IND-0000014256,IN,Faridabad,ZDOM,ZN45,True
+0000014258,Perfect Steel & Co,IND-0000014258,IN,Chennai,ZDOM,ZN45,False
+0000014263,Om Rubber,IND-0000014263,IN,Chennai,ZDOM,ZN45,True
+0000014269,Eastern Bearings & Sons,IND-0000014269,IN,Jamshedpur,ZDOM,ZN30,True
+0000014272,Southern Chemicals Industries,IND-0000014272,IN,Kanpur,ZDOM,ZN60,True
+0000014273,Om Packaging Ltd,IND-0000014273,CN,Shanghai,ZIMP,ZN30,True
+0000014279,Deccan Traders & Co,IND-0000014279,IN,Nagpur,ZDOM,ZN30,True
+0000014283,United Minerals Industries,IND-0000014283,IN,Ankleshwar,ZDOM,ZN60,True
+0000014286,Sri Enterprises,IND-0000014286,IN,Madurai,ZSER,ZN30,True
+0000014292,Eastern Metals,IND-0000014292,IN,Howrah,ZDOM,ZN30,True
+0000014298,Universal Marketing,IND-0000014298,IN,Ranchi,ZDOM,ZN45,True
+0000014303,Balaji Automation,IND-0000014303,IN,Surat,ZSER,ZN45,True
+0000014307,Reliable Agencies & Co,IND-0000014307,IN,Kota,ZDOM,ZN45,True
+0000014312,Universal Alloys,IND-0000014312,IN,Kanpur,ZSER,ZN30,True
+0000014314,New Refractories Industries,IND-0000014314,IN,Ranchi,ZDOM,ZN45,False
+0000014318,Indo Steel India Pvt Ltd,IND-0000014318,IN,Ahmedabad,ZDOM,ZN30,True
+0000014324,Balaji Agencies,IND-0000014324,IN,Indore,ZDOM,ZN30,True
+0000014330,Prime Minerals,IND-0000014330,IN,Madurai,ZDOM,ZN60,True
+0000014331,Krishna Enterprises & Co,IND-0000014331,IN,Bhubaneswar,ZSER,ZN30,True
+0000014333,Prime Fabricators & Sons,IND-0000014333,IN,Vadodara,ZDOM,ZN45,True
+0000014337,Ashok Equipments India Pvt Ltd,IND-0000014337,IN,Bharuch,ZDOM,ZN30,True
+0000014339,Ganga Instruments & Sons,IND-0000014339,IN,Bharuch,ZDOM,ZN30,True
+0000014341,Maa Lubricants,GRP-011,IN,Ahmedabad,ZDOM,ZN90,True
+0000014346,Hindustan Industrial Industries,IND-0000014346,IN,Ahmedabad,ZDOM,ZN30,True
+0000014349,Prime Polymers Ltd,IND-0000014349,IN,Udaipur,ZSER,ZN30,True
+0000014354,Super Bearings Ltd,IND-0000014354,IN,Nagpur,ZDOM,ZN30,True
+0000014360,Indo Lubricants,GRP-011,IN,Raipur,ZDOM,ZN30,True
+0000014361,Vijay Bearings,GRP-011,IN,Kanpur,ZIMP,ZN45,True
+0000014367,Balaji Traders India Pvt Ltd,IND-0000014367,IN,Ghaziabad,ZDOM,ZN60,True
+0000014369,Standard Safety,IND-0000014369,IN,Bengaluru,ZIMP,ZN45,True
+0000014370,Indo Enterprises,IND-0000014370,IN,Ludhiana,ZDOM,ZN45,True
+0000014375,Super Traders,IND-0000014375,IN,Raipur,ZIMP,ZN90,True
+0000014378,Southern Traders Industries,IND-0000014378,IN,Kolkata,ZDOM,ZN45,True
+0000014384,Southern Polymers Pvt Ltd,IND-0000014384,IN,Indore,ZDOM,ZN45,True
+0000014385,United Agencies & Co,GRP-011,IN,Ahmedabad,ZDOM,ZN60,True
+0000014388,Shree Rubber India Pvt Ltd,IND-0000014388,IN,Ranchi,ZDOM,ZN30,True
+0000014390,Universal Equipments & Co,IND-0000014390,IN,Kanpur,ZDOM,ZN45,True
+0000014394,Standard Electricals & Co,IND-0000014394,IN,Bengaluru,ZDOM,ZN30,True
+0000014400,Vijay Alloys,IND-0000014400,IN,Bhubaneswar,ZDOM,ZN60,True
+0000014402,Indo Chemicals Corporation,IND-0000014402,IN,Bhilwara,ZDOM,ZN45,True
+0000014406,Standard Lubricants Pvt Ltd,IND-0000014406,IN,Chennai,ZDOM,ZN45,True
+0000014410,Rajesh Engineering & Co,IND-0000014410,IN,Cuttack,ZDOM,ZN45,False
+0000014411,Universal Corporation Pvt Ltd,GRP-012,IN,Jamshedpur,ZDOM,ZN30,True
+0000014415,Indo Enterprises India Pvt Ltd,GRP-012,IN,Kanpur,ZDOM,ZN45,True
+0000014418,Ashok Instruments & Co,IND-0000014418,IN,Ranchi,ZDOM,ZN30,True
+0000014424,Eastern Automation Corporation,GRP-012,IN,Raipur,ZDOM,ZN45,True
+0000014429,Ganga Fabricators,IND-0000014429,IN,Mumbai,ZDOM,ZN60,True
+0000014431,Prime Instruments,IND-0000014431,IN,Kota,ZDOM,ZN45,True
+0000014433,Prime Systems,IND-0000014433,IN,Vishakhapatnam,ZDOM,ZN60,True
+0000014439,Modern Systems & Co,IND-0000014439,US,Houston,ZIMP,ZN45,True
+0000014444,Eastern Enterprises Corporation,IND-0000014444,IN,Ankleshwar,ZDOM,ZN30,True
+0000014445,Hindustan Agencies & Sons,IND-0000014445,IN,Coimbatore,ZDOM,ZN30,True
+0000014448,Maa Packaging Ltd,IND-0000014448,IN,Ahmedabad,ZDOM,ZN45,True
+0000014454,Prime Systems Ltd,IND-0000014454,KR,Seoul,ZIMP,ZN60,True
+0000014460,Rajesh Lubricants & Sons,IND-0000014460,IN,Indore,ZDOM,ZN60,True
+0000014465,Reliable Fabricators,GRP-012,IN,Howrah,ZSER,ZN60,True
+0000014469,Eastern Polymers,IND-0000014469,IN,Kolkata,ZDOM,ZN30,True
+0000014471,Prime Traders Ltd,IND-0000014471,IN,Udaipur,ZDOM,ZN60,True
+0000014477,Amar Steel,IND-0000014477,IN,Pune,ZSER,ZN60,True
+0000014481,Western Corporation,IND-0000014481,IN,Coimbatore,ZDOM,ZN90,True
+0000014482,Om Engineering Corporation,IND-0000014482,IN,Coimbatore,ZDOM,ZN30,True
+0000014488,Prime Traders India Pvt Ltd,IND-0000014488,SE,Gothenburg,ZIMP,ZN60,True
+0000014494,Vijay Instruments Ltd,IND-0000014494,IN,Bengaluru,ZSER,ZN30,True
+0000014495,Perfect Agencies India Pvt Ltd,IND-0000014495,IN,Ghaziabad,ZDOM,ZN45,True
+0000014497,Rajesh Industrial & Co,IND-0000014497,IN,Korba,ZDOM,ZN30,True
+0000014501,Eastern Bearings,IND-0000014501,IN,Mumbai,ZIMP,ZN30,True
+0000014503,Laxmi Marketing,IND-0000014503,IN,Coimbatore,ZSER,ZN45,True
+0000014506,Bharat Refractories & Sons,IND-0000014506,AU,Perth,ZIMP,ZN60,True
+0000014508,Global Engineering Pvt Ltd,IND-0000014508,IN,Vadodara,ZSER,ZN30,False
+0000014514,Shree Traders Pvt Ltd,IND-0000014514,KR,Seoul,ZIMP,ZN60,True
+0000014516,Om Fabricators Industries,IND-0000014516,IN,Kolkata,ZDOM,ZN30,True
+0000014520,Sai Minerals India Pvt Ltd,IND-0000014520,IN,Pune,ZDOM,ZN60,True
+0000014523,Ganga Lubricants Industries,IND-0000014523,IN,Vadodara,ZSER,ZN45,True
+0000014526,Om Traders Pvt Ltd,IND-0000014526,IN,Nagpur,ZDOM,ZN45,True
+0000014527,Bharat Equipments Pvt Ltd,GRP-012,IN,Vishakhapatnam,ZSER,ZN30,True
+0000014529,Eastern Steel Industries,IND-0000014529,IN,Kolkata,ZSER,ZN45,True
+0000014534,Eastern Engineering & Co,IND-0000014534,IN,Udaipur,ZDOM,ZN30,True
+0000014537,Laxmi Marketing India Pvt Ltd,IND-0000014537,IN,Nagpur,ZIMP,ZN45,True
+0000014539,Reliable Marketing Ltd,IND-0000014539,IN,Howrah,ZSER,ZN30,True
+0000014541,Modern Automation & Co,IND-0000014541,IN,Nagpur,ZIMP,ZN45,True
+0000014542,Deccan Chemicals India Pvt Ltd,IND-0000014542,IN,Jamshedpur,ZDOM,ZN30,True
+0000014543,Modern Alloys,IND-0000014543,DE,Munich,ZIMP,ZN60,True
+0000014548,Reliable Bearings & Co,IND-0000014548,IN,Rourkela,ZIMP,ZN30,True
+0000014550,Vijay Refractories & Sons,IND-0000014550,IN,Bhilai,ZDOM,ZN45,True
+0000014555,Southern Rubber,IND-0000014555,IN,Mumbai,ZSER,ZN45,True
+0000014560,Ashok Metals India Pvt Ltd,IND-0000014560,IN,Nagpur,ZDOM,ZN30,True
+0000014563,United Chemicals,IND-0000014563,IN,Madurai,ZDOM,ZN30,True
+0000014567,Continental Chemicals & Sons,IND-0000014567,IN,Mumbai,ZDOM,ZN60,True
+0000014570,Ashok Bearings,GRP-012,IN,Kolkata,ZIMP,ZN30,True
+0000014572,Techno Automation,IND-0000014572,IN,Rajkot,ZDOM,ZN90,True
+0000014573,Shree Systems,IND-0000014573,IN,Udaipur,ZDOM,ZN60,False
+0000014578,Shree Traders Industries,IND-0000014578,IN,Kolkata,ZDOM,ZN30,True
+0000014581,Southern Hydraulics Corporation,IND-0000014581,IN,Hyderabad,ZDOM,ZN30,True
+0000014585,Techno Bearings & Sons,IND-0000014585,IN,Kanpur,ZIMP,ZN60,True
+0000014588,Northern Lubricants India Pvt Ltd,IND-0000014588,IN,Pune,ZIMP,ZN45,True
+0000014592,New Chemicals Ltd,IND-0000014592,IN,Bhilwara,ZDOM,ZN90,True
+0000014593,Indo Systems Ltd,IND-0000014593,IN,Jamshedpur,ZSER,ZN45,False
+0000014596,Om Corporation,IND-0000014596,IN,Bhilai,ZIMP,ZN30,True
+0000014600,Om Metals & Sons,IND-0000014600,IN,Ankleshwar,ZDOM,ZN60,False
+0000014604,Northern Enterprises Corporation,IND-0000014604,IN,Vadodara,ZDOM,ZN30,True
+0000014610,Sai Systems India Pvt Ltd,IND-0000014610,IN,Indore,ZDOM,ZN60,True
+0000014615,Krishna Engineering,GRP-013,IN,Bhilai,ZIMP,ZN45,True
+0000014619,Continental Industrial Ltd,IND-0000014619,IN,Madurai,ZIMP,ZN90,True
+0000014621,Precision Rubber,IND-0000014621,IN,Indore,ZDOM,ZN90,True
+0000014624,Vijay Equipments Pvt Ltd,IND-0000014624,IN,Korba,ZSER,ZN60,True
+0000014630,Precision Electricals & Co,IND-0000014630,IN,Korba,ZDOM,ZN45,True
+0000014634,Ganesh Rubber,IND-0000014634,IN,Jamshedpur,ZSER,ZN30,True
+0000014636,Universal Bearings Ltd,IND-0000014636,IN,Tuticorin,ZDOM,ZN30,True
+0000014639,Sri Engineering India Pvt Ltd,IND-0000014639,IN,Bharuch,ZDOM,ZN30,True
+0000014640,Krishna Refractories Industries,IND-0000014640,IN,Mumbai,ZDOM,ZN45,True
+0000014642,National Packaging,IND-0000014642,IN,Kolkata,ZDOM,ZN60,True
+0000014645,United Metals Corporation,IND-0000014645,IN,Kolkata,ZDOM,ZN30,True
+0000014646,Perfect Hydraulics India Pvt Ltd,IND-0000014646,IN,Ghaziabad,ZDOM,ZN30,False
+0000014647,Ganga Industrial Pvt Ltd,IND-0000014647,IN,Pune,ZDOM,ZN30,True
+0000014652,Prime Marketing,GRP-013,SE,Gothenburg,ZIMP,ZN90,True
+0000014653,Ganesh Safety Industries,IND-0000014653,IN,Kota,ZSER,ZN60,True
+0000014655,Krishna Agencies & Sons,GRP-013,IN,Faridabad,ZDOM,ZN60,True
+0000014661,Indo Traders Industries,IND-0000014661,IN,Kanpur,ZDOM,ZN45,True
+0000014662,Laxmi Bearings,IND-0000014662,IN,Kolkata,ZDOM,ZN45,True
+0000014666,Southern Chemicals Ltd,GRP-013,IN,Kanpur,ZDOM,ZN45,True
+0000014672,Ganesh Alloys,IND-0000014672,JP,Osaka,ZIMP,ZN30,True
+0000014677,National Alloys Corporation,IND-0000014677,IN,Ghaziabad,ZSER,ZN60,True
+0000014683,National Steel India Pvt Ltd,IND-0000014683,DE,Hamburg,ZIMP,ZN30,True
+0000014686,Hindustan Industrial India Pvt Ltd,GRP-013,DE,Munich,ZIMP,ZN60,True
+0000014690,Western Equipments,IND-0000014690,IN,Jodhpur,ZDOM,ZN45,True
+0000014693,Maa Alloys & Sons,IND-0000014693,IN,Ghaziabad,ZSER,ZN90,True
+0000014694,New Electricals & Sons,IND-0000014694,IN,Kanpur,ZDOM,ZN45,True
+0000014699,Precision Minerals Pvt Ltd,IND-0000014699,US,Chicago,ZIMP,ZN45,True
+0000014704,Ganga Lubricants,GRP-013,IN,Udaipur,ZDOM,ZN45,True
+0000014710,Prime Traders,IND-0000014710,IN,Madurai,ZIMP,ZN45,False
+0000014715,Continental Packaging,IND-0000014715,IN,Udaipur,ZDOM,ZN45,True
+0000014721,Precision Systems,IND-0000014721,DE,Hamburg,ZIMP,ZN45,True
+0000014726,Northern Equipments India Pvt Ltd,IND-0000014726,IN,Ghaziabad,ZDOM,ZN90,True
+0000014727,Techno Electricals & Co,IND-0000014727,IN,Mumbai,ZDOM,ZN30,True
+0000014732,Perfect Metals Ltd,IND-0000014732,IN,Ankleshwar,ZDOM,ZN60,True
+0000014734,Southern Marketing India Pvt Ltd,IND-0000014734,IN,Bhubaneswar,ZDOM,ZN30,False
+0000014739,United Fabricators & Co,IND-0000014739,IN,Coimbatore,ZSER,ZN45,True
+0000014740,Standard Traders,GRP-014,IN,Kota,ZDOM,ZN30,True
+0000014741,National Minerals India Pvt Ltd,GRP-014,IN,Coimbatore,ZDOM,ZN30,True
+0000014745,Ganesh Refractories Pvt Ltd,IND-0000014745,IN,Rajkot,ZDOM,ZN30,True
+0000014751,Eastern Safety India Pvt Ltd,IND-0000014751,IN,Cuttack,ZDOM,ZN45,True
+0000014755,Reliable Instruments Ltd,GRP-014,IN,Bhilwara,ZDOM,ZN45,True
+0000014760,Continental Fabricators India Pvt Ltd,IND-0000014760,IN,Tuticorin,ZDOM,ZN45,True
+0000014765,Om Safety & Sons,IND-0000014765,IN,Cuttack,ZIMP,ZN30,True
+0000014766,Eastern Traders,GRP-014,IN,Korba,ZSER,ZN30,True
+0000014768,Om Alloys,IND-0000014768,IN,Kolkata,ZSER,ZN60,True
+0000014772,Ganga Agencies India Pvt Ltd,IND-0000014772,IN,Vadodara,ZDOM,ZN45,True
+0000014778,Continental Chemicals,IND-0000014778,IN,Raipur,ZDOM,ZN45,True
+0000014780,Deccan Corporation,IND-0000014780,IN,Howrah,ZDOM,ZN45,True
+0000014783,Sri Rubber Corporation,IND-0000014783,IN,Faridabad,ZDOM,ZN60,True
+0000014786,Northern Equipments,IND-0000014786,IN,Chennai,ZDOM,ZN30,True
+0000014790,Eastern Bearings India Pvt Ltd,IND-0000014790,IN,Jodhpur,ZSER,ZN30,True
+0000014795,Hindustan Alloys Pvt Ltd,IND-0000014795,IN,Rourkela,ZDOM,ZN30,False
+0000014799,Amar Instruments Pvt Ltd,IND-0000014799,IN,Cuttack,ZDOM,ZN30,True
+0000014802,Vijay Rubber & Co,IND-0000014802,IN,Surat,ZDOM,ZN30,True
+0000014806,Indo Enterprises & Co,IND-0000014806,IN,Cuttack,ZSER,ZN60,True
+0000014812,Hindustan Minerals & Sons,IND-0000014812,IN,Bhilwara,ZDOM,ZN45,True
+0000014816,Amar Engineering India Pvt Ltd,IND-0000014816,IN,Raipur,ZDOM,ZN45,True
+0000014821,Bharat Marketing Ltd,IND-0000014821,IN,Jaipur,ZDOM,ZN45,True
+0000014824,Reliable Metals,IND-0000014824,IN,Bhubaneswar,ZSER,ZN45,True
+0000014826,Rajesh Instruments Pvt Ltd,IND-0000014826,IN,Bhubaneswar,ZDOM,ZN60,False
+0000014827,Deccan Chemicals Corporation,IND-0000014827,IN,Bhilwara,ZDOM,ZN60,True
+0000014828,Western Polymers Ltd,IND-0000014828,IN,Jodhpur,ZDOM,ZN30,True
+0000014834,Ganesh Traders,IND-0000014834,IN,Raipur,ZDOM,ZN30,True
+0000014839,Northern Agencies Corporation,IND-0000014839,IN,Ranchi,ZDOM,ZN30,True
+0000014841,Deccan Polymers Ltd,IND-0000014841,IN,Ankleshwar,ZDOM,ZN30,True
+0000014843,Deccan Equipments & Sons,GRP-014,IN,Kolkata,ZSER,ZN30,True
+0000014844,Northern Chemicals,IND-0000014844,IN,Ghaziabad,ZDOM,ZN45,True
+0000014845,Amar Metals,IND-0000014845,IN,Vishakhapatnam,ZDOM,ZN30,True
+0000014848,Northern Refractories,GRP-014,IN,Mumbai,ZDOM,ZN60,True
+0000014852,Shree Marketing Industries,IND-0000014852,IN,Bhilai,ZDOM,ZN30,True
+0000014856,Prime Minerals Pvt Ltd,IND-0000014856,IN,Jamshedpur,ZDOM,ZN45,True
+0000014862,New Fabricators Industries,IND-0000014862,CN,Shanghai,ZIMP,ZN30,True
+0000014866,Amar Agencies & Co,GRP-015,IN,Chennai,ZSER,ZN30,True
+0000014869,Hindustan Engineering & Co,IND-0000014869,IN,Madurai,ZDOM,ZN45,True
+0000014875,Sai Corporation,IND-0000014875,IN,Vishakhapatnam,ZDOM,ZN30,True
+0000014878,Continental Enterprises Pvt Ltd,IND-0000014878,IN,Ankleshwar,ZDOM,ZN30,True
+0000014880,Continental Minerals Corporation,IND-0000014880,IN,Kolkata,ZSER,ZN45,True
+0000014883,Rajesh Hydraulics,GRP-015,IN,Kota,ZDOM,ZN45,True
+0000014885,Universal Refractories Pvt Ltd,IND-0000014885,KR,Seoul,ZIMP,ZN30,True
+0000014891,Southern Industrial,IND-0000014891,IN,Ranchi,ZDOM,ZN30,True
+0000014893,Bharat Packaging Ltd,IND-0000014893,IN,Mumbai,ZSER,ZN60,True
+0000014898,Krishna Agencies & Co,GRP-015,IN,Udaipur,ZIMP,ZN30,False
+0000014901,Amar Agencies Pvt Ltd,IND-0000014901,DE,Hamburg,ZIMP,ZN45,True
+0000014902,Northern Fabricators India Pvt Ltd,IND-0000014902,IN,Bharuch,ZDOM,ZN30,True
+0000014903,Northern Fabricators Pvt Ltd,IND-0000014903,IN,Ludhiana,ZDOM,ZN45,True
+0000014904,Techno Corporation,IND-0000014904,IN,Mumbai,ZDOM,ZN45,True
+0000014909,Perfect Enterprises India Pvt Ltd,IND-0000014909,IN,Korba,ZDOM,ZN30,True
+0000014913,Indo Hydraulics India Pvt Ltd,IND-0000014913,IN,Bengaluru,ZDOM,ZN30,True
+0000014918,Perfect Bearings,IND-0000014918,IN,Coimbatore,ZDOM,ZN60,True
+0000014924,Eastern Equipments,IND-0000014924,IN,Bhubaneswar,ZDOM,ZN45,True
+0000014930,Rajesh Alloys,IND-0000014930,IN,Madurai,ZDOM,ZN90,True
+0000014933,Sai Hydraulics Corporation,IND-0000014933,IN,Bharuch,ZIMP,ZN45,True
+0000014938,Super Agencies & Co,GRP-015,IN,Rourkela,ZSER,ZN30,True
+0000014942,Rajesh Alloys & Sons,IND-0000014942,IN,Ranchi,ZDOM,ZN45,True
+0000014948,Rajesh Electricals,IND-0000014948,IN,Kota,ZDOM,ZN60,True
+0000014949,Southern Steel Corporation,IND-0000014949,IN,Mumbai,ZSER,ZN45,True
+0000014951,Maa Refractories Industries,GRP-015,IN,Kota,ZDOM,ZN30,True
+0000014953,Sri Automation,IND-0000014953,IN,Ludhiana,ZDOM,ZN90,True
+0000014954,Ganesh Steel Ltd,IND-0000014954,IN,Bhubaneswar,ZIMP,ZN30,True
+0000014956,Hindustan Steel India Pvt Ltd,IND-0000014956,IN,Korba,ZIMP,ZN60,True
+0000014957,Maa Marketing,IND-0000014957,IN,Faridabad,ZIMP,ZN30,True
+0000014962,Ganga Corporation,IND-0000014962,IN,Ranchi,ZDOM,ZN45,True
+0000014968,Balaji Industrial Pvt Ltd,IND-0000014968,IN,Kota,ZDOM,ZN90,True
+0000014971,Sri Metals India Pvt Ltd,IND-0000014971,IN,Bharuch,ZIMP,ZN90,False
+0000014972,Ganga Steel,IND-0000014972,IN,Ahmedabad,ZDOM,ZN30,True
+0000014974,Ashok Minerals Ltd,IND-0000014974,IN,Coimbatore,ZIMP,ZN60,True
+0000014976,Bharat Electricals Industries,IND-0000014976,IN,Indore,ZSER,ZN45,True
+0000014982,Global Chemicals India Pvt Ltd,IND-0000014982,IN,Bhilwara,ZDOM,ZN45,True
+0000014986,Perfect Safety Ltd,IND-0000014986,IN,Faridabad,ZDOM,ZN30,True
+0000014987,Ganesh Instruments,IND-0000014987,IN,Surat,ZDOM,ZN45,False
+0000014989,United Lubricants & Co,IND-0000014989,IN,Kolkata,ZDOM,ZN60,False
+0000014995,Super Metals,IND-0000014995,IN,Vadodara,ZSER,ZN45,True
+0000014996,Reliable Marketing & Sons,IND-0000014996,IN,Kanpur,ZDOM,ZN30,True
+0000015001,National Agencies,IND-0000015001,IN,Ahmedabad,ZIMP,ZN90,True
+0000015006,Prime Packaging & Sons,GRP-015,IN,Ghaziabad,ZDOM,ZN45,True
+0000015012,Universal Agencies,IND-0000015012,IN,Indore,ZDOM,ZN30,True
+0000015016,Ganesh Marketing & Co,IND-0000015016,IN,Bhilai,ZDOM,ZN60,True
+0000015021,New Rubber,IND-0000015021,IN,Bhilai,ZDOM,ZN30,True
+0000015022,Northern Marketing Pvt Ltd,IND-0000015022,IN,Vadodara,ZDOM,ZN30,True
+0000015023,Rajesh Automation,GRP-016,IN,Madurai,ZSER,ZN30,True
+0000015025,Indo Alloys & Co,IND-0000015025,IN,Ludhiana,ZSER,ZN30,True
+0000015029,Prime Hydraulics Pvt Ltd,IND-0000015029,IN,Jamshedpur,ZDOM,ZN45,True
+0000015031,New Enterprises & Sons,IND-0000015031,IN,Kolkata,ZDOM,ZN30,True
+0000015035,Deccan Electricals & Co,IND-0000015035,IN,Indore,ZDOM,ZN45,True
+0000015037,Vijay Traders,IND-0000015037,IN,Tuticorin,ZDOM,ZN60,True
+0000015039,Sai Fabricators,IND-0000015039,IN,Coimbatore,ZDOM,ZN30,False
+0000015041,Western Fabricators India Pvt Ltd,IND-0000015041,IN,Raipur,ZDOM,ZN30,True
+0000015046,Om Steel & Co,IND-0000015046,IN,Cuttack,ZDOM,ZN30,True
+0000015049,Super Alloys India Pvt Ltd,IND-0000015049,IN,Madurai,ZDOM,ZN90,True
+0000015053,Ganesh Bearings,IND-0000015053,IN,Surat,ZSER,ZN30,True
+0000015057,Krishna Automation,GRP-016,IN,Madurai,ZDOM,ZN30,True
+0000015058,Western Chemicals Corporation,IND-0000015058,IN,Ankleshwar,ZSER,ZN60,True
+0000015063,Super Minerals India Pvt Ltd,IND-0000015063,IN,Ahmedabad,ZDOM,ZN60,True
+0000015067,Krishna Refractories Ltd,GRP-016,IN,Mumbai,ZDOM,ZN45,True
+0000015071,Vijay Fabricators Corporation,IND-0000015071,DE,Munich,ZIMP,ZN45,False
+0000015074,Laxmi Steel,IND-0000015074,IN,Bhubaneswar,ZDOM,ZN45,True
+0000015075,Techno Engineering Ltd,IND-0000015075,IN,Kanpur,ZDOM,ZN45,True
+0000015077,Southern Alloys,IND-0000015077,AU,Perth,ZIMP,ZN30,True
+0000015082,Universal Traders Pvt Ltd,IND-0000015082,IN,Vishakhapatnam,ZDOM,ZN45,True
+0000015083,Universal Electricals Pvt Ltd,IND-0000015083,KR,Seoul,ZIMP,ZN60,True
+0000015088,Hindustan Metals Pvt Ltd,IND-0000015088,IN,Coimbatore,ZDOM,ZN30,True
+0000015089,Reliable Steel India Pvt Ltd,GRP-016,IN,Kolkata,ZDOM,ZN60,True
+0000015095,Standard Steel & Sons,IND-0000015095,IN,Vishakhapatnam,ZDOM,ZN30,True
+0000015101,Krishna Metals,IND-0000015101,IN,Udaipur,ZDOM,ZN60,True
+0000015105,Northern Agencies & Co,IND-0000015105,IN,Ranchi,ZSER,ZN30,True

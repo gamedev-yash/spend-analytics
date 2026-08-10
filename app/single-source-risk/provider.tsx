@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useContext, useMemo, useReducer, type ReactNode } from "react";
-import { invoices as staticInvoices, sourceSystemDims } from "./data";
 import {
   applyBaseFilters,
   applyFilters,
@@ -15,7 +14,14 @@ import {
   pruneFilterState,
   type FilterOption,
 } from "./selectors";
-import type { FilterState, Invoice, LinkedDimension, LinkedSelection, SupplierCountThreshold } from "./types";
+import type {
+  FilterState,
+  Invoice,
+  LinkedDimension,
+  LinkedSelection,
+  SourceSystemDim,
+  SupplierCountThreshold,
+} from "./types";
 
 interface State {
   filters: FilterState;
@@ -129,17 +135,15 @@ const SingleSourceRiskContext = createContext<SingleSourceRiskContextValue | nul
 
 interface SingleSourceRiskProviderProps {
   children: ReactNode;
-  /**
-   * Invoice list to drive the dashboard — an uploaded dataset mapped via
-   * buildInvoicesFromDataset, falling back to the static mock when absent.
-   * Callers should remount the provider (React key) when this changes so
-   * filter state resets against the new data.
-   */
-  invoices?: Invoice[];
+  /** The warehouse's fact_po_items rows (lib/page-data/single-source-risk-from-provider.ts) — page.tsx doesn't render this provider until they're loaded. */
+  invoices: Invoice[];
+  /** Source-system options that go with `invoices`. */
+  sourceSystemDims: SourceSystemDim[];
 }
 
-export function SingleSourceRiskProvider({ children, invoices }: SingleSourceRiskProviderProps) {
-  const invoiceData = invoices ?? staticInvoices;
+export function SingleSourceRiskProvider({ children, invoices, sourceSystemDims }: SingleSourceRiskProviderProps) {
+  const invoiceData = invoices;
+  const sourceSystemData = sourceSystemDims;
 
   const { min: dateMin, max: dateMax } = useMemo(() => getDateBounds(invoiceData), [invoiceData]);
 
@@ -160,8 +164,8 @@ export function SingleSourceRiskProvider({ children, invoices }: SingleSourceRis
   // the dataset itself changed) never silently locks the dashboard to zero
   // rows — it's just dropped.
   const filters = useMemo(
-    () => pruneFilterState(invoiceData, state.filters, sourceSystemDims),
-    [invoiceData, state.filters]
+    () => pruneFilterState(invoiceData, state.filters, sourceSystemData),
+    [invoiceData, state.filters, sourceSystemData]
   );
 
   // Cascading option lists — computed from `filters` (the pruned state), so
@@ -172,8 +176,8 @@ export function SingleSourceRiskProvider({ children, invoices }: SingleSourceRis
     [invoiceData, filters]
   );
   const sourceSystemOptions = useMemo(
-    () => cascadingSourceSystemOptions(invoiceData, filters, sourceSystemDims),
-    [invoiceData, filters]
+    () => cascadingSourceSystemOptions(invoiceData, filters, sourceSystemData),
+    [invoiceData, filters, sourceSystemData]
   );
   const plantOptions = useMemo(() => cascadingPlantOptions(invoiceData, filters), [invoiceData, filters]);
 

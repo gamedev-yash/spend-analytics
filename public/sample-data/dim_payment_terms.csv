@@ -1,0 +1,16 @@
+payment_term_key,payment_term_description,discount_days_1,discount_percent_1,discount_days_2,discount_percent_2,net_days,is_discount_term
+ZN30,Net 30 days,,,,,30,False
+ZN45,Net 45 days,,,,,45,False
+ZN60,Net 60 days,,,,,60,False
+ZN90,Net 90 days,,,,,90,False
+ZN120,Net 120 days,,,,,120,False
+ZD10,2% 10 Net 30,10.0,2.0,,,30,True
+ZD14,1.5% 14 Net 45,14.0,1.5,,,45,True
+ZD21,1% 21 Net 60,21.0,1.0,,,60,True
+ZD07,2.5% 7 Net 30,7.0,2.5,14.0,1.5,30,True
+ZD15,2% 15 Net 45,15.0,2.0,30.0,1.0,45,True
+ZP00,Prepayment / Advance,,,,,0,False
+ZP50,50% Advance 50% on Delivery,,,,,0,False
+ZCOD,Cash on Delivery,,,,,0,False
+ZLCR,Letter of Credit 90 days,,,,,90,False
+ZN15,Net 15 days (MSME),,,,,15,False

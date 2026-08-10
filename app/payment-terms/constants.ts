@@ -1,6 +1,7 @@
 "use client";
 
 import { usePalette } from "@/hooks/use-palette";
+import { formatInr } from "@/lib/sap/format-inr";
 
 /** Sentinel key for "(No Value)" rows — null category / null payment term. */
 export const NO_VALUE_KEY = "__NO_VALUE__";
@@ -39,21 +40,16 @@ export function usePaymentTermsChartColors(): PaymentTermsChartColors {
   };
 }
 
+// Vedanta's spend is INR (fact_payments.invoice_amount_inr, per the data
+// dictionary), not USD — these delegate to lib/sap/format-inr's Cr/Lakh
+// convention, the same one Spend Overview uses, instead of the
+// dollar-formatted Intl.NumberFormat this dashboard's static mock used.
 export function formatCurrencyCompact(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    notation: "compact",
-    maximumFractionDigits: 1,
-  }).format(value);
+  return formatInr(value, 1);
 }
 
 export function formatCurrencyFull(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(value);
+  return formatInr(value, 2);
 }
 
 export function formatDays(value: number | null): string {

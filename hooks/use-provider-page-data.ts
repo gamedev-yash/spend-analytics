@@ -72,11 +72,17 @@ export function useProviderPageData<T>(
 
   const current = state.key === key;
   return {
-    // Stale-while-revalidate: the last resolved payload stays on screen while a
-    // new key's fetch is in flight (or fails) instead of dropping to null — an
-    // in-flight request must never read as "no data" and trigger a page's
-    // CSV/mock fallback mid-refetch.
-    data: state.data,
+    // Stale-while-revalidate while enabled: the last resolved payload stays on
+    // screen while a new key's fetch is in flight (or fails) instead of
+    // dropping to null — an in-flight request must never read as "no data"
+    // and trigger a page's CSV/mock fallback mid-refetch.
+    //
+    // But masked to null once disabled — switching the provider toggle off
+    // (Azure -> CSV) stops the effect above from ever running again, so
+    // without this, `state.data` would keep reporting the last Azure fetch
+    // forever and every `warehouse.data ?? mock` consumer would keep
+    // rendering stale warehouse numbers under the CSV toggle.
+    data: enabled ? state.data : null,
     loading: enabled && !current,
     ready: !enabled || state.ready,
     // An error belongs to the payload that produced it — a new key starts clean.

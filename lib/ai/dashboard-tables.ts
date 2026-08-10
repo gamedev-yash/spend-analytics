@@ -1,18 +1,26 @@
 import "server-only";
 
 // The Data Provider for the core dashboards' AI assistant: one or more named
-// row tables per dashboard, built from the same underlying data each dashboard
-// page itself renders from (never a separate copy). lib/ai/dashboard-query.ts
+// row tables per dashboard, built from the same warehouse sample dataset
+// every other core-dashboard provider loader reads (lib/server/
+// sample-data-source.ts) — never a separate copy. lib/ai/dashboard-query.ts
 // runs structured queries against these tables via lib/ai/query-engine.ts;
-// nothing above this file knows whether a row array came from bundled JSON, a
-// CSV, or (once real SAP data lands) a warehouse query — swapping the source
-// only means changing the bodies below, not the query engine or the route.
+// nothing above this file knows whether a row array came from bundled JSON,
+// a CSV, or a warehouse query — swapping the source only means changing the
+// bodies below, not the query engine or the route.
+//
+// Previously these tables were bespoke, pre-aggregated mock shapes (one for
+// tail-spend's Pareto deciles, another for supplier-fragmentation's category
+// concentration, ...), each hand-built from a different mock generator. They
+// now expose the underlying warehouse tables directly instead — the same
+// fact_po_items/fact_invoices/fact_payments/agg_vendor_annual/dim_contract
+// rows the dashboards themselves render from — and let the model's own
+// groupBy/aggregate query do whatever slicing a question needs, the same way
+// query_warehouse used to. That is both simpler (one real source of truth,
+// not five hand-rolled ones) and more capable (any grouping the data
+// supports, not just the specific breakdowns a mock happened to precompute).
 
-import { poItems, invoices as sapInvoices, vendorById, categoryByCode, plantByCode } from "@/lib/sap/raw-data";
-import { invoices as paymentTermsInvoices } from "@/app/payment-terms/data";
-import { invoices as singleSourceRiskInvoices } from "@/app/single-source-risk/data";
-import { tailSpendMock } from "@/app/tail-spend/tailSpendMock";
-import { supplierMock } from "@/app/supplier-fragmentation/supplierMock";
+import { getSampleDataset } from "@/lib/server/sample-data-source";
 import type { DashboardKey } from "@/lib/ai/dashboard-registry";
 import type { Row } from "@/lib/ai/query-engine";
 
@@ -24,219 +32,56 @@ export interface DashboardTable {
   rows: Row[];
 }
 
-function asRows<T extends object>(list: readonly T[]): Row[] {
-  return list as unknown as Row[];
+/** A registry dataset's rows, already keyed by its own column ids — no remapping needed. */
+function rowsOf(datasetId: string): Row[] {
+  return getSampleDataset(datasetId)?.rows ?? [];
 }
 
-// ---------------------------------------------------------------------------
-// spend-overview & compliance share these two tables — both dashboards report
-// on the exact same PO/invoice data, just sliced differently, and must agree.
-// ---------------------------------------------------------------------------
-
-const purchaseOrderRows: Row[] = poItems
-  .filter((p) => !p.is_deleted)
-  .map((p) => {
-    const vendor = vendorById.get(p.vendor_id);
-    const category = categoryByCode.get(p.category_code);
-    const plant = plantByCode.get(p.plant_code);
-    return {
-      po_number: p.po_number,
-      vendor_name: vendor?.vendor_name ?? p.vendor_id,
-      parent_company_group: vendor?.parent_company_group ?? vendor?.vendor_name ?? p.vendor_id,
-      category_l1: category?.category_l1 ?? "Other",
-      category_l2: category?.category_l2 ?? "Other",
-      plant_name: plant?.plant_name ?? p.plant_code,
-      region: plant?.region ?? "Unknown",
-      po_date: p.po_date,
-      net_value_inr: p.net_value_inr,
-      quantity: p.quantity,
-      currency: p.currency,
-      doc_type: p.doc_type,
-      has_contract: p.contract_number !== null,
-    };
-  });
-
-const invoiceRows: Row[] = sapInvoices.map((inv) => {
-  const vendor = vendorById.get(inv.vendor_id);
-  const category = categoryByCode.get(inv.category_code);
-  const plant = plantByCode.get(inv.plant_code);
-  return {
-    invoice_number: inv.invoice_number,
-    vendor_name: vendor?.vendor_name ?? inv.vendor_id,
-    parent_company_group: vendor?.parent_company_group ?? vendor?.vendor_name ?? inv.vendor_id,
-    category_l1: category?.category_l1 ?? "Other",
-    category_l2: category?.category_l2 ?? "Other",
-    plant_name: plant?.plant_name ?? inv.plant_code,
-    region: plant?.region ?? "Unknown",
-    invoice_date: inv.invoice_date,
-    invoice_value_inr: inv.invoice_value_inr,
-    has_po: inv.po_number !== null,
-  };
-});
-
-const PURCHASE_ORDERS: DashboardTable = {
-  id: "purchase_orders",
+const PO_ITEMS: DashboardTable = {
+  id: "fact_po_items",
   label: "Purchase order line items",
-  description: "One row per PO line. has_contract=false means off-contract (unmanaged) spend.",
-  rows: purchaseOrderRows,
+  description:
+    "One row per PO line — committed spend. is_contract_backed=0 means off-contract (unmanaged) spend.",
+  rows: rowsOf("fact_po_items"),
 };
 
 const INVOICES: DashboardTable = {
-  id: "invoices",
+  id: "fact_invoices",
   label: "Supplier invoice line items",
-  description: "One row per invoice. has_po=false means off-PO (unmanaged) spend.",
-  rows: invoiceRows,
+  description: "One row per invoice line — actual spend. A blank po_number means off-PO (\"maverick\") spend.",
+  rows: rowsOf("fact_invoices"),
 };
 
-// ---------------------------------------------------------------------------
-// payment-terms
-// ---------------------------------------------------------------------------
-
-const PAYMENT_TERMS_INVOICES: DashboardTable = {
-  id: "invoices",
-  label: "Invoices with payment-term and paid-cycle detail",
-  description: "One row per invoice, with actual paid_days measured against the nominal payment term.",
-  rows: paymentTermsInvoices.map((inv) => ({
-    invoice_id: inv.invoice_id,
-    invoice_date: inv.invoice_date,
-    paid_date: inv.paid_date,
-    paid_days: inv.paid_days,
-    is_paid: inv.is_paid,
-    amount: inv.amount,
-    currency: inv.currency,
-    supplier_name: inv.supplier_name,
-    global_ultimate_name: inv.global_ultimate_name,
-    category_name: inv.category_name ?? "Uncategorized",
-    segment_name: inv.segment_name ?? "Unsegmented",
-    plant_name: inv.plant_name,
-    region: inv.region,
-    country: inv.country,
-    payment_term_name: inv.payment_term_name ?? "Unspecified",
-    nominal_days: inv.nominal_days,
-  })),
-};
-
-// ---------------------------------------------------------------------------
-// single-source-risk
-// ---------------------------------------------------------------------------
-
-const SINGLE_SOURCE_RISK_INVOICES: DashboardTable = {
-  id: "invoices",
-  label: "Invoices with supplier, product, and plant detail",
+const PAYMENTS: DashboardTable = {
+  id: "fact_payments",
+  label: "Payment / DPO ledger",
   description:
-    "One row per invoice. Count distinct supplier_name (or global_ultimate_name) per category_name/product_id to find single- or dual-sourced exposure.",
-  rows: singleSourceRiskInvoices.map((inv) => ({
-    invoice_id: inv.invoice_id,
-    invoice_date: inv.invoice_date,
-    amount: inv.amount,
-    currency: inv.currency,
-    supplier_name: inv.supplier_name,
-    global_ultimate_name: inv.global_ultimate_name,
-    category_name: inv.category_name,
-    segment_name: inv.segment_name,
-    plant_name: inv.plant_name,
-    region: inv.region,
-    country: inv.country,
-    product_name: inv.product_name,
-    cost_center_name: inv.cost_center_name,
-  })),
+    "One row per accounting document. actual_dpo, payment_status, and the discount_*_inr trio are precomputed — never re-derive them from dates yourself.",
+  rows: rowsOf("fact_payments"),
 };
 
-// ---------------------------------------------------------------------------
-// tail-spend
-// ---------------------------------------------------------------------------
+const AGG_VENDOR_ANNUAL: DashboardTable = {
+  id: "agg_vendor_annual",
+  label: "Pre-aggregated vendor × year spend",
+  description:
+    "One row per vendor per year, with the Pareto/tail-spend math already computed: spend_rank, cumulative_spend_pct, is_tail, tail_tier. Use this instead of re-deriving concentration from fact_po_items.",
+  rows: rowsOf("agg_vendor_annual"),
+};
 
-const TAIL_SPEND_TABLES: DashboardTable[] = [
-  {
-    id: "category_breakdown",
-    label: "Spend by category, split into strategic/core/tail",
-    description: "One row per procurement category.",
-    rows: asRows(tailSpendMock.categoryBreakdown),
-  },
-  {
-    id: "suppliers",
-    label: "Supplier-level spend and segment",
-    description: "One row per supplier, with its spend segment (Strategic/Core/Tail).",
-    rows: asRows(tailSpendMock.supplierBubbles),
-  },
-  {
-    id: "consolidation_candidates",
-    label: "Suppliers ranked as consolidation candidates",
-    description: "One row per candidate supplier, with potential savings and a recommended action.",
-    rows: asRows(tailSpendMock.consolidationCandidates),
-  },
-  {
-    id: "po_value_buckets",
-    label: "PO value distribution buckets",
-    description: "One row per PO value bucket (e.g. '< ₹5K'), across all purchase orders.",
-    rows: asRows(tailSpendMock.poValueBuckets),
-  },
-  {
-    id: "segment_comparison",
-    label: "Strategic vs Core vs Tail segment comparison",
-    description: "One row per spend segment.",
-    rows: asRows(tailSpendMock.segmentComparison),
-  },
-  {
-    id: "monthly_trend",
-    label: "Monthly spend trend by segment",
-    description: "One row per month.",
-    rows: asRows(tailSpendMock.monthlyTrend),
-  },
-  {
-    id: "pareto_deciles",
-    label: "Supplier spend concentration by decile",
-    description: "One row per supplier decile (Top 10%, 10-20%, ...).",
-    rows: asRows(tailSpendMock.paretoDeciles),
-  },
-];
-
-// ---------------------------------------------------------------------------
-// supplier-fragmentation
-// ---------------------------------------------------------------------------
-
-const SUPPLIER_FRAGMENTATION_TABLES: DashboardTable[] = [
-  {
-    id: "categories",
-    label: "Supplier concentration by category",
-    description: "One row per category.",
-    rows: asRows(supplierMock.categories),
-  },
-  {
-    id: "size_buckets",
-    label: "Suppliers grouped by spend size bucket",
-    description: "One row per spend-size bucket.",
-    rows: asRows(supplierMock.sizeBuckets),
-  },
-  {
-    id: "top_suppliers",
-    label: "Top suppliers by spend, with cumulative share",
-    description: "One row per top supplier.",
-    rows: asRows(supplierMock.topSuppliers),
-  },
-  {
-    id: "monthly_onboarding",
-    label: "New supplier onboarding by month",
-    description: "One row per month.",
-    rows: asRows(supplierMock.monthlyOnboarding),
-  },
-  {
-    id: "duplicate_pairs",
-    label: "Likely duplicate supplier records",
-    description: "One row per candidate duplicate pair.",
-    rows: asRows(supplierMock.duplicatePairs),
-  },
-];
-
-// ---------------------------------------------------------------------------
+const CONTRACTS: DashboardTable = {
+  id: "dim_contract",
+  label: "Vendor framework contracts",
+  description: "One row per contract: contract_value_inr, is_active, start_date/end_date, by vendor/category/plant.",
+  rows: rowsOf("dim_contract"),
+};
 
 const DASHBOARD_TABLES: Record<DashboardKey, DashboardTable[]> = {
-  "spend-overview": [PURCHASE_ORDERS, INVOICES],
-  compliance: [PURCHASE_ORDERS, INVOICES],
-  "payment-terms": [PAYMENT_TERMS_INVOICES],
-  "tail-spend": TAIL_SPEND_TABLES,
-  "supplier-fragmentation": SUPPLIER_FRAGMENTATION_TABLES,
-  "single-source-risk": [SINGLE_SOURCE_RISK_INVOICES],
+  "spend-overview": [PO_ITEMS, INVOICES],
+  compliance: [PO_ITEMS, INVOICES],
+  "payment-terms": [PAYMENTS],
+  "tail-spend": [PO_ITEMS, AGG_VENDOR_ANNUAL],
+  "supplier-fragmentation": [PO_ITEMS, CONTRACTS],
+  "single-source-risk": [PO_ITEMS],
 };
 
 export function getDashboardTables(key: DashboardKey): DashboardTable[] {

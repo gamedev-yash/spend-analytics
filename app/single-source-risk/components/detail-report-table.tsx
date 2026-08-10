@@ -46,7 +46,7 @@ function exportCsv(rows: TableRow[]) {
       r.supplierCount,
       r.productCount,
       r.spend,
-      r.costCenterCount,
+      r.costCenterCount ?? "",
     ].join(",")
   );
   const csv = [header.join(","), ...lines].join("\n");
@@ -74,7 +74,7 @@ function compareRows(a: TableRow, b: TableRow, column: SortColumn): number {
     case "spend":
       return a.spend - b.spend;
     case "costCenterCount":
-      return a.costCenterCount - b.costCenterCount;
+      return (a.costCenterCount ?? -1) - (b.costCenterCount ?? -1);
     default:
       return 0;
   }
@@ -164,7 +164,12 @@ export function DetailReportTable() {
                   <td className="px-4 py-2.5 text-right text-slate-700 dark:text-slate-300">{row.supplierCount}</td>
                   <td className="px-4 py-2.5 text-right text-slate-700 dark:text-slate-300">{row.productCount}</td>
                   <td className="px-4 py-2.5 text-right text-slate-700 dark:text-slate-300">{formatCurrencyFull(row.spend)}</td>
-                  <td className="px-4 py-2.5 text-right text-slate-700 dark:text-slate-300">{row.costCenterCount}</td>
+                  <td
+                    className="px-4 py-2.5 text-right text-slate-700 dark:text-slate-300"
+                    title={row.costCenterCount === null ? "Not tracked in this dataset" : undefined}
+                  >
+                    {row.costCenterCount === null ? "–" : row.costCenterCount}
+                  </td>
                 </tr>
               ))
             )}

@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useContext, useMemo, useReducer, type ReactNode } from "react";
-import { invoices as staticInvoices, sourceSystemDims } from "./data";
 import {
   applyFilters,
   applyLinkedSelection,
@@ -15,7 +14,7 @@ import {
   pruneFilterState,
   type FilterOption,
 } from "./selectors";
-import type { FilterState, Invoice, LinkedDimension, LinkedSelection } from "./types";
+import type { FilterState, Invoice, LinkedDimension, LinkedSelection, SourceSystemDim } from "./types";
 
 interface State {
   filters: FilterState;
@@ -122,17 +121,15 @@ const PaymentTermsContext = createContext<PaymentTermsContextValue | null>(null)
 
 interface PaymentTermsProviderProps {
   children: ReactNode;
-  /**
-   * Invoice list to drive the dashboard — currently always the static mock,
-   * since this page has no warehouse tier (see page.tsx's WarehouseGapNote)
-   * and no longer reads an uploaded CSV. Kept as a prop, not a hardcoded
-   * import, so a future data source can still be threaded in here.
-   */
-  invoices?: Invoice[];
+  /** The warehouse's fact_payments rows (lib/page-data/payment-terms-from-provider.ts) — page.tsx doesn't render this provider until they're loaded. */
+  invoices: Invoice[];
+  /** Source-system options that go with `invoices`. */
+  sourceSystemDims: SourceSystemDim[];
 }
 
-export function PaymentTermsProvider({ children, invoices }: PaymentTermsProviderProps) {
-  const invoiceData = invoices ?? staticInvoices;
+export function PaymentTermsProvider({ children, invoices, sourceSystemDims }: PaymentTermsProviderProps) {
+  const invoiceData = invoices;
+  const sourceSystemData = sourceSystemDims;
 
   // Earliest/latest invoice date present in the data — feeds the date-range picker's min/max.
   const { min: dateMin, max: dateMax } = useMemo(() => getDateBounds(invoiceData), [invoiceData]);
@@ -154,8 +151,8 @@ export function PaymentTermsProvider({ children, invoices }: PaymentTermsProvide
   // the dataset itself changed) never silently locks the dashboard to zero
   // rows — it's just dropped.
   const filters = useMemo(
-    () => pruneFilterState(invoiceData, state.filters, sourceSystemDims),
-    [invoiceData, state.filters]
+    () => pruneFilterState(invoiceData, state.filters, sourceSystemData),
+    [invoiceData, state.filters, sourceSystemData]
   );
 
   // Cascading option lists — computed from `filters` (the pruned state), so
@@ -166,8 +163,8 @@ export function PaymentTermsProvider({ children, invoices }: PaymentTermsProvide
     [invoiceData, filters]
   );
   const sourceSystemOptions = useMemo(
-    () => cascadingSourceSystemOptions(invoiceData, filters, sourceSystemDims),
-    [invoiceData, filters]
+    () => cascadingSourceSystemOptions(invoiceData, filters, sourceSystemData),
+    [invoiceData, filters, sourceSystemData]
   );
   const plantOptions = useMemo(() => cascadingPlantOptions(invoiceData, filters), [invoiceData, filters]);
   const paymentTermOptions = useMemo(

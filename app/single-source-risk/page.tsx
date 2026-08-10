@@ -1,8 +1,11 @@
 "use client";
 
 import { SingleSourceRiskProvider } from "./provider";
+import { useProviderPageData } from "@/hooks/use-provider-page-data";
+import { loadSingleSourceRiskFromProvider } from "@/lib/page-data/single-source-risk-from-provider";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
+import { WidgetGridSkeleton } from "@/components/dashboard/widget-grid-skeleton";
 import { KpiRibbon } from "./components/kpi-ribbon";
 import { FilterPanel } from "./components/filter-panel";
 import { CategoriesBySupplierCountChart } from "./components/widgets/categories-by-supplier-count-chart";
@@ -18,8 +21,28 @@ import { useSingleSourceRiskFocus } from "./components/useSingleSourceRiskFocus"
 export default function SingleSourceRiskPage() {
   const { activeParameters, toggleParameter, applyPreset, isWidgetVisible } = useSingleSourceRiskFocus();
 
+  // Always on: /single-source-risk/api/master reads the canonical
+  // fact_po_items sample directly, independent of the CSV/Azure toggle —
+  // that toggle only governs client-uploaded datasets and ad hoc widget
+  // queries elsewhere, not this page's per-PO-line data.
+  //
+  // fact_po_items has no material or cost-center grain (see
+  // single-source-risk-from-provider.ts), so the Products widget and the
+  // detail table's cost-center column read a clearly-labelled placeholder —
+  // everything else here (category/supplier/plant/global-ultimate
+  // concentration, this dashboard's actual subject) is real.
+  const warehouse = useProviderPageData(() => loadSingleSourceRiskFromProvider(), true, "single-source-risk");
+
+  if (!warehouse.ready) {
+    return <WidgetGridSkeleton kpiCount={5} widgetCount={5} />;
+  }
+
   return (
-    <SingleSourceRiskProvider>
+    // Not mounted until the fetch above has settled — see provider.tsx's prop comment.
+    <SingleSourceRiskProvider
+      invoices={warehouse.data?.invoices ?? []}
+      sourceSystemDims={warehouse.data?.sourceSystemDims ?? []}
+    >
       <FilterPanel />
       <div className="flex w-full flex-col gap-6">
         <div className="flex flex-wrap items-start justify-between gap-3">

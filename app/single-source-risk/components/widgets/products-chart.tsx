@@ -56,7 +56,9 @@ export function ProductsChart() {
                       style={{ width: `${pct}%`, backgroundColor: chartColors.productBar }}
                     />
                   </div>
-                  <span className="shrink-0 text-[11px] text-slate-400 dark:text-slate-500">{row.key}</span>
+                  <span className="shrink-0 text-[11px] text-slate-400 dark:text-slate-500">
+                    {row.invoiceCount.toLocaleString()} {row.invoiceCount === 1 ? "invoice" : "invoices"}
+                  </span>
                 </div>
               </button>
             );

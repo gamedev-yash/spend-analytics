@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { poItems, vendorById, categoryByCode, plantByCode, plants } from "@/lib/sap/raw-data";
+import { getSampleDataset } from "@/lib/server/sample-data-source";
 import type { MasterPayload, MasterRow } from "../../lib/types";
 
 /**
@@ -11,43 +11,48 @@ import type { MasterPayload, MasterRow } from "../../lib/types";
  * in-browser. The HHI math needs supplier-level spend shares per category,
  * which the declarative widget-query seam cannot express — hence raw rows.
  *
- * The source is bundled JSON, so the response is fully static and cacheable.
+ * Reads the same warehouse sample dataset every other core dashboard's
+ * provider path reads (lib/server/sample-data-source.ts) rather than the
+ * bundled data/sap/*.json this route used before — see metadata-registry.ts
+ * for the ten unified tables. The response is still fully static and
+ * cacheable; only the source moved.
  */
 export const dynamic = "force-static";
 
 export async function GET() {
+  const dataset = getSampleDataset("fact_po_items");
   const rows: MasterRow[] = [];
   let dateMin = "";
   let dateMax = "";
 
-  for (const item of poItems) {
-    if (item.is_deleted) continue; // clean-data safeguard, mirrors the prototype
-
-    const vendor = vendorById.get(item.vendor_id);
-    const category = categoryByCode.get(item.category_code);
-    const plant = plantByCode.get(item.plant_code);
+  for (const item of dataset?.rows ?? []) {
+    const poDate = String(item.po_date ?? "");
+    const plantCode = String(item.plant_code ?? "");
 
     rows.push({
-      po: item.po_number,
-      vendor: item.vendor_id,
-      vendorName: vendor?.vendor_name ?? item.vendor_id,
-      parent: vendor?.parent_company_group ?? null,
-      active: vendor?.is_active ?? false,
-      l1: category?.category_l1 ?? "Unknown",
-      l2: category?.category_l2 ?? "Unknown",
-      plant: item.plant_code,
-      plantName: plant?.plant_name ?? item.plant_code,
-      date: item.po_date,
-      value: item.net_value_inr,
+      po: String(item.po_number ?? ""),
+      vendor: String(item.vendor_id ?? ""),
+      vendorName: String(item.vendor_name ?? item.vendor_id ?? ""),
+      parent: item.parent_company_name === null ? null : String(item.parent_company_name),
+      active: item.vendor_is_active === 1,
+      l1: String(item.category_l1_name ?? "Unknown"),
+      l2: String(item.category_l2_name ?? "Unknown"),
+      plant: plantCode,
+      plantName: String(item.plant_name ?? plantCode),
+      date: poDate,
+      value: Number(item.net_order_value_inr) || 0,
     });
 
-    if (!dateMin || item.po_date < dateMin) dateMin = item.po_date;
-    if (!dateMax || item.po_date > dateMax) dateMax = item.po_date;
+    if (!dateMin || poDate < dateMin) dateMin = poDate;
+    if (!dateMax || poDate > dateMax) dateMax = poDate;
   }
 
-  const plantOptions = [...plants]
-    .sort((a, b) => a.plant_name.localeCompare(b.plant_name))
-    .map((p) => ({ code: p.plant_code, name: p.plant_name }));
+  // fact_po_items already excludes deleted lines (sample-data-source.ts) and
+  // spans every plant in dim_plant, so plant options are just its distinct
+  // (code, name) pairs — no separate dimension fetch needed.
+  const plantOptions = [...new Map(rows.map((row) => [row.plant, row.plantName])).entries()]
+    .map(([code, name]) => ({ code, name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   const l1Options = [...new Set(rows.map((row) => row.l1))].sort((a, b) => a.localeCompare(b));
 
