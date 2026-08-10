@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useContext, useMemo, useReducer, type ReactNode } from "react";
-import { invoices as staticInvoices, sourceSystemDims as staticSourceSystemDims } from "./data";
 import {
   applyFilters,
   applyLinkedSelection,
@@ -122,19 +121,15 @@ const PaymentTermsContext = createContext<PaymentTermsContextValue | null>(null)
 
 interface PaymentTermsProviderProps {
   children: ReactNode;
-  /**
-   * Invoice list to drive the dashboard — the warehouse's fact_payments rows
-   * (lib/page-data/payment-terms-from-provider.ts) in Azure-SQL/warehouse
-   * mode, falling back to the static mock otherwise.
-   */
-  invoices?: Invoice[];
-  /** Source-system options that go with `invoices`; falls back with it. */
-  sourceSystemDims?: SourceSystemDim[];
+  /** The warehouse's fact_payments rows (lib/page-data/payment-terms-from-provider.ts) — page.tsx doesn't render this provider until they're loaded. */
+  invoices: Invoice[];
+  /** Source-system options that go with `invoices`. */
+  sourceSystemDims: SourceSystemDim[];
 }
 
 export function PaymentTermsProvider({ children, invoices, sourceSystemDims }: PaymentTermsProviderProps) {
-  const invoiceData = invoices ?? staticInvoices;
-  const sourceSystemData = sourceSystemDims ?? staticSourceSystemDims;
+  const invoiceData = invoices;
+  const sourceSystemData = sourceSystemDims;
 
   // Earliest/latest invoice date present in the data — feeds the date-range picker's min/max.
   const { min: dateMin, max: dateMax } = useMemo(() => getDateBounds(invoiceData), [invoiceData]);

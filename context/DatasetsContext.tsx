@@ -185,7 +185,14 @@ function newDatasetId(): string {
 
 const clientCsvAdapter = new ClientCsvAdapter(() => getSnapshot().datasets);
 
-const azureSqlAdapter = new AzureSqlAdapter({
+/**
+ * Exported (unlike clientCsvAdapter) so a page can query the warehouse/sample
+ * baseline directly regardless of the CSV/Azure toggle — see
+ * app/tail-spend/page.tsx, which needs canonical fact_po_items data even in
+ * CSV mode, where activeProvider would otherwise be clientCsvAdapter over
+ * this browser's (empty, by default) uploaded datasets.
+ */
+export const azureSqlAdapter = new AzureSqlAdapter({
   fallback: clientCsvAdapter,
   // An uploaded CSV only exists in this browser, so it is answered here rather
   // than posted to an API that has never heard of it.

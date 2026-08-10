@@ -31,7 +31,7 @@ const SAMPLE_DIR = join(ROOT, "public", "sample-data");
 
 type RawRow = Record<string, string>;
 
-function readCsv(fileName: string): RawRow[] {
+export function readCsv(fileName: string): RawRow[] {
   const raw = readFileSync(join(SAMPLE_DIR, fileName), "utf-8");
   return Papa.parse<RawRow>(raw, {
     header: true,
