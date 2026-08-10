@@ -9,10 +9,11 @@ the 5 dashboard routes and the per-dashboard chatbot.
 >
 > **Related docs:** [`DATA_DICTIONARY_MAPPING.md`](DATA_DICTIONARY_MAPPING.md)
 > covers what the 10 tables *contain*; this doc covers how they get *loaded
-> and queried*. See [§7](#7-related-documentation--known-doc-drift) for two
-> other docs in this repo that are currently out of date with the codebase —
-> read that section before trusting anything they say about `/api/assistant`
-> or a 2-table registry.
+> and queried*. This file supersedes and replaces the repo's former root-level
+> `ARCHITECTURE.md` and `docs/ai-assistant-implementation.md`, both of which
+> predated the 10-table unification and described an `/api/assistant` route
+> that no longer exists — see [§7](#7-documentation-history) for what was
+> carried forward from each.
 
 ---
 
@@ -24,7 +25,9 @@ the 5 dashboard routes and the per-dashboard chatbot.
 4. [AI assistant architecture](#4-ai-assistant-architecture)
 5. [Developer maintenance guide](#5-developer-maintenance-guide)
 6. [File map](#6-file-map)
-7. [Related documentation & known doc drift](#7-related-documentation--known-doc-drift)
+7. [Documentation history](#7-documentation-history)
+8. [Appendix A: Provider adapter internals](#appendix-a-provider-adapter-internals)
+9. [Appendix B: Dashboard-generation pipeline](#appendix-b-dashboard-generation-pipeline)
 
 ---
 
@@ -485,33 +488,299 @@ scripts/
 
 ---
 
-## 7. Related documentation & known doc drift
+## 7. Documentation history
 
-Two other documents in this repo describe an **earlier state of this
-codebase** and should not be trusted for the specifics below without
-cross-checking the actual source:
+This file supersedes two now-deleted documents that had drifted out of date
+with the codebase — both predated the 10-table canonical CSV unification and
+the AI assistant consolidation onto `/api/dashboard-chat`, and both still
+described an `app/api/assistant/route.ts` route, a `query_warehouse` tool,
+and `lib/server/assistant-tools.ts`, none of which exist anymore:
 
-- **`/ARCHITECTURE.md`** (repo root, not this file) — a substantial,
-  well-written doc that predates the 10-table unification and the AI
-  assistant consolidation. It still describes `app/api/assistant/route.ts`,
-  `lib/server/assistant-tools.ts`, and a `query_warehouse` tool in detail
-  (§4.3 there) — **none of these exist in the codebase anymore.** Its
-  registry examples reference a 2-fact/6-dimension schema and
-  `spend-overview.csv` (also deleted). Its §8 "Known limitations" claims
-  Payment Terms cannot be served from the warehouse for lack of a paid date
-  — `fact_payments.clearing_date`/`actual_dpo` closed that gap and Payment
-  Terms now reads it via the pattern in §3 above. Its §1–§3 (the
-  `IDataProvider` seam, `ClientCsvAdapter`/`AzureSqlAdapter` mechanics, the
-  star-schema rationale) remain accurate in shape and are worth reading for
-  depth this document doesn't repeat.
-- **`docs/ai-assistant-implementation.md`** — similarly describes
-  `/api/assistant` as a live route with its own tool loop, `WAREHOUSE_
-  SYSTEM_PROMPT`, and `RESULT_ROW_LIMIT` constant in `lib/server/
-  assistant-tools.ts`. That whole surface is gone; only the "per-dashboard
-  chat" sections' *concepts* (not file paths) still line up with §4 above.
+- **`/ARCHITECTURE.md`** (repo root) — its §1–§3 (the `IDataProvider` seam,
+  `ClientCsvAdapter`/`AzureSqlAdapter` internals, the star-schema rationale)
+  were still accurate in shape and are carried forward, with corrected
+  numbers and examples, in [Appendix A](#appendix-a-provider-adapter-internals)
+  below. Its §4 (AI assistant integration), file map, and "known
+  limitations" (which claimed Payment Terms couldn't be served from the
+  warehouse — `fact_payments` closed that gap) described the deleted
+  `/api/assistant` route and the pre-unification registry, and were not
+  carried forward.
+- **`docs/ai-assistant-implementation.md`** — its §2.3 (the
+  `/api/generate-dashboard` two-call planning pipeline, a live surface this
+  document hadn't covered elsewhere) and the still-applicable performance
+  observations about the in-memory dashboard-chat query engine are carried
+  forward in [Appendix B](#appendix-b-dashboard-generation-pipeline) and
+  §4.2 above. Its §1–§2 and §4 described `/api/assistant` specifically and
+  were not carried forward.
 
-This document and [`DATA_DICTIONARY_MAPPING.md`](DATA_DICTIONARY_MAPPING.md)
-were written against, and verified directly against, the current `dev`
-branch as of this writing. If you find a discrepancy between this doc and
-the code, trust the code and update this doc — that is the whole point of
-having it.
+Both files were deleted when this document absorbed their still-valid
+content. If you find a discrepancy between this doc and the code, trust the
+code and update this doc — that is the whole point of having it.
+
+---
+
+## Appendix A: Provider adapter internals
+
+Deeper mechanics behind §1's `ClientCsvAdapter`/`AzureSqlAdapter` comparison —
+read this before modifying either adapter or debugging a cross-provider
+numbers mismatch.
+
+### `ClientCsvAdapter` — [`lib/adapters/client-csv-adapter.ts`](../lib/adapters/client-csv-adapter.ts)
+
+Rows arrive via PapaParse (`parseCsv`) and live in `dataset.rows` as a plain
+array of `Record<string, unknown>`. A query is a single-pass pipeline:
+
+```
+queryWidgetData(payload)
+  │
+  ├─ requireDataset(datasetId)          O(D)   lookup over loaded datasets
+  ├─ filterRows(rows, filters)          O(N·F) Array.filter, per-cell compare
+  ├─ aggregateRows(dataset, rows, …)    O(N·M) one pass, Map<groupKey, Accumulator>
+  ├─ result.sort(comparator)            O(G log G)  G = distinct groups
+  └─ result.slice(0, limit)             O(limit)
+```
+
+`N` = rows, `F` = filters, `M` = measure fields, `G` = groups. The dominant
+term is **O(N)** — every query re-scans every row; there is no index, so
+filtering on `po_number` costs exactly as much as filtering on
+`currency_code`.
+
+**Grouping.** `aggregateRows` builds a `Map` keyed by
+`JSON.stringify(dimensionValues)`. Each entry holds a `GroupAccumulator`:
+
+```ts
+{ key: (string | null)[], rowCount: number, fields: Map<string, FieldAccumulator> }
+//                                                       { sum, nonEmpty, distinct: Set<string> }
+```
+
+Accumulating `sum`, `nonEmpty`, and a `distinct` Set for every measure field in
+the same pass is what lets one scan answer `sum`/`avg`/`count`/`distinct`
+together.
+
+**Aggregation semantics** (`finalizeMeasure`) — the contract the SQL side
+must match:
+
+| Aggregation | Client behaviour |
+|---|---|
+| `sum` | `acc.sum` |
+| `avg` | `acc.sum / group.rowCount` — divided by **every row in the group**, not just rows carrying a number |
+| `count` on `"*"` | `group.rowCount` |
+| `count` on a column | `acc.nonEmpty` (non-null, non-empty-after-trim) |
+| `distinct` | `acc.distinct.size` over trimmed text |
+
+**Comparison is trimmed text.** `cellText()` coerces to `String` and trims, so
+`" Steel "` matches `"Steel"` and `5` matches `"5"`. Ordered operators
+(`gt`/`gte`/`lt`/`lte`) compare numerically when both sides coerce to numbers,
+lexicographically otherwise — which is why ISO dates sort correctly.
+
+**Empty groups sort first.** `compareDimension` treats `null` as less than any
+string, matching T-SQL's default `ORDER BY … ASC` placement for `NULL`.
+
+**Date bucketing in JavaScript.** `dimensionValue()` buckets any dimension
+whose `ColumnMeta.type === "date"`. `timeGrain` defaults to `"month"`:
+
+```
+monthBucket("2025-03-14")            // "2025-03"   ISO fast path (regex slice)
+monthBucket("14/03/2025")            // "2025-03"   falls back to new Date()
+monthBucket("not a date")            // "not a date" — unparseable passes through
+
+dateBucket(raw, "month")             // "2025-03"
+dateBucket(raw, "quarter")           // "2025-Q1"   Math.ceil(month / 3)
+dateBucket(raw, "year")              // "FY2024-25" Indian fiscal year
+```
+
+The fiscal-year rule — April–March, labelled by the **starting** year, so
+January 2025 belongs to `FY2024-25`:
+
+```ts
+const fiscalYear = monthNumber >= 4 ? year : year - 1;
+return `FY${fiscalYear}-${String((fiscalYear + 1) % 100).padStart(2, "0")}`;
+```
+
+Coarser grains derive *from* the month bucket, so anything `monthBucket`
+cannot parse degrades identically at every grain.
+
+> **These labels are a cross-provider contract.** `lib/server/
+> query-builder.ts` emits T-SQL `CONCAT` expressions that produce
+> byte-identical strings. If you change one, change both — otherwise a
+> widget's x-axis labels shift when a warehouse query falls back to CSV
+> mid-session.
+
+### `AzureSqlAdapter` — [`lib/adapters/azure-sql-adapter.ts`](../lib/adapters/azure-sql-adapter.ts)
+
+This adapter contains **no aggregation logic at all**. It is an HTTP client
+plus two routing rules:
+
+```
+queryWidgetData(payload)
+  │
+  ├─ isLocalDataset(payload.datasetId)?
+  │    └─ YES ──▶ fallback.queryWidgetData(payload)      ← correct route, not a failure
+  │
+  └─ NO
+       ├─ postQuery(payload)
+       │    └─ POST /api/v1/query
+       │         ├─ 200 { success: true, data: QueryResult, source } ──▶ unwrap .data
+       │         └─ else                                              ──▶ throw Error(envelope.error)
+       │
+       └─ catch (apiError)
+            ├─ console.warn(reason + "Falling back to client-side aggregation")
+            ├─ try fallback.queryWidgetData(payload) ──▶ return it
+            └─ catch ──▶ throw apiError            ← rethrow the *original*, see below
+```
+
+**Smart routing: `isLocalDataset()`.** `DatasetsContext` wires this to the
+live dataset store — `getSnapshot().datasets.some((d) => d.id === datasetId)`.
+An uploaded CSV's rows exist **only** in that browser tab; the server has
+never heard of a dataset called `ds-4f2c…`, so posting that payload would
+earn a deterministic `400` once per widget, every render. The check
+short-circuits those to the CSV engine *before* any network call —
+**`isLocalDataset → true` is a routing decision, not a failure.** Nothing is
+logged. The `catch` block below it is the actual fallback, firing only for
+datasets the server was *supposed* to answer, on network failure, 4xx, 5xx,
+a non-JSON body, or a 30s client timeout.
+
+**Why the original error is rethrown on fallback failure:**
+
+```ts
+try {
+  return await this.fallback.queryWidgetData(payload);
+} catch {
+  throw apiError;   // not the fallback's error
+}
+```
+
+For a warehouse dataset the fallback has no rows, so `ClientCsvAdapter` throws
+`Dataset "fact_po_items" is no longer loaded in this browser` — true but
+useless, since it describes a consequence, not the cause. Rethrowing
+`apiError` surfaces *"the query API returned 503: mssql driver not
+installed"*, which is actionable.
+
+**Metadata caching.** `fetchServerDatasets()` caches the **promise**, not the
+result (`this.datasetsPromise ??= this.request(...)`), so a dashboard
+mounting eight widgets at once shares one `GET /api/v1/datasets` round trip
+rather than racing eight. A rejection clears the cache so the next attempt
+retries; `invalidateMetadata()` clears it explicitly when the user toggles
+back into Azure SQL Mode.
+
+### Why a star schema?
+
+The real comparison isn't "SQL vs. JavaScript" — it's **what each side must
+hold in memory** and **what each side must repeat on every query**.
+
+A flat CSV is fully denormalized by definition: every row carries every
+attribute it might be grouped by. `fact_po_items.csv` (the PO-item grain)
+repeats `vendor_name`, `parent_company_group`, `category_l1`/`category_l2`,
+`plant_name`, and `region` — as **strings** — across 50,000 rows for 800
+distinct vendors (an average ~62× duplication per vendor's full text
+profile). The star schema stores that text **once**:
+
+```
+FLAT CSV (one array, every attribute inline on every row)
+┌────────────┬──────────────┬───────────────────┬───────────────┐
+│ po_number  │ vendor_name  │ parent_company... │ category_l1 … │
+│ 4500000001 │ Tata Steel Ltd │ TATA GROUP       │ Raw Materials │
+│ 4500000002 │ Tata Steel Ltd │ TATA GROUP       │ Raw Materials │  ← repeated
+│ 4500000003 │ Tata Steel Ltd │ TATA GROUP       │ Fuel & Energy │  ← repeated
+└────────────┴──────────────┴───────────────────┴───────────────┘
+
+STAR SCHEMA (facts carry integer keys; text lives once per dimension row)
+   dim_vendor (800 rows)             fact_po_items (50,000 rows)
+   ┌────────────┬───────────────┐    ┌───────────┬─────────────┬──────────────┐
+   │ vendor_key │ vendor_name   │◀───│ vendor_key│ category_key│ net_order_…  │
+   │ 1          │ Tata Steel Ltd│    │ 1         │ 7           │ 6074838      │
+   └────────────┴───────────────┘    │ 1         │ 7           │  950618      │
+                                     │ 1         │ 3           │ 3916545      │
+   dim_material_category (75)   ◀────┴───────────┴─────────────┴──────────────┘
+```
+
+To answer *"spend by vendor"* over a real SAP extract, the flat-array
+approach requires the browser to download and parse the entire fact table
+with all dimension text inlined — at millions of PO lines that file cannot
+be transferred, parsed, or held in a tab. The star schema requires
+transferring only the *aggregate*: for `fact_po_items` grouped by
+`category_l1_name`, that's 13 rows regardless of whether the fact table
+holds 50,000 rows or 100 million.
+
+**Data integrity.** `fact_po_items` and `fact_invoices` both answer *"spend
+by vendor"*/*"spend by category"* **consistently** because the registry
+points both facts' `allowedJoins` at the *same* dimension tables — one
+vendor row, one category row, referenced by key from both facts.
+`db/schema.sql` enforces this with **12 foreign keys** and a `UNIQUE`
+constraint on every dimension's business key, for the 2 facts it currently
+covers. In a flat-array world, nothing structurally prevents `"Raw
+Materials"` in one CSV from drifting to `"RAW MATERIALS"` in another —
+those become two rows in a `GROUP BY` and the numbers silently stop
+reconciling. The star schema converts that class of reporting bug into a
+foreign-key violation at load time.
+
+**Role-playing dimensions.** `fact_invoices` has two dates — the ledger
+posting date and the supplier's document date. Rather than duplicating every
+calendar attribute twice per fact row, the registry joins the single
+`dim_date` table twice under different aliases (`dim_date` and
+`dim_invoice_date`); the query builder emits `AS dim_invoice_date` only when
+the alias differs from the table name, so both dates are queryable in one
+statement without an ambiguous reference. `dim_date` also centralizes the
+fiscal calendar — `fiscal_year`/`fiscal_quarter`/`fiscal_period` are columns
+computed once, so every query agrees on where FY boundaries fall.
+
+**Query efficiency.** `db/schema.sql` gives each fact a clustered columnstore
+index (`CREATE CLUSTERED COLUMNSTORE INDEX CCI_fact_po_items ON
+dbo.fact_po_items;`, and the same for `fact_invoices`). Dimensions keep
+ordinary rowstore `PRIMARY KEY CLUSTERED` indexes — small enough to be
+seeked, not scanned. The facts deliberately have **no surrogate primary
+key**: the columnstore index *is* the storage structure, and a PK would add
+a nonclustered B-tree the analytical query pattern never uses.
+
+---
+
+## Appendix B: Dashboard-generation pipeline
+
+A **third** AI surface, separate from §4's per-dashboard chat: `/api/
+generate-dashboard`, which plans a brand-new custom dashboard from a
+user-uploaded dataset. Two sequential structured-output calls, no tool use,
+no live queries — the model only ever sees a pre-computed column-statistics
+profile, never raw rows:
+
+```
+POST /api/generate-dashboard  { profile: DatasetProfile }
+  │
+  ├─ CALL 1  system = lib/ai/skills/dashboard-planning.md (cache_control: ephemeral)
+  │          input  = renderDatasetProfile(profile)
+  │          output_config.format = PLAN_SCHEMA  →  parsed_output: DashboardPlan
+  │
+  └─ CALL 2  system = lib/ai/skills/widget-planning.md (cache_control: ephemeral)
+             input  = profile + CALL 1's plan (JSON)
+             output_config.format = WIDGET_SCHEMA → parsed_output: { widgets: WidgetSpec[] }
+```
+
+Both calls use `client.messages.parse()` with `jsonSchemaOutputFormat()` — no
+JSON-extraction/regex step; the SDK validates and parses the structured
+output for you. This is a standalone feature route: it does not import from,
+and is not wired into, `/api/dashboard-chat` or the older custom-dashboard
+builder — `components/generated-dashboard/generate-dashboard-dialog.tsx` is
+its own frontend entry point.
+
+**Related files:**
+
+```
+app/api/generate-dashboard/route.ts   the two-call pipeline above
+lib/ai/profile/build-profile.ts       client-computed DatasetProfile (column stats only)
+lib/ai/schemas/plan-schema.ts         DashboardPlan JSON schema
+lib/ai/schemas/widget-schema.ts       WidgetSpec JSON schema
+lib/ai/skills/dashboard-planning.md   system prompt for CALL 1
+lib/ai/skills/widget-planning.md      system prompt for CALL 2
+```
+
+**Still-open performance notes**, carried forward from the retired
+implementation audit since they haven't been addressed and apply to §4.2's
+in-memory engine as much as to this pipeline:
+
+- The in-memory dashboard-chat query engine (`lib/ai/query-engine.ts`) has no
+  indexing or pagination — fine at current sample-data volumes; the first
+  thing to revisit if `dashboard-tables.ts` is ever pointed at real SAP row
+  counts, since `runQuery` re-scans the full array on every call.
+- Neither AI surface caches a query result across conversation turns — a
+  follow-up question that re-derives the same aggregate re-runs the full
+  query. Worth adding if users are observed asking near-duplicate questions
+  within one session; not measured either way yet.
