@@ -1,6 +1,7 @@
 "use client";
 
 import { usePalette } from "@/hooks/use-palette";
+import { formatInr } from "@/lib/sap/format-inr";
 import type { SupplierCountThreshold } from "./types";
 
 export interface SingleSourceRiskChartColors {
@@ -39,21 +40,16 @@ export function useSingleSourceRiskChartColors(): SingleSourceRiskChartColors {
   };
 }
 
+// Vedanta's spend is INR (data dictionary; fact_po_items/fact_payments are
+// wholly INR-denominated), not USD — these delegate to lib/sap/format-inr's
+// Cr/Lakh convention, the same one Spend Overview uses, instead of the
+// dollar-formatted Intl.NumberFormat this dashboard's static mock used.
 export function formatCurrencyCompact(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    notation: "compact",
-    maximumFractionDigits: 1,
-  }).format(value);
+  return formatInr(value, 1);
 }
 
 export function formatCurrencyFull(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(value);
+  return formatInr(value, 2);
 }
 
 export function formatPercent(value: number): string {

@@ -2,6 +2,8 @@
 
 import { useDatasets } from "@/context/DatasetsContext";
 import { PaymentTermsProvider } from "./provider";
+import { useProviderPageData } from "@/hooks/use-provider-page-data";
+import { loadPaymentTermsFromProvider } from "@/lib/page-data/payment-terms-from-provider";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
 import { KpiRibbon } from "./components/kpi-ribbon";
@@ -16,23 +18,21 @@ import { PT_FOCUS_PARAMETERS } from "./components/focusParams";
 import { usePaymentTermsFocus } from "./components/usePaymentTermsFocus";
 
 /**
- * This page is the one core dashboard the warehouse cannot yet feed. Its
- * headline metrics — average paid days and standard-terms adherence — need a
- * settlement date per invoice, and fact_invoices carries only the document and
- * posting dates. Rather than derive a paid date that does not exist, the page
- * stays on its static invoice-list source and says so.
+ * Shown only while Azure-SQL/warehouse mode is selected but fact_payments
+ * has not (yet, or ever) produced rows — e.g. mid-fetch, or a warehouse
+ * genuinely empty of payment records — so the page's use of the static
+ * mock in that moment doesn't look unexplained. fact_payments (baseline_date,
+ * clearing_date, actual_dpo, payment_status) closed the settlement-date gap
+ * this note used to describe; once it returns rows, the note disappears and
+ * the dashboard reads the warehouse like every other core page.
  */
-function WarehouseGapNote() {
+function WarehouseFallbackNote() {
   return (
     <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
       <p className="font-medium">Showing sample data, not Azure SQL.</p>
       <p className="mt-1 leading-snug text-amber-800 dark:text-amber-300">
-        Paid-cycle metrics need a settlement date per invoice. Migrating this page requires{" "}
-        <code className="rounded bg-amber-100 px-1 py-0.5 text-xs dark:bg-amber-900/60">paid_date_key</code> and{" "}
-        <code className="rounded bg-amber-100 px-1 py-0.5 text-xs dark:bg-amber-900/60">paid_days</code> on{" "}
-        <code className="rounded bg-amber-100 px-1 py-0.5 text-xs dark:bg-amber-900/60">fact_invoices</code>, plus
-        global-ultimate and source-system attributes on the vendor dimension. Every other core dashboard reads
-        the warehouse in this mode.
+        fact_payments returned no rows for this connection, so paid-cycle metrics are falling back to the
+        static sample invoices.
       </p>
     </div>
   );
@@ -42,8 +42,23 @@ export default function PaymentTermsPage() {
   const { activeParameters, toggleParameter, applyPreset, isWidgetVisible } = usePaymentTermsFocus();
   const { providerType } = useDatasets();
 
+  const warehouse = useProviderPageData(
+    () => loadPaymentTermsFromProvider(),
+    providerType === "azure-sql",
+    "payment-terms"
+  );
+
   return (
-    <PaymentTermsProvider>
+    // Remounts (via key) exactly when the data source's identity changes —
+    // mock on first paint, warehouse rows once loadPaymentTermsFromProvider
+    // resolves — so PaymentTermsProvider's useReducer lazy-initializes its
+    // date-range/filter state against whichever invoice list is actually
+    // active instead of staying pinned to whatever loaded first.
+    <PaymentTermsProvider
+      key={warehouse.data ? "warehouse" : "static"}
+      invoices={warehouse.data?.invoices}
+      sourceSystemDims={warehouse.data?.sourceSystemDims}
+    >
       <FilterPanel />
       <div className="flex w-full flex-col gap-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -69,7 +84,7 @@ export default function PaymentTermsPage() {
             onSelectAll={() => applyPreset(PT_FOCUS_PARAMETERS.map((parameter) => parameter.id))}
           />
 
-          {providerType === "azure-sql" && <WarehouseGapNote />}
+          {providerType === "azure-sql" && !warehouse.data && <WarehouseFallbackNote />}
 
           {isWidgetVisible("kpi-ribbon") && <KpiRibbon />}
           {/* Trailing odd child spans the full row so hiding/filtering widgets never leaves a gap. */}

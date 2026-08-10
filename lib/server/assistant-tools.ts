@@ -134,8 +134,15 @@ export function createWidgetTool(registryDatasetId: string | null): Anthropic.To
   const groupingIds = columns.filter((c) => c.type !== "number").map((c) => c.id);
   const measureIds = columns.filter((c) => c.type === "number").map((c) => c.id);
 
+  // Free-form only for an uploaded CSV (no registry dataset at all, so no
+  // column list exists yet). A *registered* dataset stays enum-constrained
+  // even when that list is empty — e.g. dim_material has no numeric column,
+  // so yAxisColumn's enum is empty and the anyOf's null branch is the only
+  // value that can ever satisfy it. That is the correct strict behavior: it
+  // forces null rather than falling back to an unconstrained string the
+  // model could put any hallucinated column name into.
   const axis = (ids: string[], description: string) =>
-    ids.length > 0
+    dataset
       ? { anyOf: [{ type: "string", enum: ids }, { type: "null" }], description }
       : { type: ["string", "null"], description };
 

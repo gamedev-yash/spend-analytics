@@ -568,7 +568,7 @@ async function loadBuSpend(
     runner.run(
       grouped({
         datasetId: PO_ITEMS_DATASET,
-        dimensions: ["plant_name", "plant_code"],
+        dimensions: ["plant_name", "plant_code", "region"],
         measures: { [VALUE]: ["net_order_value_inr", "sum"] },
         filters: baseFilters,
         sortBy: VALUE,
@@ -597,9 +597,7 @@ async function loadBuSpend(
     return {
       plantCode,
       plantName,
-      // The star schema keeps region on the plant's state, which dim_plant does
-      // not expose as a column; the plant name carries the BU identity.
-      region: "",
+      region: toLabel(row.region, ""),
       total: round2(value),
       byL1: byPlant.get(plantName) ?? {},
       percentOfTotal: percent(value, total),

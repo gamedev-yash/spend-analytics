@@ -291,8 +291,17 @@ describe("tail-spend provider loader", () => {
 
   it("counts real invoices rather than labelling PO documents as invoices", async () => {
     const invoices = getSampleDataset("fact_invoices");
+    const poItems = getSampleDataset(PO_ITEMS_DATASET);
     assert.ok(invoices);
-    const distinctInvoices = new Set(invoices.rows.map((row) => row.invoice_number)).size;
+    assert.ok(poItems);
+    // This report's supplier universe comes from fact_po_items (it is a PO
+    // spend-concentration view), so a vendor with invoices but no PO in the
+    // sampled window — a maverick-only vendor — has no row to carry its
+    // invoice count on. Ground truth is scoped the same way.
+    const poVendors = new Set(poItems.rows.map((row) => row.vendor_name));
+    const distinctInvoices = new Set(
+      invoices.rows.filter((row) => poVendors.has(row.vendor_name)).map((row) => row.invoice_number)
+    ).size;
 
     const result = await loadTailSpendFromProvider(sampleDataProvider, 25_000);
     assert.ok(result);

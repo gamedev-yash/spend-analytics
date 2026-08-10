@@ -1,6 +1,9 @@
 "use client";
 
+import { useDatasets } from "@/context/DatasetsContext";
 import { SingleSourceRiskProvider } from "./provider";
+import { useProviderPageData } from "@/hooks/use-provider-page-data";
+import { loadSingleSourceRiskFromProvider } from "@/lib/page-data/single-source-risk-from-provider";
 import { ExportSnapshotButton } from "@/components/dashboard/export-snapshot-button";
 import { DASHBOARD_CANVAS_ID } from "@/lib/snapshot";
 import { KpiRibbon } from "./components/kpi-ribbon";
@@ -17,9 +20,27 @@ import { useSingleSourceRiskFocus } from "./components/useSingleSourceRiskFocus"
 
 export default function SingleSourceRiskPage() {
   const { activeParameters, toggleParameter, applyPreset, isWidgetVisible } = useSingleSourceRiskFocus();
+  const { providerType } = useDatasets();
+
+  // fact_po_items has no material or cost-center grain (see
+  // single-source-risk-from-provider.ts), so the Products widget and the
+  // detail table's cost-center column read a clearly-labelled placeholder for
+  // warehouse-sourced rows — everything else here (category/supplier/plant/
+  // global-ultimate concentration, this dashboard's actual subject) is real.
+  const warehouse = useProviderPageData(
+    () => loadSingleSourceRiskFromProvider(),
+    providerType === "azure-sql",
+    "single-source-risk"
+  );
 
   return (
-    <SingleSourceRiskProvider>
+    // Remounts (via key) when the data source's identity changes — see
+    // provider.tsx's prop comment.
+    <SingleSourceRiskProvider
+      key={warehouse.data ? "warehouse" : "static"}
+      invoices={warehouse.data?.invoices}
+      sourceSystemDims={warehouse.data?.sourceSystemDims}
+    >
       <FilterPanel />
       <div className="flex w-full flex-col gap-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
