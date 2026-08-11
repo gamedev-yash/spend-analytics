@@ -48,6 +48,16 @@ export function SupplierSpendList({ rows, top5Percent }: SupplierSpendListProps)
             margin={{ top: 4, right: isFullscreen ? 104 : 84, bottom: 4, left: 4 }}
             barSize={isFullscreen ? 28 : 20}
           >
+            <defs>
+              <linearGradient id="grad-supplierTop5" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={accent} stopOpacity={0.95} />
+                <stop offset="95%" stopColor={accent} stopOpacity={0.25} />
+              </linearGradient>
+              <linearGradient id="grad-supplierRest" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={`${accent}66`} stopOpacity={0.95} />
+                <stop offset="95%" stopColor={`${accent}66`} stopOpacity={0.25} />
+              </linearGradient>
+            </defs>
             <XAxis type="number" hide />
             <YAxis
               type="category"
@@ -69,10 +79,10 @@ export function SupplierSpendList({ rows, top5Percent }: SupplierSpendListProps)
               }}
               cursor={{ fill: palette.isDark ? "rgba(148,163,184,0.08)" : "rgba(15,23,42,0.05)" }}
             />
-            <Bar dataKey="totalValue" radius={[0, 3, 3, 0]}>
+            <Bar dataKey="totalValue" radius={[0, 4, 4, 0]}>
               <LabelList dataKey="valueLabel" position="right" fontSize={fontSize} fill={palette.ink.secondary} />
               {chartRows.map((row) => (
-                <Cell key={row.key} fill={top5Keys.has(row.key) ? accent : `${accent}66`} />
+                <Cell key={row.key} fill={top5Keys.has(row.key) ? "url(#grad-supplierTop5)" : "url(#grad-supplierRest)"} />
               ))}
             </Bar>
           </BarChart>

@@ -26,6 +26,12 @@ export function OnboardingTrendChart({ months }: OnboardingTrendChartProps) {
   return (
     <ResponsiveContainer width="100%" height={320}>
       <ComposedChart data={months} margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+        <defs>
+          <linearGradient id="grad-onboardingTrend" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={palette.categorical.violet} stopOpacity={0.95} />
+            <stop offset="95%" stopColor={palette.categorical.violet} stopOpacity={0.25} />
+          </linearGradient>
+        </defs>
         <CartesianGrid vertical={false} stroke={palette.ink.grid} />
         <XAxis
           dataKey="month"
@@ -73,7 +79,7 @@ export function OnboardingTrendChart({ months }: OnboardingTrendChartProps) {
           yAxisId="count"
           dataKey="newSuppliers"
           name="New suppliers"
-          fill={palette.categorical.violet}
+          fill="url(#grad-onboardingTrend)"
           radius={[4, 4, 0, 0]}
         />
         <Line

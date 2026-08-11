@@ -35,6 +35,14 @@ export function TailTrendChart({ months }: TailTrendChartProps) {
   return (
     <ResponsiveContainer width="100%" height={isFullscreen ? "100%" : 300}>
       <AreaChart data={months} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+        <defs>
+          {SEGMENT_KEYS.map(({ key, segment }) => (
+            <linearGradient key={key} id={`grad-tailTrend${segment}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={theme.segmentColor[segment]} stopOpacity={0.85} />
+              <stop offset="95%" stopColor={theme.segmentColor[segment]} stopOpacity={0.15} />
+            </linearGradient>
+          ))}
+        </defs>
         <CartesianGrid vertical={false} stroke={theme.gridline} />
         <XAxis
           dataKey="month"
@@ -89,8 +97,7 @@ export function TailTrendChart({ months }: TailTrendChartProps) {
             stackId="spend"
             stroke={theme.segmentColor[segment]}
             strokeWidth={1.5}
-            fill={theme.segmentColor[segment]}
-            fillOpacity={0.3}
+            fill={`url(#grad-tailTrend${segment})`}
           />
         ))}
       </AreaChart>

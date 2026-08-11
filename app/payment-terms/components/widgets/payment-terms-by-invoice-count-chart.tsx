@@ -46,6 +46,16 @@ export function PaymentTermsByInvoiceCountChart() {
         <div style={{ minWidth: rows.length * SLOT_WIDTH }}>
         <FullscreenResponsiveContainer height={340}>
           <BarChart data={rows} margin={{ top: 8, right: 16, left: 8, bottom: 48 }}>
+            <defs>
+              <linearGradient id="grad-invoiceCountNoValue" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={chartColors.noValue} stopOpacity={0.95} />
+                <stop offset="95%" stopColor={chartColors.noValue} stopOpacity={0.25} />
+              </linearGradient>
+              <linearGradient id="grad-invoiceCountBar" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={chartColors.invoiceCountBar} stopOpacity={0.95} />
+                <stop offset="95%" stopColor={chartColors.invoiceCountBar} stopOpacity={0.25} />
+              </linearGradient>
+            </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={palette.ink.grid} />
             <XAxis
               dataKey="label"
@@ -73,7 +83,7 @@ export function PaymentTermsByInvoiceCountChart() {
               }}
               cursor={{ fill: palette.isDark ? "rgba(148, 163, 184, 0.08)" : "rgba(15, 23, 42, 0.05)" }}
             />
-            <Bar dataKey="invoiceCount" fill={chartColors.invoiceCountBar}>
+            <Bar dataKey="invoiceCount" fill="url(#grad-invoiceCountBar)" radius={[4, 4, 0, 0]}>
               {rows.map((row) => {
                 const isNoValue = row.key === NO_VALUE_KEY;
                 const isSelected = selectedKey !== null && selectedKey === row.key;
@@ -81,7 +91,7 @@ export function PaymentTermsByInvoiceCountChart() {
                 return (
                   <Cell
                     key={row.key}
-                    fill={isNoValue ? chartColors.noValue : chartColors.invoiceCountBar}
+                    fill={isNoValue ? "url(#grad-invoiceCountNoValue)" : "url(#grad-invoiceCountBar)"}
                     stroke={isSelected ? chartColors.highlightStroke : undefined}
                     strokeWidth={isSelected ? 2 : undefined}
                     opacity={isDimmed ? chartColors.dimmedOpacity : 1}

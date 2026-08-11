@@ -69,6 +69,12 @@ export function SpendBarList({
           margin={{ top: 4, right: isFullscreen ? 140 : 116, bottom: 4, left: 4 }}
           barSize={isFullscreen ? 34 : 22}
         >
+          <defs>
+            <linearGradient id={`grad-spendBarList-${colorSlot}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={accent} stopOpacity={0.95} />
+              <stop offset="95%" stopColor={accent} stopOpacity={0.25} />
+            </linearGradient>
+          </defs>
           <XAxis type="number" hide />
           <YAxis
             type="category"
@@ -97,7 +103,7 @@ export function SpendBarList({
             }}
             cursor={{ fill: palette.isDark ? "rgba(148,163,184,0.08)" : "rgba(15,23,42,0.05)" }}
           />
-          <Bar dataKey="value" fill={accent} radius={[0, 3, 3, 0]}>
+          <Bar dataKey="value" fill={`url(#grad-spendBarList-${colorSlot})`} radius={[0, 4, 4, 0]}>
             <LabelList dataKey="valueLabel" position="right" fontSize={fontSize} fill={palette.ink.secondary} />
           </Bar>
         </BarChart>

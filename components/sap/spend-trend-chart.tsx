@@ -62,6 +62,12 @@ export function SpendTrendChart({ trend }: SpendTrendChartProps) {
         <ResponsiveContainer width="100%" height="100%">
           {mode === "total" ? (
             <BarChart data={totalData} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
+              <defs>
+                <linearGradient id="grad-spendTrend" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={palette.categorical.blue} stopOpacity={0.95} />
+                  <stop offset="95%" stopColor={palette.categorical.blue} stopOpacity={0.25} />
+                </linearGradient>
+              </defs>
               <CartesianGrid vertical={false} strokeDasharray="3 3" stroke={palette.ink.grid} />
               <XAxis
                 dataKey="month"
@@ -87,7 +93,7 @@ export function SpendTrendChart({ trend }: SpendTrendChartProps) {
                 }}
                 cursor={{ fill: palette.isDark ? "rgba(148,163,184,0.08)" : "rgba(15,23,42,0.05)" }}
               />
-              <Bar dataKey="valueCr" name="Spend" fill={palette.categorical.blue} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="valueCr" name="Spend" fill="url(#grad-spendTrend)" radius={[4, 4, 0, 0]} />
             </BarChart>
           ) : (
             <LineChart data={yoyData} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>

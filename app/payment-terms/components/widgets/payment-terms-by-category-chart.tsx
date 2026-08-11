@@ -38,6 +38,16 @@ export function PaymentTermsByCategoryChart() {
         <div style={{ minWidth: `${chartMinWidth}px`, height: 400 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={rows} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
+              <defs>
+                <linearGradient id="grad-categoryChartNoValue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={chartColors.noValue} stopOpacity={0.95} />
+                  <stop offset="95%" stopColor={chartColors.noValue} stopOpacity={0.25} />
+                </linearGradient>
+                <linearGradient id="grad-categoryChartBar" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={chartColors.categoryBar} stopOpacity={0.95} />
+                  <stop offset="95%" stopColor={chartColors.categoryBar} stopOpacity={0.25} />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={palette.ink.grid} />
               <XAxis
                 dataKey="label"
@@ -66,7 +76,7 @@ export function PaymentTermsByCategoryChart() {
                 }}
                 cursor={{ fill: palette.isDark ? "rgba(148, 163, 184, 0.08)" : "rgba(15, 23, 42, 0.05)" }}
               />
-              <Bar dataKey="distinctTermCount">
+              <Bar dataKey="distinctTermCount" radius={[4, 4, 0, 0]}>
                 {rows.map((row) => {
                   const isNoValue = row.key === NO_VALUE_KEY;
                   const isSelected = selectedKey !== null && row.key === selectedKey;
@@ -74,7 +84,7 @@ export function PaymentTermsByCategoryChart() {
                   return (
                     <Cell
                       key={row.key}
-                      fill={isNoValue ? chartColors.noValue : chartColors.categoryBar}
+                      fill={isNoValue ? "url(#grad-categoryChartNoValue)" : "url(#grad-categoryChartBar)"}
                       opacity={isDimmed ? chartColors.dimmedOpacity : 1}
                       stroke={isSelected ? chartColors.highlightStroke : undefined}
                       strokeWidth={isSelected ? 2 : undefined}

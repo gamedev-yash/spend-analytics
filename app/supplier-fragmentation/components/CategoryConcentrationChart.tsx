@@ -22,9 +22,29 @@ export function CategoryConcentrationChart({ categories, threshold }: CategoryCo
     return palette.status.critical;
   }
 
+  function barGradient(percent: number): string {
+    if (percent >= threshold) return "url(#grad-categoryConcentrationGood)";
+    if (percent >= threshold - 15) return "url(#grad-categoryConcentrationWarning)";
+    return "url(#grad-categoryConcentrationCritical)";
+  }
+
   return (
     <ResponsiveContainer width="100%" height={320}>
       <BarChart data={rows} layout="vertical" margin={{ top: 8, right: 24, bottom: 8, left: 8 }}>
+        <defs>
+          <linearGradient id="grad-categoryConcentrationGood" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={palette.status.good} stopOpacity={0.95} />
+            <stop offset="95%" stopColor={palette.status.good} stopOpacity={0.25} />
+          </linearGradient>
+          <linearGradient id="grad-categoryConcentrationWarning" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={palette.status.warning} stopOpacity={0.95} />
+            <stop offset="95%" stopColor={palette.status.warning} stopOpacity={0.25} />
+          </linearGradient>
+          <linearGradient id="grad-categoryConcentrationCritical" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={palette.status.critical} stopOpacity={0.95} />
+            <stop offset="95%" stopColor={palette.status.critical} stopOpacity={0.25} />
+          </linearGradient>
+        </defs>
         <CartesianGrid horizontal={false} stroke={palette.ink.grid} />
         <XAxis
           type="number"
@@ -70,7 +90,7 @@ export function CategoryConcentrationChart({ categories, threshold }: CategoryCo
         />
         <Bar dataKey="top3ConcentrationPercent" radius={[0, 4, 4, 0]}>
           {rows.map((row) => (
-            <Cell key={row.category} fill={barColor(row.top3ConcentrationPercent)} />
+            <Cell key={row.category} fill={barGradient(row.top3ConcentrationPercent)} />
           ))}
         </Bar>
       </BarChart>

@@ -28,6 +28,12 @@ export function SupplierSpendRankChart({ suppliers }: SupplierSpendRankChartProp
         margin={{ top: 8, right: 24, bottom: 8, left: 8 }}
         barCategoryGap="24%"
       >
+        <defs>
+          <linearGradient id="grad-supplierSpendRank" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={theme.paretoBarColor} stopOpacity={0.95} />
+            <stop offset="95%" stopColor={theme.paretoBarColor} stopOpacity={0.25} />
+          </linearGradient>
+        </defs>
         <CartesianGrid horizontal={false} stroke={theme.gridline} />
         <XAxis
           type="number"
@@ -58,7 +64,7 @@ export function SupplierSpendRankChart({ suppliers }: SupplierSpendRankChartProp
           }}
           cursor={{ fill: theme.tooltipCursorFill }}
         />
-        <Bar dataKey="totalSpend" name="Total Spend" fill={theme.paretoBarColor} radius={[0, 4, 4, 0]} />
+        <Bar dataKey="totalSpend" name="Total Spend" fill="url(#grad-supplierSpendRank)" radius={[0, 4, 4, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

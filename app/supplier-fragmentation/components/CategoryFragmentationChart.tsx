@@ -32,6 +32,16 @@ export function CategoryFragmentationChart({ categories }: CategoryFragmentation
   return (
     <ResponsiveContainer width="100%" height={320}>
       <BarChart data={rows} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
+        <defs>
+          <linearGradient id="grad-categoryFragRepeat" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={palette.categorical.blue} stopOpacity={0.95} />
+            <stop offset="95%" stopColor={palette.categorical.blue} stopOpacity={0.25} />
+          </linearGradient>
+          <linearGradient id="grad-categoryFragSingleUse" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={palette.categorical.orange} stopOpacity={0.95} />
+            <stop offset="95%" stopColor={palette.categorical.orange} stopOpacity={0.25} />
+          </linearGradient>
+        </defs>
         <CartesianGrid vertical={false} stroke={palette.ink.grid} />
         <XAxis
           dataKey="category"
@@ -63,8 +73,14 @@ export function CategoryFragmentationChart({ categories }: CategoryFragmentation
           cursor={{ fill: palette.isDark ? "rgba(148, 163, 184, 0.08)" : "rgba(15, 23, 42, 0.05)" }}
         />
         <Legend wrapperStyle={{ fontSize: 12 }} formatter={(value) => <span style={{ color: palette.ink.muted }}>{value}</span>} />
-        <Bar dataKey="repeat" name="Repeat suppliers" stackId="suppliers" fill={palette.categorical.blue} />
-        <Bar dataKey="singleUse" name="Single-use suppliers" stackId="suppliers" fill={palette.categorical.orange} />
+        <Bar dataKey="repeat" name="Repeat suppliers" stackId="suppliers" fill="url(#grad-categoryFragRepeat)" />
+        <Bar
+          dataKey="singleUse"
+          name="Single-use suppliers"
+          stackId="suppliers"
+          fill="url(#grad-categoryFragSingleUse)"
+          radius={[4, 4, 0, 0]}
+        />
       </BarChart>
     </ResponsiveContainer>
   );

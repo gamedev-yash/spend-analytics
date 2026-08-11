@@ -354,12 +354,12 @@ export function DashboardAssistant() {
           // `fixed` already establishes a positioning context for the absolute
           // unread-dot child below — no separate `relative` needed (and adding
           // one would conflict with `fixed` on the same element).
-          "fixed z-[60] inline-flex cursor-grab touch-none items-center gap-1.5 rounded-full px-4 py-3 text-sm font-medium shadow-lg transition-colors duration-200 select-none active:cursor-grabbing hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400",
+          "fixed z-[60] inline-flex cursor-grab touch-none items-center gap-1.5 rounded-full border px-4 py-3 text-sm font-medium shadow-lg transition-all duration-200 select-none active:cursor-grabbing hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400",
           !position && "bottom-6 right-6",
           // Dark Navy in light mode, Off-White in dark mode — the enterprise
           // high-contrast pair, not a brand gradient. Slightly dimmed while
           // open so the launcher visually recedes behind the now-focused panel.
-          "bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white",
+          "border-slate-800 bg-slate-900 text-white hover:bg-slate-800 dark:border-transparent dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white",
           open && "opacity-90 hover:opacity-100"
         )}
       >

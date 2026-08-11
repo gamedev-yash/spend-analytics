@@ -82,6 +82,12 @@ export function PaymentTermsBySupplierChart() {
             layout="vertical"
             margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
           >
+            <defs>
+              <linearGradient id="grad-paymentTermsSupplierBar" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={chartColors.supplierBar} stopOpacity={0.95} />
+                <stop offset="95%" stopColor={chartColors.supplierBar} stopOpacity={0.25} />
+              </linearGradient>
+            </defs>
             <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={palette.ink.grid} />
             <XAxis
               type="number"
@@ -117,6 +123,7 @@ export function PaymentTermsBySupplierChart() {
             <Bar
               dataKey="spend"
               barSize={barSize}
+              radius={[0, 4, 4, 0]}
               style={{ cursor: "pointer" }}
               onClick={(_, index: number) => {
                 const row = displayedRows[index];
@@ -129,7 +136,7 @@ export function PaymentTermsBySupplierChart() {
                 return (
                   <Cell
                     key={row.key}
-                    fill={chartColors.supplierBar}
+                    fill="url(#grad-paymentTermsSupplierBar)"
                     fillOpacity={isDimmed ? chartColors.dimmedOpacity : 1}
                     stroke={isSelected ? chartColors.highlightStroke : undefined}
                     strokeWidth={isSelected ? 2 : undefined}

@@ -25,17 +25,24 @@ interface TrendDatum {
 }
 
 interface DiamondProps {
-  cx?: number;
-  cy?: number;
+  cx?: number | null;
+  cy?: number | null;
   fill?: string;
 }
 
-/** ◆ marker for spike quarters (drawn on the total-suppliers line). */
+/**
+ * ◆ marker for spike quarters (drawn on the total-suppliers line). Recharts
+ * also invokes this as the Legend's icon swatch, passing cx/cy as `null`
+ * (not `undefined`) — default params only cover `undefined`, so `?? 0` is
+ * needed on top of them to avoid a literal "null" landing in the `d` attribute.
+ */
 function Diamond({ cx = 0, cy = 0, fill }: DiamondProps) {
+  const safeCx = cx ?? 0;
+  const safeCy = cy ?? 0;
   const r = 7;
   return (
     <path
-      d={`M ${cx} ${cy - r} L ${cx + r} ${cy} L ${cx} ${cy + r} L ${cx - r} ${cy} Z`}
+      d={`M ${safeCx} ${safeCy - r} L ${safeCx + r} ${safeCy} L ${safeCx} ${safeCy + r} L ${safeCx - r} ${safeCy} Z`}
       fill={fill}
       stroke="#ffffff"
       strokeWidth={1}

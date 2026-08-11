@@ -20,6 +20,12 @@ import { STATUS_CHART_COLOR } from "@/components/ui/status-badge";
 import { bucketRisk } from "../bucketRisk";
 import { useIsFullscreenChart } from "@/components/dashboard/fullscreen-overlay";
 
+/** Gradient fill per reachable risk tier from bucketRisk() — "success" is never produced here. */
+const RISK_GRADIENT_FILL: Record<"danger" | "warning", string> = {
+  danger: "url(#grad-invoiceBucketDanger)",
+  warning: "url(#grad-invoiceBucketWarning)",
+};
+
 interface InvoiceValueBucketChartProps {
   buckets: InvoiceValueBucket[];
   selectedBuckets: Set<string>;
@@ -60,6 +66,20 @@ export function InvoiceValueBucketChart({
       </p>
       <ResponsiveContainer width="100%" height={isFullscreen ? "100%" : 252}>
       <ComposedChart data={buckets} margin={{ top: 8, right: 8, bottom: 8, left: 0 }} barCategoryGap="24%">
+        <defs>
+          <linearGradient id="grad-invoiceBucketBase" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={theme.paretoBarColor} stopOpacity={0.95} />
+            <stop offset="95%" stopColor={theme.paretoBarColor} stopOpacity={0.25} />
+          </linearGradient>
+          <linearGradient id="grad-invoiceBucketDanger" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={STATUS_CHART_COLOR.danger} stopOpacity={0.95} />
+            <stop offset="95%" stopColor={STATUS_CHART_COLOR.danger} stopOpacity={0.25} />
+          </linearGradient>
+          <linearGradient id="grad-invoiceBucketWarning" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={STATUS_CHART_COLOR.warning} stopOpacity={0.95} />
+            <stop offset="95%" stopColor={STATUS_CHART_COLOR.warning} stopOpacity={0.25} />
+          </linearGradient>
+        </defs>
         <CartesianGrid vertical={false} stroke={theme.gridline} />
         <XAxis
           dataKey="bucketLabel"
@@ -109,7 +129,8 @@ export function InvoiceValueBucketChart({
           yAxisId="left"
           dataKey="invoicesPerSupplier"
           name="Invoices per Supplier"
-          fill={theme.paretoBarColor}
+          fill="url(#grad-invoiceBucketBase)"
+          radius={[4, 4, 0, 0]}
           cursor="pointer"
           onClick={(_, index) => onToggleBucket(buckets[index].bucketLabel)}
         >
@@ -118,7 +139,7 @@ export function InvoiceValueBucketChart({
             return (
               <Cell
                 key={bucket.bucketLabel}
-                fill={risk ? STATUS_CHART_COLOR[risk] : theme.paretoBarColor}
+                fill={risk ? RISK_GRADIENT_FILL[risk] : "url(#grad-invoiceBucketBase)"}
                 fillOpacity={selectedBuckets.has(bucket.bucketLabel) ? 1 : 0.25}
               />
             );
