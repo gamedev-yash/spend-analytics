@@ -82,7 +82,18 @@ export function SupplierSpendList({ rows, top5Percent }: SupplierSpendListProps)
             <Bar dataKey="totalValue" radius={[0, 4, 4, 0]}>
               <LabelList dataKey="valueLabel" position="right" fontSize={fontSize} fill={palette.ink.secondary} />
               {chartRows.map((row) => (
-                <Cell key={row.key} fill={top5Keys.has(row.key) ? "url(#grad-supplierTop5)" : "url(#grad-supplierRest)"} />
+                <Cell
+                  key={row.key}
+                  fill={
+                    palette.isDark
+                      ? top5Keys.has(row.key)
+                        ? "url(#grad-supplierTop5)"
+                        : "url(#grad-supplierRest)"
+                      : top5Keys.has(row.key)
+                        ? accent
+                        : `${accent}66`
+                  }
+                />
               ))}
             </Bar>
           </BarChart>

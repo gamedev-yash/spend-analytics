@@ -11,6 +11,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { PaginationFooter } from "@/components/ui/pagination-footer";
+import { usePagination } from "@/hooks/use-pagination";
 import { formatInr } from "@/lib/sap/format-inr";
 
 /** Base row shape every "Detailed Report" table shares — see the SAP Spend Control Tower widget of the same name. */
@@ -72,6 +74,8 @@ export function SupplierDetailReportTable<T extends SupplierDetailReportRow>({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows, sortKey, descending, valueColumns]);
 
+  const pagination = usePagination(sorted, 10);
+
   function toggleSort(key: SortKey) {
     if (key === sortKey) setDescending((d) => !d);
     else {
@@ -117,7 +121,7 @@ export function SupplierDetailReportTable<T extends SupplierDetailReportRow>({
           Export CSV
         </Button>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto rounded-md border">
+      <div className="min-h-0 flex-1 overflow-x-auto rounded-md border">
         <Table>
           <TableHeader className="sticky top-0 z-10 bg-card">
             <TableRow>
@@ -147,7 +151,7 @@ export function SupplierDetailReportTable<T extends SupplierDetailReportRow>({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sorted.map((row) => (
+            {pagination.pageItems.map((row) => (
               <TableRow key={row.key}>
                 <TableCell className="max-w-[220px] truncate font-medium text-foreground" title={row.supplierName}>
                   {row.supplierName}
@@ -168,6 +172,18 @@ export function SupplierDetailReportTable<T extends SupplierDetailReportRow>({
           </TableBody>
         </Table>
       </div>
+      <PaginationFooter
+        page={pagination.page}
+        pageCount={pagination.pageCount}
+        startIndex={pagination.startIndex}
+        endIndex={pagination.endIndex}
+        totalCount={pagination.totalCount}
+        onPrevious={pagination.goToPrevious}
+        onNext={pagination.goToNext}
+        hasPrevious={pagination.hasPrevious}
+        hasNext={pagination.hasNext}
+        itemLabel="suppliers"
+      />
     </div>
   );
 }

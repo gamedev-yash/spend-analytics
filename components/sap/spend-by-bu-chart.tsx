@@ -75,7 +75,7 @@ export function SpendByBuChart({ rows }: SpendByBuChartProps) {
           }}
           cursor={{ fill: palette.isDark ? "rgba(148,163,184,0.08)" : "rgba(15,23,42,0.05)" }}
         />
-        <Bar dataKey="valueCr" fill="url(#grad-spendByBu)" radius={[4, 4, 0, 0]}>
+        <Bar dataKey="valueCr" fill={palette.isDark ? "url(#grad-spendByBu)" : palette.categorical.orange} radius={[4, 4, 0, 0]}>
           <LabelList
             dataKey="percentOfTotal"
             position="top"

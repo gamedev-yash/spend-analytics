@@ -47,7 +47,11 @@ export function SupplierSizeChart({ buckets }: SupplierSizeChartProps) {
           }}
           cursor={{ fill: palette.isDark ? "rgba(148, 163, 184, 0.08)" : "rgba(15, 23, 42, 0.05)" }}
         />
-        <Bar dataKey="supplierCount" fill="url(#grad-supplierSize)" radius={[4, 4, 0, 0]} />
+        <Bar
+          dataKey="supplierCount"
+          fill={palette.isDark ? "url(#grad-supplierSize)" : palette.categorical.aqua}
+          radius={[4, 4, 0, 0]}
+        />
       </BarChart>
     </ResponsiveContainer>
   );

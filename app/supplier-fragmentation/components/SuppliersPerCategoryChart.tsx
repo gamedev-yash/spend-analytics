@@ -143,7 +143,15 @@ export function SuppliersPerCategoryChart() {
           {data.map((row) => (
             <Cell
               key={row.categoryL2}
-              fill={row.aboveMedian ? "url(#grad-supplierPerCategoryBad)" : "url(#grad-supplierPerCategoryGood)"}
+              fill={
+                theme.isDark
+                  ? row.aboveMedian
+                    ? "url(#grad-supplierPerCategoryBad)"
+                    : "url(#grad-supplierPerCategoryGood)"
+                  : row.aboveMedian
+                    ? theme.bad
+                    : theme.good
+              }
               opacity={
                 crossFilter?.categoryL2 && crossFilter.categoryL2 !== row.categoryL2 ? 0.35 : 1
               }

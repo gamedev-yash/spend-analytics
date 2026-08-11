@@ -15,15 +15,22 @@ import {
 import type { InvoiceValueBucket } from "../tailSpendMock";
 import { formatCompactNumber, formatINR } from "../tailSpendMock";
 import { useTailSpendTheme } from "../theme";
+import { usePalette } from "@/hooks/use-palette";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import { STATUS_CHART_COLOR } from "@/components/ui/status-badge";
 import { bucketRisk } from "../bucketRisk";
 import { useIsFullscreenChart } from "@/components/dashboard/fullscreen-overlay";
 
-/** Gradient fill per reachable risk tier from bucketRisk() — "success" is never produced here. */
+/** Gradient fill per reachable risk tier from bucketRisk() — "success" is never produced here. Dark mode only. */
 const RISK_GRADIENT_FILL: Record<"danger" | "warning", string> = {
   danger: "url(#grad-invoiceBucketDanger)",
   warning: "url(#grad-invoiceBucketWarning)",
+};
+
+/** Flat fill per reachable risk tier — used in light mode in place of the gradient. */
+const RISK_FLAT_FILL: Record<"danger" | "warning", string> = {
+  danger: STATUS_CHART_COLOR.danger,
+  warning: STATUS_CHART_COLOR.warning,
 };
 
 interface InvoiceValueBucketChartProps {
@@ -48,6 +55,7 @@ export function InvoiceValueBucketChart({
   microThreshold,
 }: InvoiceValueBucketChartProps) {
   const theme = useTailSpendTheme();
+  const palette = usePalette();
   const isFullscreen = useIsFullscreenChart();
 
   return (
@@ -129,17 +137,19 @@ export function InvoiceValueBucketChart({
           yAxisId="left"
           dataKey="invoicesPerSupplier"
           name="Invoices per Supplier"
-          fill="url(#grad-invoiceBucketBase)"
+          fill={palette.isDark ? "url(#grad-invoiceBucketBase)" : theme.paretoBarColor}
           radius={[4, 4, 0, 0]}
           cursor="pointer"
           onClick={(_, index) => onToggleBucket(buckets[index].bucketLabel)}
         >
           {buckets.map((bucket) => {
             const risk = bucketRisk(bucket.bucketLabel, microThreshold);
+            const baseFill = palette.isDark ? "url(#grad-invoiceBucketBase)" : theme.paretoBarColor;
+            const riskFill = risk ? (palette.isDark ? RISK_GRADIENT_FILL[risk] : RISK_FLAT_FILL[risk]) : baseFill;
             return (
               <Cell
                 key={bucket.bucketLabel}
-                fill={risk ? RISK_GRADIENT_FILL[risk] : "url(#grad-invoiceBucketBase)"}
+                fill={riskFill}
                 fillOpacity={selectedBuckets.has(bucket.bucketLabel) ? 1 : 0.25}
               />
             );

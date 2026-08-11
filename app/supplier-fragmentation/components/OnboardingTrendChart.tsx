@@ -79,7 +79,7 @@ export function OnboardingTrendChart({ months }: OnboardingTrendChartProps) {
           yAxisId="count"
           dataKey="newSuppliers"
           name="New suppliers"
-          fill="url(#grad-onboardingTrend)"
+          fill={palette.isDark ? "url(#grad-onboardingTrend)" : palette.categorical.violet}
           radius={[4, 4, 0, 0]}
         />
         <Line

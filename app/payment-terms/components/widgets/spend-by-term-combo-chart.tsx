@@ -103,7 +103,12 @@ export function SpendByTermComboChart() {
                   }}
                   cursor={{ fill: palette.isDark ? "rgba(148, 163, 184, 0.08)" : "rgba(15, 23, 42, 0.05)" }}
                 />
-                <Bar yAxisId="left" dataKey="spend" fill="url(#grad-termSpendBar)" radius={[4, 4, 0, 0]}>
+                <Bar
+                  yAxisId="left"
+                  dataKey="spend"
+                  fill={palette.isDark ? "url(#grad-termSpendBar)" : chartColors.termSpendBar}
+                  radius={[4, 4, 0, 0]}
+                >
                   {rows.map((row) => {
                     const isNoValue = row.key === NO_VALUE_KEY;
                     const isSelected = selectedKey !== null && row.key === selectedKey;
@@ -111,7 +116,15 @@ export function SpendByTermComboChart() {
                     return (
                       <Cell
                         key={row.key}
-                        fill={isNoValue ? "url(#grad-termSpendNoValue)" : "url(#grad-termSpendBar)"}
+                        fill={
+                          palette.isDark
+                            ? isNoValue
+                              ? "url(#grad-termSpendNoValue)"
+                              : "url(#grad-termSpendBar)"
+                            : isNoValue
+                              ? chartColors.noValue
+                              : chartColors.termSpendBar
+                        }
                         fillOpacity={isDimmed ? chartColors.dimmedOpacity : 1}
                         stroke={isSelected ? chartColors.highlightStroke : undefined}
                         strokeWidth={isSelected ? 2 : 0}

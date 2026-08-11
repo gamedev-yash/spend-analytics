@@ -73,12 +73,17 @@ export function CategoryFragmentationChart({ categories }: CategoryFragmentation
           cursor={{ fill: palette.isDark ? "rgba(148, 163, 184, 0.08)" : "rgba(15, 23, 42, 0.05)" }}
         />
         <Legend wrapperStyle={{ fontSize: 12 }} formatter={(value) => <span style={{ color: palette.ink.muted }}>{value}</span>} />
-        <Bar dataKey="repeat" name="Repeat suppliers" stackId="suppliers" fill="url(#grad-categoryFragRepeat)" />
+        <Bar
+          dataKey="repeat"
+          name="Repeat suppliers"
+          stackId="suppliers"
+          fill={palette.isDark ? "url(#grad-categoryFragRepeat)" : palette.categorical.blue}
+        />
         <Bar
           dataKey="singleUse"
           name="Single-use suppliers"
           stackId="suppliers"
-          fill="url(#grad-categoryFragSingleUse)"
+          fill={palette.isDark ? "url(#grad-categoryFragSingleUse)" : palette.categorical.orange}
           radius={[4, 4, 0, 0]}
         />
       </BarChart>

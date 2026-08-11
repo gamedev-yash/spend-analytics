@@ -15,6 +15,7 @@ import {
 import type { ParetoDecile } from "../tailSpendMock";
 import { formatCompactNumber } from "../tailSpendMock";
 import { useTailSpendTheme } from "../theme";
+import { usePalette } from "@/hooks/use-palette";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import { useIsFullscreenChart } from "@/components/dashboard/fullscreen-overlay";
 
@@ -30,6 +31,7 @@ interface ParetoCurveChartProps {
  */
 export function ParetoCurveChart({ deciles, threshold = 80 }: ParetoCurveChartProps) {
   const theme = useTailSpendTheme();
+  const palette = usePalette();
   const isFullscreen = useIsFullscreenChart();
   const crossover = deciles.find((d) => d.cumulativeSpendPercent >= threshold);
 
@@ -98,7 +100,7 @@ export function ParetoCurveChart({ deciles, threshold = 80 }: ParetoCurveChartPr
           <Bar
             dataKey="spendPercentOfTotal"
             name="Decile spend share"
-            fill="url(#grad-paretoCurveBar)"
+            fill={palette.isDark ? "url(#grad-paretoCurveBar)" : theme.paretoBarColor}
             radius={[4, 4, 0, 0]}
           />
           <Line

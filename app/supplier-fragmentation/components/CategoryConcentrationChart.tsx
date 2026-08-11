@@ -23,6 +23,7 @@ export function CategoryConcentrationChart({ categories, threshold }: CategoryCo
   }
 
   function barGradient(percent: number): string {
+    if (!palette.isDark) return barColor(percent);
     if (percent >= threshold) return "url(#grad-categoryConcentrationGood)";
     if (percent >= threshold - 15) return "url(#grad-categoryConcentrationWarning)";
     return "url(#grad-categoryConcentrationCritical)";

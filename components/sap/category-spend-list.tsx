@@ -63,7 +63,7 @@ export function CategorySpendList({ nodes }: CategorySpendListProps) {
             }}
             cursor={{ fill: palette.isDark ? "rgba(148,163,184,0.08)" : "rgba(15,23,42,0.05)" }}
           />
-          <Bar dataKey="value" fill="url(#grad-categorySpend)" radius={[0, 4, 4, 0]}>
+          <Bar dataKey="value" fill={palette.isDark ? "url(#grad-categorySpend)" : palette.categorical.blue} radius={[0, 4, 4, 0]}>
             <LabelList dataKey="valueLabel" position="right" fontSize={fontSize} fill={palette.ink.secondary} />
           </Bar>
         </BarChart>

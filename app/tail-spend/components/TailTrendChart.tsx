@@ -4,6 +4,7 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tool
 import type { MonthlyTrendPoint, SpendSegment } from "../tailSpendMock";
 import { formatINR } from "../tailSpendMock";
 import { useTailSpendTheme } from "../theme";
+import { usePalette } from "@/hooks/use-palette";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import { useIsFullscreenChart } from "@/components/dashboard/fullscreen-overlay";
 
@@ -30,6 +31,7 @@ function shortMonth(month: string): string {
  */
 export function TailTrendChart({ months }: TailTrendChartProps) {
   const theme = useTailSpendTheme();
+  const palette = usePalette();
   const isFullscreen = useIsFullscreenChart();
 
   return (
@@ -97,7 +99,7 @@ export function TailTrendChart({ months }: TailTrendChartProps) {
             stackId="spend"
             stroke={theme.segmentColor[segment]}
             strokeWidth={1.5}
-            fill={`url(#grad-tailTrend${segment})`}
+            fill={palette.isDark ? `url(#grad-tailTrend${segment})` : theme.segmentColor[segment]}
           />
         ))}
       </AreaChart>

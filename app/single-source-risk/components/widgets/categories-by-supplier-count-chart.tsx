@@ -120,7 +120,9 @@ export function CategoriesBySupplierCountChart() {
                   const isSelected = selectedKey !== null && row.key === selectedKey;
                   const isDimmed = selectedKey !== null && !isSelected;
                   const supplierCountKey = Math.min(row.supplierCount, 3) as SupplierCountThreshold;
-                  const fill = `url(#${GRADIENT_ID_BY_THRESHOLD[supplierCountKey]})`;
+                  const fill = palette.isDark
+                    ? `url(#${GRADIENT_ID_BY_THRESHOLD[supplierCountKey]})`
+                    : chartColors.categoryBySupplierCount[supplierCountKey];
                   return (
                     <Cell
                       key={row.key}

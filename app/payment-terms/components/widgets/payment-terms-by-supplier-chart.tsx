@@ -136,7 +136,7 @@ export function PaymentTermsBySupplierChart() {
                 return (
                   <Cell
                     key={row.key}
-                    fill="url(#grad-paymentTermsSupplierBar)"
+                    fill={palette.isDark ? "url(#grad-paymentTermsSupplierBar)" : chartColors.supplierBar}
                     fillOpacity={isDimmed ? chartColors.dimmedOpacity : 1}
                     stroke={isSelected ? chartColors.highlightStroke : undefined}
                     strokeWidth={isSelected ? 2 : undefined}

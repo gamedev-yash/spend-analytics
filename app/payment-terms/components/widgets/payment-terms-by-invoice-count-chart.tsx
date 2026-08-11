@@ -83,7 +83,11 @@ export function PaymentTermsByInvoiceCountChart() {
               }}
               cursor={{ fill: palette.isDark ? "rgba(148, 163, 184, 0.08)" : "rgba(15, 23, 42, 0.05)" }}
             />
-            <Bar dataKey="invoiceCount" fill="url(#grad-invoiceCountBar)" radius={[4, 4, 0, 0]}>
+            <Bar
+              dataKey="invoiceCount"
+              fill={palette.isDark ? "url(#grad-invoiceCountBar)" : chartColors.invoiceCountBar}
+              radius={[4, 4, 0, 0]}
+            >
               {rows.map((row) => {
                 const isNoValue = row.key === NO_VALUE_KEY;
                 const isSelected = selectedKey !== null && selectedKey === row.key;
@@ -91,7 +95,15 @@ export function PaymentTermsByInvoiceCountChart() {
                 return (
                   <Cell
                     key={row.key}
-                    fill={isNoValue ? "url(#grad-invoiceCountNoValue)" : "url(#grad-invoiceCountBar)"}
+                    fill={
+                      palette.isDark
+                        ? isNoValue
+                          ? "url(#grad-invoiceCountNoValue)"
+                          : "url(#grad-invoiceCountBar)"
+                        : isNoValue
+                          ? chartColors.noValue
+                          : chartColors.invoiceCountBar
+                    }
                     stroke={isSelected ? chartColors.highlightStroke : undefined}
                     strokeWidth={isSelected ? 2 : undefined}
                     opacity={isDimmed ? chartColors.dimmedOpacity : 1}

@@ -84,7 +84,15 @@ export function PaymentTermsByCategoryChart() {
                   return (
                     <Cell
                       key={row.key}
-                      fill={isNoValue ? "url(#grad-categoryChartNoValue)" : "url(#grad-categoryChartBar)"}
+                      fill={
+                        palette.isDark
+                          ? isNoValue
+                            ? "url(#grad-categoryChartNoValue)"
+                            : "url(#grad-categoryChartBar)"
+                          : isNoValue
+                            ? chartColors.noValue
+                            : chartColors.categoryBar
+                      }
                       opacity={isDimmed ? chartColors.dimmedOpacity : 1}
                       stroke={isSelected ? chartColors.highlightStroke : undefined}
                       strokeWidth={isSelected ? 2 : undefined}

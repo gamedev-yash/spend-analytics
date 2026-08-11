@@ -4,6 +4,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import type { SupplierSpendRank } from "../tailSpendMock";
 import { formatINR } from "../tailSpendMock";
 import { useTailSpendTheme } from "../theme";
+import { usePalette } from "@/hooks/use-palette";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import { useIsFullscreenChart } from "@/components/dashboard/fullscreen-overlay";
 
@@ -17,6 +18,7 @@ interface SupplierSpendRankChartProps {
  */
 export function SupplierSpendRankChart({ suppliers }: SupplierSpendRankChartProps) {
   const theme = useTailSpendTheme();
+  const palette = usePalette();
   const isFullscreen = useIsFullscreenChart();
   const sorted = [...suppliers].sort((a, b) => b.totalSpend - a.totalSpend).slice(0, 10);
 
@@ -64,7 +66,12 @@ export function SupplierSpendRankChart({ suppliers }: SupplierSpendRankChartProp
           }}
           cursor={{ fill: theme.tooltipCursorFill }}
         />
-        <Bar dataKey="totalSpend" name="Total Spend" fill="url(#grad-supplierSpendRank)" radius={[0, 4, 4, 0]} />
+        <Bar
+          dataKey="totalSpend"
+          name="Total Spend"
+          fill={palette.isDark ? "url(#grad-supplierSpendRank)" : theme.paretoBarColor}
+          radius={[0, 4, 4, 0]}
+        />
       </BarChart>
     </ResponsiveContainer>
   );
