@@ -57,7 +57,12 @@ export function SuppliersPerCategoryChart() {
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <ComposedChart data={data} layout="vertical" margin={{ top: 18, right: 40, bottom: 4, left: 8 }}>
+      <ComposedChart
+        data={data}
+        layout="vertical"
+        margin={{ top: 18, right: 40, bottom: 4, left: 8 }}
+        barCategoryGap="25%"
+      >
         <XAxis
           type="number"
           stroke={theme.axis}
@@ -118,7 +123,6 @@ export function SuppliersPerCategoryChart() {
         />
         <Bar
           dataKey="suppliers"
-          barSize={12}
           radius={[0, 3, 3, 0]}
           cursor="pointer"
           onClick={(entry) => {

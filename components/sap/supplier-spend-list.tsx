@@ -46,7 +46,7 @@ export function SupplierSpendList({ rows, top5Percent }: SupplierSpendListProps)
             data={chartRows}
             layout="vertical"
             margin={{ top: 4, right: isFullscreen ? 104 : 84, bottom: 4, left: 4 }}
-            barSize={isFullscreen ? 20 : 14}
+            barSize={isFullscreen ? 28 : 20}
           >
             <XAxis type="number" hide />
             <YAxis

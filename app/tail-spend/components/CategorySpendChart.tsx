@@ -72,7 +72,7 @@ export function CategorySpendChart({ categories }: CategorySpendChartProps) {
           }}
           cursor={{ fill: theme.tooltipCursorFill }}
         />
-        <Bar dataKey="spend" name="Spend" fill={theme.paretoBarColor} radius={[0, 4, 4, 0]} maxBarSize={18}>
+        <Bar dataKey="spend" name="Spend" fill={theme.paretoBarColor} radius={[0, 4, 4, 0]}>
           <LabelList
             dataKey="spend"
             position="right"

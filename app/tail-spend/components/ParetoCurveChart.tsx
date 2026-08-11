@@ -94,7 +94,6 @@ export function ParetoCurveChart({ deciles, threshold = 80 }: ParetoCurveChartPr
             name="Decile spend share"
             fill={theme.paretoBarColor}
             radius={[4, 4, 0, 0]}
-            maxBarSize={48}
           />
           <Line
             dataKey="cumulativeSpendPercent"

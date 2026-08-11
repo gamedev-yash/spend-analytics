@@ -37,7 +37,7 @@ export function CategorySpendList({ nodes }: CategorySpendListProps) {
           data={rows}
           layout="vertical"
           margin={{ top: 4, right: isFullscreen ? 104 : 84, bottom: 4, left: 4 }}
-          barSize={isFullscreen ? 26 : 16}
+          barSize={isFullscreen ? 34 : 22}
         >
           <XAxis type="number" hide />
           <YAxis

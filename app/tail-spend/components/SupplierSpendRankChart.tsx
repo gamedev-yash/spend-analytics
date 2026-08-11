@@ -58,7 +58,7 @@ export function SupplierSpendRankChart({ suppliers }: SupplierSpendRankChartProp
           }}
           cursor={{ fill: theme.tooltipCursorFill }}
         />
-        <Bar dataKey="totalSpend" name="Total Spend" fill={theme.paretoBarColor} radius={[0, 4, 4, 0]} maxBarSize={20} />
+        <Bar dataKey="totalSpend" name="Total Spend" fill={theme.paretoBarColor} radius={[0, 4, 4, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );
