@@ -25,6 +25,17 @@ import { buildDashboardContext, isDashboardContextCached } from "@/lib/ai/dashbo
 import { queryDashboardDataTool, runDashboardQuery, renderDashboardQueryResult } from "@/lib/ai/dashboard-query";
 import { DASHBOARD_REGISTRY, dashboardMeta, type DashboardKey } from "@/lib/ai/dashboard-registry";
 import { getDatasetVersion } from "@/lib/server/sample-data-source";
+import {
+  applyQueryToContext,
+  buildContextSummaryForUI,
+  buildConversationMemoryBlock,
+  clearConversationContext,
+  getConversationContext,
+  sanitizeConversationId,
+  saveConversationContext,
+  suggestFollowUps,
+  type QueryMemoryUpdate,
+} from "@/lib/ai/conversation-context";
 
 export const runtime = "nodejs";
 
@@ -56,6 +67,18 @@ interface DashboardChatRequest {
    * prompt, the same as anything the user types.
    */
   activeFilters?: string;
+  /**
+   * Identifies the conversation for follow-up memory (lib/ai/conversation-context.ts)
+   * — deliberately not the same thing as dashboardKey (§13 of this feature's
+   * spec: a user can have multiple conversations on one dashboard, and one
+   * conversation's memory now follows the user across a dashboard redirect).
+   * Optional: a first-ever message from a fresh panel won't have one yet: the
+   * server generates one and echoes it back in the response for the client
+   * to persist. Never trusted verbatim — see sanitizeConversationId.
+   */
+  conversationId?: string;
+  /** "New chat" clicked — wipes this conversation's stored memory before handling the message, same session-only store either way. */
+  clearContext?: boolean;
 }
 
 // Bounds what a client can put in front of the model as "current filters" —
@@ -76,6 +99,12 @@ interface DashboardChatResponse {
   redirect: { key: DashboardKey; label: string; route: string } | null;
   /** Set when the model called ask_with_options — clickable choices instead of free text. */
   options: string[] | null;
+  /** Echoed back so the client can persist it for the next message — see DashboardChatRequest.conversationId. */
+  conversationId: string;
+  /** Deterministic, derived from this conversation's stored memory — null when there's nothing to suggest yet. Falls back to the client's static starter chips. */
+  suggestedFollowUps: string[] | null;
+  /** Compact "what I remember" for the UI's context indicator — null when there's nothing memorable yet. */
+  contextSummary: string | null;
 }
 
 const REDIRECT_TOOL: Anthropic.Tool = {
@@ -145,7 +174,11 @@ Amounts in columns ending _inr are Indian rupees — report them in Cr (10,000,0
 
 For context, the full warehouse behind this app has seven tables total (fact_po_items, fact_invoices, fact_payments, agg_vendor_annual, dim_contract, dim_material, dim_payment_terms) — this dashboard's own tables, listed above, are the slice of that warehouse actually in reach here.`;
 
-function buildSystemPrompt(currentKey: DashboardKey, activeFilters: string | null): string {
+function buildSystemPrompt(
+  currentKey: DashboardKey,
+  activeFilters: string | null,
+  memoryBlock: string | null
+): string {
   const current = dashboardMeta(currentKey);
   const others = DASHBOARD_REGISTRY.filter((d) => d.key !== currentKey);
 
@@ -156,13 +189,19 @@ function buildSystemPrompt(currentKey: DashboardKey, activeFilters: string | nul
     ? `\nThe user currently has this filtered view open on the dashboard: ${activeFilters}\nMatch query_dashboard_data's filters to this by default, so your answer agrees with what's on screen. Depart from it only when the user's question clearly asks to look outside it (e.g. explicitly asks for the company-wide/unfiltered total, or names a different plant/category/period than what's listed above).\n`
     : "";
 
+  // Same "only when non-empty" rule as activeFiltersBlock above — a fresh
+  // conversation with nothing memorable yet costs the prompt nothing extra.
+  // See lib/ai/conversation-context.ts for what this contains and why it
+  // exists alongside (not instead of) the raw message history below.
+  const memoryPromptBlock = memoryBlock ? `\n${memoryBlock}\n` : "";
+
   return `You are the assistant embedded in the "${current.label}" dashboard of a Vedanta procurement analytics app.
 
-You have DATA ACCESS ONLY for this dashboard, via the query_dashboard_data tool.
+You have DATA ACCESS ONLY for this dashboard, via the query_dashboard_data tool. This is a business-scope boundary, not a separate database — every dashboard in this app reads the same underlying warehouse; "this dashboard's tables" below just means the slice of it relevant to this business area.
 
 What this dashboard is for — use this to judge whether a question belongs here at all, before reaching for a tool:
 ${current.description}
-${activeFiltersBlock}
+${activeFiltersBlock}${memoryPromptBlock}
 ${buildDashboardContext(currentKey)}
 
 ${SEMANTIC_METRIC_DICTIONARY}
@@ -171,8 +210,9 @@ Other dashboards exist in this app. You do NOT have their data — only their na
 ${others.map((d) => `- ${d.label} (${d.route}): ${d.description}`).join("\n")}
 
 Grounding rules — absolute:
+- This is an ongoing conversation: a short message like "only Pune", "what about March", "compare with last year", or "just the top 3" is a follow-up, not a new question — keep whatever the CONVERSATION MEMORY / recent messages above already established (dashboard, metric, dimension, entity, filters) and change only the part the user actually mentioned. Resolve "them"/"that"/"the second one" the same way. Never ask the user to repeat something already known; if it genuinely can't be resolved, use ask_with_options instead of guessing.
 - To state any real figure, first call query_dashboard_data and read the number off the result. Never estimate, never recall a number from an earlier turn as if it were fresh, never fabricate.
-- Use only the table and field names listed above. There are no others.
+- Use only the table and field names listed above. There are no others. But those exact names (fact_po_items, vendor_name, actual_dpo, and so on) are for YOUR use when calling query_dashboard_data — never write them, or any other internal table/column/schema name, into anything the user actually reads: not your reply, not a redirect_to_dashboard reason, not an ask_with_options question or option. Translate every one into plain business language instead (say "payment records", not "fact_payments"; "days payable outstanding", not "actual_dpo"; "suppliers", not "vendor_name").
 - If the user asks about something that belongs to one of the other dashboards listed above, do NOT answer it yourself — call redirect_to_dashboard with that dashboard's key, even if you could plausibly guess the answer.
 - If a query returns no rows, or the question needs a column that genuinely isn't listed above, say so plainly rather than softening it into an approximation.
 - Ordinary conversation (greetings, thanks, what can you help with) doesn't need the tool — answer it directly and briefly.
@@ -193,10 +233,12 @@ interface RequestTiming {
   model: string;
   contextCacheHit: boolean;
   hasActiveFilters: boolean;
+  hasConversationMemory: boolean;
   datasetVersion: string;
   promptConstructionMs: number;
   llmRounds: number;
   toolCalls: number;
+  queryCacheHits: number;
   claudeLatencyMs: number;
   queryExecutionMs: number;
   rowsProcessed: number;
@@ -229,6 +271,9 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
+  const conversationId = sanitizeConversationId(body.conversationId, randomUUID);
+  if (body.clearContext) clearConversationContext(conversationId);
+
   const message = typeof body.message === "string" ? body.message.trim() : "";
   if (!message) {
     return Response.json({ error: "A non-empty `message` is required." }, { status: 400 });
@@ -256,17 +301,22 @@ export async function POST(request: Request): Promise<Response> {
   // for the debug line below; it has no effect on behavior.
   const contextCacheHitBeforeBuild = isDashboardContextCached(dashboardKey as DashboardKey);
   const promptStartedAt = performance.now();
+  // Cheap in-memory lookup (lib/ai/conversation-context.ts) — not the
+  // describeSchema() cost the cache check above is about, just folded into
+  // the same "prompt construction" timing bucket since it happens at the
+  // same phase of the request.
+  let conversationContext = getConversationContext(conversationId);
+  const memoryBlock = buildConversationMemoryBlock(conversationContext, dashboardKey as DashboardKey);
   // Built ONCE per request, not once per tool-calling pass: neither the
-  // dashboardKey nor activeFilters changes mid-request, so re-deriving
-  // byte-identical system prompt text on every pass (previously up to
-  // MAX_TOOL_PASSES times) was pure waste even with the per-dashboard
-  // memoization above. Note activeFilters (unlike the memoized parts of the
-  // prompt) does vary request-to-request with the user's live filter state —
-  // Anthropic's own ephemeral prompt cache still hits across consecutive
-  // messages sent with the same filters, and only misses when the filter
-  // state actually changed, which is exactly when the model needs the fresh
-  // text anyway.
-  const systemPrompt = buildSystemPrompt(dashboardKey as DashboardKey, activeFilters);
+  // dashboardKey nor activeFilters/memoryBlock changes mid-request, so
+  // re-deriving byte-identical system prompt text on every pass (previously
+  // up to MAX_TOOL_PASSES times) was pure waste even with the per-dashboard
+  // memoization above. Note activeFilters/memoryBlock (unlike the memoized
+  // parts of the prompt) do vary request-to-request — Anthropic's own
+  // ephemeral prompt cache still hits across consecutive messages sent with
+  // the same filters/memory, and only misses when either actually changed,
+  // which is exactly when the model needs the fresh text anyway.
+  const systemPrompt = buildSystemPrompt(dashboardKey as DashboardKey, activeFilters, memoryBlock);
   const tools: Anthropic.Tool[] = [
     queryDashboardDataTool(dashboardKey as DashboardKey),
     REDIRECT_TOOL,
@@ -277,6 +327,8 @@ export async function POST(request: Request): Promise<Response> {
   let claudeLatencyMs = 0;
   let queryExecutionMs = 0;
   let toolCallCount = 0;
+  let queryCacheHitCount = 0;
+  let lastSuccessfulQuery: QueryMemoryUpdate | null = null;
   let rowsProcessed = 0;
   let rowsReturned = 0;
   let llmRounds = 0;
@@ -288,10 +340,12 @@ export async function POST(request: Request): Promise<Response> {
       model,
       contextCacheHit: contextCacheHitBeforeBuild,
       hasActiveFilters: activeFilters !== null,
+      hasConversationMemory: memoryBlock !== null,
       datasetVersion: getDatasetVersion(),
       promptConstructionMs: round2(promptConstructionMs),
       llmRounds,
       toolCalls: toolCallCount,
+      queryCacheHits: queryCacheHitCount,
       claudeLatencyMs: round2(claudeLatencyMs),
       queryExecutionMs: round2(queryExecutionMs),
       rowsProcessed,
@@ -390,8 +444,17 @@ export async function POST(request: Request): Promise<Response> {
       const results: Anthropic.ToolResultBlockParam[] = await Promise.all(
         queryCalls.map(async (call) => {
           const outcome = runDashboardQuery(dashboardKey as DashboardKey, call.input as Record<string, unknown>);
+          if (outcome.cacheHit) queryCacheHitCount += 1;
           rowsProcessed += outcome.result.matchedRows;
           rowsReturned += outcome.result.groups?.length ?? outcome.result.rows?.length ?? (outcome.result.value !== undefined ? 1 : 0);
+          // Tracks the LAST successful query across every pass in this
+          // request (queryCalls is processed in order and this keeps
+          // overwriting), so a failed attempt earlier in the same pass never
+          // overwrites memory with something the model itself discarded —
+          // folded into conversation memory once the whole loop finishes.
+          if (!outcome.error) {
+            lastSuccessfulQuery = { table: outcome.table, spec: outcome.spec, result: outcome.result };
+          }
           return {
             type: "tool_result" as const,
             tool_use_id: call.id,
@@ -404,10 +467,25 @@ export async function POST(request: Request): Promise<Response> {
       messages.push({ role: "user", content: results });
     }
 
+    // Fold this turn's query into the conversation's stored memory —
+    // dashboard-scoped (see applyQueryToContext's doc comment on why a
+    // redirect never carries a stale query shape into the destination
+    // dashboard), entities global. Saved even when nothing new happened
+    // this turn (a pure-conversation message, or a redirect with no query),
+    // so the TTL refreshes and an active conversation's memory doesn't
+    // expire out from under it.
+    conversationContext = lastSuccessfulQuery
+      ? applyQueryToContext(conversationContext, dashboardKey as DashboardKey, lastSuccessfulQuery)
+      : conversationContext;
+    saveConversationContext(conversationContext);
+
     const payload: DashboardChatResponse = {
       reply: reply.trim() || "I don't have an answer for that.",
       redirect,
       options,
+      conversationId,
+      suggestedFollowUps: suggestFollowUps(conversationContext, dashboardKey as DashboardKey),
+      contextSummary: buildContextSummaryForUI(conversationContext, dashboardKey as DashboardKey),
     };
     finishTiming(redirect ? "redirect" : options ? "options" : "ok");
     return Response.json(payload);
@@ -423,12 +501,16 @@ export async function POST(request: Request): Promise<Response> {
       return Response.json({ error: "Could not reach the Anthropic API." }, { status: 502 });
     }
     if (err instanceof Anthropic.APIError) {
-      return Response.json({ error: `Anthropic API error: ${err.message}` }, { status: 502 });
+      // The SDK's own message can carry raw upstream response detail — logged
+      // for our own debugging (correlate with requestId), never forwarded
+      // verbatim to the user. Same "no internal implementation detail in
+      // user-facing text" rule the system prompt now enforces on the model's
+      // own replies applies here too — an error message is user-facing text.
+      console.error(`[dashboard-chat:${requestId}] Anthropic API error:`, err.message);
+      return Response.json({ error: "The AI service returned an error. Please try again shortly." }, { status: 502 });
     }
-    return Response.json(
-      { error: err instanceof Error ? err.message : "Unexpected assistant error." },
-      { status: 500 }
-    );
+    console.error(`[dashboard-chat:${requestId}] Unexpected error:`, err);
+    return Response.json({ error: "Something went wrong answering that. Please try again." }, { status: 500 });
   }
 }
 

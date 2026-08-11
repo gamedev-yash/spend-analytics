@@ -187,6 +187,7 @@ export function PaymentTermsProvider({ children, invoices, sourceSystemDims }: P
   useSetDashboardActiveFilterSummary(
     buildPaymentTermsFilterSummary({
       filters,
+      selection: state.selection,
       defaultDateFrom: defaultRange.dateFrom,
       defaultDateTo: defaultRange.dateTo,
       categoryOptions,

@@ -11,11 +11,16 @@
 // meaningful.
 
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { afterEach, describe, it } from "node:test";
 import { queryDashboardDataTool, runDashboardQuery, renderDashboardQueryResult } from "@/lib/ai/dashboard-query";
 import { getDashboardTables } from "@/lib/ai/dashboard-tables";
 import { DASHBOARD_REGISTRY, type DashboardKey } from "@/lib/ai/dashboard-registry";
 import { getSampleDataset } from "@/lib/server/sample-data-source";
+import { _clearQueryCacheForTests } from "@/lib/ai/query-cache";
+
+afterEach(() => {
+  _clearQueryCacheForTests();
+});
 
 type Schema = Record<string, unknown>;
 
@@ -222,4 +227,81 @@ describe("every dashboard exposes at least one non-empty table", () => {
       for (const table of tables) assert.ok(table.rows.length > 0, `table "${table.id}" on ${key} is empty`);
     });
   }
+});
+
+describe("runDashboardQuery — result caching (lib/ai/query-cache.ts)", () => {
+  it("MISSes the first time, HITs the identical query the second time", () => {
+    const first = runDashboardQuery("spend-overview", {
+      table: "fact_po_items",
+      measure: "net_order_value_inr",
+      aggregation: "sum",
+    });
+    assert.equal(first.cacheHit, false);
+    const second = runDashboardQuery("spend-overview", {
+      table: "fact_po_items",
+      measure: "net_order_value_inr",
+      aggregation: "sum",
+    });
+    assert.equal(second.cacheHit, true);
+    assert.deepEqual(second.result, first.result);
+  });
+
+  it("MISSes when the filter is different, even on the same table/dashboard", () => {
+    runDashboardQuery("spend-overview", {
+      table: "fact_po_items",
+      filters: [{ field: "plant_name", op: "eq", value: "Vedanta Aluminium (Jharsuguda)" }],
+      aggregation: "count",
+    });
+    const differentFilter = runDashboardQuery("spend-overview", {
+      table: "fact_po_items",
+      filters: [{ field: "plant_name", op: "eq", value: "Hindustan Zinc (Rajasthan)" }],
+      aggregation: "count",
+    });
+    assert.equal(differentFilter.cacheHit, false);
+  });
+
+  it("never caches an error outcome — an unknown table/field never reports cacheHit at all", () => {
+    const outcome = runDashboardQuery("spend-overview", { table: "not_a_table" });
+    assert.ok(outcome.error);
+    assert.equal(outcome.cacheHit, undefined);
+  });
+
+  it(
+    "deliberately SHARES a cache entry across two different dashboards that query the identical " +
+      "table+spec — spend-overview and compliance both read the same fact_po_items rows " +
+      "(proven above in \"compliance and spend-overview answer from the identical fact_po_items/" +
+      "fact_invoices tables\"), so this is a correct consequence of the unified dataset, not a bug. " +
+      "See lib/ai/query-cache.ts's module comment for the full reasoning.",
+    () => {
+      const spendOverviewResult = runDashboardQuery("spend-overview", {
+        table: "fact_po_items",
+        groupBy: "category_l1_name",
+        measure: "net_order_value_inr",
+        aggregation: "sum",
+        limit: 5,
+      });
+      assert.equal(spendOverviewResult.cacheHit, false);
+
+      const complianceResult = runDashboardQuery("compliance", {
+        table: "fact_po_items",
+        groupBy: "category_l1_name",
+        measure: "net_order_value_inr",
+        aggregation: "sum",
+        limit: 5,
+      });
+      assert.equal(complianceResult.cacheHit, true, "compliance should reuse spend-overview's cache entry — same table, same spec");
+      assert.deepEqual(complianceResult.result, spendOverviewResult.result);
+    }
+  );
+
+  it("does NOT share a cache entry for a table that one dashboard has and the other doesn't", () => {
+    // agg_vendor_annual is on tail-spend but not on spend-overview — nothing
+    // to cross-share here; this just pins that an unrelated table on a
+    // DIFFERENT dashboard was never at risk of colliding in the cache.
+    const tailSpendResult = runDashboardQuery("tail-spend", { table: "agg_vendor_annual", aggregation: "count" });
+    assert.equal(tailSpendResult.cacheHit, false);
+    const spendOverviewAttempt = runDashboardQuery("spend-overview", { table: "agg_vendor_annual", aggregation: "count" });
+    // spend-overview doesn't have this table at all — rejected before the cache is ever consulted.
+    assert.ok(spendOverviewAttempt.error);
+  });
 });

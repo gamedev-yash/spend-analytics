@@ -15,6 +15,8 @@ import { runQuery, describeSchema } from "@/lib/ai/query-engine";
 import type { QueryAggregation, QueryOp, QueryResult, QuerySpec } from "@/lib/ai/query-engine";
 import { getDashboardTables, type DashboardTable } from "@/lib/ai/dashboard-tables";
 import type { DashboardKey } from "@/lib/ai/dashboard-registry";
+import { getDatasetVersion } from "@/lib/server/sample-data-source";
+import { buildQueryCacheKey, getCachedQueryResult, setCachedQueryResult } from "@/lib/ai/query-cache";
 
 const AGGREGATIONS: QueryAggregation[] = ["sum", "avg", "count", "min", "max", "distinct"];
 const OPS: QueryOp[] = ["eq", "neq", "gt", "gte", "lt", "lte", "contains", "in"];
@@ -114,6 +116,8 @@ export interface DashboardQueryOutcome {
   result: QueryResult;
   /** Set when the table or a field name was rejected — never a silent empty result. */
   error?: string;
+  /** Observability only (lib/ai/query-cache.ts) — never changes what's returned, only how it was produced. Absent on an error outcome, since errors are never cached. */
+  cacheHit?: boolean;
 }
 
 /** Tool input → QuerySpec. Reshaping only — validation happens in runDashboardQuery. */
@@ -189,7 +193,21 @@ export function runDashboardQuery(key: DashboardKey, input: Record<string, unkno
     };
   }
 
-  return { table: tableId, spec: fullSpec, result: runQuery(table.rows, spec) };
+  // Cache check happens ONLY after both validations above pass — an invalid
+  // table/field never reaches the cache, so the cache can only ever serve a
+  // result that was genuinely computed, never mask a rejected query as a
+  // hit. Keyed by table + normalized spec + datasetVersion, deliberately not
+  // dashboardKey — see lib/ai/query-cache.ts's module comment for why that's
+  // correct (and better) under the unified dataset.
+  const cacheKey = buildQueryCacheKey(getDatasetVersion(), fullSpec);
+  const cached = getCachedQueryResult(cacheKey);
+  if (cached) {
+    return { table: tableId, spec: fullSpec, result: cached, cacheHit: true };
+  }
+
+  const result = runQuery(table.rows, spec);
+  setCachedQueryResult(cacheKey, result);
+  return { table: tableId, spec: fullSpec, result, cacheHit: false };
 }
 
 /** Rows the model must reason over, rendered as a correctable tool_result. */

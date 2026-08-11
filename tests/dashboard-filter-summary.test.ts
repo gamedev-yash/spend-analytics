@@ -123,6 +123,21 @@ describe("Payment Terms filter summary", () => {
     });
     assert.equal(summary, "Category: Packaging Materials · Plant: Pune · Payment Term: Net 30");
   });
+
+  it("includes a widget-click (linked-analysis) selection — previously never reached the assistant at all", () => {
+    const summary = buildPaymentTermsFilterSummary({
+      filters: baseFilters,
+      selection: { dimension: "paymentTerm", value: "NT30", label: "Net 30" },
+      defaultDateFrom: "2024-01-01",
+      defaultDateTo: "2024-12-31",
+      categoryOptions,
+      globalUltimateOptions,
+      sourceSystemOptions,
+      plantOptions,
+      paymentTermOptions,
+    });
+    assert.equal(summary, "Chart selection: Net 30");
+  });
 });
 
 describe("Single Source Risk filter summary", () => {
@@ -165,6 +180,20 @@ describe("Single Source Risk filter summary", () => {
       plantOptions,
     });
     assert.equal(summary, "At-risk threshold: ≤2 suppliers");
+  });
+
+  it("includes a widget-click (linked-analysis) selection alongside the at-risk threshold", () => {
+    const summary = buildSingleSourceRiskFilterSummary({
+      filters: { ...baseFilters, supplierCountPerCategory: 2 },
+      selection: { dimension: "product", value: "P-100", label: "Cathode Copper" },
+      defaultDateFrom: "2024-01-01",
+      defaultDateTo: "2024-12-31",
+      categoryOptions,
+      globalUltimateOptions,
+      sourceSystemOptions,
+      plantOptions,
+    });
+    assert.equal(summary, "At-risk threshold: ≤2 suppliers · Chart selection: Cathode Copper");
   });
 });
 

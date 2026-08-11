@@ -10,10 +10,12 @@ import {
   joinFilterSummaryParts,
 } from "@/lib/dashboard-filters/format-filter-summary";
 import type { FilterOption } from "./selectors";
-import type { FilterState } from "./types";
+import type { FilterState, LinkedSelection } from "./types";
 
 export function buildPaymentTermsFilterSummary(params: {
   filters: FilterState;
+  /** provider.tsx's state.selection — a widget click (e.g. a payment-term bar), not a filter-drawer filter. Previously never reached the assistant at all. */
+  selection?: LinkedSelection | null;
   defaultDateFrom: string;
   defaultDateTo: string;
   categoryOptions: FilterOption[];
@@ -30,5 +32,6 @@ export function buildPaymentTermsFilterSummary(params: {
     formatMultiSelectPartFromOptions("Plant", filters.plantIds, params.plantOptions),
     formatMultiSelectPartFromOptions("Payment Term", filters.paymentTermCodes, params.paymentTermOptions),
     formatDateRangePart(filters.dateFrom, filters.dateTo, params.defaultDateFrom, params.defaultDateTo),
+    params.selection ? `Chart selection: ${params.selection.label}` : null,
   ]);
 }

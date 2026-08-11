@@ -198,6 +198,7 @@ export function SingleSourceRiskProvider({ children, invoices, sourceSystemDims 
   useSetDashboardActiveFilterSummary(
     buildSingleSourceRiskFilterSummary({
       filters,
+      selection: state.selection,
       defaultDateFrom: defaultRange.dateFrom,
       defaultDateTo: defaultRange.dateTo,
       categoryOptions,

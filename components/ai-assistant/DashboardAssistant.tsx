@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpRight, ChevronDown, Sparkles, X } from "lucide-react";
 import { dashboardKeyForPathname, dashboardMeta, type DashboardKey } from "@/lib/ai/dashboard-registry";
 import { stashPendingPrompt, takePendingPrompt } from "@/lib/ai/assistant-handoff";
+import { adoptConversationId, getOrCreateConversationId, resetConversationId } from "@/lib/ai/conversation-id";
 import { useDashboardActiveFilterSummary } from "@/context/DashboardActiveFiltersContext";
 import { useDraggableBubble } from "@/hooks/use-draggable-bubble";
 import { useOutsideClick } from "@/hooks/use-outside-click";
@@ -69,6 +70,19 @@ export function DashboardAssistant() {
   // this at all (it lives outside every dashboard page's own filter state).
   const activeFilterSummary = useDashboardActiveFilterSummary();
 
+  // One id per browser tab session, deliberately NOT reset on dashboard
+  // navigation — see lib/ai/conversation-id.ts for why that's required for
+  // cross-dashboard follow-up continuation. Only "New chat" (resetConversation
+  // below) rotates it.
+  const [conversationId, setConversationId] = useState(() => getOrCreateConversationId());
+  // From the last response's structured conversation memory
+  // (lib/ai/conversation-context.ts) — null until the first answer that
+  // actually remembers something. Reset alongside the messages themselves so
+  // stale memory from a previous dashboard's visible transcript never lingers
+  // in this indicator after a reset/navigation.
+  const [suggestedFollowUps, setSuggestedFollowUps] = useState<string[] | null>(null);
+  const [contextSummary, setContextSummary] = useState<string | null>(null);
+
   const [open, setOpen] = useState(false);
   const { isFullscreen: fullscreen, setIsFullscreen: setFullscreen } = useFullscreen();
   const [messages, setMessages] = useState<ChatEntry[]>([]);
@@ -111,9 +125,16 @@ export function DashboardAssistant() {
     abortRef.current?.abort();
   }, []);
 
+  // "New chat" — an explicit reset, per the follow-up feature's reset rules
+  // (§20): rotates the conversationId too, so the server's stored memory for
+  // the old one is simply never looked up again rather than silently leaking
+  // into what looks like a brand-new conversation.
   const resetConversation = useCallback(() => {
     if (!dashboardKey) return;
     stop();
+    setConversationId(resetConversationId());
+    setSuggestedFollowUps(null);
+    setContextSummary(null);
     setMessages([{ role: "assistant", content: welcomeFor(dashboardKey), timestamp: Date.now() }]);
     setInput("");
     setUnread(false);
@@ -121,12 +142,16 @@ export function DashboardAssistant() {
     setShowJumpToLatest(false);
   }, [dashboardKey, stop]);
 
-  // Reset the conversation when the user moves to a different dashboard —
-  // an old exchange grounded in Payment Terms data would be misleading once
-  // the assistant is answering for Tail Spend instead.
+  // Reset the VISIBLE conversation when the user moves to a different
+  // dashboard — an old exchange grounded in Payment Terms data would be
+  // misleading once the assistant is answering for Tail Spend instead.
+  // conversationId deliberately does NOT reset here (see its declaration
+  // above) — cross-dashboard entity memory (§12) needs it to survive this.
   useEffect(() => {
     if (!dashboardKey) return;
     setMessages([{ role: "assistant", content: welcomeFor(dashboardKey), timestamp: Date.now() }]);
+    setSuggestedFollowUps(null);
+    setContextSummary(null);
     setUnread(false);
     stickToBottomRef.current = true;
     setShowJumpToLatest(false);
@@ -232,16 +257,29 @@ export function DashboardAssistant() {
         const res = await fetch("/api/dashboard-chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ dashboardKey, message, history, activeFilters: activeFilterSummary }),
+          body: JSON.stringify({ dashboardKey, message, history, activeFilters: activeFilterSummary, conversationId }),
           signal: controller.signal,
         });
         const data: {
           reply?: string;
           redirect?: { key: DashboardKey; label: string; route: string } | null;
           options?: string[] | null;
+          conversationId?: string;
+          suggestedFollowUps?: string[] | null;
+          contextSummary?: string | null;
           error?: string;
         } = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status}).`);
+        // The server only ever changes this when the id it received was
+        // missing/malformed (see sanitizeConversationId) — adopt its
+        // replacement so the next message stays consistent with whatever it
+        // actually stored memory under.
+        if (data.conversationId && data.conversationId !== conversationId) {
+          setConversationId(data.conversationId);
+          adoptConversationId(data.conversationId);
+        }
+        setSuggestedFollowUps(data.suggestedFollowUps ?? null);
+        setContextSummary(data.contextSummary ?? null);
         setMessages((prev) => [
           ...prev,
           {
@@ -271,7 +309,7 @@ export function DashboardAssistant() {
         setBusy(false);
       }
     },
-    [input, busy, dashboardKey, messages, activeFilterSummary]
+    [input, busy, dashboardKey, messages, activeFilterSummary, conversationId]
   );
 
   const handleRedirect = useCallback(
@@ -290,6 +328,16 @@ export function DashboardAssistant() {
     }
     return -1;
   }, [messages]);
+
+  // Prefer the server's context-derived suggestions (lib/ai/conversation-context.ts's
+  // suggestFollowUps — built from what was actually just queried, e.g. "Show
+  // top 10" after a top-5 answer) over the generic static chips, so long as
+  // it actually returned any; falls back to FOLLOW_UPS otherwise, same as
+  // before this feature existed.
+  const activeFollowUps: Suggestion[] = useMemo(
+    () => (suggestedFollowUps && suggestedFollowUps.length > 0 ? suggestedFollowUps.map((s) => ({ label: s })) : FOLLOW_UPS),
+    [suggestedFollowUps]
+  );
 
   // Move focus into the panel when it opens — otherwise a keyboard/screen
   // reader user's focus stays stranded on the launcher button that's now
@@ -440,7 +488,7 @@ export function DashboardAssistant() {
                         // a non-sequitur.
                         followUps={
                           i === lastAssistantIndex && !busy && !m.isError && !m.redirect && !m.options?.length
-                            ? FOLLOW_UPS
+                            ? activeFollowUps
                             : undefined
                         }
                       />
@@ -514,6 +562,18 @@ export function DashboardAssistant() {
             {activeFilterSummary && (
               <div className="shrink-0 border-t border-slate-100 bg-slate-50/80 px-4 py-1.5 text-[11px] text-slate-500 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-400">
                 Answering for: {activeFilterSummary}
+              </div>
+            )}
+
+            {/* §19 of the follow-up feature: what the assistant currently
+                remembers from this conversation (lib/ai/conversation-context.ts),
+                so a terse follow-up like "only Pune" doesn't feel like it
+                works by magic — never internal implementation detail (no
+                table/field names), just the same plain-language shape as the
+                filter line above. */}
+            {contextSummary && (
+              <div className="shrink-0 border-t border-slate-100 bg-slate-50/80 px-4 py-1.5 text-[11px] text-slate-500 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-400">
+                Remembering: {contextSummary}
               </div>
             )}
 
