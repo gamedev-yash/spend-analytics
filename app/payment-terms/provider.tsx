@@ -14,6 +14,8 @@ import {
   pruneFilterState,
   type FilterOption,
 } from "./selectors";
+import { buildPaymentTermsFilterSummary } from "./filterSummary";
+import { useSetDashboardActiveFilterSummary } from "@/context/DashboardActiveFiltersContext";
 import type { FilterState, Invoice, LinkedDimension, LinkedSelection, SourceSystemDim } from "./types";
 
 interface State {
@@ -176,6 +178,23 @@ export function PaymentTermsProvider({ children, invoices, sourceSystemDims }: P
   const scopedInvoices = useMemo(
     () => applyLinkedSelection(filteredInvoices, state.selection),
     [filteredInvoices, state.selection]
+  );
+
+  // Lets the AI Assistant (mounted outside this page's tree — see
+  // app/layout.tsx) answer relative to what's actually on screen instead of
+  // the full unfiltered dataset. See DashboardActiveFiltersContext.tsx.
+  const defaultRange = useMemo(() => getDefaultDateRange(invoiceData), [invoiceData]);
+  useSetDashboardActiveFilterSummary(
+    buildPaymentTermsFilterSummary({
+      filters,
+      defaultDateFrom: defaultRange.dateFrom,
+      defaultDateTo: defaultRange.dateTo,
+      categoryOptions,
+      globalUltimateOptions,
+      sourceSystemOptions,
+      plantOptions,
+      paymentTermOptions,
+    })
   );
 
   const value = useMemo<PaymentTermsContextValue>(

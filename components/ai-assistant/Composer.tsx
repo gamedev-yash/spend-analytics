@@ -39,11 +39,11 @@ export function Composer({ value, onChange, onSubmit, onStop, busy, placeholder,
           aria-label={busy ? "Stop generating" : "Send message"}
           title={busy ? "Stop generating" : "Send message (Enter)"}
           className={cn(
-            "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-white shadow-sm transition-all disabled:opacity-40",
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl shadow-sm transition-colors duration-200 disabled:opacity-40",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1",
             busy
-              ? "bg-rose-600 hover:bg-rose-700 focus-visible:ring-rose-400"
-              : "bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 hover:from-indigo-500 hover:via-violet-500 hover:to-fuchsia-500 focus-visible:ring-indigo-400"
+              ? "bg-rose-600 text-white hover:bg-rose-700 focus-visible:ring-rose-400"
+              : "bg-slate-900 text-white hover:bg-slate-800 focus-visible:ring-slate-400 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
           )}
         >
           {busy ? <Square className="h-4 w-4 fill-current" /> : <Send className="h-4 w-4" />}

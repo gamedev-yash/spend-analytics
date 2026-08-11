@@ -16,7 +16,7 @@ export function AssistantHeader({ dashboardLabel, fullscreen, onNewChat, onToggl
   return (
     <div className={cn("shrink-0 border-b border-slate-200 bg-white/80 px-4 py-3 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/80", fullscreen && "sm:px-6")}>
       <div className="flex items-center gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 text-white">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200">
           <Bot className="h-[1.125rem] w-[1.125rem]" />
         </span>
 
@@ -24,7 +24,7 @@ export function AssistantHeader({ dashboardLabel, fullscreen, onNewChat, onToggl
           <div className="flex items-center gap-2">
             <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">AI Assistant</p>
             <span
-              className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[0.65rem] font-medium text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
+              className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-1.5 py-0.5 text-[0.65rem] font-medium text-emerald-600 dark:text-emerald-400"
               title="The assistant is available on this dashboard"
             >
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />

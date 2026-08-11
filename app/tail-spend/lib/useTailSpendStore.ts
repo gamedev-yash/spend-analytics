@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { tailSpendMock, type TailSpendData } from "../tailSpendMock";
 import { allCategoryNames, allSupplierNames, cascadingCategoryOptions, cascadingSupplierOptions } from "./reactiveFilters";
+import { buildTailSpendFilterSummary } from "./filterSummary";
+import { useSetDashboardActiveFilterSummary } from "@/context/DashboardActiveFiltersContext";
 
 /** Picker bounds — a fixed 3-year window comfortably covering every mock/sample date. */
 export const DATE_MIN = "2024-01-01";
@@ -149,6 +151,18 @@ export function useTailSpendStore(data: TailSpendData): TailSpendStore {
       sourceSystems: data.sapFilterOptions.sourceSystems,
     }),
     [data, categories, suppliers]
+  );
+
+  // Lets the AI Assistant (mounted outside this page's tree — see
+  // app/layout.tsx) answer relative to what's actually on screen instead of
+  // the full unfiltered dataset. See DashboardActiveFiltersContext.tsx.
+  useSetDashboardActiveFilterSummary(
+    buildTailSpendFilterSummary({
+      filters,
+      allBucketLabels: ALL_BUCKET_LABELS,
+      dateMin: DATE_MIN,
+      dateMax: DATE_MAX,
+    })
   );
 
   return {

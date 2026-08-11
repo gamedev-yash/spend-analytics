@@ -15,6 +15,7 @@ import {
 import type { ParetoDecile } from "../tailSpendMock";
 import { formatCompactNumber } from "../tailSpendMock";
 import { useTailSpendTheme } from "../theme";
+import { usePalette } from "@/hooks/use-palette";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import { useIsFullscreenChart } from "@/components/dashboard/fullscreen-overlay";
 
@@ -30,6 +31,7 @@ interface ParetoCurveChartProps {
  */
 export function ParetoCurveChart({ deciles, threshold = 80 }: ParetoCurveChartProps) {
   const theme = useTailSpendTheme();
+  const palette = usePalette();
   const isFullscreen = useIsFullscreenChart();
   const crossover = deciles.find((d) => d.cumulativeSpendPercent >= threshold);
 
@@ -45,6 +47,12 @@ export function ParetoCurveChart({ deciles, threshold = 80 }: ParetoCurveChartPr
       )}
       <ResponsiveContainer width="100%" height={isFullscreen ? "100%" : 320}>
         <ComposedChart data={deciles} margin={{ top: 8, right: 16, bottom: 8, left: 0 }} barCategoryGap="20%">
+          <defs>
+            <linearGradient id="grad-paretoCurveBar" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={theme.paretoBarColor} stopOpacity={0.95} />
+              <stop offset="95%" stopColor={theme.paretoBarColor} stopOpacity={0.25} />
+            </linearGradient>
+          </defs>
           <CartesianGrid vertical={false} stroke={theme.gridline} />
           <XAxis
             dataKey="decileLabel"
@@ -92,7 +100,7 @@ export function ParetoCurveChart({ deciles, threshold = 80 }: ParetoCurveChartPr
           <Bar
             dataKey="spendPercentOfTotal"
             name="Decile spend share"
-            fill={theme.paretoBarColor}
+            fill={palette.isDark ? "url(#grad-paretoCurveBar)" : theme.paretoBarColor}
             radius={[4, 4, 0, 0]}
           />
           <Line

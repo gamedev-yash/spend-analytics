@@ -44,7 +44,7 @@ export function EmptyState({ dashboardLabel, welcomeText, onSelect, disabled, fu
     >
       <span
         className={cn(
-          "flex items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 text-white shadow-sm",
+          "flex items-center justify-center rounded-2xl bg-slate-100 text-slate-800 shadow-sm dark:bg-slate-800 dark:text-slate-200",
           fullscreen ? "h-12 w-12" : "h-9 w-9"
         )}
       >

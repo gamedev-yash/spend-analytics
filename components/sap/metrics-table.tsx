@@ -11,6 +11,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { PaginationFooter } from "@/components/ui/pagination-footer";
+import { usePagination } from "@/hooks/use-pagination";
 import { formatCr, formatInr, formatPercentInr, formatSignedPercentInr } from "@/lib/sap/format-inr";
 import { usePalette } from "@/hooks/use-palette";
 import type { MetricsTableRow } from "@/lib/sap/aggregate";
@@ -49,6 +51,8 @@ export function MetricsTable({ rows }: MetricsTableProps) {
     return descending ? copy.reverse() : copy;
   }, [rows, sortKey, descending]);
 
+  const pagination = usePagination(sorted, 10);
+
   function toggleSort(key: SortKey) {
     if (key === sortKey) setDescending((d) => !d);
     else {
@@ -75,7 +79,7 @@ export function MetricsTable({ rows }: MetricsTableProps) {
           Export CSV
         </Button>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto rounded-md border">
+      <div className="min-h-0 flex-1 overflow-x-auto rounded-md border">
       <Table>
         <TableHeader className="sticky top-0 z-10 bg-card">
           <TableRow>
@@ -91,7 +95,7 @@ export function MetricsTable({ rows }: MetricsTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sorted.map((row) => (
+          {pagination.pageItems.map((row) => (
             <TableRow key={row.category}>
               <TableCell className="font-medium text-foreground">{row.category}</TableCell>
               <TableCell className="text-right tabular-nums">{formatCr(row.totalSpendInr)}</TableCell>
@@ -116,6 +120,18 @@ export function MetricsTable({ rows }: MetricsTableProps) {
         </TableBody>
       </Table>
       </div>
+      <PaginationFooter
+        page={pagination.page}
+        pageCount={pagination.pageCount}
+        startIndex={pagination.startIndex}
+        endIndex={pagination.endIndex}
+        totalCount={pagination.totalCount}
+        onPrevious={pagination.goToPrevious}
+        onNext={pagination.goToNext}
+        hasPrevious={pagination.hasPrevious}
+        hasNext={pagination.hasNext}
+        itemLabel="categories"
+      />
     </div>
   );
 }

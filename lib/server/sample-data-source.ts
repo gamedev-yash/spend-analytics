@@ -445,6 +445,23 @@ function columnsFor(datasetId: string, rows: DatasetRow[]): ColumnMeta[] {
 const cache = new Map<string, Dataset>();
 let dimensionsCache: Dimensions | null = null;
 
+// Stamped once, at module load — the only thing that changes this today is a
+// process restart, because that's the only time the underlying CSVs are
+// re-read (the `cache` above is otherwise never invalidated). Exists so a
+// future query-result cache (or the Azure SQL path, once live) has a ready
+// version/fingerprint to key off — `${datasetVersion}:${queryHash}` — instead
+// of inventing one under time pressure once the data actually does start
+// changing at runtime. Not wired into anything yet: there is no query-result
+// cache today (see docs/ARCHITECTURE.md §4.3), so there is nothing to
+// invalidate. Do not read this as "supports live data refresh" — it doesn't,
+// until something actually calls cache.delete()/cache.clear() at runtime.
+const DATASET_VERSION = `p${Date.now()}`;
+
+/** See DATASET_VERSION above — a per-process fingerprint, not a live data-refresh signal. */
+export function getDatasetVersion(): string {
+  return DATASET_VERSION;
+}
+
 /** The sample dataset for a registry id, parsed once per process. */
 export function getSampleDataset(datasetId: string): Dataset | null {
   const cached = cache.get(datasetId);

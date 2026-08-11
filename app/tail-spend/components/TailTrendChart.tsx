@@ -4,6 +4,7 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tool
 import type { MonthlyTrendPoint, SpendSegment } from "../tailSpendMock";
 import { formatINR } from "../tailSpendMock";
 import { useTailSpendTheme } from "../theme";
+import { usePalette } from "@/hooks/use-palette";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import { useIsFullscreenChart } from "@/components/dashboard/fullscreen-overlay";
 
@@ -30,11 +31,20 @@ function shortMonth(month: string): string {
  */
 export function TailTrendChart({ months }: TailTrendChartProps) {
   const theme = useTailSpendTheme();
+  const palette = usePalette();
   const isFullscreen = useIsFullscreenChart();
 
   return (
     <ResponsiveContainer width="100%" height={isFullscreen ? "100%" : 300}>
       <AreaChart data={months} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+        <defs>
+          {SEGMENT_KEYS.map(({ key, segment }) => (
+            <linearGradient key={key} id={`grad-tailTrend${segment}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={theme.segmentColor[segment]} stopOpacity={0.85} />
+              <stop offset="95%" stopColor={theme.segmentColor[segment]} stopOpacity={0.15} />
+            </linearGradient>
+          ))}
+        </defs>
         <CartesianGrid vertical={false} stroke={theme.gridline} />
         <XAxis
           dataKey="month"
@@ -89,8 +99,7 @@ export function TailTrendChart({ months }: TailTrendChartProps) {
             stackId="spend"
             stroke={theme.segmentColor[segment]}
             strokeWidth={1.5}
-            fill={theme.segmentColor[segment]}
-            fillOpacity={0.3}
+            fill={palette.isDark ? `url(#grad-tailTrend${segment})` : theme.segmentColor[segment]}
           />
         ))}
       </AreaChart>

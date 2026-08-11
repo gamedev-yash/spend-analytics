@@ -75,6 +75,21 @@ const CONTRACTS: DashboardTable = {
   rows: rowsOf("dim_contract"),
 };
 
+// The unified warehouse (lib/server/sample-data-source.ts / metadata-registry.ts)
+// has seven tables. Two are deliberately absent from every dashboard below:
+//   - dim_material: no dashboard's KPIs (or SEMANTIC_METRIC_DICTIONARY in
+//     app/api/dashboard-chat/route.ts) group or filter by material master
+//     attributes today — adding it here with nothing that needs it would just
+//     be more enum surface for the model to pick the wrong table from.
+//   - dim_payment_terms: fact_payments already carries payment_term_description
+//     and net_days denormalized onto every row (see buildPaymentRows in
+//     sample-data-source.ts), so Payment Terms' own KPIs (term distribution,
+//     fragmentation by category/supplier) are answerable from PAYMENTS alone
+//     without a join the AI's engine doesn't support anyway (lib/ai/query-engine.ts
+//     has no join concept — each dashboard gets flat, pre-joined tables).
+// If a future dashboard needs to query material or standalone payment-term
+// master data directly, add the corresponding DashboardTable (mirroring
+// CONTRACTS below) rather than assuming one of these two already covers it.
 const DASHBOARD_TABLES: Record<DashboardKey, DashboardTable[]> = {
   "spend-overview": [PO_ITEMS, INVOICES],
   compliance: [PO_ITEMS, INVOICES],

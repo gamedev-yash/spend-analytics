@@ -17,6 +17,12 @@ const LEGEND: { threshold: SupplierCountThreshold; label: string }[] = [
   { threshold: 3, label: "3 suppliers" },
 ];
 
+const GRADIENT_ID_BY_THRESHOLD: Record<SupplierCountThreshold, string> = {
+  1: "grad-categoriesBySupplierCount-critical",
+  2: "grad-categoriesBySupplierCount-serious",
+  3: "grad-categoriesBySupplierCount-warning",
+};
+
 export function CategoriesBySupplierCountChart() {
   const palette = usePalette();
   const chartColors = useSingleSourceRiskChartColors();
@@ -95,14 +101,28 @@ export function CategoriesBySupplierCountChart() {
                 }}
                 cursor={{ fill: palette.isDark ? "rgba(148, 163, 184, 0.08)" : "rgba(15, 23, 42, 0.05)" }}
               />
-              <Bar dataKey="spend">
+              <defs>
+                <linearGradient id={GRADIENT_ID_BY_THRESHOLD[1]} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={chartColors.categoryBySupplierCount[1]} stopOpacity={0.95} />
+                  <stop offset="95%" stopColor={chartColors.categoryBySupplierCount[1]} stopOpacity={0.25} />
+                </linearGradient>
+                <linearGradient id={GRADIENT_ID_BY_THRESHOLD[2]} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={chartColors.categoryBySupplierCount[2]} stopOpacity={0.95} />
+                  <stop offset="95%" stopColor={chartColors.categoryBySupplierCount[2]} stopOpacity={0.25} />
+                </linearGradient>
+                <linearGradient id={GRADIENT_ID_BY_THRESHOLD[3]} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={chartColors.categoryBySupplierCount[3]} stopOpacity={0.95} />
+                  <stop offset="95%" stopColor={chartColors.categoryBySupplierCount[3]} stopOpacity={0.25} />
+                </linearGradient>
+              </defs>
+              <Bar dataKey="spend" radius={[4, 4, 0, 0]}>
                 {rows.map((row) => {
                   const isSelected = selectedKey !== null && row.key === selectedKey;
                   const isDimmed = selectedKey !== null && !isSelected;
-                  const fill =
-                    chartColors.categoryBySupplierCount[
-                      Math.min(row.supplierCount, 3) as SupplierCountThreshold
-                    ];
+                  const supplierCountKey = Math.min(row.supplierCount, 3) as SupplierCountThreshold;
+                  const fill = palette.isDark
+                    ? `url(#${GRADIENT_ID_BY_THRESHOLD[supplierCountKey]})`
+                    : chartColors.categoryBySupplierCount[supplierCountKey];
                   return (
                     <Cell
                       key={row.key}

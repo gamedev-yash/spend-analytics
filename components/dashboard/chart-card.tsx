@@ -53,7 +53,7 @@ export function ChartCard({
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.3, ease: "easeOut" }}
       className={cn(
-        "flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80",
+        "flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:border-slate-400 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/80 dark:hover:border-slate-600",
         className
       )}
     >

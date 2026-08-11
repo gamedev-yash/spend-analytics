@@ -62,10 +62,10 @@ export function SuggestionChips({ items, onSelect, disabled, variant = "pill", c
               transition={{ duration: 0.2, delay: i * 0.03, ease: "easeOut" }}
               whileHover={disabled ? undefined : { y: -1 }}
               className={cn(
-                "group flex text-left shadow-sm transition-all",
-                "hover:border-slate-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1",
+                "group flex text-left shadow-sm transition-colors duration-200",
+                "hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1",
                 "disabled:cursor-not-allowed disabled:opacity-50",
-                "border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800/60 dark:hover:border-slate-600 dark:focus-visible:ring-slate-500",
+                "border border-slate-200 bg-slate-50 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/50 dark:hover:bg-slate-800 dark:focus-visible:ring-slate-500",
                 // Compact: one tight row (icon + label, description truncated
                 // to a single line below) so 3 cards fit the popup without
                 // scrolling. Full-screen: the roomier stacked layout.

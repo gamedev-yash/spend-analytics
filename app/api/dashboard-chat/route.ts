@@ -18,11 +18,13 @@
 // uses for the warehouse, just scoped to one dashboard's own tables
 // (lib/ai/dashboard-tables.ts, lib/ai/dashboard-query.ts).
 
+import { randomUUID } from "node:crypto";
 import Anthropic from "@anthropic-ai/sdk";
 import { resolveAnthropicClient, NO_KEY_ERROR } from "@/lib/ai/anthropic-client";
-import { buildDashboardContext } from "@/lib/ai/dashboard-context";
+import { buildDashboardContext, isDashboardContextCached } from "@/lib/ai/dashboard-context";
 import { queryDashboardDataTool, runDashboardQuery, renderDashboardQueryResult } from "@/lib/ai/dashboard-query";
 import { DASHBOARD_REGISTRY, dashboardMeta, type DashboardKey } from "@/lib/ai/dashboard-registry";
+import { getDatasetVersion } from "@/lib/server/sample-data-source";
 
 export const runtime = "nodejs";
 
@@ -43,6 +45,30 @@ interface DashboardChatRequest {
   dashboardKey?: string;
   message?: string;
   history?: { role: "user" | "assistant"; content: string }[];
+  /**
+   * Human-readable summary of the filters currently applied on the
+   * dashboard's own UI (e.g. "Plant: Pune · Category: IT & Telecom · Date:
+   * 2025-01-01 to 2025-06-30"), published by that dashboard's filter
+   * component via context/DashboardActiveFiltersContext.tsx. Free text by
+   * design — see that file's top comment for why a plain-language summary,
+   * not a structured filter object, is what's sent. Never trusted as a
+   * literal query: it only ever reaches the model as prose in the system
+   * prompt, the same as anything the user types.
+   */
+  activeFilters?: string;
+}
+
+// Bounds what a client can put in front of the model as "current filters" —
+// defense in depth, since this field is attacker-controlled the same way
+// `message` is. The real summaries this app generates (six dashboards, see
+// each one's filterSummary.ts) are well under this.
+const MAX_ACTIVE_FILTERS_LENGTH = 400;
+
+function sanitizeActiveFilters(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  return trimmed.length > MAX_ACTIVE_FILTERS_LENGTH ? trimmed.slice(0, MAX_ACTIVE_FILTERS_LENGTH) : trimmed;
 }
 
 interface DashboardChatResponse {
@@ -119,14 +145,24 @@ Amounts in columns ending _inr are Indian rupees — report them in Cr (10,000,0
 
 For context, the full warehouse behind this app has seven tables total (fact_po_items, fact_invoices, fact_payments, agg_vendor_annual, dim_contract, dim_material, dim_payment_terms) — this dashboard's own tables, listed above, are the slice of that warehouse actually in reach here.`;
 
-function buildSystemPrompt(currentKey: DashboardKey): string {
+function buildSystemPrompt(currentKey: DashboardKey, activeFilters: string | null): string {
   const current = dashboardMeta(currentKey);
   const others = DASHBOARD_REGISTRY.filter((d) => d.key !== currentKey);
+
+  // Only added when something is actually filtered — an unfiltered dashboard
+  // costs this prompt nothing extra, matching the "don't pad every request
+  // with metadata it doesn't need" rule the rest of this prompt already follows.
+  const activeFiltersBlock = activeFilters
+    ? `\nThe user currently has this filtered view open on the dashboard: ${activeFilters}\nMatch query_dashboard_data's filters to this by default, so your answer agrees with what's on screen. Depart from it only when the user's question clearly asks to look outside it (e.g. explicitly asks for the company-wide/unfiltered total, or names a different plant/category/period than what's listed above).\n`
+    : "";
 
   return `You are the assistant embedded in the "${current.label}" dashboard of a Vedanta procurement analytics app.
 
 You have DATA ACCESS ONLY for this dashboard, via the query_dashboard_data tool.
 
+What this dashboard is for — use this to judge whether a question belongs here at all, before reaching for a tool:
+${current.description}
+${activeFiltersBlock}
 ${buildDashboardContext(currentKey)}
 
 ${SEMANTIC_METRIC_DICTIONARY}
@@ -145,7 +181,39 @@ Grounding rules — absolute:
 Keep answers short and concrete — a few sentences, no preamble, no markdown headers, no raw JSON.`;
 }
 
+// Dev-only structured timing, per §17 of the AI-assistant audit: this is what
+// answers "why is it slow" with the actual measured breakdown for a request
+// instead of a guess — never logged in production, and never includes the
+// user's message text or any query result value, only counts/durations.
+const DEBUG_TIMING = process.env.NODE_ENV !== "production";
+
+interface RequestTiming {
+  requestId: string;
+  dashboardKey: string;
+  model: string;
+  contextCacheHit: boolean;
+  hasActiveFilters: boolean;
+  datasetVersion: string;
+  promptConstructionMs: number;
+  llmRounds: number;
+  toolCalls: number;
+  claudeLatencyMs: number;
+  queryExecutionMs: number;
+  rowsProcessed: number;
+  rowsReturned: number;
+  totalLatencyMs: number;
+  outcome: "ok" | "redirect" | "options" | "error";
+}
+
+function logTiming(t: RequestTiming): void {
+  if (!DEBUG_TIMING) return;
+  console.debug("[dashboard-chat]", JSON.stringify(t));
+}
+
 export async function POST(request: Request): Promise<Response> {
+  const requestStartedAt = performance.now();
+  const requestId = randomUUID();
+
   let body: DashboardChatRequest;
   try {
     body = (await request.json()) as DashboardChatRequest;
@@ -180,11 +248,57 @@ export async function POST(request: Request): Promise<Response> {
     { role: "user" as const, content: message },
   ];
 
+  const activeFilters = sanitizeActiveFilters(body.activeFilters);
+
+  // Both the schema and the context string are per-dashboardKey memoized
+  // (lib/ai/dashboard-query.ts, lib/ai/dashboard-context.ts) — the check here
+  // is only to report whether *this* request paid the describeSchema() cost,
+  // for the debug line below; it has no effect on behavior.
+  const contextCacheHitBeforeBuild = isDashboardContextCached(dashboardKey as DashboardKey);
+  const promptStartedAt = performance.now();
+  // Built ONCE per request, not once per tool-calling pass: neither the
+  // dashboardKey nor activeFilters changes mid-request, so re-deriving
+  // byte-identical system prompt text on every pass (previously up to
+  // MAX_TOOL_PASSES times) was pure waste even with the per-dashboard
+  // memoization above. Note activeFilters (unlike the memoized parts of the
+  // prompt) does vary request-to-request with the user's live filter state —
+  // Anthropic's own ephemeral prompt cache still hits across consecutive
+  // messages sent with the same filters, and only misses when the filter
+  // state actually changed, which is exactly when the model needs the fresh
+  // text anyway.
+  const systemPrompt = buildSystemPrompt(dashboardKey as DashboardKey, activeFilters);
   const tools: Anthropic.Tool[] = [
     queryDashboardDataTool(dashboardKey as DashboardKey),
     REDIRECT_TOOL,
     ASK_OPTIONS_TOOL,
   ];
+  const promptConstructionMs = performance.now() - promptStartedAt;
+
+  let claudeLatencyMs = 0;
+  let queryExecutionMs = 0;
+  let toolCallCount = 0;
+  let rowsProcessed = 0;
+  let rowsReturned = 0;
+  let llmRounds = 0;
+
+  const finishTiming = (outcome: RequestTiming["outcome"]) =>
+    logTiming({
+      requestId,
+      dashboardKey,
+      model,
+      contextCacheHit: contextCacheHitBeforeBuild,
+      hasActiveFilters: activeFilters !== null,
+      datasetVersion: getDatasetVersion(),
+      promptConstructionMs: round2(promptConstructionMs),
+      llmRounds,
+      toolCalls: toolCallCount,
+      claudeLatencyMs: round2(claudeLatencyMs),
+      queryExecutionMs: round2(queryExecutionMs),
+      rowsProcessed,
+      rowsReturned,
+      totalLatencyMs: round2(performance.now() - requestStartedAt),
+      outcome,
+    });
 
   try {
     let reply = "";
@@ -197,14 +311,16 @@ export async function POST(request: Request): Promise<Response> {
     // and answered instead of left stranded when the pass budget runs out.
     // Mirrors the loop app/api/assistant/route.ts uses for the warehouse.
     for (let pass = 0; pass < MAX_TOOL_PASSES; pass += 1) {
+      llmRounds += 1;
       const forceProseOnly = pass === MAX_TOOL_PASSES - 1;
+      const claudeCallStartedAt = performance.now();
       const response = await client.messages.create({
         model,
         max_tokens: MAX_TOKENS,
         system: [
           {
             type: "text",
-            text: buildSystemPrompt(dashboardKey as DashboardKey),
+            text: systemPrompt,
             cache_control: { type: "ephemeral" },
           },
         ],
@@ -212,11 +328,14 @@ export async function POST(request: Request): Promise<Response> {
         tool_choice: forceProseOnly ? { type: "none" } : { type: "auto" },
         messages,
       });
+      claudeLatencyMs += performance.now() - claudeCallStartedAt;
 
       if (response.stop_reason === "refusal") {
+        finishTiming("error");
         return Response.json({ error: "The assistant declined to answer that request." }, { status: 422 });
       }
       if (response.stop_reason === "max_tokens") {
+        finishTiming("error");
         return Response.json(
           { error: "The response was too long to complete. Try a narrower or more specific question." },
           { status: 502 }
@@ -258,6 +377,8 @@ export async function POST(request: Request): Promise<Response> {
 
       if (queryCalls.length === 0) break;
 
+      toolCallCount += queryCalls.length;
+
       // Execute every query concurrently through the same engine that backs
       // it end to end, so a query the model composed is validated before it's
       // ever answered from. Promise.all preserves the input order in its
@@ -265,9 +386,12 @@ export async function POST(request: Request): Promise<Response> {
       // here — each result must land on the tool_use_id of the call that
       // produced it.
       messages.push({ role: "assistant", content: response.content });
+      const queryStartedAt = performance.now();
       const results: Anthropic.ToolResultBlockParam[] = await Promise.all(
         queryCalls.map(async (call) => {
           const outcome = runDashboardQuery(dashboardKey as DashboardKey, call.input as Record<string, unknown>);
+          rowsProcessed += outcome.result.matchedRows;
+          rowsReturned += outcome.result.groups?.length ?? outcome.result.rows?.length ?? (outcome.result.value !== undefined ? 1 : 0);
           return {
             type: "tool_result" as const,
             tool_use_id: call.id,
@@ -276,6 +400,7 @@ export async function POST(request: Request): Promise<Response> {
           };
         })
       );
+      queryExecutionMs += performance.now() - queryStartedAt;
       messages.push({ role: "user", content: results });
     }
 
@@ -284,8 +409,10 @@ export async function POST(request: Request): Promise<Response> {
       redirect,
       options,
     };
+    finishTiming(redirect ? "redirect" : options ? "options" : "ok");
     return Response.json(payload);
   } catch (err) {
+    finishTiming("error");
     if (err instanceof Anthropic.AuthenticationError) {
       return Response.json({ error: "Anthropic rejected the API key." }, { status: 401 });
     }
@@ -303,4 +430,8 @@ export async function POST(request: Request): Promise<Response> {
       { status: 500 }
     );
   }
+}
+
+function round2(ms: number): number {
+  return Math.round(ms * 100) / 100;
 }

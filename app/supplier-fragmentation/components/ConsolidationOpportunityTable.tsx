@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown, Download } from "lucide-react";
+import { PaginationFooter } from "@/components/ui/pagination-footer";
+import { usePagination } from "@/hooks/use-pagination";
 import { cn } from "@/lib/utils";
 import type { ConsolidationRow } from "../lib/types";
 import { useFragmentation } from "./fragmentationStore";
@@ -100,6 +102,8 @@ export function ConsolidationOpportunityTable() {
     return sorted;
   }, [baseRows, sortKey, sortDir]);
 
+  const pagination = usePagination(rows, 10);
+
   function onHeaderClick(key: SortKey) {
     if (sortKey === key) {
       setSortDir((dir) => (dir === "asc" ? "desc" : "asc"));
@@ -162,7 +166,7 @@ export function ConsolidationOpportunityTable() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
+            {pagination.pageItems.map((row) => (
               <tr
                 key={`${row.categoryL2}|${row.plantName}`}
                 className={cn(
@@ -206,6 +210,18 @@ export function ConsolidationOpportunityTable() {
           </tbody>
         </table>
       </div>
+      <PaginationFooter
+        page={pagination.page}
+        pageCount={pagination.pageCount}
+        startIndex={pagination.startIndex}
+        endIndex={pagination.endIndex}
+        totalCount={pagination.totalCount}
+        onPrevious={pagination.goToPrevious}
+        onNext={pagination.goToNext}
+        hasPrevious={pagination.hasPrevious}
+        hasNext={pagination.hasNext}
+        itemLabel="combinations"
+      />
     </div>
   );
 }

@@ -46,6 +46,16 @@ export function SpendByTermComboChart() {
           <div style={{ width: "100%", minWidth: chartWidth }}>
             <FullscreenResponsiveContainer height={360}>
               <ComposedChart data={rows} margin={{ top: 8, right: 16, bottom: 56, left: 8 }}>
+                <defs>
+                  <linearGradient id="grad-termSpendNoValue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={chartColors.noValue} stopOpacity={0.95} />
+                    <stop offset="95%" stopColor={chartColors.noValue} stopOpacity={0.25} />
+                  </linearGradient>
+                  <linearGradient id="grad-termSpendBar" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={chartColors.termSpendBar} stopOpacity={0.95} />
+                    <stop offset="95%" stopColor={chartColors.termSpendBar} stopOpacity={0.25} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={palette.ink.grid} />
                 <XAxis
                   dataKey="label"
@@ -93,7 +103,12 @@ export function SpendByTermComboChart() {
                   }}
                   cursor={{ fill: palette.isDark ? "rgba(148, 163, 184, 0.08)" : "rgba(15, 23, 42, 0.05)" }}
                 />
-                <Bar yAxisId="left" dataKey="spend" fill={chartColors.termSpendBar}>
+                <Bar
+                  yAxisId="left"
+                  dataKey="spend"
+                  fill={palette.isDark ? "url(#grad-termSpendBar)" : chartColors.termSpendBar}
+                  radius={[4, 4, 0, 0]}
+                >
                   {rows.map((row) => {
                     const isNoValue = row.key === NO_VALUE_KEY;
                     const isSelected = selectedKey !== null && row.key === selectedKey;
@@ -101,7 +116,15 @@ export function SpendByTermComboChart() {
                     return (
                       <Cell
                         key={row.key}
-                        fill={isNoValue ? chartColors.noValue : chartColors.termSpendBar}
+                        fill={
+                          palette.isDark
+                            ? isNoValue
+                              ? "url(#grad-termSpendNoValue)"
+                              : "url(#grad-termSpendBar)"
+                            : isNoValue
+                              ? chartColors.noValue
+                              : chartColors.termSpendBar
+                        }
                         fillOpacity={isDimmed ? chartColors.dimmedOpacity : 1}
                         stroke={isSelected ? chartColors.highlightStroke : undefined}
                         strokeWidth={isSelected ? 2 : 0}

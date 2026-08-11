@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpRight, ChevronDown, Sparkles, X } from "lucide-react";
 import { dashboardKeyForPathname, dashboardMeta, type DashboardKey } from "@/lib/ai/dashboard-registry";
 import { stashPendingPrompt, takePendingPrompt } from "@/lib/ai/assistant-handoff";
+import { useDashboardActiveFilterSummary } from "@/context/DashboardActiveFiltersContext";
 import { useDraggableBubble } from "@/hooks/use-draggable-bubble";
 import { useOutsideClick } from "@/hooks/use-outside-click";
 import { useFullscreen } from "@/components/dashboard/fullscreen-overlay";
@@ -63,6 +64,10 @@ export function DashboardAssistant() {
   const pathname = usePathname();
   const router = useRouter();
   const dashboardKey = pathname ? dashboardKeyForPathname(pathname) : null;
+  // Published by whichever dashboard is currently mounted — see
+  // context/DashboardActiveFiltersContext.tsx for why the assistant needs
+  // this at all (it lives outside every dashboard page's own filter state).
+  const activeFilterSummary = useDashboardActiveFilterSummary();
 
   const [open, setOpen] = useState(false);
   const { isFullscreen: fullscreen, setIsFullscreen: setFullscreen } = useFullscreen();
@@ -227,7 +232,7 @@ export function DashboardAssistant() {
         const res = await fetch("/api/dashboard-chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ dashboardKey, message, history }),
+          body: JSON.stringify({ dashboardKey, message, history, activeFilters: activeFilterSummary }),
           signal: controller.signal,
         });
         const data: {
@@ -266,7 +271,7 @@ export function DashboardAssistant() {
         setBusy(false);
       }
     },
-    [input, busy, dashboardKey, messages]
+    [input, busy, dashboardKey, messages, activeFilterSummary]
   );
 
   const handleRedirect = useCallback(
@@ -349,15 +354,13 @@ export function DashboardAssistant() {
           // `fixed` already establishes a positioning context for the absolute
           // unread-dot child below — no separate `relative` needed (and adding
           // one would conflict with `fixed` on the same element).
-          "fixed z-[60] inline-flex cursor-grab touch-none items-center gap-1.5 rounded-full px-4 py-3 text-sm font-medium text-white shadow-lg shadow-indigo-900/20 transition-all select-none active:cursor-grabbing hover:shadow-xl hover:shadow-indigo-900/30",
+          "fixed z-[60] inline-flex cursor-grab touch-none items-center gap-1.5 rounded-full border px-4 py-3 text-sm font-medium shadow-lg transition-all duration-200 select-none active:cursor-grabbing hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400",
           !position && "bottom-6 right-6",
-          // A restrained brand gradient (the "AI" cue popular assistants use)
-          // rather than a flat slate fill — still just a color swap on the
-          // same button, no new behavior. Slightly dimmed while open so the
-          // launcher visually recedes behind the now-focused panel.
-          open
-            ? "bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 opacity-90 hover:opacity-100"
-            : "bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 hover:from-indigo-500 hover:via-violet-500 hover:to-fuchsia-500"
+          // Dark Navy in light mode, Off-White in dark mode — the enterprise
+          // high-contrast pair, not a brand gradient. Slightly dimmed while
+          // open so the launcher visually recedes behind the now-focused panel.
+          "border-slate-800 bg-slate-900 text-white hover:bg-slate-800 dark:border-transparent dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white",
+          open && "opacity-90 hover:opacity-100"
         )}
       >
         {open ? <X className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
@@ -502,6 +505,16 @@ export function DashboardAssistant() {
                 Open full assistant
                 <ArrowUpRight className="h-3.5 w-3.5" />
               </button>
+            )}
+
+            {/* Transparency, not decoration: the answer about to come back is
+                grounded in this filtered view, not the full dataset — the
+                user should see that before asking, not have to infer it from
+                a number that doesn't match what they expected. */}
+            {activeFilterSummary && (
+              <div className="shrink-0 border-t border-slate-100 bg-slate-50/80 px-4 py-1.5 text-[11px] text-slate-500 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-400">
+                Answering for: {activeFilterSummary}
+              </div>
             )}
 
             <Composer

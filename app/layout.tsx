@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { DatasetsProvider } from "@/context/DatasetsContext";
 import { ThresholdsProvider } from "@/context/ThresholdsContext";
+import { DashboardActiveFiltersProvider } from "@/context/DashboardActiveFiltersContext";
 import { DashboardAssistant } from "@/components/ai-assistant/DashboardAssistant";
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -31,8 +32,10 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
           <DatasetsProvider>
             <ThresholdsProvider>
-              <DashboardShell>{children}</DashboardShell>
-              <DashboardAssistant />
+              <DashboardActiveFiltersProvider>
+                <DashboardShell>{children}</DashboardShell>
+                <DashboardAssistant />
+              </DashboardActiveFiltersProvider>
             </ThresholdsProvider>
           </DatasetsProvider>
         </ThemeProvider>

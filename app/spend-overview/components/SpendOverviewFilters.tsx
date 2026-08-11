@@ -2,6 +2,8 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useFilterSlot } from "@/context/FilterContext";
+import { useSetDashboardActiveFilterSummary } from "@/context/DashboardActiveFiltersContext";
+import { buildPlantCategoryDateFilterSummary } from "@/lib/dashboard-filters/format-filter-summary";
 import { ClearFiltersButton, FilterDateRange, FilterGroup } from "@/components/ui/filter-controls";
 import { MultiSelect } from "@/components/sap/multi-select";
 import { ThresholdSettings } from "@/components/dashboard/threshold-settings";
@@ -39,6 +41,21 @@ export function SpendOverviewFilters({
   const dateFrom = searchParams.get("from") ?? defaultDateFrom;
   const dateTo = searchParams.get("to") ?? defaultDateTo;
   const hasActiveFilters = searchParams.toString() !== "";
+
+  // Lets the AI Assistant (mounted outside this page's tree — see
+  // app/layout.tsx) answer relative to what's actually on screen instead of
+  // the full unfiltered dataset. See DashboardActiveFiltersContext.tsx.
+  useSetDashboardActiveFilterSummary(
+    buildPlantCategoryDateFilterSummary({
+      selectedPlantCodes: selectedPlants,
+      plantOptions,
+      selectedCategories,
+      dateFrom,
+      dateTo,
+      defaultDateFrom,
+      defaultDateTo,
+    })
+  );
 
   function updateParams(mutate: (params: URLSearchParams) => void) {
     const params = new URLSearchParams(searchParams.toString());
