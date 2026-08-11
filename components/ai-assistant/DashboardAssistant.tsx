@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpRight, ChevronDown, Sparkles, X } from "lucide-react";
 import { dashboardKeyForPathname, dashboardMeta, type DashboardKey } from "@/lib/ai/dashboard-registry";
 import { stashPendingPrompt, takePendingPrompt } from "@/lib/ai/assistant-handoff";
+import { useDashboardActiveFilterSummary } from "@/context/DashboardActiveFiltersContext";
 import { useDraggableBubble } from "@/hooks/use-draggable-bubble";
 import { useOutsideClick } from "@/hooks/use-outside-click";
 import { useFullscreen } from "@/components/dashboard/fullscreen-overlay";
@@ -63,6 +64,10 @@ export function DashboardAssistant() {
   const pathname = usePathname();
   const router = useRouter();
   const dashboardKey = pathname ? dashboardKeyForPathname(pathname) : null;
+  // Published by whichever dashboard is currently mounted — see
+  // context/DashboardActiveFiltersContext.tsx for why the assistant needs
+  // this at all (it lives outside every dashboard page's own filter state).
+  const activeFilterSummary = useDashboardActiveFilterSummary();
 
   const [open, setOpen] = useState(false);
   const { isFullscreen: fullscreen, setIsFullscreen: setFullscreen } = useFullscreen();
@@ -227,7 +232,7 @@ export function DashboardAssistant() {
         const res = await fetch("/api/dashboard-chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ dashboardKey, message, history }),
+          body: JSON.stringify({ dashboardKey, message, history, activeFilters: activeFilterSummary }),
           signal: controller.signal,
         });
         const data: {
@@ -266,7 +271,7 @@ export function DashboardAssistant() {
         setBusy(false);
       }
     },
-    [input, busy, dashboardKey, messages]
+    [input, busy, dashboardKey, messages, activeFilterSummary]
   );
 
   const handleRedirect = useCallback(
@@ -502,6 +507,16 @@ export function DashboardAssistant() {
                 Open full assistant
                 <ArrowUpRight className="h-3.5 w-3.5" />
               </button>
+            )}
+
+            {/* Transparency, not decoration: the answer about to come back is
+                grounded in this filtered view, not the full dataset — the
+                user should see that before asking, not have to infer it from
+                a number that doesn't match what they expected. */}
+            {activeFilterSummary && (
+              <div className="shrink-0 border-t border-slate-100 bg-slate-50/80 px-4 py-1.5 text-[11px] text-slate-500 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-400">
+                Answering for: {activeFilterSummary}
+              </div>
             )}
 
             <Composer

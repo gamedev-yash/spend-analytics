@@ -27,6 +27,8 @@ import type {
   SankeyData,
   TrendPoint,
 } from "../lib/types";
+import { buildSupplierFragmentationFilterSummary } from "../lib/filterSummary";
+import { useSetDashboardActiveFilterSummary } from "@/context/DashboardActiveFiltersContext";
 
 /** Everything the six views + KPI ribbon consume, recomputed per state change. */
 interface FragmentationDerived {
@@ -188,6 +190,20 @@ export function FragmentationStoreProvider({
       .filter(Boolean)
       .join(" · ");
   }, [crossFilter]);
+
+  // Lets the AI Assistant (mounted outside this page's tree — see
+  // app/layout.tsx) answer relative to what's actually on screen instead of
+  // the full unfiltered dataset. See DashboardActiveFiltersContext.tsx.
+  const defaultRange = defaultDateRange(payload.dateMin, payload.dateMax);
+  useSetDashboardActiveFilterSummary(
+    buildSupplierFragmentationFilterSummary({
+      filters,
+      plantOptions: options.plants,
+      crossFilterLabel,
+      defaultDateFrom: defaultRange.from,
+      defaultDateTo: defaultRange.to,
+    })
+  );
 
   const store: FragmentationStore = {
     payload,

@@ -14,6 +14,8 @@ import {
   pruneFilterState,
   type FilterOption,
 } from "./selectors";
+import { buildSingleSourceRiskFilterSummary } from "./filterSummary";
+import { useSetDashboardActiveFilterSummary } from "@/context/DashboardActiveFiltersContext";
 import type {
   FilterState,
   Invoice,
@@ -189,6 +191,20 @@ export function SingleSourceRiskProvider({ children, invoices, sourceSystemDims 
   const baseFilteredInvoices = useMemo(
     () => applyBaseFilters(invoiceData, filters),
     [invoiceData, filters]
+  );
+
+  // See app/payment-terms/provider.tsx's identical call for why this exists.
+  const defaultRange = useMemo(() => getDefaultDateRange(invoiceData), [invoiceData]);
+  useSetDashboardActiveFilterSummary(
+    buildSingleSourceRiskFilterSummary({
+      filters,
+      defaultDateFrom: defaultRange.dateFrom,
+      defaultDateTo: defaultRange.dateTo,
+      categoryOptions,
+      globalUltimateOptions,
+      sourceSystemOptions,
+      plantOptions,
+    })
   );
 
   const value = useMemo<SingleSourceRiskContextValue>(

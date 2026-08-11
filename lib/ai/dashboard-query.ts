@@ -27,13 +27,23 @@ function allFieldIds(tables: DashboardTable[]): string[] {
   return [...ids].sort();
 }
 
+// Same rationale as lib/ai/dashboard-context.ts's contextCache: allFieldIds()
+// re-derives the schema (describeSchema per table) to build the enum lists
+// below, and that schema is stable for the process lifetime — so the tool
+// definition itself is memoized per dashboard rather than rebuilt on every
+// request.
+const toolCache = new Map<DashboardKey, Anthropic.Tool>();
+
 /** Tool schema scoped to exactly one dashboard's own tables and columns. */
 export function queryDashboardDataTool(key: DashboardKey): Anthropic.Tool {
+  const cached = toolCache.get(key);
+  if (cached) return cached;
+
   const tables = getDashboardTables(key);
   const tableIds = tables.map((t) => t.id);
   const fieldIds = allFieldIds(tables);
 
-  return {
+  const tool: Anthropic.Tool = {
     name: "query_dashboard_data",
     description:
       "Run a real aggregate or row-level lookup against this dashboard's own data. Call this before stating any figure that wasn't already given to you verbatim.",
@@ -94,6 +104,8 @@ export function queryDashboardDataTool(key: DashboardKey): Anthropic.Tool {
       additionalProperties: false,
     },
   };
+  toolCache.set(key, tool);
+  return tool;
 }
 
 export interface DashboardQueryOutcome {

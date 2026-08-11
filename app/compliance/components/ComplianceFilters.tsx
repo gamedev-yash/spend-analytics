@@ -2,6 +2,8 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useFilterSlot } from "@/context/FilterContext";
+import { useSetDashboardActiveFilterSummary } from "@/context/DashboardActiveFiltersContext";
+import { buildPlantCategoryDateFilterSummary } from "@/lib/dashboard-filters/format-filter-summary";
 import { ClearFiltersButton, FilterGroup } from "@/components/ui/filter-controls";
 import { MultiSelect } from "@/components/sap/multi-select";
 
@@ -38,6 +40,19 @@ export function ComplianceFilters({
   const dateFrom = searchParams.get("from") ?? defaultDateFrom;
   const dateTo = searchParams.get("to") ?? defaultDateTo;
   const hasActiveFilters = searchParams.toString() !== "";
+
+  // See SpendOverviewFilters.tsx's identical call for why this exists.
+  useSetDashboardActiveFilterSummary(
+    buildPlantCategoryDateFilterSummary({
+      selectedPlantCodes: selectedPlants,
+      plantOptions,
+      selectedCategories,
+      dateFrom,
+      dateTo,
+      defaultDateFrom,
+      defaultDateTo,
+    })
+  );
 
   function updateParams(mutate: (params: URLSearchParams) => void) {
     const params = new URLSearchParams(searchParams.toString());
