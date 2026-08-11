@@ -62,7 +62,7 @@ export function MessageBubble({ message, fullscreen, busy, onOptionSelect, onRed
             ? "bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
             : message.isError
               ? "bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:text-rose-300"
-              : "bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 text-white"
+              : "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200"
         )}
         aria-hidden="true"
       >

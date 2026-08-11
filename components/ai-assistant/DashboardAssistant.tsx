@@ -354,15 +354,13 @@ export function DashboardAssistant() {
           // `fixed` already establishes a positioning context for the absolute
           // unread-dot child below — no separate `relative` needed (and adding
           // one would conflict with `fixed` on the same element).
-          "fixed z-[60] inline-flex cursor-grab touch-none items-center gap-1.5 rounded-full px-4 py-3 text-sm font-medium text-white shadow-lg shadow-indigo-900/20 transition-all select-none active:cursor-grabbing hover:shadow-xl hover:shadow-indigo-900/30",
+          "fixed z-[60] inline-flex cursor-grab touch-none items-center gap-1.5 rounded-full px-4 py-3 text-sm font-medium shadow-lg transition-colors duration-200 select-none active:cursor-grabbing hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400",
           !position && "bottom-6 right-6",
-          // A restrained brand gradient (the "AI" cue popular assistants use)
-          // rather than a flat slate fill — still just a color swap on the
-          // same button, no new behavior. Slightly dimmed while open so the
-          // launcher visually recedes behind the now-focused panel.
-          open
-            ? "bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 opacity-90 hover:opacity-100"
-            : "bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 hover:from-indigo-500 hover:via-violet-500 hover:to-fuchsia-500"
+          // Dark Navy in light mode, Off-White in dark mode — the enterprise
+          // high-contrast pair, not a brand gradient. Slightly dimmed while
+          // open so the launcher visually recedes behind the now-focused panel.
+          "bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white",
+          open && "opacity-90 hover:opacity-100"
         )}
       >
         {open ? <X className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
