@@ -274,7 +274,6 @@ function BarLikeWidget({
               stackId={stacked ? "stack" : undefined}
               fill={palette.colorForIndex(index)}
               radius={!stacked || index === keys.length - 1 ? barRadius : undefined}
-              maxBarSize={40}
             />
           ))}
           {withTotalLine && (
@@ -400,7 +399,6 @@ function ParetoWidget({ widget, rows }: GeneratedWidgetProps) {
             name={barName}
             fill={palette.colorForIndex(0)}
             radius={[3, 3, 0, 0]}
-            maxBarSize={40}
           />
           <Line
             yAxisId="pct"
@@ -519,7 +517,6 @@ function WaterfallWidget({ widget, rows }: GeneratedWidgetProps) {
             dataKey="__delta"
             stackId="bridge"
             radius={[3, 3, 0, 0]}
-            maxBarSize={40}
             isAnimationActive={false}
             legendType="none"
           >
@@ -630,14 +627,14 @@ function DonutWidget({ widget, rows }: GeneratedWidgetProps) {
 
   return (
     <ChartCard title={widget.title}>
-      <FullscreenResponsiveContainer height={280}>
+      <FullscreenResponsiveContainer height={360}>
         <PieChart>
           <Pie
             data={points}
             dataKey="value"
             nameKey="label"
-            innerRadius={62}
-            outerRadius={100}
+            innerRadius="45%"
+            outerRadius="75%"
             paddingAngle={2}
             stroke={palette.ink.surface}
             strokeWidth={2}

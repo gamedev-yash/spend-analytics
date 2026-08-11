@@ -14,12 +14,12 @@ import {
 } from "recharts";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
+import { useIsFullscreenChart } from "@/components/dashboard/fullscreen-overlay";
 import { usePalette } from "@/hooks/use-palette";
 import { useWidgetInvoices } from "../../provider";
 import { aggregateByGlobalUltimate, type GlobalUltimateAgg } from "../../selectors";
 import { formatCurrencyCompact, formatCurrencyFull, usePaymentTermsChartColors } from "../../constants";
 
-const ROW_HEIGHT = 26;
 const MIN_CHART_HEIGHT = 160;
 /**
  * Viewport cap, not a data cap — the chart itself grows to ROW_HEIGHT per
@@ -35,6 +35,7 @@ function truncateLabel(label: string): string {
 export function PaymentTermsBySupplierChart() {
   const palette = usePalette();
   const chartColors = usePaymentTermsChartColors();
+  const isFullscreen = useIsFullscreenChart();
   const { invoicesForWidget, selectedKey, onBarClick } = useWidgetInvoices("globalUltimate");
 
   const displayedRows = useMemo(
@@ -42,7 +43,9 @@ export function PaymentTermsBySupplierChart() {
     [invoicesForWidget]
   );
 
-  const chartHeight = Math.max(MIN_CHART_HEIGHT, displayedRows.length * ROW_HEIGHT);
+  const rowHeight = isFullscreen ? 40 : 32;
+  const barSize = isFullscreen ? 28 : 20;
+  const chartHeight = Math.max(MIN_CHART_HEIGHT, displayedRows.length * rowHeight);
 
   return (
     <ChartCard
@@ -54,7 +57,7 @@ export function PaymentTermsBySupplierChart() {
       {/*
         Deliberately a plain ResponsiveContainer, not FullscreenResponsiveContainer:
         chartHeight here is content-driven (every supplier gets a fixed, legible
-        ROW_HEIGHT), and overflow is meant to be handled by scrolling this viewport,
+        rowHeight), and overflow is meant to be handled by scrolling this viewport,
         not by stretching the chart to fill it. Switching to height="100%" in
         fullscreen would make Recharts compress all rows into the capped viewport
         height instead, shrinking 50 suppliers into unreadable ~10px slivers.
@@ -65,8 +68,9 @@ export function PaymentTermsBySupplierChart() {
           onto them regardless of the prop value.
         - `fullscreen-scroll-list` drops MAX_VIEWPORT_HEIGHT while maximized, so
           the viewport uses the whole overlay rather than leaving ~280px of it
-          empty below a still-520px box. Rows keep ROW_HEIGHT — you just see
-          more of them at once, which is the point of maximizing this widget.
+          empty below a still-520px box. rowHeight/barSize still scale up via
+          isFullscreen — you also see more rows at once, which is the point of
+          maximizing this widget.
       */}
       <div
         className="fullscreen-scroll-list overflow-y-auto chart-fixed-height-scroll"
@@ -112,6 +116,7 @@ export function PaymentTermsBySupplierChart() {
             />
             <Bar
               dataKey="spend"
+              barSize={barSize}
               style={{ cursor: "pointer" }}
               onClick={(_, index: number) => {
                 const row = displayedRows[index];

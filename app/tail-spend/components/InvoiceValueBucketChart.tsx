@@ -110,7 +110,6 @@ export function InvoiceValueBucketChart({
           dataKey="invoicesPerSupplier"
           name="Invoices per Supplier"
           fill={theme.paretoBarColor}
-          maxBarSize={40}
           cursor="pointer"
           onClick={(_, index) => onToggleBucket(buckets[index].bucketLabel)}
         >

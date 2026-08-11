@@ -87,7 +87,7 @@ export function SpendTrendChart({ trend }: SpendTrendChartProps) {
                 }}
                 cursor={{ fill: palette.isDark ? "rgba(148,163,184,0.08)" : "rgba(15,23,42,0.05)" }}
               />
-              <Bar dataKey="valueCr" name="Spend" fill={palette.categorical.blue} radius={[4, 4, 0, 0]} maxBarSize={28} />
+              <Bar dataKey="valueCr" name="Spend" fill={palette.categorical.blue} radius={[4, 4, 0, 0]} />
             </BarChart>
           ) : (
             <LineChart data={yoyData} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>

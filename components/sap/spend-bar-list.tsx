@@ -67,7 +67,7 @@ export function SpendBarList({
           data={chartRows}
           layout="vertical"
           margin={{ top: 4, right: isFullscreen ? 140 : 116, bottom: 4, left: 4 }}
-          barSize={isFullscreen ? 26 : 16}
+          barSize={isFullscreen ? 34 : 22}
         >
           <XAxis type="number" hide />
           <YAxis
