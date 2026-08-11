@@ -4,6 +4,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import type { SapCategoryRow } from "../tailSpendMock";
 import { formatCompactNumber } from "../tailSpendMock";
 import { useTailSpendTheme } from "../theme";
+import { usePalette } from "@/hooks/use-palette";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import { useIsFullscreenChart } from "@/components/dashboard/fullscreen-overlay";
 
@@ -28,6 +29,7 @@ function formatCategorySpend(value: number): string {
  */
 export function CategorySpendChart({ categories }: CategorySpendChartProps) {
   const theme = useTailSpendTheme();
+  const palette = usePalette();
   const isFullscreen = useIsFullscreenChart();
   const sorted = [...categories].sort((a, b) => b.spend - a.spend).slice(0, TOP_N);
 
@@ -39,6 +41,12 @@ export function CategorySpendChart({ categories }: CategorySpendChartProps) {
         margin={{ top: 8, right: 64, bottom: 8, left: 8 }}
         barCategoryGap="24%"
       >
+        <defs>
+          <linearGradient id="grad-categorySpend" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={theme.paretoBarColor} stopOpacity={0.95} />
+            <stop offset="95%" stopColor={theme.paretoBarColor} stopOpacity={0.25} />
+          </linearGradient>
+        </defs>
         <CartesianGrid horizontal={false} stroke={theme.gridline} />
         <XAxis
           type="number"
@@ -72,7 +80,12 @@ export function CategorySpendChart({ categories }: CategorySpendChartProps) {
           }}
           cursor={{ fill: theme.tooltipCursorFill }}
         />
-        <Bar dataKey="spend" name="Spend" fill={theme.paretoBarColor} radius={[0, 4, 4, 0]}>
+        <Bar
+          dataKey="spend"
+          name="Spend"
+          fill={palette.isDark ? "url(#grad-categorySpend)" : theme.paretoBarColor}
+          radius={[0, 4, 4, 0]}
+        >
           <LabelList
             dataKey="spend"
             position="right"

@@ -63,6 +63,16 @@ export function SuppliersPerCategoryChart() {
         margin={{ top: 18, right: 40, bottom: 4, left: 8 }}
         barCategoryGap="25%"
       >
+        <defs>
+          <linearGradient id="grad-supplierPerCategoryBad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={theme.bad} stopOpacity={0.95} />
+            <stop offset="95%" stopColor={theme.bad} stopOpacity={0.25} />
+          </linearGradient>
+          <linearGradient id="grad-supplierPerCategoryGood" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={theme.good} stopOpacity={0.95} />
+            <stop offset="95%" stopColor={theme.good} stopOpacity={0.25} />
+          </linearGradient>
+        </defs>
         <XAxis
           type="number"
           stroke={theme.axis}
@@ -123,7 +133,7 @@ export function SuppliersPerCategoryChart() {
         />
         <Bar
           dataKey="suppliers"
-          radius={[0, 3, 3, 0]}
+          radius={[0, 4, 4, 0]}
           cursor="pointer"
           onClick={(entry) => {
             const datum = entry as unknown as BarDatum;
@@ -133,7 +143,15 @@ export function SuppliersPerCategoryChart() {
           {data.map((row) => (
             <Cell
               key={row.categoryL2}
-              fill={row.aboveMedian ? theme.bad : theme.good}
+              fill={
+                theme.isDark
+                  ? row.aboveMedian
+                    ? "url(#grad-supplierPerCategoryBad)"
+                    : "url(#grad-supplierPerCategoryGood)"
+                  : row.aboveMedian
+                    ? theme.bad
+                    : theme.good
+              }
               opacity={
                 crossFilter?.categoryL2 && crossFilter.categoryL2 !== row.categoryL2 ? 0.35 : 1
               }

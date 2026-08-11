@@ -29,6 +29,12 @@ export function TopSupplierParetoChart({ suppliers }: TopSupplierParetoChartProp
   return (
     <ResponsiveContainer width="100%" height={320}>
       <ComposedChart data={suppliers} margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+        <defs>
+          <linearGradient id="grad-topSupplierPareto" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={palette.categorical.blue} stopOpacity={0.95} />
+            <stop offset="95%" stopColor={palette.categorical.blue} stopOpacity={0.25} />
+          </linearGradient>
+        </defs>
         <CartesianGrid vertical={false} stroke={palette.ink.grid} />
         <XAxis
           dataKey="supplier"
@@ -73,7 +79,12 @@ export function TopSupplierParetoChart({ suppliers }: TopSupplierParetoChartProp
           }}
           cursor={{ fill: palette.isDark ? "rgba(148, 163, 184, 0.08)" : "rgba(15, 23, 42, 0.05)" }}
         />
-        <Bar yAxisId="spend" dataKey="spendCr" fill={palette.categorical.blue} radius={[4, 4, 0, 0]} />
+        <Bar
+          yAxisId="spend"
+          dataKey="spendCr"
+          fill={palette.isDark ? "url(#grad-topSupplierPareto)" : palette.categorical.blue}
+          radius={[4, 4, 0, 0]}
+        />
         <Line
           yAxisId="cumulative"
           dataKey="cumulativePercent"

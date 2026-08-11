@@ -33,6 +33,12 @@ export function SpendByBuChart({ rows }: SpendByBuChartProps) {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <BarChart data={data} margin={{ top: 28, right: 12, bottom: 40, left: 8 }} barCategoryGap="30%">
+        <defs>
+          <linearGradient id="grad-spendByBu" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={palette.categorical.orange} stopOpacity={0.95} />
+            <stop offset="95%" stopColor={palette.categorical.orange} stopOpacity={0.25} />
+          </linearGradient>
+        </defs>
         <CartesianGrid vertical={false} strokeDasharray="3 3" stroke={palette.ink.grid} />
         <XAxis
           dataKey="plantName"
@@ -69,7 +75,7 @@ export function SpendByBuChart({ rows }: SpendByBuChartProps) {
           }}
           cursor={{ fill: palette.isDark ? "rgba(148,163,184,0.08)" : "rgba(15,23,42,0.05)" }}
         />
-        <Bar dataKey="valueCr" fill={palette.categorical.orange} radius={[4, 4, 0, 0]}>
+        <Bar dataKey="valueCr" fill={palette.isDark ? "url(#grad-spendByBu)" : palette.categorical.orange} radius={[4, 4, 0, 0]}>
           <LabelList
             dataKey="percentOfTotal"
             position="top"

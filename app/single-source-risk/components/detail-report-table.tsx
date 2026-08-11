@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { Download, Table2 } from "lucide-react";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { Button } from "@/components/ui/button";
+import { PaginationFooter } from "@/components/ui/pagination-footer";
+import { usePagination } from "@/hooks/use-pagination";
 import { cn } from "@/lib/utils";
 import { useSingleSourceRisk } from "../provider";
 import { aggregateForTable, type TableRow } from "../selectors";
@@ -96,6 +98,8 @@ export function DetailReportTable() {
     return copy;
   }, [rows, sortColumn, sortDirection]);
 
+  const pagination = usePagination(sortedRows, 10);
+
   function handleSort(column: SortColumn) {
     if (column === sortColumn) {
       setSortDirection((d) => (d === "asc" ? "desc" : "asc"));
@@ -153,7 +157,7 @@ export function DetailReportTable() {
                 </td>
               </tr>
             ) : (
-              sortedRows.map((row) => (
+              pagination.pageItems.map((row) => (
                 <tr
                   key={row.categoryCode}
                   className="border-b border-slate-100 last:border-b-0 dark:border-slate-800/60"
@@ -176,6 +180,18 @@ export function DetailReportTable() {
           </tbody>
         </table>
         </div>
+        <PaginationFooter
+          page={pagination.page}
+          pageCount={pagination.pageCount}
+          startIndex={pagination.startIndex}
+          endIndex={pagination.endIndex}
+          totalCount={pagination.totalCount}
+          onPrevious={pagination.goToPrevious}
+          onNext={pagination.goToNext}
+          hasPrevious={pagination.hasPrevious}
+          hasNext={pagination.hasNext}
+          itemLabel="categories"
+        />
       </div>
     </ChartCard>
   );
