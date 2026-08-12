@@ -40,42 +40,49 @@ export interface ExportSnapshotOptions {
 // html-to-image would otherwise capture.
 // ---------------------------------------------------------------------------
 
-const FLOATING_UI_SELECTORS = [
-  "#ai-assistant-button",
-  '[aria-label="AI Assistant"]',
-  ".recharts-tooltip-wrapper",
-  '[data-slot="sheet-content"]',
-];
+// The AI Assistant launcher (and its panel, when open) hides itself
+// declaratively via useIsExportCapturing() — see DashboardAssistant.tsx —
+// so React itself guarantees it comes back exactly as it was; it never
+// needed an entry here. What's left are non-React floating overlays that
+// have no such context to read: a lingering Recharts tooltip, or an
+// open Sheet/Drawer.
+const CSS_HIDE_SELECTORS = [".recharts-tooltip-wrapper", '[data-slot="sheet-content"]'];
+const EXPORT_HIDE_ATTR = "data-export-hide";
 
 let floatingUiHideDepth = 0;
 let floatingUiRestores: Array<() => void> | null = null;
 
 /**
- * Hides floating UI (AI Assistant launcher, tooltips, drawers) for the
- * duration of a capture. Reference-counted and idempotent: only the
- * outermost hide call captures each element's true original style, and only
- * the outermost restore call actually restores it, so two overlapping
- * hide/restore cycles (a second capture starting before the first one's
- * `finally` has run) can never stomp the real original with an
- * already-hidden value and leave an element — e.g. the AI Assistant button —
- * permanently hidden after export.
+ * Hides remaining non-React floating overlays for the duration of a capture
+ * by tagging them with a `data-export-hide` attribute and injecting one
+ * `[data-export-hide="true"] { display: none !important; }` rule, rather
+ * than mutating each element's inline style directly — a plain attribute is
+ * simpler to set/clear correctly than capturing and restoring a style
+ * property per element. Reference-counted and idempotent: only the
+ * outermost hide call tags elements and injects the rule, and only the
+ * outermost restore call removes them, so two overlapping hide/restore
+ * cycles (a second capture starting before the first one's `finally` has
+ * run) can never leave an element permanently hidden.
  */
 function hideFloatingUi(): () => void {
   floatingUiHideDepth += 1;
   if (floatingUiHideDepth === 1) {
-    const restores: Array<() => void> = [];
-    for (const selector of FLOATING_UI_SELECTORS) {
+    const styleEl = document.createElement("style");
+    styleEl.textContent = `[${EXPORT_HIDE_ATTR}="true"] { display: none !important; }`;
+    document.head.appendChild(styleEl);
+
+    const tagged: HTMLElement[] = [];
+    for (const selector of CSS_HIDE_SELECTORS) {
       document.querySelectorAll<HTMLElement>(selector).forEach((el) => {
-        const previousVisibility = el.style.visibility;
-        const previousDisplay = el.style.display;
-        el.style.visibility = "hidden";
-        restores.push(() => {
-          el.style.visibility = previousVisibility;
-          el.style.display = previousDisplay;
-        });
+        el.setAttribute(EXPORT_HIDE_ATTR, "true");
+        tagged.push(el);
       });
     }
-    floatingUiRestores = restores;
+
+    floatingUiRestores = [
+      () => tagged.forEach((el) => el.removeAttribute(EXPORT_HIDE_ATTR)),
+      () => styleEl.remove(),
+    ];
   }
 
   let released = false;
