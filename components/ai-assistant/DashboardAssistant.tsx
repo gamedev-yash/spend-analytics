@@ -17,6 +17,9 @@ import { EmptyState } from "./EmptyState";
 import { MessageBubble } from "./MessageBubble";
 import { Composer } from "./Composer";
 import type { Suggestion } from "./SuggestionChips";
+import type { ActionPlanState } from "./ActionPlanCard";
+import type { AssistantActionDefinition } from "@/lib/ai/actions/assistant-actions";
+import type { AssistantActionResponse } from "@/lib/ai/actions/action-plan-types";
 import { cn } from "@/lib/utils";
 
 export interface ChatEntry {
@@ -28,6 +31,12 @@ export interface ChatEntry {
   isError?: boolean;
   /** Client-side send/receive time (Date.now()), display-only — never sent to or read from the API. */
   timestamp?: number;
+  /**
+   * Set only on the entry created by clicking an assistant action — carries
+   * the report's progress/result. A normal chat turn never has this, so the
+   * action feature adds nothing to the normal message path.
+   */
+  actionPlan?: ActionPlanState;
 }
 
 const FOCUSABLE_SELECTOR = 'button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])';
@@ -88,6 +97,11 @@ export function DashboardAssistant() {
   const [messages, setMessages] = useState<ChatEntry[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  // Deliberately separate from `busy`: a running report must not disable the
+  // composer (§16 — "do not block the normal chatbot functionality"). The two
+  // requests are independent, so the user can keep asking questions while a
+  // report renders.
+  const [actionBusy, setActionBusy] = useState(false);
   const [unread, setUnread] = useState(false);
   const [showJumpToLatest, setShowJumpToLatest] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -137,6 +151,12 @@ export function DashboardAssistant() {
     setContextSummary(null);
     setMessages([{ role: "assistant", content: welcomeFor(dashboardKey), timestamp: Date.now() }]);
     setInput("");
+    // An in-flight report's own fetch isn't aborted here (it holds no
+    // AbortController — it never blocks the composer, so there is nothing for
+    // "Stop" to cancel); clearing the flag just re-enables the action row for
+    // the new conversation. Its patch() targets a message object that no
+    // longer exists in state, so the stale response lands nowhere.
+    setActionBusy(false);
     setUnread(false);
     stickToBottomRef.current = true;
     setShowJumpToLatest(false);
@@ -152,6 +172,7 @@ export function DashboardAssistant() {
     setMessages([{ role: "assistant", content: welcomeFor(dashboardKey), timestamp: Date.now() }]);
     setSuggestedFollowUps(null);
     setContextSummary(null);
+    setActionBusy(false);
     setUnread(false);
     stickToBottomRef.current = true;
     setShowJumpToLatest(false);
@@ -312,6 +333,78 @@ export function DashboardAssistant() {
     [input, busy, dashboardKey, messages, activeFilterSummary, conversationId]
   );
 
+  /**
+   * Runs an explicitly-clicked assistant action (§23). Captures the state that
+   * is true AT CLICK TIME — dashboard, current filters, the user's own last
+   * question as the objective, and the conversation id — so nobody has to
+   * retype the question they just asked.
+   *
+   * Note what is NOT sent: no query results, no transcript. The server reads
+   * the relevant previous query straight out of the existing conversation
+   * memory it already keeps under this conversationId, which is both smaller
+   * over the wire and impossible for a client to forge.
+   */
+  const runAction = useCallback(
+    async (action: AssistantActionDefinition) => {
+      if (!dashboardKey || actionBusy) return;
+
+      const objective = messages.filter((m) => m.role === "user").at(-1)?.content;
+      if (!objective) return;
+
+      // Held by reference so the response can find this exact entry again even
+      // if chat messages land in the meantime — index would go stale.
+      const entry: ChatEntry = {
+        role: "assistant",
+        content: "",
+        timestamp: Date.now(),
+        actionPlan: { status: "running", label: action.label, estimatedSeconds: action.estimatedSeconds },
+      };
+      const patch = (actionPlan: ActionPlanState) =>
+        setMessages((prev) => prev.map((m) => (m === entry ? { ...m, actionPlan } : m)));
+
+      setMessages((prev) => [...prev, entry]);
+      setActionBusy(true);
+      try {
+        const res = await fetch("/api/assistant-actions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: action.id,
+            dashboardKey,
+            objective,
+            activeFilters: activeFilterSummary,
+            conversationId,
+          }),
+        });
+        const data: AssistantActionResponse = await res
+          .json()
+          .catch(() => ({ success: false, error: `Request failed (${res.status}).` }) as AssistantActionResponse);
+        if (!res.ok || !data.success) {
+          throw new Error(data.success ? `Request failed (${res.status}).` : data.error);
+        }
+        patch({
+          status: "done",
+          label: action.label,
+          estimatedSeconds: action.estimatedSeconds,
+          report: data.report,
+          artifacts: data.artifacts,
+          generator: data.generator,
+          cached: data.cached,
+        });
+      } catch (err) {
+        patch({
+          status: "error",
+          label: action.label,
+          estimatedSeconds: action.estimatedSeconds,
+          error: err instanceof Error ? err.message : "Something went wrong generating that report.",
+        });
+      } finally {
+        setActionBusy(false);
+      }
+    },
+    [dashboardKey, actionBusy, messages, activeFilterSummary, conversationId]
+  );
+
   const handleRedirect = useCallback(
     (redirect: NonNullable<ChatEntry["redirect"]>) => {
       const lastUserMessage = messages.filter((x) => x.role === "user").at(-1)?.content;
@@ -322,12 +415,29 @@ export function DashboardAssistant() {
     [messages, router, closePanel]
   );
 
+  // Skips report cards: those are an action's OUTPUT, not an answer, so
+  // follow-up chips and the action row both belong on the last real reply
+  // above them rather than hanging off a downloaded document.
   const lastAssistantIndex = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i -= 1) {
-      if (messages[i].role === "assistant") return i;
+      if (messages[i].role === "assistant" && !messages[i].actionPlan) return i;
     }
     return -1;
   }, [messages]);
+
+  // The action row appears under that same last real answer, and only when
+  // there is something to act on: a grounded reply (not an error, not a
+  // redirect elsewhere, not a pending clarifying question) and a user question
+  // to use as the objective. §15's "only when appropriate", reusing the exact
+  // gating the follow-up chips already established rather than inventing a
+  // second notion of "meaningful answer".
+  const actionsIndex = useMemo(() => {
+    if (lastAssistantIndex < 0) return -1;
+    const last = messages[lastAssistantIndex];
+    if (last.isError || last.redirect || (last.options?.length ?? 0) > 0) return -1;
+    if (!messages.some((m) => m.role === "user")) return -1;
+    return lastAssistantIndex;
+  }, [messages, lastAssistantIndex]);
 
   // Prefer the server's context-derived suggestions (lib/ai/conversation-context.ts's
   // suggestFollowUps — built from what was actually just queried, e.g. "Show
@@ -482,6 +592,9 @@ export function DashboardAssistant() {
                         busy={busy}
                         onOptionSelect={(option) => void send(option)}
                         onRedirect={handleRedirect}
+                        dashboardKey={dashboardKey}
+                        onRunAction={i === actionsIndex ? (action) => void runAction(action) : undefined}
+                        actionBusy={actionBusy}
                         // Never alongside a pending clarifying question (m.options) —
                         // answering that comes first, so "Compare with last month"
                         // showing up next to "PO spend or Invoice value?" would be

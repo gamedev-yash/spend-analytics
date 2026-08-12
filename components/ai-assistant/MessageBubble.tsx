@@ -8,6 +8,10 @@ import type { ChatEntry } from "./DashboardAssistant";
 import { AssistantMarkdown } from "./AssistantMarkdown";
 import { RedirectCard } from "./RedirectCard";
 import { SuggestionChips, type Suggestion } from "./SuggestionChips";
+import { ActionPlanCard } from "./ActionPlanCard";
+import { AssistantActions } from "./AssistantActions";
+import type { AssistantActionDefinition } from "@/lib/ai/actions/assistant-actions";
+import type { DashboardKey } from "@/lib/ai/dashboard-registry";
 
 interface MessageBubbleProps {
   message: ChatEntry;
@@ -17,6 +21,11 @@ interface MessageBubbleProps {
   onRedirect: (redirect: NonNullable<ChatEntry["redirect"]>) => void;
   /** Canned follow-up prompts shown under the last assistant answer — only passed for that one message. */
   followUps?: Suggestion[];
+  dashboardKey: DashboardKey;
+  /** Passed only for the one message the action row belongs under — undefined everywhere else, which is what hides the row. */
+  onRunAction?: (action: AssistantActionDefinition) => void;
+  /** True while a report is already generating — the row stays visible but inert. */
+  actionBusy?: boolean;
 }
 
 function formatTime(timestamp: number): string {
@@ -30,8 +39,21 @@ function formatTime(timestamp: number): string {
  * visual identity so replies read as structured analytics answers rather
  * than generic chat blobs.
  */
-export function MessageBubble({ message, fullscreen, busy, onOptionSelect, onRedirect, followUps }: MessageBubbleProps) {
+export function MessageBubble({
+  message,
+  fullscreen,
+  busy,
+  onOptionSelect,
+  onRedirect,
+  followUps,
+  dashboardKey,
+  onRunAction,
+  actionBusy,
+}: MessageBubbleProps) {
   const isUser = message.role === "user";
+  // A report card carries no prose of its own, so the copy affordance and the
+  // markdown body below both have nothing to act on.
+  const isActionCard = Boolean(message.actionPlan);
   const [copied, setCopied] = useState(false);
 
   const copyReply = () => {
@@ -80,7 +102,7 @@ export function MessageBubble({ message, fullscreen, busy, onOptionSelect, onRed
                 : "border border-slate-200 bg-white text-slate-800 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-200"
           )}
         >
-          {!isUser && !message.isError && (
+          {!isUser && !message.isError && !isActionCard && (
             <button
               type="button"
               onClick={copyReply}
@@ -92,7 +114,13 @@ export function MessageBubble({ message, fullscreen, busy, onOptionSelect, onRed
             </button>
           )}
 
-          {isUser ? message.content : <AssistantMarkdown text={message.content} className={!isUser ? "pr-5" : undefined} />}
+          {isUser ? (
+            message.content
+          ) : isActionCard ? null : (
+            <AssistantMarkdown text={message.content} className="pr-5" />
+          )}
+
+          {message.actionPlan && <ActionPlanCard state={message.actionPlan} />}
 
           {message.redirect && <RedirectCard redirect={message.redirect} onNavigate={() => onRedirect(message.redirect!)} />}
 
@@ -113,6 +141,12 @@ export function MessageBubble({ message, fullscreen, busy, onOptionSelect, onRed
               </p>
               <SuggestionChips items={followUps} onSelect={onOptionSelect} disabled={busy} variant="pill" />
             </div>
+          )}
+
+          {/* Present only on the one message DashboardAssistant chose (§15) —
+              nothing here can start an action on its own; it renders a button. */}
+          {onRunAction && (
+            <AssistantActions dashboardKey={dashboardKey} onRun={onRunAction} disabled={busy || Boolean(actionBusy)} />
           )}
         </div>
         {message.timestamp && (
