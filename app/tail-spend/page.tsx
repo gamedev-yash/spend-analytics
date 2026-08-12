@@ -260,7 +260,7 @@ export default function TailSpendPage() {
 
               {/* ================= Dashboard Widgets — unified 2-column grid ================= */}
 
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div id="primary-charts" className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 {isWidgetVisible("invoice-value-bucket-chart") && (
                   <Widget title="Invoice Count by Invoice Value" activeFilters={activeFiltersSummary}>
                     <InvoiceValueBucketChart

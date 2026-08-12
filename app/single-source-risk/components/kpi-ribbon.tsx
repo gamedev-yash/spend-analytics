@@ -17,7 +17,7 @@ export function KpiRibbon() {
   const categoryStatus = evaluate("single-source-risk.category-count", categoryCount);
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="kpi-ribbon grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       <KpiCard label="Total Spend" value={formatCurrencyFull(totalSpend)} icon={<Wallet />} accent="blue" />
       <KpiCard
         label="Suppliers"

@@ -70,14 +70,18 @@ export default function SingleSourceRiskPage() {
 
           {isWidgetVisible("kpi-ribbon") && <KpiRibbon />}
           {/* Trailing odd child spans the full row so hiding/filtering widgets never leaves a gap. */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
+          <div id="primary-charts" className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
             {isWidgetVisible("category-chart") && <CategoriesBySupplierCountChart />}
             {isWidgetVisible("product-chart") && <ProductsChart />}
             {isWidgetVisible("plant-chart") && <PlantsChart />}
             {isWidgetVisible("supplier-chart") && <SuppliersChart />}
           </div>
 
-          {isWidgetVisible("exposure-trend-chart") && <ExposureTrendChart />}
+          {isWidgetVisible("exposure-trend-chart") && (
+            <div id="secondary-charts">
+              <ExposureTrendChart />
+            </div>
+          )}
           {isWidgetVisible("detail-table") && <DetailReportTable />}
         </div>
       </div>
