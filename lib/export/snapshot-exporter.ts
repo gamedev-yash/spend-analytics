@@ -159,7 +159,7 @@ function formatTimestamp(): string {
 }
 
 function filtersLine(options: ExportSnapshotOptions): string {
-  return options.activeFiltersSummary?.trim() ? options.activeFiltersSummary : "No filters applied";
+  return options.activeFiltersSummary?.trim() ? options.activeFiltersSummary : "No filters applied (All Data)";
 }
 
 function footerLine(options: ExportSnapshotOptions): string {
@@ -247,6 +247,8 @@ const WIDGET_SELECTOR = ".chart-card, [data-export-widget], .kpi-ribbon, table";
 interface CapturedWidget {
   title: string;
   el: HTMLElement;
+  /** Spans (close to) the full width of its own row on the live page — a KPI ribbon, a table, or a chart with no side-by-side sibling — so it should get a dedicated slide/page rather than being packed into a grid with others. */
+  isFullWidth: boolean;
 }
 
 function extractWidgetTitle(el: HTMLElement, fallbackIndex: number): string {
@@ -256,6 +258,23 @@ function extractWidgetTitle(el: HTMLElement, fallbackIndex: number): string {
   const heading = el.querySelector("h1, h2, h3, h4, [data-export-title]");
   if (heading?.textContent?.trim()) return heading.textContent.trim();
   return `Widget ${fallbackIndex}`;
+}
+
+/**
+ * Reads the widget's own laid-out width against its parent container's width
+ * (both measured live, before any capture-time DOM mutation) to mirror the
+ * website's own grid: a chart at ~50% of its container's width is one of a
+ * side-by-side pair and can be grouped; a table, the KPI ribbon, or anything
+ * spanning (close to) the full row cannot.
+ */
+function isWidgetFullWidth(el: HTMLElement): boolean {
+  if (el.classList.contains("kpi-ribbon")) return true;
+  if (el.tagName === "TABLE" || el.querySelector("table")) return true;
+  const parent = el.parentElement;
+  const parentWidth = parent?.getBoundingClientRect().width ?? 0;
+  if (parentWidth <= 0) return true;
+  const elWidth = el.getBoundingClientRect().width;
+  return elWidth / parentWidth > 0.85;
 }
 
 /**
@@ -278,13 +297,14 @@ function getWidgetElements(canvas: HTMLElement): CapturedWidget[] {
 
   kept.sort((a, b) => Number(!a.classList.contains("kpi-ribbon")) - Number(!b.classList.contains("kpi-ribbon")));
 
-  return kept.map((el, index) => ({ el, title: extractWidgetTitle(el, index + 1) }));
+  return kept.map((el, index) => ({ el, title: extractWidgetTitle(el, index + 1), isFullWidth: isWidgetFullWidth(el) }));
 }
 
 interface CapturedWidgetImage {
   title: string;
   dataUrl: string;
   img: HTMLImageElement;
+  isFullWidth: boolean;
 }
 
 async function captureAllWidgets(
@@ -307,7 +327,7 @@ async function captureAllWidgets(
       try {
         const dataUrl = await captureNodeAsPngDataUrl(widget.el, isDark);
         const img = await loadImage(dataUrl);
-        results.push({ title: widget.title, dataUrl, img });
+        results.push({ title: widget.title, dataUrl, img, isFullWidth: widget.isFullWidth });
       } finally {
         restoreOverflow();
       }
@@ -365,42 +385,136 @@ function drawPdfPageChrome(pdf: jsPDF, options: ExportSnapshotOptions, pageWidth
   pdf.text(pageLabel, pageWidth - PDF_MARGIN, pageHeight - 12, { align: "right" });
 }
 
-/** "Continuous Paginated PDF" — one capture, fit to page width at a single uniform scale, sliced vertically across as many pages as that scaled height needs. Never distorts because every page shares the same scale factor. */
+interface WidgetBoundsPx {
+  top: number;
+  bottom: number;
+}
+
+interface PdfPagePlan {
+  sourceTop: number;
+  sourceBottom: number;
+}
+
+const OVERFLOW_TOLERANCE = 0.2; // Rule A/B threshold — 20% of the overflowing widget's own height
+const BOUNDS_EPSILON = 1; // px, floating-point slack for boundary comparisons
+
+/**
+ * Chooses page-break Y-coordinates that fall in the gaps between widgets
+ * instead of slicing at fixed pixel heights, so a chart or table is never cut
+ * through the middle. Rule A: a widget that would only slightly overflow the
+ * current page (<=20% of its own height) stays on that page anyway — it's
+ * rendered at a very slightly smaller scale at draw time so it still fits
+ * exactly, never sliced. Rule B: anything that would overflow by more than
+ * that is deferred whole to a fresh page. Degrades to plain fixed-height
+ * slicing when there's no widget boundary info to plan around.
+ */
+function planContinuousPages(widgetBounds: WidgetBoundsPx[], totalHeight: number, idealPageHeight: number): PdfPagePlan[] {
+  const pages: PdfPagePlan[] = [];
+  let cursor = 0;
+
+  while (cursor < totalHeight - BOUNDS_EPSILON) {
+    const idealBottom = cursor + idealPageHeight;
+
+    if (idealBottom >= totalHeight) {
+      pages.push({ sourceTop: cursor, sourceBottom: totalHeight });
+      break;
+    }
+
+    // The furthest widget boundary that both starts at/after the cursor and
+    // ends within this page's budget — the best (most page-filling) safe cut.
+    const safeCut = widgetBounds
+      .filter((w) => w.top >= cursor - BOUNDS_EPSILON && w.bottom <= idealBottom + BOUNDS_EPSILON)
+      .reduce((max, w) => Math.max(max, w.bottom), -Infinity);
+
+    if (safeCut > cursor + BOUNDS_EPSILON) {
+      pages.push({ sourceTop: cursor, sourceBottom: safeCut });
+      cursor = safeCut;
+      continue;
+    }
+
+    // Nothing fits cleanly — find whichever widget straddles the ideal boundary.
+    const overflowing = widgetBounds.find(
+      (w) => w.top <= idealBottom + BOUNDS_EPSILON && w.bottom > idealBottom + BOUNDS_EPSILON && w.top >= cursor - BOUNDS_EPSILON
+    );
+
+    if (!overflowing) {
+      // No widget spans the boundary at all (no widget info) — plain fixed-height slice.
+      pages.push({ sourceTop: cursor, sourceBottom: idealBottom });
+      cursor = idealBottom;
+      continue;
+    }
+
+    const widgetHeight = overflowing.bottom - overflowing.top;
+    const overflowRatio = widgetHeight > 0 ? (overflowing.bottom - idealBottom) / widgetHeight : 1;
+
+    if (overflowRatio <= OVERFLOW_TOLERANCE || overflowing.top <= cursor + BOUNDS_EPSILON) {
+      // Rule A (minor overflow), or this widget is the very first thing on the
+      // page and simply taller than one page either way — keep it whole here.
+      pages.push({ sourceTop: cursor, sourceBottom: overflowing.bottom });
+      cursor = overflowing.bottom;
+    } else {
+      // Rule B (major overflow) — defer the whole widget to a fresh page.
+      pages.push({ sourceTop: cursor, sourceBottom: overflowing.top });
+      cursor = overflowing.top;
+    }
+  }
+
+  return pages;
+}
+
+/** "Continuous Paginated PDF" — one capture, fit to page width, broken across pages at widget boundaries (see planContinuousPages) instead of fixed-height slices, so no chart or table is ever cut through the middle. */
 async function exportAsPdfContinuous(pdf: jsPDF, options: ExportSnapshotOptions): Promise<void> {
   options.onProgress?.("Capturing elements...");
   const canvasNode = getCanvasNode(options.targetId);
-  const dataUrl = await withCapturePrep(canvasNode, () => captureNodeAsPngDataUrl(canvasNode, options.isDark));
+
+  const { dataUrl, cssBounds, canvasWidthPx } = await withCapturePrep(canvasNode, async () => {
+    const widgets = getWidgetElements(canvasNode);
+    const canvasRect = canvasNode.getBoundingClientRect();
+    const bounds = widgets.map(({ el }) => {
+      const rect = el.getBoundingClientRect();
+      return { top: rect.top - canvasRect.top, bottom: rect.bottom - canvasRect.top };
+    });
+    const url = await captureNodeAsPngDataUrl(canvasNode, options.isDark);
+    return { dataUrl: url, cssBounds: bounds, canvasWidthPx: canvasRect.width };
+  });
+
   const img = await loadImage(dataUrl);
+  const pxPerCssPx = canvasWidthPx > 0 ? img.naturalWidth / canvasWidthPx : 1;
+  const widgetBounds: WidgetBoundsPx[] = cssBounds.map((b) => ({ top: b.top * pxPerCssPx, bottom: b.bottom * pxPerCssPx }));
 
   const { pageWidth, pageHeight } = pdfPageMetrics(pdf);
   const { contentTop, contentBottom } = computePdfContentMetrics(options, pageHeight);
   const maxW = pageWidth - PDF_MARGIN * 2;
   const pageContentHeight = contentBottom - contentTop;
   const scale = maxW / img.naturalWidth;
-  const scaledFullHeight = img.naturalHeight * scale;
-  const pageCount = Math.max(1, Math.ceil(scaledFullHeight / pageContentHeight));
+  const idealPageSourceHeight = pageContentHeight / scale;
+
+  const pages = planContinuousPages(widgetBounds, img.naturalHeight, idealPageSourceHeight);
 
   const sliceCanvas = document.createElement("canvas");
   sliceCanvas.width = Math.max(1, Math.round(img.naturalWidth));
   const sliceCtx = sliceCanvas.getContext("2d");
   if (!sliceCtx) throw new Error("Could not prepare this page for the PDF.");
 
-  for (let page = 0; page < pageCount; page++) {
-    if (page > 0) pdf.addPage();
+  pages.forEach((page, index) => {
+    if (index > 0) pdf.addPage();
 
-    const sourceTop = (page * pageContentHeight) / scale;
-    const sourceHeight = Math.min(pageContentHeight / scale, img.naturalHeight - sourceTop);
-    const destHeight = sourceHeight * scale;
+    const sourceHeight = page.sourceBottom - page.sourceTop;
+    // Normally equals `scale`; shrinks a touch only for a Rule-A-compressed or single-widget-taller-than-one-page slice, uniformly on both axes so nothing distorts.
+    const pageScale = Math.min(scale, pageContentHeight / sourceHeight);
+    const destWidth = img.naturalWidth * pageScale;
+    const destHeight = sourceHeight * pageScale;
 
     sliceCanvas.height = Math.max(1, Math.round(sourceHeight));
     sliceCtx.clearRect(0, 0, sliceCanvas.width, sliceCanvas.height);
-    sliceCtx.drawImage(img, 0, sourceTop, img.naturalWidth, sourceHeight, 0, 0, sliceCanvas.width, sliceCanvas.height);
-    pdf.addImage(sliceCanvas.toDataURL("image/png"), "PNG", PDF_MARGIN, contentTop, maxW, destHeight);
-  }
+    sliceCtx.drawImage(img, 0, page.sourceTop, img.naturalWidth, sourceHeight, 0, 0, sliceCanvas.width, sliceCanvas.height);
+    const x = PDF_MARGIN + (maxW - destWidth) / 2;
+    pdf.addImage(sliceCanvas.toDataURL("image/png"), "PNG", x, contentTop, destWidth, destHeight);
+  });
 
-  for (let page = 1; page <= pageCount; page++) {
+  for (let page = 1; page <= pages.length; page++) {
     pdf.setPage(page);
-    drawPdfPageChrome(pdf, options, pageWidth, pageHeight, `Page ${page} of ${pageCount}`);
+    drawPdfPageChrome(pdf, options, pageWidth, pageHeight, `Page ${page} of ${pages.length}`);
   }
 }
 
@@ -556,6 +670,89 @@ function placeImageFitted(
   slide.addImage({ data: dataUrl, x, y, w, h });
 }
 
+const GRID_GUTTER = 0.25; // inches, between cells
+const CELL_CAPTION_H = 0.28; // inches, reserved above each cell's image when a slide holds more than one widget
+
+/**
+ * Lays out 1, 2, or 4 widgets in a grid within the slide's content area — a
+ * lone full-width widget fills it entirely (1x1), a side-by-side pair splits
+ * it in half (1x2), and four compact charts split it into quadrants (2x2).
+ * Each cell contain-fits and centers its own image independently, so mixing
+ * different aspect ratios in the same grid never distorts any one of them.
+ */
+function placeImageGrid(
+  slide: PptxGenJS.Slide,
+  group: CapturedWidgetImage[],
+  contentTop: number,
+  contentHeight: number
+): void {
+  const maxW = SLIDE_W - MARGIN_X * 2;
+  const count = group.length;
+  const cols = count === 1 ? 1 : 2;
+  const rows = Math.ceil(count / cols);
+  const cellW = (maxW - GRID_GUTTER * (cols - 1)) / cols;
+  const cellH = (contentHeight - GRID_GUTTER * (rows - 1)) / rows;
+  const showCaptions = count > 1;
+  const captionH = showCaptions ? CELL_CAPTION_H : 0;
+
+  group.forEach((widget, index) => {
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+    const cellX = MARGIN_X + col * (cellW + GRID_GUTTER);
+    const cellY = contentTop + row * (cellH + GRID_GUTTER);
+
+    if (showCaptions) {
+      slide.addText(widget.title, {
+        x: cellX,
+        y: cellY,
+        w: cellW,
+        h: captionH,
+        fontSize: 10,
+        bold: true,
+        color: "334155",
+        align: "center",
+        valign: "middle",
+        fontFace: "Arial",
+      });
+    }
+
+    const imageAreaH = cellH - captionH;
+    const scale = Math.min(cellW / widget.img.naturalWidth, imageAreaH / widget.img.naturalHeight);
+    const w = widget.img.naturalWidth * scale;
+    const h = widget.img.naturalHeight * scale;
+    const x = cellX + (cellW - w) / 2;
+    const y = cellY + captionH + (imageAreaH - h) / 2;
+    slide.addImage({ data: widget.dataUrl, x, y, w, h });
+  });
+}
+
+/**
+ * Groups captured widgets into slide-sized chunks in page order: any
+ * full-width widget (KPI ribbon, table, a lone chart with no side-by-side
+ * sibling) always gets its own slide; consecutive compact/half-width charts
+ * are packed 4-to-a-slide when at least 4 are available in a row, else 2, so
+ * the deck mirrors the website's own 2-column grid instead of forcing every
+ * chart onto its own slide.
+ */
+function groupWidgetsForSlides(images: CapturedWidgetImage[]): CapturedWidgetImage[][] {
+  const groups: CapturedWidgetImage[][] = [];
+  let i = 0;
+  while (i < images.length) {
+    if (images[i].isFullWidth) {
+      groups.push([images[i]]);
+      i += 1;
+      continue;
+    }
+    let runEnd = i;
+    while (runEnd < images.length && !images[runEnd].isFullWidth) runEnd += 1;
+    const runLength = runEnd - i;
+    const takeCount = runLength >= 4 ? 4 : runLength >= 2 ? 2 : 1;
+    groups.push(images.slice(i, i + takeCount));
+    i += takeCount;
+  }
+  return groups;
+}
+
 async function exportAsPptxSingle(pptx: PptxGenJS, options: ExportSnapshotOptions): Promise<void> {
   options.onProgress?.("Capturing elements...");
   const canvasNode = getCanvasNode(options.targetId);
@@ -576,19 +773,21 @@ async function exportAsPptxSingle(pptx: PptxGenJS, options: ExportSnapshotOption
 
 async function exportAsPptxMulti(pptx: PptxGenJS, options: ExportSnapshotOptions): Promise<void> {
   const canvas = getCanvasNode(options.targetId);
-  const widgets = await captureAllWidgets(canvas, options.isDark, options.onProgress);
+  const images = await captureAllWidgets(canvas, options.isDark, options.onProgress);
+  const groups = groupWidgetsForSlides(images);
 
   options.onProgress?.("Building PowerPoint deck...");
-  for (const widget of widgets) {
+  for (const group of groups) {
     const slide = pptx.addSlide();
+    const subtitle = group.map((widget) => widget.title).join(" · ");
     const { contentTop, contentHeight } = addHeaderAndFooter(
       pptx,
       slide,
       `Dashboard Snapshot — ${options.dashboardTitle}`,
-      widget.title,
+      subtitle,
       options
     );
-    placeImageFitted(slide, widget.dataUrl, widget.img, contentTop, contentHeight);
+    placeImageGrid(slide, group, contentTop, contentHeight);
   }
 }
 

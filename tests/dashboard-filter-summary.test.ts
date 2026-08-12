@@ -77,6 +77,34 @@ describe("Spend Overview / Compliance filter summary", () => {
     });
     assert.equal(summary, "Plant: Pune · Category: IT & Telecom · Date: 2025-01-01 to 2025-06-30");
   });
+
+  it("includes the vendor drill-down alongside every other active dimension", () => {
+    const summary = buildPlantCategoryDateFilterSummary({
+      selectedPlantCodes: ["P01"],
+      plantOptions,
+      selectedCategories: ["Raw Materials"],
+      dateFrom: "2025-01-01",
+      dateTo: "2025-06-30",
+      defaultDateFrom: "2024-01-01",
+      defaultDateTo: "2024-12-31",
+      vendorLabel: "Tata Steel",
+    });
+    assert.equal(summary, "Plant: Pune · Category: Raw Materials · Date: 2025-01-01 to 2025-06-30 · Vendor: Tata Steel");
+  });
+
+  it("drops the vendor part when the label is null or blank", () => {
+    const summary = buildPlantCategoryDateFilterSummary({
+      selectedPlantCodes: [],
+      plantOptions,
+      selectedCategories: [],
+      dateFrom: "2024-01-01",
+      dateTo: "2024-12-31",
+      defaultDateFrom: "2024-01-01",
+      defaultDateTo: "2024-12-31",
+      vendorLabel: "   ",
+    });
+    assert.equal(summary, null);
+  });
 });
 
 describe("Payment Terms filter summary", () => {

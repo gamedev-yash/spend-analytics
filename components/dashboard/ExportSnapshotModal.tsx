@@ -29,8 +29,8 @@ const PPTX_LAYOUTS: { value: PptxLayoutMode; label: string; description: string 
   { value: "single", label: "Single-Slide Overview", description: "The whole dashboard fit onto one widescreen slide." },
   {
     value: "multi",
-    label: "Multi-Slide Executive Deck",
-    description: "The KPI ribbon and every individual chart or table get their own clear, readable slide.",
+    label: "Multi-Slide Deep Dive",
+    description: "Generates section-grouped slides (2 to 4 charts per slide matching the dashboard layout) for deep-dive presentations.",
   },
 ];
 

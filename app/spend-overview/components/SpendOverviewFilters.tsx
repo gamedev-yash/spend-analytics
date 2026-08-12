@@ -40,6 +40,7 @@ export function SpendOverviewFilters({
   const selectedCategories = searchParams.get("cat")?.split(",").filter(Boolean) ?? [];
   const dateFrom = searchParams.get("from") ?? defaultDateFrom;
   const dateTo = searchParams.get("to") ?? defaultDateTo;
+  const vendorLabel = searchParams.get("vendor");
   const hasActiveFilters = searchParams.toString() !== "";
 
   // Lets the AI Assistant (mounted outside this page's tree — see
@@ -54,6 +55,7 @@ export function SpendOverviewFilters({
       dateTo,
       defaultDateFrom,
       defaultDateTo,
+      vendorLabel,
     })
   );
 
