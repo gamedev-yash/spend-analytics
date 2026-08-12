@@ -5,7 +5,8 @@ import { useTheme } from "next-themes";
 import { Dialog } from "@base-ui/react/dialog";
 import { Download, FileImage, FileText, Loader2, Presentation, X } from "lucide-react";
 import { useHasMounted } from "@/hooks/use-has-mounted";
-import { runDashboardExport, type ExportFormat, type PptxLayoutMode } from "@/lib/export/snapshot-exporter";
+import { runDashboardExport, type ExportFormat, type PdfLayoutMode, type PptxLayoutMode } from "@/lib/export/snapshot-exporter";
+import { useSetExportCapturing } from "@/context/ExportCaptureContext";
 import { cn } from "@/lib/utils";
 
 interface ExportSnapshotModalProps {
@@ -29,7 +30,20 @@ const PPTX_LAYOUTS: { value: PptxLayoutMode; label: string; description: string 
   {
     value: "multi",
     label: "Multi-Slide Executive Deck",
-    description: "KPI ribbon, primary charts, secondary trends, and the detail table each get their own slide.",
+    description: "The KPI ribbon and every individual chart or table get their own clear, readable slide.",
+  },
+];
+
+const PDF_LAYOUTS: { value: PdfLayoutMode; label: string; description: string }[] = [
+  {
+    value: "continuous",
+    label: "Continuous Paginated PDF",
+    description: "One capture, scaled to page width and sliced cleanly across as many pages as it takes.",
+  },
+  {
+    value: "widget-per-page",
+    label: "Multi-Page Executive PDF",
+    description: "The KPI ribbon and every individual chart or table, one or two per page, fit to page width.",
   },
 ];
 
@@ -47,8 +61,11 @@ export function ExportSnapshotModal({ open, onOpenChange, targetId, dashboardTit
   const mounted = useHasMounted();
   const isDark = mounted && resolvedTheme === "dark";
 
+  const setExportCapturing = useSetExportCapturing();
+
   const [format, setFormat] = useState<ExportFormat>("png");
   const [pptxLayout, setPptxLayout] = useState<PptxLayoutMode>("single");
+  const [pdfLayout, setPdfLayout] = useState<PdfLayoutMode>("continuous");
   const [includeFilterSummary, setIncludeFilterSummary] = useState(true);
   const [includeTimestampFooter, setIncludeTimestampFooter] = useState(true);
   const [userName, setUserName] = useState("");
@@ -65,11 +82,17 @@ export function ExportSnapshotModal({ open, onOpenChange, targetId, dashboardTit
   async function handleExport() {
     setBusy(true);
     setError(null);
+    setExportCapturing(true);
     try {
+      // Let every paginated table re-render with all of its rows (see
+      // ExportCaptureContext) and the layout settle before the first capture.
+      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
       await runDashboardExport({
         targetId,
         format,
         pptxLayout,
+        pdfLayout,
         dashboardTitle,
         includeFilterSummary,
         includeTimestampFooter,
@@ -82,13 +105,15 @@ export function ExportSnapshotModal({ open, onOpenChange, targetId, dashboardTit
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not export this dashboard.");
     } finally {
+      setExportCapturing(false);
       setBusy(false);
       setStatus("");
     }
   }
 
   const activeFormat = FORMATS.find((f) => f.value === format);
-  const activeLayout = PPTX_LAYOUTS.find((l) => l.value === pptxLayout);
+  const activePptxLayout = PPTX_LAYOUTS.find((l) => l.value === pptxLayout);
+  const activePdfLayout = PDF_LAYOUTS.find((l) => l.value === pdfLayout);
 
   return (
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>
@@ -207,6 +232,56 @@ export function ExportSnapshotModal({ open, onOpenChange, targetId, dashboardTit
               </section>
             )}
 
+            {format === "pdf" && (
+              <section>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                  Page layout
+                </h3>
+                <div className="mt-2 space-y-2">
+                  {PDF_LAYOUTS.map(({ value, label, description }) => {
+                    const active = pdfLayout === value;
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setPdfLayout(value)}
+                        disabled={busy}
+                        aria-pressed={active}
+                        className={cn(
+                          "flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-all disabled:pointer-events-none disabled:opacity-60",
+                          active
+                            ? "border-sky-500/40 bg-sky-500/10"
+                            : "border-slate-200 bg-white hover:border-slate-400 dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-slate-600"
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2",
+                            active ? "border-sky-500" : "border-slate-300 dark:border-slate-600"
+                          )}
+                        >
+                          {active && <span className="h-1.5 w-1.5 rounded-full bg-sky-500" />}
+                        </span>
+                        <span className="min-w-0">
+                          <span
+                            className={cn(
+                              "block text-xs font-semibold",
+                              active ? "text-sky-700 dark:text-sky-400" : "text-slate-700 dark:text-slate-300"
+                            )}
+                          >
+                            {label}
+                          </span>
+                          <span className="mt-0.5 block text-[11px] leading-snug text-slate-400 dark:text-slate-500">
+                            {description}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
             <section>
               <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
                 Presentation details
@@ -246,7 +321,8 @@ export function ExportSnapshotModal({ open, onOpenChange, targetId, dashboardTit
           <div className="mt-6 flex items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
             <span className="inline-flex items-center gap-1.5 truncate rounded-full border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-[11px] font-medium text-sky-600 dark:text-sky-400">
               {activeFormat?.label}
-              {format === "pptx" && activeLayout ? ` · ${activeLayout.label}` : ""}
+              {format === "pptx" && activePptxLayout ? ` · ${activePptxLayout.label}` : ""}
+              {format === "pdf" && activePdfLayout ? ` · ${activePdfLayout.label}` : ""}
             </span>
             <button
               type="button"

@@ -12,6 +12,7 @@ import { DASHBOARD_PAGE_BACKGROUND } from "@/lib/snapshot";
 
 export type ExportFormat = "png" | "pdf" | "pptx";
 export type PptxLayoutMode = "single" | "multi";
+export type PdfLayoutMode = "widget-per-page" | "continuous";
 
 export interface ExportSnapshotOptions {
   /** id of the element to capture — every dashboard page wraps its canvas in this id (see lib/snapshot.ts's DASHBOARD_CANVAS_ID). */
@@ -19,6 +20,8 @@ export interface ExportSnapshotOptions {
   format: ExportFormat;
   /** Only consulted when format === "pptx". */
   pptxLayout: PptxLayoutMode;
+  /** Only consulted when format === "pdf". */
+  pdfLayout: PdfLayoutMode;
   dashboardTitle: string;
   includeFilterSummary: boolean;
   includeTimestampFooter: boolean;
@@ -30,14 +33,13 @@ export interface ExportSnapshotOptions {
   onProgress?: (status: string) => void;
 }
 
-/**
- * Elements to hide (via visibility, not display, so layout never shifts)
- * while capturing. The floating AI Assistant launcher and any lingering
- * Recharts tooltip are the only ones that can realistically ever be
- * descendants of #dashboard-canvas — the filter drawer and nav sidebar are
- * siblings outside the capture target and would never appear regardless,
- * but hiding them too costs nothing and matches the brief literally.
- */
+// ---------------------------------------------------------------------------
+// Capture environment — hide floating UI/scrollbars, and temporarily let any
+// internally-scrolling container (a wide table's horizontal scroller, etc.)
+// render at its full natural size instead of the clipped, scrolled viewport
+// html-to-image would otherwise capture.
+// ---------------------------------------------------------------------------
+
 const FLOATING_UI_SELECTORS = [
   "#ai-assistant-button",
   '[aria-label="AI Assistant"]',
@@ -45,7 +47,7 @@ const FLOATING_UI_SELECTORS = [
   '[data-slot="sheet-content"]',
 ];
 
-async function withHiddenFloatingUi<T>(run: () => Promise<T>): Promise<T> {
+function hideFloatingUi(): () => void {
   const restores: Array<() => void> = [];
   for (const selector of FLOATING_UI_SELECTORS) {
     document.querySelectorAll<HTMLElement>(selector).forEach((el) => {
@@ -56,10 +58,54 @@ async function withHiddenFloatingUi<T>(run: () => Promise<T>): Promise<T> {
       });
     });
   }
+  return () => restores.forEach((restore) => restore());
+}
+
+function hideScrollbarsGlobally(): () => void {
+  const style = document.createElement("style");
+  style.textContent =
+    "*{scrollbar-width:none !important;}*::-webkit-scrollbar{display:none !important;width:0 !important;height:0 !important;}";
+  document.head.appendChild(style);
+  return () => style.remove();
+}
+
+/** Elements whose own overflow would otherwise clip captured content (a wide table's horizontal scroller, a capped list). Temporarily let them render at full size. */
+function expandOverflowContainers(root: HTMLElement): () => void {
+  const restores: Array<() => void> = [];
+  const candidates: HTMLElement[] = [root, ...Array.from(root.querySelectorAll<HTMLElement>("*"))];
+  for (const el of candidates) {
+    const computed = getComputedStyle(el);
+    if (
+      computed.overflowX === "auto" ||
+      computed.overflowX === "scroll" ||
+      computed.overflowY === "auto" ||
+      computed.overflowY === "scroll"
+    ) {
+      const previous = { overflow: el.style.overflow, x: el.style.overflowX, y: el.style.overflowY };
+      el.style.overflow = "visible";
+      el.style.overflowX = "visible";
+      el.style.overflowY = "visible";
+      restores.push(() => {
+        el.style.overflow = previous.overflow;
+        el.style.overflowX = previous.x;
+        el.style.overflowY = previous.y;
+      });
+    }
+  }
+  return () => restores.forEach((restore) => restore());
+}
+
+/** Full before/after wrapper for a single whole-node capture (PNG, single-slide PPTX, continuous PDF). */
+async function withCapturePrep<T>(root: HTMLElement, run: () => Promise<T>): Promise<T> {
+  const restoreFloating = hideFloatingUi();
+  const restoreScrollbars = hideScrollbarsGlobally();
+  const restoreOverflow = expandOverflowContainers(root);
   try {
     return await run();
   } finally {
-    restores.forEach((restore) => restore());
+    restoreOverflow();
+    restoreScrollbars();
+    restoreFloating();
   }
 }
 
@@ -182,63 +228,244 @@ async function withMetadataBand(dataUrl: string, options: ExportSnapshotOptions)
 
 async function exportAsPng(options: ExportSnapshotOptions): Promise<void> {
   options.onProgress?.("Capturing elements...");
-  const raw = await withHiddenFloatingUi(() => captureNodeAsPngDataUrl(getCanvasNode(options.targetId), options.isDark));
+  const canvasNode = getCanvasNode(options.targetId);
+  const raw = await withCapturePrep(canvasNode, () => captureNodeAsPngDataUrl(canvasNode, options.isDark));
   options.onProgress?.("Preparing download...");
   const finalDataUrl = await withMetadataBand(raw, options);
   downloadDataUrl(finalDataUrl, `${slugify(options.dashboardTitle)}-snapshot-${Date.now()}.png`);
 }
 
 // ---------------------------------------------------------------------------
-// PDF — one landscape page, image fit-to-page with native text header/footer.
+// Granular widget discovery — every individual chart/table/KPI-ribbon inside
+// the dashboard canvas, captured and placed one-per-slide (PPTX multi) or
+// packed onto pages (PDF widget-per-page) instead of a handful of bulk
+// section wrappers.
 // ---------------------------------------------------------------------------
 
-async function exportAsPdf(options: ExportSnapshotOptions): Promise<void> {
-  options.onProgress?.("Capturing elements...");
-  const dataUrl = await withHiddenFloatingUi(() => captureNodeAsPngDataUrl(getCanvasNode(options.targetId), options.isDark));
-  const img = await loadImage(dataUrl);
+const WIDGET_SELECTOR = ".chart-card, [data-export-widget], .kpi-ribbon, table";
 
-  options.onProgress?.("Preparing download...");
-  const pdf = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  const margin = 24;
+interface CapturedWidget {
+  title: string;
+  el: HTMLElement;
+}
 
-  let contentTop = margin;
-  let contentBottom = pageHeight - margin;
+function extractWidgetTitle(el: HTMLElement, fallbackIndex: number): string {
+  if (el.classList.contains("kpi-ribbon")) return "Executive KPI Overview";
+  const explicit = el.getAttribute("data-export-title");
+  if (explicit?.trim()) return explicit.trim();
+  const heading = el.querySelector("h1, h2, h3, h4, [data-export-title]");
+  if (heading?.textContent?.trim()) return heading.textContent.trim();
+  return `Widget ${fallbackIndex}`;
+}
 
+/**
+ * Every chart card, tagged widget, KPI ribbon, and bare table inside the
+ * dashboard canvas, deduplicated to its outermost meaningful container (a
+ * `<table>` nested inside a `.chart-card` counts once, at the card) and with
+ * the KPI ribbon always sorted first regardless of its DOM position.
+ */
+function getWidgetElements(canvas: HTMLElement): CapturedWidget[] {
+  const matches = Array.from(canvas.querySelectorAll<HTMLElement>(WIDGET_SELECTOR));
+  const kept: HTMLElement[] = [];
+
+  for (const el of matches) {
+    if (kept.some((k) => k !== el && k.contains(el))) continue; // already covered by a kept ancestor
+    for (let i = kept.length - 1; i >= 0; i--) {
+      if (el !== kept[i] && el.contains(kept[i])) kept.splice(i, 1); // this new match supersedes an earlier, nested one
+    }
+    kept.push(el);
+  }
+
+  kept.sort((a, b) => Number(!a.classList.contains("kpi-ribbon")) - Number(!b.classList.contains("kpi-ribbon")));
+
+  return kept.map((el, index) => ({ el, title: extractWidgetTitle(el, index + 1) }));
+}
+
+interface CapturedWidgetImage {
+  title: string;
+  dataUrl: string;
+  img: HTMLImageElement;
+}
+
+async function captureAllWidgets(
+  canvas: HTMLElement,
+  isDark: boolean,
+  onProgress?: (status: string) => void
+): Promise<CapturedWidgetImage[]> {
+  const widgets = getWidgetElements(canvas);
+  if (widgets.length === 0) {
+    throw new Error("Could not find any chart, table, or KPI widgets to export on this dashboard.");
+  }
+
+  const restoreFloating = hideFloatingUi();
+  const restoreScrollbars = hideScrollbarsGlobally();
+  try {
+    const results: CapturedWidgetImage[] = [];
+    for (const widget of widgets) {
+      onProgress?.(`Capturing ${widget.title}...`);
+      const restoreOverflow = expandOverflowContainers(widget.el);
+      try {
+        const dataUrl = await captureNodeAsPngDataUrl(widget.el, isDark);
+        const img = await loadImage(dataUrl);
+        results.push({ title: widget.title, dataUrl, img });
+      } finally {
+        restoreOverflow();
+      }
+    }
+    return results;
+  } finally {
+    restoreScrollbars();
+    restoreFloating();
+  }
+}
+
+// ---------------------------------------------------------------------------
+// PDF — landscape A4. Two layouts: one widget per page (packing a second one
+// on if it fits), or a single continuous capture sliced across as many pages
+// as it takes, at one uniform fit-width scale so nothing ever stretches.
+// ---------------------------------------------------------------------------
+
+const PDF_MARGIN = 24; // pt
+const PDF_TITLE_H = 16;
+const PDF_GAP = 14;
+
+function pdfPageMetrics(pdf: jsPDF): { pageWidth: number; pageHeight: number } {
+  return { pageWidth: pdf.internal.pageSize.getWidth(), pageHeight: pdf.internal.pageSize.getHeight() };
+}
+
+function computePdfContentMetrics(options: ExportSnapshotOptions, pageHeight: number): { contentTop: number; contentBottom: number } {
+  let contentTop = PDF_MARGIN;
+  let contentBottom = pageHeight - PDF_MARGIN;
+  if (options.includeFilterSummary) contentTop += 40;
+  if (options.includeTimestampFooter) contentBottom -= 16;
+  return { contentTop, contentBottom };
+}
+
+/** Draws header/footer/page-label chrome on the PDF's CURRENT page (see jsPDF's setPage). Never touches the content area between contentTop/contentBottom. */
+function drawPdfPageChrome(pdf: jsPDF, options: ExportSnapshotOptions, pageWidth: number, pageHeight: number, pageLabel: string): void {
   if (options.includeFilterSummary) {
     pdf.setFontSize(14);
     pdf.setFont("helvetica", "bold");
     pdf.setTextColor(15, 23, 42); // slate-900
-    pdf.text(`Dashboard Snapshot — ${options.dashboardTitle}`, margin, contentTop + 12);
+    pdf.text(`Dashboard Snapshot — ${options.dashboardTitle}`, PDF_MARGIN, PDF_MARGIN + 12);
     pdf.setFontSize(9);
     pdf.setFont("helvetica", "normal");
     pdf.setTextColor(100, 116, 139); // slate-500
-    pdf.text(filtersLine(options), margin, contentTop + 28);
-    contentTop += 40;
+    pdf.text(filtersLine(options), PDF_MARGIN, PDF_MARGIN + 28);
   }
-
   if (options.includeTimestampFooter) {
     pdf.setFontSize(8);
     pdf.setFont("helvetica", "normal");
     pdf.setTextColor(148, 163, 184); // slate-400
-    pdf.text(footerLine(options), margin, pageHeight - 12);
-    contentBottom -= 16;
+    pdf.text(footerLine(options), PDF_MARGIN, pageHeight - 12);
+  }
+  pdf.setFontSize(8);
+  pdf.setFont("helvetica", "normal");
+  pdf.setTextColor(148, 163, 184); // slate-400
+  pdf.text(pageLabel, pageWidth - PDF_MARGIN, pageHeight - 12, { align: "right" });
+}
+
+/** "Continuous Paginated PDF" — one capture, fit to page width at a single uniform scale, sliced vertically across as many pages as that scaled height needs. Never distorts because every page shares the same scale factor. */
+async function exportAsPdfContinuous(pdf: jsPDF, options: ExportSnapshotOptions): Promise<void> {
+  options.onProgress?.("Capturing elements...");
+  const canvasNode = getCanvasNode(options.targetId);
+  const dataUrl = await withCapturePrep(canvasNode, () => captureNodeAsPngDataUrl(canvasNode, options.isDark));
+  const img = await loadImage(dataUrl);
+
+  const { pageWidth, pageHeight } = pdfPageMetrics(pdf);
+  const { contentTop, contentBottom } = computePdfContentMetrics(options, pageHeight);
+  const maxW = pageWidth - PDF_MARGIN * 2;
+  const pageContentHeight = contentBottom - contentTop;
+  const scale = maxW / img.naturalWidth;
+  const scaledFullHeight = img.naturalHeight * scale;
+  const pageCount = Math.max(1, Math.ceil(scaledFullHeight / pageContentHeight));
+
+  const sliceCanvas = document.createElement("canvas");
+  sliceCanvas.width = Math.max(1, Math.round(img.naturalWidth));
+  const sliceCtx = sliceCanvas.getContext("2d");
+  if (!sliceCtx) throw new Error("Could not prepare this page for the PDF.");
+
+  for (let page = 0; page < pageCount; page++) {
+    if (page > 0) pdf.addPage();
+
+    const sourceTop = (page * pageContentHeight) / scale;
+    const sourceHeight = Math.min(pageContentHeight / scale, img.naturalHeight - sourceTop);
+    const destHeight = sourceHeight * scale;
+
+    sliceCanvas.height = Math.max(1, Math.round(sourceHeight));
+    sliceCtx.clearRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+    sliceCtx.drawImage(img, 0, sourceTop, img.naturalWidth, sourceHeight, 0, 0, sliceCanvas.width, sliceCanvas.height);
+    pdf.addImage(sliceCanvas.toDataURL("image/png"), "PNG", PDF_MARGIN, contentTop, maxW, destHeight);
   }
 
-  const maxW = pageWidth - margin * 2;
-  const maxH = contentBottom - contentTop;
-  const scale = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight);
-  const drawW = img.naturalWidth * scale;
-  const drawH = img.naturalHeight * scale;
-  const x = (pageWidth - drawW) / 2;
-  const y = contentTop + (maxH - drawH) / 2;
-  pdf.addImage(dataUrl, "PNG", x, y, drawW, drawH);
+  for (let page = 1; page <= pageCount; page++) {
+    pdf.setPage(page);
+    drawPdfPageChrome(pdf, options, pageWidth, pageHeight, `Page ${page} of ${pageCount}`);
+  }
+}
+
+/** "Multi-Page Executive PDF" — every widget captured individually and fit to page width, packing a second (or third, for small KPI cards) widget onto the same page whenever it fits, but never splitting one widget across two pages. */
+async function exportAsPdfWidgetPerPage(pdf: jsPDF, options: ExportSnapshotOptions): Promise<void> {
+  const canvas = getCanvasNode(options.targetId);
+  const widgets = await captureAllWidgets(canvas, options.isDark, options.onProgress);
+
+  const { pageWidth, pageHeight } = pdfPageMetrics(pdf);
+  const { contentTop, contentBottom } = computePdfContentMetrics(options, pageHeight);
+  const maxW = pageWidth - PDF_MARGIN * 2;
+  const availableH = contentBottom - contentTop;
+
+  let pageCount = 1;
+  let cursorY = contentTop;
+
+  for (const widget of widgets) {
+    let scale = maxW / widget.img.naturalWidth;
+    let renderH = widget.img.naturalHeight * scale;
+    if (renderH > availableH - PDF_TITLE_H) {
+      // Too tall even alone at fit-width scale — contain-fit against a full page instead of overflowing it.
+      scale = Math.min(scale, (availableH - PDF_TITLE_H) / widget.img.naturalHeight);
+      renderH = widget.img.naturalHeight * scale;
+    }
+    const renderW = widget.img.naturalWidth * scale;
+    const neededH = PDF_TITLE_H + renderH;
+
+    if (cursorY + neededH > contentBottom && cursorY > contentTop) {
+      pdf.addPage();
+      pageCount += 1;
+      cursorY = contentTop;
+    }
+
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "bold");
+    pdf.setTextColor(15, 23, 42); // slate-900
+    pdf.text(widget.title, PDF_MARGIN, cursorY + 10);
+
+    const x = PDF_MARGIN + (maxW - renderW) / 2;
+    pdf.addImage(widget.dataUrl, "PNG", x, cursorY + PDF_TITLE_H, renderW, renderH);
+    cursorY += neededH + PDF_GAP;
+  }
+
+  for (let page = 1; page <= pageCount; page++) {
+    pdf.setPage(page);
+    drawPdfPageChrome(pdf, options, pageWidth, pageHeight, `Page ${page} of ${pageCount}`);
+  }
+}
+
+async function exportAsPdf(options: ExportSnapshotOptions): Promise<void> {
+  const pdf = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+
+  if (options.pdfLayout === "widget-per-page") {
+    await exportAsPdfWidgetPerPage(pdf, options);
+  } else {
+    await exportAsPdfContinuous(pdf, options);
+  }
+
+  options.onProgress?.("Preparing download...");
   pdf.save(`${slugify(options.dashboardTitle)}-snapshot-${Date.now()}.pdf`);
 }
 
 // ---------------------------------------------------------------------------
-// PPTX — 16:9 widescreen. Single slide (whole dashboard) or 4-section deck.
+// PPTX — 16:9 widescreen. Single slide (whole dashboard, contain-scaled) or
+// one dedicated slide per widget (KPI ribbon first, then every chart/table).
 // ---------------------------------------------------------------------------
 
 const SLIDE_W = 13.33;
@@ -311,6 +538,7 @@ function addHeaderAndFooter(
   return { contentTop, contentHeight };
 }
 
+/** Contain-fits (never crops or stretches) the image into the slide's content area, centered on both axes. */
 function placeImageFitted(
   slide: PptxGenJS.Slide,
   dataUrl: string,
@@ -328,25 +556,10 @@ function placeImageFitted(
   slide.addImage({ data: dataUrl, x, y, w, h });
 }
 
-async function captureElementAsPngDataUrl(node: HTMLElement, isDark: boolean): Promise<string> {
-  return toPng(node, { pixelRatio: 2, backgroundColor: pageBackground(isDark), cacheBust: true });
-}
-
-interface SectionSlideSpec {
-  subtitle: string;
-  find: (canvas: HTMLElement) => HTMLElement | null;
-}
-
-const MULTI_SLIDE_SECTIONS: SectionSlideSpec[] = [
-  { subtitle: "KPI Overview", find: (canvas) => canvas.querySelector<HTMLElement>(".kpi-ribbon") },
-  { subtitle: "Primary Breakdown", find: (canvas) => canvas.querySelector<HTMLElement>("#primary-charts") },
-  { subtitle: "Secondary Trends", find: (canvas) => canvas.querySelector<HTMLElement>("#secondary-charts") },
-  { subtitle: "Detail Report", find: (canvas) => canvas.querySelector<HTMLElement>("table")?.closest("div") ?? canvas.querySelector<HTMLElement>("table") },
-];
-
 async function exportAsPptxSingle(pptx: PptxGenJS, options: ExportSnapshotOptions): Promise<void> {
   options.onProgress?.("Capturing elements...");
-  const dataUrl = await withHiddenFloatingUi(() => captureNodeAsPngDataUrl(getCanvasNode(options.targetId), options.isDark));
+  const canvasNode = getCanvasNode(options.targetId);
+  const dataUrl = await withCapturePrep(canvasNode, () => captureNodeAsPngDataUrl(canvasNode, options.isDark));
   const img = await loadImage(dataUrl);
 
   options.onProgress?.("Building PowerPoint deck...");
@@ -363,33 +576,19 @@ async function exportAsPptxSingle(pptx: PptxGenJS, options: ExportSnapshotOption
 
 async function exportAsPptxMulti(pptx: PptxGenJS, options: ExportSnapshotOptions): Promise<void> {
   const canvas = getCanvasNode(options.targetId);
-  let capturedAny = false;
+  const widgets = await captureAllWidgets(canvas, options.isDark, options.onProgress);
 
-  await withHiddenFloatingUi(async () => {
-    for (const section of MULTI_SLIDE_SECTIONS) {
-      const node = section.find(canvas);
-      if (!node) continue; // dashboard doesn't have this section — skip its slide rather than error
-
-      options.onProgress?.(`Capturing ${section.subtitle.toLowerCase()}...`);
-      const dataUrl = await captureElementAsPngDataUrl(node, options.isDark);
-      const img = await loadImage(dataUrl);
-
-      options.onProgress?.("Building PowerPoint deck...");
-      const slide = pptx.addSlide();
-      const { contentTop, contentHeight } = addHeaderAndFooter(
-        pptx,
-        slide,
-        `Dashboard Snapshot — ${options.dashboardTitle}`,
-        section.subtitle,
-        options
-      );
-      placeImageFitted(slide, dataUrl, img, contentTop, contentHeight);
-      capturedAny = true;
-    }
-  });
-
-  if (!capturedAny) {
-    throw new Error("Could not find any sections to export on this dashboard.");
+  options.onProgress?.("Building PowerPoint deck...");
+  for (const widget of widgets) {
+    const slide = pptx.addSlide();
+    const { contentTop, contentHeight } = addHeaderAndFooter(
+      pptx,
+      slide,
+      `Dashboard Snapshot — ${options.dashboardTitle}`,
+      widget.title,
+      options
+    );
+    placeImageFitted(slide, widget.dataUrl, widget.img, contentTop, contentHeight);
   }
 }
 

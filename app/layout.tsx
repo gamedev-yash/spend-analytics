@@ -5,6 +5,7 @@ import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { DatasetsProvider } from "@/context/DatasetsContext";
 import { ThresholdsProvider } from "@/context/ThresholdsContext";
 import { DashboardActiveFiltersProvider } from "@/context/DashboardActiveFiltersContext";
+import { ExportCaptureProvider } from "@/context/ExportCaptureContext";
 import { DashboardAssistant } from "@/components/ai-assistant/DashboardAssistant";
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -33,8 +34,10 @@ export default function RootLayout({
           <DatasetsProvider>
             <ThresholdsProvider>
               <DashboardActiveFiltersProvider>
-                <DashboardShell>{children}</DashboardShell>
-                <DashboardAssistant />
+                <ExportCaptureProvider>
+                  <DashboardShell>{children}</DashboardShell>
+                  <DashboardAssistant />
+                </ExportCaptureProvider>
               </DashboardActiveFiltersProvider>
             </ThresholdsProvider>
           </DatasetsProvider>
