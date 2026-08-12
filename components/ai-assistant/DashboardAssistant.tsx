@@ -557,6 +557,7 @@ export function DashboardAssistant() {
   return (
     <>
       <button
+        id="ai-assistant-button"
         ref={buttonRef}
         type="button"
         onClick={suppressClickAfterDrag(() => (open ? closePanel() : setOpen(true)))}

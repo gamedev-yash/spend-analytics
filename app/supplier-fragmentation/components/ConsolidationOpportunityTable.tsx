@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown, Download } from "lucide-react";
 import { PaginationFooter } from "@/components/ui/pagination-footer";
 import { usePagination } from "@/hooks/use-pagination";
+import { useIsExportCapturing } from "@/context/ExportCaptureContext";
 import { cn } from "@/lib/utils";
 import type { ConsolidationRow } from "../lib/types";
 import { useFragmentation } from "./fragmentationStore";
@@ -102,7 +103,8 @@ export function ConsolidationOpportunityTable() {
     return sorted;
   }, [baseRows, sortKey, sortDir]);
 
-  const pagination = usePagination(rows, 10);
+  const isCapturing = useIsExportCapturing();
+  const pagination = usePagination(rows, isCapturing ? Math.max(rows.length, 1) : 10);
 
   function onHeaderClick(key: SortKey) {
     if (sortKey === key) {

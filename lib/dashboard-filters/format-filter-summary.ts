@@ -70,6 +70,8 @@ export function buildPlantCategoryDateFilterSummary(params: {
   dateTo: string;
   defaultDateFrom: string;
   defaultDateTo: string;
+  /** The `vendor` URL param — already a display name (or matching key), not a code needing a lookup. */
+  vendorLabel?: string | null;
 }): string | null {
   return joinFilterSummaryParts([
     formatMultiSelectPartFromOptions(
@@ -79,5 +81,6 @@ export function buildPlantCategoryDateFilterSummary(params: {
     ),
     formatMultiSelectPart("Category", params.selectedCategories),
     formatDateRangePart(params.dateFrom, params.dateTo, params.defaultDateFrom, params.defaultDateTo),
+    params.vendorLabel?.trim() ? `Vendor: ${params.vendorLabel.trim()}` : null,
   ]);
 }

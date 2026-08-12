@@ -75,7 +75,7 @@ export function SpendOverviewCanvas({
       {isWidgetVisible("insight-box") && <InsightBox text={insightText} />}
 
       {/* Five cards, five columns — a 6-col grid left a dead slot at the end of the row. */}
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <section className="kpi-ribbon grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {isWidgetVisible("kpi-spend-trends") && (
           <>
             <KpiCard size="compact" label="Total Spend" value={formatCr(kpis.totalSpendInr)} icon={<Wallet />} accent="blue" />
@@ -96,7 +96,7 @@ export function SpendOverviewCanvas({
       </section>
 
       {/* Trailing odd child spans the full row so hiding widgets never leaves a gap. */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
+      <div id="primary-charts" className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
         {isWidgetVisible("category-treemap") && (
           <ChartCard className="h-[420px]" title="Spend by Category" description="Top categories by spend" icon={<TrendingUp />} accent="blue">
             <CategorySpendList nodes={treemapNodes} />

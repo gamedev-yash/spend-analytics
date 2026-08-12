@@ -39,6 +39,7 @@ export function ComplianceFilters({
   const selectedCategories = searchParams.get("cat")?.split(",").filter(Boolean) ?? [];
   const dateFrom = searchParams.get("from") ?? defaultDateFrom;
   const dateTo = searchParams.get("to") ?? defaultDateTo;
+  const vendorLabel = searchParams.get("vendor");
   const hasActiveFilters = searchParams.toString() !== "";
 
   // See SpendOverviewFilters.tsx's identical call for why this exists.
@@ -51,6 +52,7 @@ export function ComplianceFilters({
       dateTo,
       defaultDateFrom,
       defaultDateTo,
+      vendorLabel,
     })
   );
 

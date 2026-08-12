@@ -50,7 +50,11 @@ function Widget({
   const { isFullscreen, setIsFullscreen } = useFullscreen();
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80 lg:p-6">
+    <div
+      data-export-widget="true"
+      data-export-title={title}
+      className="chart-card rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80 lg:p-6"
+    >
       <div className="mb-4 flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
@@ -260,7 +264,7 @@ export default function TailSpendPage() {
 
               {/* ================= Dashboard Widgets — unified 2-column grid ================= */}
 
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div id="primary-charts" className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 {isWidgetVisible("invoice-value-bucket-chart") && (
                   <Widget title="Invoice Count by Invoice Value" activeFilters={activeFiltersSummary}>
                     <InvoiceValueBucketChart

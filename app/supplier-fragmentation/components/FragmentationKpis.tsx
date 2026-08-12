@@ -54,7 +54,7 @@ export function FragmentationKpis() {
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+    <div className="kpi-ribbon grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-5">
       {cards.map((card) => (
         <div
           key={card.label}
