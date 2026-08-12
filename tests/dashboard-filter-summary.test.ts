@@ -77,6 +77,34 @@ describe("Spend Overview / Compliance filter summary", () => {
     });
     assert.equal(summary, "Plant: Pune · Category: IT & Telecom · Date: 2025-01-01 to 2025-06-30");
   });
+
+  it("includes the vendor drill-down alongside every other active dimension", () => {
+    const summary = buildPlantCategoryDateFilterSummary({
+      selectedPlantCodes: ["P01"],
+      plantOptions,
+      selectedCategories: ["Raw Materials"],
+      dateFrom: "2025-01-01",
+      dateTo: "2025-06-30",
+      defaultDateFrom: "2024-01-01",
+      defaultDateTo: "2024-12-31",
+      vendorLabel: "Tata Steel",
+    });
+    assert.equal(summary, "Plant: Pune · Category: Raw Materials · Date: 2025-01-01 to 2025-06-30 · Vendor: Tata Steel");
+  });
+
+  it("drops the vendor part when the label is null or blank", () => {
+    const summary = buildPlantCategoryDateFilterSummary({
+      selectedPlantCodes: [],
+      plantOptions,
+      selectedCategories: [],
+      dateFrom: "2024-01-01",
+      dateTo: "2024-12-31",
+      defaultDateFrom: "2024-01-01",
+      defaultDateTo: "2024-12-31",
+      vendorLabel: "   ",
+    });
+    assert.equal(summary, null);
+  });
 });
 
 describe("Payment Terms filter summary", () => {
@@ -221,14 +249,24 @@ describe("Tail Spend filter summary", () => {
     assert.equal(summary, null);
   });
 
-  it("ignores plants/sourceSystems entirely — they're display-only and never narrow computed numbers", () => {
+  it("ignores plants entirely — display-only, never narrows computed numbers", () => {
     const summary = buildTailSpendFilterSummary({
-      filters: { ...baseFilters, plants: ["Pune Plant"], sourceSystems: ["SAP ECC"] },
+      filters: { ...baseFilters, plants: ["Pune Plant"] },
       allBucketLabels: ALL_BUCKETS,
       dateMin: "2024-01-01",
       dateMax: "2026-12-31",
     });
     assert.equal(summary, null);
+  });
+
+  it("includes source systems — display-only too, but the user can see it selected on screen so exports/AI grounding shouldn't silently drop it", () => {
+    const summary = buildTailSpendFilterSummary({
+      filters: { ...baseFilters, sourceSystems: ["SAP ECC", "Oracle"] },
+      allBucketLabels: ALL_BUCKETS,
+      dateMin: "2024-01-01",
+      dateMax: "2026-12-31",
+    });
+    assert.equal(summary, "Source System: SAP ECC, Oracle");
   });
 
   it("surfaces categories/suppliers, a non-default Pareto threshold, and a narrowed bucket selection", () => {

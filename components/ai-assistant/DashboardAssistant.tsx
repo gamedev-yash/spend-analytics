@@ -8,6 +8,7 @@ import { dashboardKeyForPathname, dashboardMeta, type DashboardKey } from "@/lib
 import { stashPendingPrompt, takePendingPrompt } from "@/lib/ai/assistant-handoff";
 import { adoptConversationId, getOrCreateConversationId, resetConversationId } from "@/lib/ai/conversation-id";
 import { useDashboardActiveFilterSummary } from "@/context/DashboardActiveFiltersContext";
+import { useIsExportCapturing } from "@/context/ExportCaptureContext";
 import { useDraggableBubble } from "@/hooks/use-draggable-bubble";
 import { useOutsideClick } from "@/hooks/use-outside-click";
 import { useFullscreen } from "@/components/dashboard/fullscreen-overlay";
@@ -78,6 +79,13 @@ export function DashboardAssistant() {
   // context/DashboardActiveFiltersContext.tsx for why the assistant needs
   // this at all (it lives outside every dashboard page's own filter state).
   const activeFilterSummary = useDashboardActiveFilterSummary();
+  // Declarative floating-UI hiding for dashboard exports (see
+  // ExportSnapshotModal.tsx's handleExport / lib/export/snapshot-exporter.ts):
+  // rendering null here — rather than an imperative DOM style mutation from
+  // the exporter — means React itself guarantees the button (and any open
+  // panel) comes back exactly as it was the instant capture ends, since the
+  // component's own hooks/state never unmount in between.
+  const isCapturing = useIsExportCapturing();
 
   // One id per browser tab session, deliberately NOT reset on dashboard
   // navigation — see lib/ai/conversation-id.ts for why that's required for
@@ -492,12 +500,14 @@ export function DashboardAssistant() {
   }, [open, fullscreen, closePanel]);
 
   if (!dashboardKey) return null;
+  if (isCapturing) return null;
   const meta = dashboardMeta(dashboardKey);
   const isEmpty = messages.length === 1;
 
   return (
     <>
       <button
+        id="ai-assistant-button"
         ref={buttonRef}
         type="button"
         onClick={suppressClickAfterDrag(() => (open ? closePanel() : setOpen(true)))}

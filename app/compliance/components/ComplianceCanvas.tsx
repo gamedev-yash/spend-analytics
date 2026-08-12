@@ -53,7 +53,7 @@ export function ComplianceCanvas({
 
   return (
     <>
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <section className="kpi-ribbon grid grid-cols-1 gap-3 sm:grid-cols-3">
         <KpiCard
           label="Unmanaged Spend"
           value={formatCr(headline.unmanagedSpendInr)}
@@ -67,7 +67,7 @@ export function ComplianceCanvas({
         <KpiCard label="Unmanaged Suppliers" value={headline.unmanagedSupplierCount.toLocaleString()} icon={<Users />} />
       </section>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div id="primary-charts" className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <ChartCard
           className="h-[420px]"
           title="Off-PO Spend by Categories"

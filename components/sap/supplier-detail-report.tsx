@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { PaginationFooter } from "@/components/ui/pagination-footer";
 import { usePagination } from "@/hooks/use-pagination";
+import { useIsExportCapturing } from "@/context/ExportCaptureContext";
 import { formatInr } from "@/lib/sap/format-inr";
 
 /** Base row shape every "Detailed Report" table shares — see the SAP Spend Control Tower widget of the same name. */
@@ -74,7 +75,8 @@ export function SupplierDetailReportTable<T extends SupplierDetailReportRow>({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows, sortKey, descending, valueColumns]);
 
-  const pagination = usePagination(sorted, 10);
+  const isCapturing = useIsExportCapturing();
+  const pagination = usePagination(sorted, isCapturing ? Math.max(sorted.length, 1) : 10);
 
   function toggleSort(key: SortKey) {
     if (key === sortKey) setDescending((d) => !d);

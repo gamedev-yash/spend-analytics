@@ -40,7 +40,7 @@ export function KpiRibbon() {
   ];
 
   return (
-    <div className="w-full rounded-xl border border-slate-200 bg-white px-6 py-5 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80">
+    <div className="kpi-ribbon w-full rounded-xl border border-slate-200 bg-white px-6 py-5 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80">
       <div className="flex flex-wrap gap-8">
         {stats.map((stat) => (
           <div key={stat.label} className="flex flex-col">

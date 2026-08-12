@@ -65,7 +65,7 @@ export default function PaymentTermsPage() {
 
           {isWidgetVisible("kpi-ribbon") && <KpiRibbon />}
           {/* Trailing odd child spans the full row so hiding/filtering widgets never leaves a gap. */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
+          <div id="primary-charts" className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:[&>*:last-child:nth-child(odd)]:col-span-2">
             {/* Ordered by section (Term Mix, then Payment Performance, then
                 Supplier View) so switching a section off never splits a pair. */}
             {isWidgetVisible("category-chart") && <PaymentTermsByCategoryChart />}

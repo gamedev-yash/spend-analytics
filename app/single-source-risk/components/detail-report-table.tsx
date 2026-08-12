@@ -6,6 +6,7 @@ import { ChartCard } from "@/components/dashboard/chart-card";
 import { Button } from "@/components/ui/button";
 import { PaginationFooter } from "@/components/ui/pagination-footer";
 import { usePagination } from "@/hooks/use-pagination";
+import { useIsExportCapturing } from "@/context/ExportCaptureContext";
 import { cn } from "@/lib/utils";
 import { useSingleSourceRisk } from "../provider";
 import { aggregateForTable, type TableRow } from "../selectors";
@@ -98,7 +99,8 @@ export function DetailReportTable() {
     return copy;
   }, [rows, sortColumn, sortDirection]);
 
-  const pagination = usePagination(sortedRows, 10);
+  const isCapturing = useIsExportCapturing();
+  const pagination = usePagination(sortedRows, isCapturing ? Math.max(sortedRows.length, 1) : 10);
 
   function handleSort(column: SortColumn) {
     if (column === sortColumn) {
