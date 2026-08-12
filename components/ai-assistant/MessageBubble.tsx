@@ -2,16 +2,13 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { AlertCircle, Bot, Check, Copy, User } from "lucide-react";
+import { AlertCircle, Bot, Check, Copy, FileText, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChatEntry } from "./DashboardAssistant";
 import { AssistantMarkdown } from "./AssistantMarkdown";
 import { RedirectCard } from "./RedirectCard";
 import { SuggestionChips, type Suggestion } from "./SuggestionChips";
 import { ActionPlanCard } from "./ActionPlanCard";
-import { AssistantActions } from "./AssistantActions";
-import type { AssistantActionDefinition } from "@/lib/ai/actions/assistant-actions";
-import type { DashboardKey } from "@/lib/ai/dashboard-registry";
 
 interface MessageBubbleProps {
   message: ChatEntry;
@@ -21,11 +18,6 @@ interface MessageBubbleProps {
   onRedirect: (redirect: NonNullable<ChatEntry["redirect"]>) => void;
   /** Canned follow-up prompts shown under the last assistant answer — only passed for that one message. */
   followUps?: Suggestion[];
-  dashboardKey: DashboardKey;
-  /** Passed only for the one message the action row belongs under — undefined everywhere else, which is what hides the row. */
-  onRunAction?: (action: AssistantActionDefinition) => void;
-  /** True while a report is already generating — the row stays visible but inert. */
-  actionBusy?: boolean;
 }
 
 function formatTime(timestamp: number): string {
@@ -39,17 +31,7 @@ function formatTime(timestamp: number): string {
  * visual identity so replies read as structured analytics answers rather
  * than generic chat blobs.
  */
-export function MessageBubble({
-  message,
-  fullscreen,
-  busy,
-  onOptionSelect,
-  onRedirect,
-  followUps,
-  dashboardKey,
-  onRunAction,
-  actionBusy,
-}: MessageBubbleProps) {
+export function MessageBubble({ message, fullscreen, busy, onOptionSelect, onRedirect, followUps }: MessageBubbleProps) {
   const isUser = message.role === "user";
   // A report card carries no prose of its own, so the copy affordance and the
   // markdown body below both have nothing to act on.
@@ -88,18 +70,32 @@ export function MessageBubble({
         )}
         aria-hidden="true"
       >
-        {isUser ? <User className="h-3.5 w-3.5" /> : message.isError ? <AlertCircle className="h-3.5 w-3.5" /> : <Bot className="h-3.5 w-3.5" />}
+        {isUser ? (
+          <User className="h-3.5 w-3.5" />
+        ) : message.isError ? (
+          <AlertCircle className="h-3.5 w-3.5" />
+        ) : isActionCard ? (
+          <FileText className="h-3.5 w-3.5" />
+        ) : (
+          <Bot className="h-3.5 w-3.5" />
+        )}
       </span>
 
       <div className={cn("flex min-w-0 flex-col gap-1", fullscreen ? "max-w-[80%]" : "max-w-[92%]", isUser ? "items-end" : "items-start")}>
         <div
           className={cn(
-            "group relative w-full rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm",
-            isUser
-              ? "whitespace-pre-wrap bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-              : message.isError
-                ? "border border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-300"
-                : "border border-slate-200 bg-white text-slate-800 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-200"
+            "group relative w-full text-sm leading-relaxed",
+            // A report card brings its own border, background, and padding, so
+            // it renders bare — wrapping it in the bubble chrome too would
+            // double every edge.
+            !isActionCard && "rounded-2xl px-4 py-2.5 shadow-sm",
+            isActionCard
+              ? undefined
+              : isUser
+                ? "whitespace-pre-wrap bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                : message.isError
+                  ? "border border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-300"
+                  : "border border-slate-200 bg-white text-slate-800 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-200"
           )}
         >
           {!isUser && !message.isError && !isActionCard && (
@@ -141,12 +137,6 @@ export function MessageBubble({
               </p>
               <SuggestionChips items={followUps} onSelect={onOptionSelect} disabled={busy} variant="pill" />
             </div>
-          )}
-
-          {/* Present only on the one message DashboardAssistant chose (§15) —
-              nothing here can start an action on its own; it renders a button. */}
-          {onRunAction && (
-            <AssistantActions dashboardKey={dashboardKey} onRun={onRunAction} disabled={busy || Boolean(actionBusy)} />
           )}
         </div>
         {message.timestamp && (

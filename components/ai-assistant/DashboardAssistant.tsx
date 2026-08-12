@@ -18,7 +18,7 @@ import { MessageBubble } from "./MessageBubble";
 import { Composer } from "./Composer";
 import type { Suggestion } from "./SuggestionChips";
 import type { ActionPlanState } from "./ActionPlanCard";
-import type { AssistantActionDefinition } from "@/lib/ai/actions/assistant-actions";
+import { assistantActionsFor, type AssistantActionDefinition } from "@/lib/ai/actions/assistant-actions";
 import type { AssistantActionResponse } from "@/lib/ai/actions/action-plan-types";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +40,12 @@ export interface ChatEntry {
 }
 
 const FOCUSABLE_SELECTOR = 'button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])';
+
+// Minimum time the report card stays in its "running" state before revealing a
+// result, so a cache hit (~11ms) still plays the generating → building →
+// files choreography instead of appearing instantly and reading as canned.
+// Comfortably covers ActionPlanCard's own step pacing (3 steps at 600ms).
+const MIN_REPORT_PROGRESS_MS = 2_000;
 
 const BUBBLE_HEIGHT_PX = 48;
 const PANEL_GAP_PX = 12;
@@ -98,14 +104,23 @@ export function DashboardAssistant() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   // Deliberately separate from `busy`: a running report must not disable the
-  // composer (§16 — "do not block the normal chatbot functionality"). The two
-  // requests are independent, so the user can keep asking questions while a
-  // report renders.
+  // composer. The two requests are independent, so the user can turn Report
+  // off and keep asking normal questions while one renders.
   const [actionBusy, setActionBusy] = useState(false);
+  // Report mode — sticky until the user turns it off, the way an explicit mode
+  // should behave (a mode that silently reset after one use would be a
+  // surprise, and the composer makes its state unmissable). While OFF, nothing
+  // about the chat path changes at all: same request, same tools, same latency.
+  const [reportMode, setReportMode] = useState(false);
   const [unread, setUnread] = useState(false);
   const [showJumpToLatest, setShowJumpToLatest] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  // The report workflow gets its own controller rather than sharing `abortRef`:
+  // a live generation can run for minutes, and Stop needs to cancel whichever
+  // request is actually in flight without one path clobbering the other's
+  // controller.
+  const actionAbortRef = useRef<AbortController | null>(null);
   const prevMessageCountRef = useRef(0);
   // Separate counter from prevMessageCountRef above — that one belongs to the
   // unread-bubble effect and updates on the same render pass, so reusing it
@@ -137,6 +152,7 @@ export function DashboardAssistant() {
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
+    actionAbortRef.current?.abort();
   }, []);
 
   // "New chat" — an explicit reset, per the follow-up feature's reset rules
@@ -173,6 +189,13 @@ export function DashboardAssistant() {
     setSuggestedFollowUps(null);
     setContextSummary(null);
     setActionBusy(false);
+    // Report mode resets on NAVIGATION but survives "New chat": moving to a
+    // different dashboard changes which data a report would be built from, so
+    // carrying an expensive mode across that boundary risks generating
+    // something the user didn't mean to ask for. Restarting a conversation on
+    // the same dashboard is a deliberate act where the mode is still what they
+    // set it to.
+    setReportMode(false);
     setUnread(false);
     stickToBottomRef.current = true;
     setShowJumpToLatest(false);
@@ -334,36 +357,51 @@ export function DashboardAssistant() {
   );
 
   /**
-   * Runs an explicitly-clicked assistant action (§23). Captures the state that
-   * is true AT CLICK TIME — dashboard, current filters, the user's own last
-   * question as the objective, and the conversation id — so nobody has to
-   * retype the question they just asked.
+   * Runs a report action. The objective is whatever the user just typed with
+   * Report mode on — they never re-enter or rephrase a question for it, which
+   * is the whole reason the trigger is a mode on the composer rather than a
+   * button hanging off a previous answer.
    *
    * Note what is NOT sent: no query results, no transcript. The server reads
    * the relevant previous query straight out of the existing conversation
-   * memory it already keeps under this conversationId, which is both smaller
-   * over the wire and impossible for a client to forge.
+   * memory it already keeps under this conversationId — smaller over the wire,
+   * and impossible for a client to forge.
    */
   const runAction = useCallback(
-    async (action: AssistantActionDefinition) => {
+    async (action: AssistantActionDefinition, objective: string) => {
       if (!dashboardKey || actionBusy) return;
 
-      const objective = messages.filter((m) => m.role === "user").at(-1)?.content;
-      if (!objective) return;
-
       // Held by reference so the response can find this exact entry again even
-      // if chat messages land in the meantime — index would go stale.
+      // if chat messages land in the meantime — an index would go stale.
       const entry: ChatEntry = {
         role: "assistant",
         content: "",
         timestamp: Date.now(),
-        actionPlan: { status: "running", label: action.label, estimatedSeconds: action.estimatedSeconds },
+        actionPlan: { status: "running", label: action.label },
       };
-      const patch = (actionPlan: ActionPlanState) =>
+      // A cached report comes back in ~11ms. Revealing it that fast reads as a
+      // canned response rather than a generated one — the progress steps never
+      // even render. So the reveal is floored: whatever the server takes, the
+      // running state is on screen long enough for the choreography to play.
+      // This only ever ADDS delay to an already-instant response; a slow live
+      // generation is unaffected, since it has long since passed the floor.
+      const startedAt = Date.now();
+      const patch = async (actionPlan: ActionPlanState) => {
+        const remaining = MIN_REPORT_PROGRESS_MS - (Date.now() - startedAt);
+        if (remaining > 0) await new Promise((resolve) => setTimeout(resolve, remaining));
         setMessages((prev) => prev.map((m) => (m === entry ? { ...m, actionPlan } : m)));
+      };
 
-      setMessages((prev) => [...prev, entry]);
+      // The typed message still appears as a user turn — the transcript should
+      // show what was asked even though the answer is a file rather than prose.
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", content: objective, timestamp: Date.now() },
+        entry,
+      ]);
       setActionBusy(true);
+      const controller = new AbortController();
+      actionAbortRef.current = controller;
       try {
         const res = await fetch("/api/assistant-actions", {
           method: "POST",
@@ -375,6 +413,7 @@ export function DashboardAssistant() {
             activeFilters: activeFilterSummary,
             conversationId,
           }),
+          signal: controller.signal,
         });
         const data: AssistantActionResponse = await res
           .json()
@@ -382,28 +421,62 @@ export function DashboardAssistant() {
         if (!res.ok || !data.success) {
           throw new Error(data.success ? `Request failed (${res.status}).` : data.error);
         }
-        patch({
+        await patch({
           status: "done",
           label: action.label,
-          estimatedSeconds: action.estimatedSeconds,
           report: data.report,
           artifacts: data.artifacts,
           generator: data.generator,
           cached: data.cached,
         });
       } catch (err) {
-        patch({
+        // An abort is the one case that skips the floor — the user asked for it
+        // to stop, so making them watch two more seconds of fake progress first
+        // would be the opposite of responsive.
+        const aborted = err instanceof DOMException && err.name === "AbortError";
+        const failure: ActionPlanState = {
           status: "error",
           label: action.label,
-          estimatedSeconds: action.estimatedSeconds,
-          error: err instanceof Error ? err.message : "Something went wrong generating that report.",
-        });
+          error: aborted
+            ? "Stopped before the report finished."
+            : err instanceof Error
+              ? err.message
+              : "Something went wrong generating that report.",
+        };
+        if (aborted) setMessages((prev) => prev.map((m) => (m === entry ? { ...m, actionPlan: failure } : m)));
+        else await patch(failure);
       } finally {
+        actionAbortRef.current = null;
         setActionBusy(false);
       }
     },
-    [dashboardKey, actionBusy, messages, activeFilterSummary, conversationId]
+    [dashboardKey, actionBusy, activeFilterSummary, conversationId]
   );
+
+  // Which action Report mode runs. Registry-driven, so this component never
+  // names a specific action; a dashboard with none simply hides the toggle.
+  const reportAction = useMemo(
+    () => (dashboardKey ? (assistantActionsFor(dashboardKey)[0] ?? null) : null),
+    [dashboardKey]
+  );
+
+  /**
+   * The composer's submit handler, and the ONE place the mode is read. Chat
+   * suggestion chips, clarifying options, and empty-state starters deliberately
+   * still call send() directly — clicking "Compare with last month" should
+   * never kick off a report just because the toggle happens to be on.
+   */
+  const submitComposer = useCallback(() => {
+    const text = input.trim();
+    if (!text) return;
+    if (reportMode && reportAction) {
+      if (actionBusy) return;
+      setInput("");
+      void runAction(reportAction, text);
+      return;
+    }
+    void send();
+  }, [input, reportMode, reportAction, actionBusy, runAction, send]);
 
   const handleRedirect = useCallback(
     (redirect: NonNullable<ChatEntry["redirect"]>) => {
@@ -424,20 +497,6 @@ export function DashboardAssistant() {
     }
     return -1;
   }, [messages]);
-
-  // The action row appears under that same last real answer, and only when
-  // there is something to act on: a grounded reply (not an error, not a
-  // redirect elsewhere, not a pending clarifying question) and a user question
-  // to use as the objective. §15's "only when appropriate", reusing the exact
-  // gating the follow-up chips already established rather than inventing a
-  // second notion of "meaningful answer".
-  const actionsIndex = useMemo(() => {
-    if (lastAssistantIndex < 0) return -1;
-    const last = messages[lastAssistantIndex];
-    if (last.isError || last.redirect || (last.options?.length ?? 0) > 0) return -1;
-    if (!messages.some((m) => m.role === "user")) return -1;
-    return lastAssistantIndex;
-  }, [messages, lastAssistantIndex]);
 
   // Prefer the server's context-derived suggestions (lib/ai/conversation-context.ts's
   // suggestFollowUps — built from what was actually just queried, e.g. "Show
@@ -592,9 +651,6 @@ export function DashboardAssistant() {
                         busy={busy}
                         onOptionSelect={(option) => void send(option)}
                         onRedirect={handleRedirect}
-                        dashboardKey={dashboardKey}
-                        onRunAction={i === actionsIndex ? (action) => void runAction(action) : undefined}
-                        actionBusy={actionBusy}
                         // Never alongside a pending clarifying question (m.options) —
                         // answering that comes first, so "Compare with last month"
                         // showing up next to "PO spend or Invoice value?" would be
@@ -693,11 +749,22 @@ export function DashboardAssistant() {
             <Composer
               value={input}
               onChange={setInput}
-              onSubmit={() => void send()}
+              onSubmit={submitComposer}
               onStop={stop}
-              busy={busy}
-              placeholder={`Ask about ${meta.label}…`}
+              // Either request in flight puts the composer in its stop state —
+              // a 3-minute report generation with no way to cancel it would be
+              // the worst version of this feature.
+              busy={busy || actionBusy}
+              placeholder={
+                reportMode
+                  ? `Describe the report you want from ${meta.label}…`
+                  : `Ask about ${meta.label}…`
+              }
               fullscreen={fullscreen}
+              reportMode={reportMode}
+              onToggleReportMode={() => setReportMode((v) => !v)}
+              reportModeLabel={reportAction?.label ?? ""}
+              reportModeAvailable={reportAction !== null}
             />
           </motion.div>
         )}
