@@ -4,11 +4,17 @@
 // context/DashboardActiveFiltersContext.tsx for why this is a plain-language
 // string, not a structured filter object.
 //
-// Deliberately omits `plants` and `sourceSystems`: useTailSpendStore.ts's own
-// TailSpendFilterState doc comments mark both "display-only, never affects
+// Deliberately still omits `plants`: useTailSpendStore.ts's own
+// TailSpendFilterState doc comments mark it "display-only, never affects
 // computed numbers" (applyTailSpendFilters in reactiveFilters.ts never reads
-// them) — telling the model to filter by them would make it try a concept
-// that doesn't actually narrow this dashboard's own numbers.
+// it) — telling the model to filter by it would make it try a concept that
+// doesn't actually narrow this dashboard's own numbers.
+//
+// `sourceSystems` is display-only in that same sense too, but IS included
+// here: page.tsx's own local activeFiltersSummary (shown in each widget's
+// fullscreen header) already surfaces it, and an exported/AI-grounding
+// summary that silently drops a filter the user can see selected on screen
+// is a worse experience than one line the model can't act on.
 
 import {
   formatMultiSelectPart,
@@ -31,6 +37,7 @@ export function buildTailSpendFilterSummary(params: {
   return joinFilterSummaryParts([
     formatMultiSelectPart("Category", filters.categories),
     formatMultiSelectPart("Supplier", filters.suppliers),
+    formatMultiSelectPart("Source System", filters.sourceSystems),
     filters.paretoThreshold !== DEFAULT_PARETO_THRESHOLD
       ? `Pareto threshold: ${filters.paretoThreshold}%`
       : null,

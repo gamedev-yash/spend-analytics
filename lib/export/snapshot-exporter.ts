@@ -11,7 +11,7 @@ import PptxGenJS from "pptxgenjs";
 import { DASHBOARD_PAGE_BACKGROUND } from "@/lib/snapshot";
 
 export type ExportFormat = "png" | "pdf" | "pptx";
-export type PptxLayoutMode = "single" | "multi";
+export type PptxLayoutMode = "overview" | "deep-dive";
 export type PdfLayoutMode = "widget-per-page" | "continuous";
 
 export interface ExportSnapshotOptions {
@@ -40,25 +40,61 @@ export interface ExportSnapshotOptions {
 // html-to-image would otherwise capture.
 // ---------------------------------------------------------------------------
 
-const FLOATING_UI_SELECTORS = [
-  "#ai-assistant-button",
-  '[aria-label="AI Assistant"]',
-  ".recharts-tooltip-wrapper",
-  '[data-slot="sheet-content"]',
-];
+// The AI Assistant launcher (and its panel, when open) hides itself
+// declaratively via useIsExportCapturing() — see DashboardAssistant.tsx —
+// so React itself guarantees it comes back exactly as it was; it never
+// needed an entry here. What's left are non-React floating overlays that
+// have no such context to read: a lingering Recharts tooltip, or an
+// open Sheet/Drawer.
+const CSS_HIDE_SELECTORS = [".recharts-tooltip-wrapper", '[data-slot="sheet-content"]'];
+const EXPORT_HIDE_ATTR = "data-export-hide";
 
+let floatingUiHideDepth = 0;
+let floatingUiRestores: Array<() => void> | null = null;
+
+/**
+ * Hides remaining non-React floating overlays for the duration of a capture
+ * by tagging them with a `data-export-hide` attribute and injecting one
+ * `[data-export-hide="true"] { display: none !important; }` rule, rather
+ * than mutating each element's inline style directly — a plain attribute is
+ * simpler to set/clear correctly than capturing and restoring a style
+ * property per element. Reference-counted and idempotent: only the
+ * outermost hide call tags elements and injects the rule, and only the
+ * outermost restore call removes them, so two overlapping hide/restore
+ * cycles (a second capture starting before the first one's `finally` has
+ * run) can never leave an element permanently hidden.
+ */
 function hideFloatingUi(): () => void {
-  const restores: Array<() => void> = [];
-  for (const selector of FLOATING_UI_SELECTORS) {
-    document.querySelectorAll<HTMLElement>(selector).forEach((el) => {
-      const previous = el.style.visibility;
-      el.style.visibility = "hidden";
-      restores.push(() => {
-        el.style.visibility = previous;
+  floatingUiHideDepth += 1;
+  if (floatingUiHideDepth === 1) {
+    const styleEl = document.createElement("style");
+    styleEl.textContent = `[${EXPORT_HIDE_ATTR}="true"] { display: none !important; }`;
+    document.head.appendChild(styleEl);
+
+    const tagged: HTMLElement[] = [];
+    for (const selector of CSS_HIDE_SELECTORS) {
+      document.querySelectorAll<HTMLElement>(selector).forEach((el) => {
+        el.setAttribute(EXPORT_HIDE_ATTR, "true");
+        tagged.push(el);
       });
-    });
+    }
+
+    floatingUiRestores = [
+      () => tagged.forEach((el) => el.removeAttribute(EXPORT_HIDE_ATTR)),
+      () => styleEl.remove(),
+    ];
   }
-  return () => restores.forEach((restore) => restore());
+
+  let released = false;
+  return () => {
+    if (released) return; // idempotent — a stray second call to the same restore is a no-op
+    released = true;
+    floatingUiHideDepth = Math.max(0, floatingUiHideDepth - 1);
+    if (floatingUiHideDepth === 0) {
+      floatingUiRestores?.forEach((restore) => restore());
+      floatingUiRestores = null;
+    }
+  };
 }
 
 function hideScrollbarsGlobally(): () => void {
@@ -578,65 +614,70 @@ async function exportAsPdf(options: ExportSnapshotOptions): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// PPTX — 16:9 widescreen. Single slide (whole dashboard, contain-scaled) or
-// one dedicated slide per widget (KPI ribbon first, then every chart/table).
+// PPTX — 16:9 widescreen (10" x 5.625"), mirroring the PDF exporter's own
+// widget grouping and full-page scaling: Executive Overview pairs compact
+// charts two-to-a-slide (full-width widgets alone), Multi-Slide Deep Dive
+// maximizes exactly one widget per slide.
 // ---------------------------------------------------------------------------
 
-const SLIDE_W = 13.33;
-const SLIDE_H = 7.5;
-const HEADER_H = 0.7;
+const SLIDE_W = 10;
+const SLIDE_H = 5.625;
 const FOOTER_H = 0.3;
-const MARGIN_X = 0.4;
+const MARGIN_X = 0.5;
 
+// Fixed header text frames — kept in their own non-overlapping vertical bands
+// (title above, subtitle below) so long text can never collide, regardless of
+// how long the dashboard title, widget name, or filter summary get.
+const HEADER_BAR_H = 1.0;
+const TITLE_Y = 0.25;
+const TITLE_H = 0.35;
+const SUBTITLE_Y = 0.65;
+const SUBTITLE_H = 0.3;
+
+/**
+ * Draws the navy header bar with a main title and a single combined subtitle
+ * line (the per-slide section/widget name plus the active-filters summary,
+ * when enabled) — one text frame per row, so title and subtitle can never
+ * overlap each other the way two same-row, opposite-aligned frames could.
+ */
 function addHeaderAndFooter(
   pptx: PptxGenJS,
   slide: PptxGenJS.Slide,
   title: string,
-  subtitle: string,
+  sectionLabel: string,
   options: ExportSnapshotOptions
-): { contentTop: number; contentHeight: number } {
-  slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: SLIDE_W, h: HEADER_H, fill: { color: "0F172A" } });
+): void {
+  slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: SLIDE_W, h: HEADER_BAR_H, fill: { color: "0F172A" } });
   slide.addText(title, {
     x: MARGIN_X,
-    y: 0,
-    w: SLIDE_W - MARGIN_X * 2,
-    h: HEADER_H,
-    fontSize: 20,
+    y: TITLE_Y,
+    w: 9.0,
+    h: TITLE_H,
+    fontSize: 18,
     bold: true,
     color: "F8FAFC",
     valign: "middle",
     fontFace: "Arial",
   });
-  slide.addText(subtitle, {
-    x: 0,
-    y: 0,
-    w: SLIDE_W - MARGIN_X,
-    h: HEADER_H,
-    fontSize: 12,
-    color: "94A3B8",
-    align: "right",
-    valign: "middle",
-    fontFace: "Arial",
-  });
 
-  let contentTop = HEADER_H + 0.15;
-  if (options.includeFilterSummary) {
-    slide.addText(filtersLine(options), {
+  const subtitleParts = [sectionLabel, options.includeFilterSummary ? filtersLine(options) : null].filter(
+    (part): part is string => Boolean(part?.trim())
+  );
+  if (subtitleParts.length > 0) {
+    slide.addText(subtitleParts.join("   ·   "), {
       x: MARGIN_X,
-      y: HEADER_H + 0.05,
-      w: SLIDE_W - MARGIN_X * 2,
-      h: 0.3,
+      y: SUBTITLE_Y,
+      w: 9.0,
+      h: SUBTITLE_H,
       fontSize: 11,
       italic: true,
-      color: "64748B",
+      color: "94A3B8",
+      valign: "middle",
       fontFace: "Arial",
     });
-    contentTop += 0.3;
   }
 
-  let contentHeight = SLIDE_H - contentTop - 0.15;
   if (options.includeTimestampFooter) {
-    contentHeight -= FOOTER_H;
     slide.addText(footerLine(options), {
       x: MARGIN_X,
       y: SLIDE_H - FOOTER_H - 0.05,
@@ -648,93 +689,39 @@ function addHeaderAndFooter(
       fontFace: "Arial",
     });
   }
-
-  return { contentTop, contentHeight };
 }
 
-/** Contain-fits (never crops or stretches) the image into the slide's content area, centered on both axes. */
-function placeImageFitted(
+/** Contain-fits and centers an image within a fixed box. */
+function placeImageInBox(
   slide: PptxGenJS.Slide,
   dataUrl: string,
   img: HTMLImageElement,
-  contentTop: number,
-  contentHeight: number
+  box: { x: number; y: number; w: number; h: number }
 ): void {
-  const maxW = SLIDE_W - MARGIN_X * 2;
-  const maxH = contentHeight;
-  const scale = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight);
+  const scale = Math.min(box.w / img.naturalWidth, box.h / img.naturalHeight);
   const w = img.naturalWidth * scale;
   const h = img.naturalHeight * scale;
-  const x = (SLIDE_W - w) / 2;
-  const y = contentTop + (maxH - h) / 2;
+  const x = box.x + (box.w - w) / 2;
+  const y = box.y + (box.h - h) / 2;
   slide.addImage({ data: dataUrl, x, y, w, h });
 }
 
-const GRID_GUTTER = 0.25; // inches, between cells
-const CELL_CAPTION_H = 0.28; // inches, reserved above each cell's image when a slide holds more than one widget
+// Executive Overview — mirrors the PDF exporter's own widget grouping: a
+// full-width widget (KPI ribbon, table, a chart with no side-by-side
+// sibling) gets the whole row; two compact/half-width charts share it side
+// by side.
+const OVERVIEW_PAIR_BOXES = [
+  { x: 0.5, y: 1.15, w: 4.35, h: 4.2 },
+  { x: 5.15, y: 1.15, w: 4.35, h: 4.2 },
+];
+const OVERVIEW_FULL_WIDTH_BOX = { x: 0.5, y: 1.15, w: 9.0, h: 4.2 };
 
 /**
- * Lays out 1, 2, or 4 widgets in a grid within the slide's content area — a
- * lone full-width widget fills it entirely (1x1), a side-by-side pair splits
- * it in half (1x2), and four compact charts split it into quadrants (2x2).
- * Each cell contain-fits and centers its own image independently, so mixing
- * different aspect ratios in the same grid never distorts any one of them.
+ * Pairs consecutive compact widgets two-to-a-slide in page order; any
+ * full-width widget (KPI ribbon, table, a chart with no side-by-side
+ * sibling) always gets its own slide instead of being paired.
  */
-function placeImageGrid(
-  slide: PptxGenJS.Slide,
-  group: CapturedWidgetImage[],
-  contentTop: number,
-  contentHeight: number
-): void {
-  const maxW = SLIDE_W - MARGIN_X * 2;
-  const count = group.length;
-  const cols = count === 1 ? 1 : 2;
-  const rows = Math.ceil(count / cols);
-  const cellW = (maxW - GRID_GUTTER * (cols - 1)) / cols;
-  const cellH = (contentHeight - GRID_GUTTER * (rows - 1)) / rows;
-  const showCaptions = count > 1;
-  const captionH = showCaptions ? CELL_CAPTION_H : 0;
-
-  group.forEach((widget, index) => {
-    const col = index % cols;
-    const row = Math.floor(index / cols);
-    const cellX = MARGIN_X + col * (cellW + GRID_GUTTER);
-    const cellY = contentTop + row * (cellH + GRID_GUTTER);
-
-    if (showCaptions) {
-      slide.addText(widget.title, {
-        x: cellX,
-        y: cellY,
-        w: cellW,
-        h: captionH,
-        fontSize: 10,
-        bold: true,
-        color: "334155",
-        align: "center",
-        valign: "middle",
-        fontFace: "Arial",
-      });
-    }
-
-    const imageAreaH = cellH - captionH;
-    const scale = Math.min(cellW / widget.img.naturalWidth, imageAreaH / widget.img.naturalHeight);
-    const w = widget.img.naturalWidth * scale;
-    const h = widget.img.naturalHeight * scale;
-    const x = cellX + (cellW - w) / 2;
-    const y = cellY + captionH + (imageAreaH - h) / 2;
-    slide.addImage({ data: widget.dataUrl, x, y, w, h });
-  });
-}
-
-/**
- * Groups captured widgets into slide-sized chunks in page order: any
- * full-width widget (KPI ribbon, table, a lone chart with no side-by-side
- * sibling) always gets its own slide; consecutive compact/half-width charts
- * are packed 4-to-a-slide when at least 4 are available in a row, else 2, so
- * the deck mirrors the website's own 2-column grid instead of forcing every
- * chart onto its own slide.
- */
-function groupWidgetsForSlides(images: CapturedWidgetImage[]): CapturedWidgetImage[][] {
+function groupWidgetsForOverview(images: CapturedWidgetImage[]): CapturedWidgetImage[][] {
   const groups: CapturedWidgetImage[][] = [];
   let i = 0;
   while (i < images.length) {
@@ -743,51 +730,50 @@ function groupWidgetsForSlides(images: CapturedWidgetImage[]): CapturedWidgetIma
       i += 1;
       continue;
     }
-    let runEnd = i;
-    while (runEnd < images.length && !images[runEnd].isFullWidth) runEnd += 1;
-    const runLength = runEnd - i;
-    const takeCount = runLength >= 4 ? 4 : runLength >= 2 ? 2 : 1;
-    groups.push(images.slice(i, i + takeCount));
-    i += takeCount;
+    if (i + 1 < images.length && !images[i + 1].isFullWidth) {
+      groups.push([images[i], images[i + 1]]);
+      i += 2;
+    } else {
+      groups.push([images[i]]);
+      i += 1;
+    }
   }
   return groups;
 }
 
-async function exportAsPptxSingle(pptx: PptxGenJS, options: ExportSnapshotOptions): Promise<void> {
-  options.onProgress?.("Capturing elements...");
-  const canvasNode = getCanvasNode(options.targetId);
-  const dataUrl = await withCapturePrep(canvasNode, () => captureNodeAsPngDataUrl(canvasNode, options.isDark));
-  const img = await loadImage(dataUrl);
+// Multi-Slide Deep Dive — every widget maximized on its own dedicated slide,
+// mirroring the PDF exporter's own one-widget-per-page full-width scaling.
+const DEEP_DIVE_IMAGE_BOX = { x: 0.5, y: 1.1, w: 9.0, h: 4.4 };
 
-  options.onProgress?.("Building PowerPoint deck...");
-  const slide = pptx.addSlide();
-  const { contentTop, contentHeight } = addHeaderAndFooter(
-    pptx,
-    slide,
-    `Dashboard Snapshot — ${options.dashboardTitle}`,
-    "Overview",
-    options
-  );
-  placeImageFitted(slide, dataUrl, img, contentTop, contentHeight);
-}
-
-async function exportAsPptxMulti(pptx: PptxGenJS, options: ExportSnapshotOptions): Promise<void> {
+async function exportAsPptxOverview(pptx: PptxGenJS, options: ExportSnapshotOptions): Promise<void> {
   const canvas = getCanvasNode(options.targetId);
   const images = await captureAllWidgets(canvas, options.isDark, options.onProgress);
-  const groups = groupWidgetsForSlides(images);
+  const groups = groupWidgetsForOverview(images);
 
   options.onProgress?.("Building PowerPoint deck...");
   for (const group of groups) {
     const slide = pptx.addSlide();
     const subtitle = group.map((widget) => widget.title).join(" · ");
-    const { contentTop, contentHeight } = addHeaderAndFooter(
-      pptx,
-      slide,
-      `Dashboard Snapshot — ${options.dashboardTitle}`,
-      subtitle,
-      options
-    );
-    placeImageGrid(slide, group, contentTop, contentHeight);
+    addHeaderAndFooter(pptx, slide, `Dashboard Snapshot — ${options.dashboardTitle}`, subtitle, options);
+
+    if (group.length === 2) {
+      placeImageInBox(slide, group[0].dataUrl, group[0].img, OVERVIEW_PAIR_BOXES[0]);
+      placeImageInBox(slide, group[1].dataUrl, group[1].img, OVERVIEW_PAIR_BOXES[1]);
+    } else {
+      placeImageInBox(slide, group[0].dataUrl, group[0].img, OVERVIEW_FULL_WIDTH_BOX);
+    }
+  }
+}
+
+async function exportAsPptxDeepDive(pptx: PptxGenJS, options: ExportSnapshotOptions): Promise<void> {
+  const canvas = getCanvasNode(options.targetId);
+  const widgets = await captureAllWidgets(canvas, options.isDark, options.onProgress);
+
+  options.onProgress?.("Building PowerPoint deck...");
+  for (const widget of widgets) {
+    const slide = pptx.addSlide();
+    addHeaderAndFooter(pptx, slide, `Dashboard Snapshot — ${options.dashboardTitle}`, widget.title, options);
+    placeImageInBox(slide, widget.dataUrl, widget.img, DEEP_DIVE_IMAGE_BOX);
   }
 }
 
@@ -796,10 +782,10 @@ async function exportAsPptx(options: ExportSnapshotOptions): Promise<void> {
   pptx.defineLayout({ name: "SNAPSHOT_WIDESCREEN", width: SLIDE_W, height: SLIDE_H });
   pptx.layout = "SNAPSHOT_WIDESCREEN";
 
-  if (options.pptxLayout === "single") {
-    await exportAsPptxSingle(pptx, options);
+  if (options.pptxLayout === "overview") {
+    await exportAsPptxOverview(pptx, options);
   } else {
-    await exportAsPptxMulti(pptx, options);
+    await exportAsPptxDeepDive(pptx, options);
   }
 
   options.onProgress?.("Preparing download...");

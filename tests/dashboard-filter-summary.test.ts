@@ -249,14 +249,24 @@ describe("Tail Spend filter summary", () => {
     assert.equal(summary, null);
   });
 
-  it("ignores plants/sourceSystems entirely — they're display-only and never narrow computed numbers", () => {
+  it("ignores plants entirely — display-only, never narrows computed numbers", () => {
     const summary = buildTailSpendFilterSummary({
-      filters: { ...baseFilters, plants: ["Pune Plant"], sourceSystems: ["SAP ECC"] },
+      filters: { ...baseFilters, plants: ["Pune Plant"] },
       allBucketLabels: ALL_BUCKETS,
       dateMin: "2024-01-01",
       dateMax: "2026-12-31",
     });
     assert.equal(summary, null);
+  });
+
+  it("includes source systems — display-only too, but the user can see it selected on screen so exports/AI grounding shouldn't silently drop it", () => {
+    const summary = buildTailSpendFilterSummary({
+      filters: { ...baseFilters, sourceSystems: ["SAP ECC", "Oracle"] },
+      allBucketLabels: ALL_BUCKETS,
+      dateMin: "2024-01-01",
+      dateMax: "2026-12-31",
+    });
+    assert.equal(summary, "Source System: SAP ECC, Oracle");
   });
 
   it("surfaces categories/suppliers, a non-default Pareto threshold, and a narrowed bucket selection", () => {
