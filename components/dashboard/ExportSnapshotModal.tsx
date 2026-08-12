@@ -26,11 +26,15 @@ const FORMATS: { value: ExportFormat; label: string; description: string; icon: 
 ];
 
 const PPTX_LAYOUTS: { value: PptxLayoutMode; label: string; description: string }[] = [
-  { value: "single", label: "Single-Slide Overview", description: "The whole dashboard fit onto one widescreen slide." },
   {
-    value: "multi",
+    value: "overview",
+    label: "Executive Overview",
+    description: "Captures a clean executive presentation with 2 side-by-side widgets per slide.",
+  },
+  {
+    value: "deep-dive",
     label: "Multi-Slide Deep Dive",
-    description: "Generates section-grouped slides (2 to 4 charts per slide matching the dashboard layout) for deep-dive presentations.",
+    description: "Generates full-page, maximized slides for every individual chart and table.",
   },
 ];
 
@@ -64,7 +68,7 @@ export function ExportSnapshotModal({ open, onOpenChange, targetId, dashboardTit
   const setExportCapturing = useSetExportCapturing();
 
   const [format, setFormat] = useState<ExportFormat>("png");
-  const [pptxLayout, setPptxLayout] = useState<PptxLayoutMode>("single");
+  const [pptxLayout, setPptxLayout] = useState<PptxLayoutMode>("overview");
   const [pdfLayout, setPdfLayout] = useState<PdfLayoutMode>("continuous");
   const [includeFilterSummary, setIncludeFilterSummary] = useState(true);
   const [includeTimestampFooter, setIncludeTimestampFooter] = useState(true);
