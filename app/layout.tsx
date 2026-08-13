@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Geist } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
-import { DashboardShell } from "@/components/layout/dashboard-shell";
+import { AppShellGate } from "@/components/layout/app-shell-gate";
 import { DatasetsProvider } from "@/context/DatasetsContext";
 import { ThresholdsProvider } from "@/context/ThresholdsContext";
 import { DashboardActiveFiltersProvider } from "@/context/DashboardActiveFiltersContext";
@@ -35,7 +35,7 @@ export default function RootLayout({
             <ThresholdsProvider>
               <DashboardActiveFiltersProvider>
                 <ExportCaptureProvider>
-                  <DashboardShell>{children}</DashboardShell>
+                  <AppShellGate>{children}</AppShellGate>
                   <DashboardAssistant />
                 </ExportCaptureProvider>
               </DashboardActiveFiltersProvider>
