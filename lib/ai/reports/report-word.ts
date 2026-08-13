@@ -5,8 +5,7 @@
 // table column headers ("Priority"), and the one honest fallback for a benefit
 // the data could not quantify. It contains no business content, no supplier
 // names, no figures, and no scenario-specific text of any kind, so the same
-// renderer serves the demo generator and the live one without knowing which
-// produced its input.
+// renderer is indifferent to which dashboard or objective produced its input.
 //
 // SHARES ITS INPUT WITH THE EXCEL RENDERER AND DERIVES NOTHING OF ITS OWN.
 // Neither renderer computes, reformats, or supplements a business value — if
@@ -148,6 +147,18 @@ export async function renderActionPlanWord(plan: ActionPlanResult): Promise<Uint
       [62, 38]
     ),
 
+    ...(plan.opportunities.length > 0
+      ? [
+          heading("5. Opportunities"),
+          muted("Areas worth pursuing that follow from the insights above. Not all can be sized from this dashboard's data."),
+          table(
+            ["Opportunity", "Based on", "Indicative scale"],
+            plan.opportunities.map((o) => [o.opportunity, o.basedOn, o.scale ?? NOT_QUANTIFIABLE]),
+            [44, 34, 22]
+          ),
+        ]
+      : []),
+
     heading("5. Business Impact"),
     body(plan.insightSummary),
 
@@ -156,23 +167,23 @@ export async function renderActionPlanWord(plan: ActionPlanResult): Promise<Uint
       "Estimates only. Each figure below is shown with the arithmetic and the assumption behind it, and requires business validation before use in a business case."
     ),
     ...tableOrNone(
-      ["Benefit", "How it is derived", "Assumption", "Estimated value"],
-      plan.benefits.map((b) => [b.metric, b.formula, b.assumption, b.value ?? NOT_QUANTIFIABLE]),
-      [24, 26, 30, 20]
+      ["Benefit", "Starting from", "How it is derived", "Assumption", "Estimated value", "Confidence"],
+      plan.benefits.map((b) => [b.metric, b.basis, b.formula, b.assumption, b.value ?? NOT_QUANTIFIABLE, b.confidence]),
+      [18, 17, 18, 23, 15, 9]
     ),
 
     heading("7. Recommended Actions"),
     ...tableOrNone(
-      ["Priority", "Action", "Why", "Expected impact"],
-      plan.recommendations.map((r) => [r.priority, r.action, r.reason, r.expectedImpact]),
-      [12, 32, 30, 26]
+      ["Priority", "Action", "Why", "Evidence", "Expected impact", "Depends on"],
+      plan.recommendations.map((r) => [r.priority, r.action, r.reason, r.evidence, r.expectedImpact, r.dependencies ?? "—"]),
+      [9, 23, 19, 19, 19, 11]
     ),
 
     heading("8. Implementation Strategy"),
     ...tableOrNone(
-      ["Phase", "Action", "Timeline", "Owner"],
-      plan.implementationPlan.map((p) => [p.phase, p.action, p.timeline, p.owner]),
-      [18, 44, 18, 20]
+      ["Phase", "Action", "Timeline", "Owner", "Success measure"],
+      plan.implementationPlan.map((p) => [p.phase, p.action, p.timeline, p.owner, p.successMetric ?? "—"]),
+      [14, 32, 14, 16, 24]
     ),
 
     heading("9. Risks / Considerations"),
@@ -188,6 +199,21 @@ export async function renderActionPlanWord(plan: ActionPlanResult): Promise<Uint
     heading("11. Assumptions"),
     muted("These are conditions the estimates rest on. They are not findings from the data."),
     ...listOrNone(plan.assumptions),
+
+    // Only rendered when there ARE gaps. An objective the dashboard answered in
+    // full should not carry an empty "what we couldn't tell you" section — that
+    // would read as a caveat where none exists. This is the opposite rule from
+    // every section above, which always render, because those are expected
+    // content and this is an exception report.
+    ...(plan.dataGaps.length > 0
+      ? [
+          heading("12. Data Not Available"),
+          muted(
+            "The objective needed the following, which this dashboard does not carry. Nothing in this report estimates around these gaps."
+          ),
+          ...plan.dataGaps.map(bullet),
+        ]
+      : []),
   ];
 
   const doc = new Document({

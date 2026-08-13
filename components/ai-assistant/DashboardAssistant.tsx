@@ -115,10 +115,13 @@ export function DashboardAssistant() {
   // composer. The two requests are independent, so the user can turn Report
   // off and keep asking normal questions while one renders.
   const [actionBusy, setActionBusy] = useState(false);
-  // Report mode — sticky until the user turns it off, the way an explicit mode
-  // should behave (a mode that silently reset after one use would be a
-  // surprise, and the composer makes its state unmissable). While OFF, nothing
-  // about the chat path changes at all: same request, same tools, same latency.
+  // Report mode — TURN-BASED: it survives a clarification (where it still has
+  // work to do) but switches itself off once a report is delivered, or once a
+  // request turns out to be factual/navigational and gets routed to normal chat.
+  // At ~160s and a full Claude session per run, a mode that silently stayed on
+  // after succeeding would make the next stray message expensive, and the user
+  // has already got what they enabled it for. While OFF, nothing about the chat
+  // path changes at all: same request, same tools, same latency.
   const [reportMode, setReportMode] = useState(false);
   const [unread, setUnread] = useState(false);
   const [showJumpToLatest, setShowJumpToLatest] = useState(false);
@@ -429,14 +432,61 @@ export function DashboardAssistant() {
         if (!res.ok || !data.success) {
           throw new Error(data.success ? `Request failed (${res.status}).` : data.error);
         }
+
+        // Triage decided this request should not become a report. Each kind is
+        // routed to the mechanism that ALREADY handles it, rather than to a new
+        // report-shaped surface:
+        //
+        //   factual / navigation  → drop the report card and re-send the very
+        //     same question through normal chat. The chat path already answers
+        //     figures correctly and already owns redirect_to_dashboard, so
+        //     "Report Mode was on" costs the user nothing but a short detour —
+        //     they still get a real grounded answer to what they actually asked.
+        //   clarification → render the engine's question with the existing
+        //     option-chip mechanism, and LEAVE Report Mode on, so whichever
+        //     angle they pick flows straight into a report.
+        //   unsupported → state the limitation. No chips: there is nothing to
+        //     pick, and offering choices would imply the data exists.
+        if (data.type === "no_report") {
+          const routeToChat = data.kind === "factual" || data.kind === "navigation";
+          setMessages((prev) =>
+            prev
+              // Remove the running card — no report is coming, and leaving a
+              // spent progress card above the answer reads as a failure.
+              .filter((m) => m !== entry)
+              .concat(
+                routeToChat
+                  ? []
+                  : [
+                      {
+                        role: "assistant" as const,
+                        content: data.message,
+                        options: data.options ?? undefined,
+                        timestamp: Date.now(),
+                      },
+                    ]
+              )
+          );
+          if (routeToChat) {
+            setReportMode(false);
+            void send(objective);
+          }
+          return;
+        }
+
         await patch({
           status: "done",
           label: action.label,
           report: data.report,
           artifacts: data.artifacts,
-          generator: data.generator,
           cached: data.cached,
         });
+        // Turn-based lifecycle: a delivered report ends the mode. At ~160s and a
+        // full Claude session per run, a mode that silently stayed on after
+        // succeeding would make the next stray message expensive — and the user
+        // has already got what they switched it on for. Deliberately NOT reset
+        // after a clarification, where the mode still has work to do.
+        setReportMode(false);
       } catch (err) {
         // An abort is the one case that skips the floor — the user asked for it
         // to stop, so making them watch two more seconds of fake progress first
@@ -458,7 +508,7 @@ export function DashboardAssistant() {
         setActionBusy(false);
       }
     },
-    [dashboardKey, actionBusy, activeFilterSummary, conversationId]
+    [dashboardKey, actionBusy, activeFilterSummary, conversationId, send]
   );
 
   // Which action Report mode runs. Registry-driven, so this component never
@@ -774,6 +824,7 @@ export function DashboardAssistant() {
               reportMode={reportMode}
               onToggleReportMode={() => setReportMode((v) => !v)}
               reportModeLabel={reportAction?.label ?? ""}
+              reportModeSeconds={reportAction?.estimatedSeconds ?? 0}
               reportModeAvailable={reportAction !== null}
             />
           </motion.div>

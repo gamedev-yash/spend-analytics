@@ -3,19 +3,22 @@
 // layer (app/api/assistant-actions/route.ts) and minus the content itself
 // (the generators).
 //
-// It owns exactly five things, in this order:
+// It owns exactly four things, in this order:
 //   1. assemble the ActionPlanContext from existing services — never new ones
 //   2. cache lookup
-//   3. generator selection + execution
-//   4. VALIDATION — one gate, every generator, before any file exists
-//   5. render both artifacts from the ONE validated object, and cache
+//   3. run the engine, then VALIDATE — one gate, before any file exists
+//   4. render both artifacts from the ONE validated object, and cache
 //
 // WHY THE ORDER MATTERS: validation sits between generation and rendering, so
-// no generator — demo, Claude, or whatever replaces them — can put an
-// unvalidated figure into a document a user downloads. And both renderers are
-// called with the same `plan` variable, which is what makes §14's
-// single-source-of-truth guarantee mechanical rather than a convention
-// someone has to remember.
+// nothing the engine produces can put an unvalidated figure into a document a
+// user downloads. And both renderers are called with the same `plan` variable,
+// which is what makes the single-source-of-truth guarantee mechanical rather
+// than a convention someone has to remember.
+//
+// NOTHING HERE IS DASHBOARD- OR SCENARIO-AWARE. It never inspects the objective
+// and never branches on dashboardKey; it passes both through to modules that
+// already know what a dashboard key means. Grep this directory for a dashboard
+// name and you will find none.
 //
 // WHAT IT REUSES RATHER THAN REBUILDS (§24): dashboardMeta for identity,
 // getConversationContext + buildConversationMemoryBlock for context (the
@@ -31,18 +34,13 @@
 
 import "server-only";
 
-import {
-  selectGenerator,
-  type ActionPlanContext,
-  type ActionPlanGenerator,
-} from "@/lib/ai/actions/action-plan-generator";
+import { generateActionPlan, type ActionPlanContext } from "@/lib/ai/actions/action-plan-engine";
 import { validateActionPlan } from "@/lib/ai/actions/action-plan-validate";
-import { claudeActionPlanGenerator } from "@/lib/ai/actions/claude-action-plan";
-import { demoActionPlanGenerator } from "@/lib/ai/actions/demo-action-plan";
 import type {
   ActionPlanResult,
   ArtifactDescriptor,
   AssistantActionId,
+  AssistantActionNoReport,
   AssistantActionSuccess,
 } from "@/lib/ai/actions/action-plan-types";
 import { dashboardMeta, type DashboardKey } from "@/lib/ai/dashboard-registry";
@@ -52,16 +50,6 @@ import { buildReportCacheKey, getCachedReport, setCachedReport } from "@/lib/ai/
 import { renderActionPlanExcel } from "@/lib/ai/reports/report-excel";
 import { renderActionPlanWord } from "@/lib/ai/reports/report-word";
 import { getDatasetVersion } from "@/lib/server/sample-data-source";
-
-/**
- * Ordering IS the demo/production switch. Demo first means it answers the one
- * scenario it recognizes and everything else falls through to Claude. Setting
- * REPORT_GENERATOR=dynamic (handled in selectGenerator) drops the demo
- * generator from consideration entirely — no code change, no API change, no
- * frontend change. Deleting lib/ai/actions/demo-action-plan.ts and its entry
- * below is the permanent version of the same switch.
- */
-const GENERATORS: ActionPlanGenerator[] = [demoActionPlanGenerator, claudeActionPlanGenerator];
 
 export const ARTIFACT_URL_PREFIX = "/api/assistant-actions/artifacts";
 
@@ -143,7 +131,13 @@ function descriptorFor(artifactId: string | null, format: "word" | "excel", plan
   };
 }
 
-export async function runActionPlan(input: RunActionPlanInput): Promise<AssistantActionSuccess> {
+/**
+ * A report, or a reasoned decision not to produce one. Both are successful
+ * outcomes of a Report-Mode turn — see NoReportKind for why that matters.
+ */
+export type RunActionPlanResult = AssistantActionSuccess | AssistantActionNoReport;
+
+export async function runActionPlan(input: RunActionPlanInput): Promise<RunActionPlanResult> {
   const context = buildContext(input);
 
   const cacheKey = buildReportCacheKey({
@@ -164,23 +158,36 @@ export async function runActionPlan(input: RunActionPlanInput): Promise<Assistan
         word: descriptorFor(cached.wordArtifactId, "word", cached.plan),
         excel: descriptorFor(cached.excelArtifactId, "excel", cached.plan),
       },
-      generator: cached.generator,
       cached: true,
     };
   }
 
-  const generator = selectGenerator(context, GENERATORS);
-  if (!generator) {
-    throw new ActionPlanServiceError("No report generator is available for this dashboard.", 503);
-  }
-
   let raw: unknown;
   try {
-    raw = await generator.generate(context);
+    // One engine, called directly. No selection step, so no configuration and
+    // no input can route this to anything other than a live analysis of this
+    // dashboard's own data.
+    const outcome = await generateActionPlan(context);
+
+    // Triage said this request should not become a report. Returned straight
+    // through: nothing is validated, no document is rendered, and NOTHING IS
+    // CACHED — a clarifying question is about this turn's wording, not a
+    // reusable artifact of dashboard+filters+objective, so caching it would
+    // make the assistant repeat a question the user has already answered.
+    if (outcome.kind === "no_report") {
+      return {
+        success: true,
+        type: "no_report",
+        kind: outcome.reason,
+        message: outcome.message,
+        ...(outcome.options ? { options: outcome.options } : {}),
+      };
+    }
+    raw = outcome.plan;
   } catch (err) {
-    // The Claude generator signals a missing API key with this sentinel so the
-    // service can map it to the same 503 the chat endpoint uses, rather than
-    // leaking a stack trace or an upstream message.
+    // The engine signals a missing API key with this sentinel so the service
+    // can map it to the same 503 the chat endpoint uses, rather than leaking a
+    // stack trace or an upstream message.
     if (err instanceof Error && err.message === "NO_CLIENT") {
       throw new ActionPlanServiceError(
         "Report generation needs an API key and a model configured in the server environment.",
@@ -196,8 +203,9 @@ export async function runActionPlan(input: RunActionPlanInput): Promise<Assistan
     );
   }
 
-  // THE ONE VALIDATION GATE. Runs on demo output and Claude output alike —
-  // nothing reaches a renderer without passing through here.
+  // THE ONE VALIDATION GATE. Nothing reaches a renderer without passing through
+  // here — and because the engine returns its tool input raw, this is the only
+  // place that decides whether a plan is fit to become a document.
   let plan: ActionPlanResult;
   try {
     plan = validateActionPlan(raw);
@@ -207,9 +215,9 @@ export async function runActionPlan(input: RunActionPlanInput): Promise<Assistan
     throw new ActionPlanServiceError("The generated report was not in a usable form. Please try again.", 422, issues);
   }
 
-  // ONE `plan`, TWO RENDERERS — the §14 guarantee, in one expression.
-  // Concurrent because they are independent pure projections of the same
-  // object; neither can observe the other's output.
+  // ONE `plan`, TWO RENDERERS — the single-source-of-truth guarantee, in one
+  // expression. Concurrent because they are independent pure projections of the
+  // same object; neither can observe the other's output.
   const [word, excel] = await Promise.all([
     renderArtifact("word", plan, () => renderActionPlanWord(plan)),
     renderArtifact("excel", plan, () => renderActionPlanExcel(plan)),
@@ -217,7 +225,6 @@ export async function runActionPlan(input: RunActionPlanInput): Promise<Assistan
 
   setCachedReport(cacheKey, {
     plan,
-    generator: generator.kind,
     wordArtifactId: word.artifactId,
     excelArtifactId: excel.artifactId,
   });
@@ -227,7 +234,6 @@ export async function runActionPlan(input: RunActionPlanInput): Promise<Assistan
     type: "action_plan",
     report: plan,
     artifacts: { word: word.descriptor, excel: excel.descriptor },
-    generator: generator.kind,
     cached: false,
   };
 }

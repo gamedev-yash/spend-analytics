@@ -119,6 +119,7 @@ export async function renderActionPlanExcel(plan: ActionPlanResult): Promise<Uin
       ["Scope", plan.scope],
       ["Facts recorded", String(plan.facts.length)],
       ["Insights identified", String(plan.insights.length)],
+      ["Opportunities identified", String(plan.opportunities.length)],
       ["Recommended actions", String(plan.recommendations.length)],
       ["Risks noted", String(plan.risks.length)],
       ...plan.nextSteps.map((step, i) => [`Next step ${i + 1}`, step]),
@@ -153,6 +154,31 @@ export async function renderActionPlanExcel(plan: ActionPlanResult): Promise<Uin
     plan.insights.map((i) => [i.insight, i.basedOn])
   );
 
+  const insightsSheet = workbook.getWorksheet("Insights");
+  if (insightsSheet && plan.opportunities.length > 0) {
+    // Beside Insights rather than on their own sheet: an opportunity is what an
+    // insight implies, and splitting them would make a reader cross-reference
+    // two tabs to follow one thread.
+    insightsSheet.addRow([]);
+    const oppTitle = insightsSheet.addRow(["Opportunities"]);
+    oppTitle.font = { bold: true, size: 12, color: { argb: ACCENT } };
+    const oppNote = insightsSheet.addRow([
+      "Areas worth pursuing that follow from the insights above. Not all can be sized from this dashboard's data.",
+    ]);
+    oppNote.font = { italic: true, size: 10, color: { argb: MUTED } };
+    const oppHeader = insightsSheet.addRow(["Opportunity", "Based on", "Indicative scale"]);
+    oppHeader.font = { bold: true, size: 11, color: { argb: ACCENT } };
+    oppHeader.eachCell((cell) => {
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: HEADER_FILL } };
+    });
+    for (const o of plan.opportunities) {
+      insightsSheet.addRow([o.opportunity, o.basedOn, o.scale ?? NOT_QUANTIFIABLE]).alignment = {
+        wrapText: true,
+        vertical: "top",
+      };
+    }
+  }
+
   // Sheet 4 — Recommended Actions.
   addSheet(
     workbook,
@@ -161,11 +187,13 @@ export async function renderActionPlanExcel(plan: ActionPlanResult): Promise<Uin
     "Actions suggested on the strength of the insights, followed by the phased implementation plan.",
     [
       { header: "Priority", width: 12 },
-      { header: "Action", width: 60 },
-      { header: "Why", width: 55 },
-      { header: "Expected impact", width: 45 },
+      { header: "Action", width: 52 },
+      { header: "Why", width: 46 },
+      { header: "Evidence", width: 46 },
+      { header: "Expected impact", width: 40 },
+      { header: "Depends on", width: 32 },
     ],
-    plan.recommendations.map((r) => [r.priority, r.action, r.reason, r.expectedImpact])
+    plan.recommendations.map((r) => [r.priority, r.action, r.reason, r.evidence, r.expectedImpact, r.dependencies ?? ""])
   );
 
   // The implementation plan rides on the same sheet as the actions it
@@ -176,7 +204,7 @@ export async function renderActionPlanExcel(plan: ActionPlanResult): Promise<Uin
     actionsSheet.addRow([]);
     const planTitle = actionsSheet.addRow(["Implementation Strategy"]);
     planTitle.font = { bold: true, size: 12, color: { argb: ACCENT } };
-    const planHeader = actionsSheet.addRow(["Phase", "Action", "Timeline", "Owner"]);
+    const planHeader = actionsSheet.addRow(["Phase", "Action", "Timeline", "Owner", "Success measure"]);
     planHeader.font = { bold: true, size: 11, color: { argb: ACCENT } };
     planHeader.eachCell((cell) => {
       cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: HEADER_FILL } };
@@ -185,7 +213,7 @@ export async function renderActionPlanExcel(plan: ActionPlanResult): Promise<Uin
       actionsSheet.addRow([NONE_IDENTIFIED]).font = { italic: true, color: { argb: MUTED } };
     } else {
       for (const phase of plan.implementationPlan) {
-        actionsSheet.addRow([phase.phase, phase.action, phase.timeline, phase.owner]).alignment = {
+        actionsSheet.addRow([phase.phase, phase.action, phase.timeline, phase.owner, phase.successMetric ?? ""]).alignment = {
           wrapText: true,
           vertical: "top",
         };
@@ -201,12 +229,14 @@ export async function renderActionPlanExcel(plan: ActionPlanResult): Promise<Uin
     "Potential Benefits",
     "Estimates only. Every figure is shown with the arithmetic and the assumption behind it, and requires business validation.",
     [
-      { header: "Benefit", width: 34 },
-      { header: "How it is derived", width: 44 },
-      { header: "Assumption", width: 62 },
-      { header: "Estimated value", width: 26 },
+      { header: "Benefit", width: 30 },
+      { header: "Starting from", width: 38 },
+      { header: "How it is derived", width: 38 },
+      { header: "Assumption", width: 56 },
+      { header: "Estimated value", width: 24 },
+      { header: "Confidence", width: 13 },
     ],
-    plan.benefits.map((b) => [b.metric, b.formula, b.assumption, b.value ?? NOT_QUANTIFIABLE])
+    plan.benefits.map((b) => [b.metric, b.basis, b.formula, b.assumption, b.value ?? NOT_QUANTIFIABLE, b.confidence])
   );
 
   const benefitsSheet = workbook.getWorksheet("Benefits & Assumptions");
@@ -223,6 +253,23 @@ export async function renderActionPlanExcel(plan: ActionPlanResult): Promise<Uin
     } else {
       for (const assumption of plan.assumptions) {
         benefitsSheet.addRow([assumption]).alignment = { wrapText: true, vertical: "top" };
+      }
+    }
+
+    // Same rule as the Word renderer: only present when there are gaps, since
+    // an empty "what we couldn't tell you" block reads as a caveat where none
+    // exists. Lives beside Assumptions because both answer "how far should you
+    // trust this" — one names what was supposed, the other what was missing.
+    if (plan.dataGaps.length > 0) {
+      benefitsSheet.addRow([]);
+      const gapsTitle = benefitsSheet.addRow(["Data Not Available"]);
+      gapsTitle.font = { bold: true, size: 12, color: { argb: ACCENT } };
+      const gapsNote = benefitsSheet.addRow([
+        "Needed for this objective but not carried by this dashboard. Nothing above estimates around these.",
+      ]);
+      gapsNote.font = { italic: true, size: 10, color: { argb: MUTED } };
+      for (const gap of plan.dataGaps) {
+        benefitsSheet.addRow([gap]).alignment = { wrapText: true, vertical: "top" };
       }
     }
 
