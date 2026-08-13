@@ -320,6 +320,10 @@ describe("buildContextSummaryForUI", () => {
     const summary = buildContextSummaryForUI(context, "tail-spend");
     assert.ok(summary);
     assert.ok(!summary!.includes("_"), `expected no raw snake_case in "${summary}"`);
-    assert.equal(summary, "By Some New Field Id");
+    // "ID", not "Id": humanizeFieldName gained an acronym/unit rule so the
+    // fallback stops emitting visibly machine-generated labels ("Actual Dpo",
+    // "Net Order Value Inr"). The invariant this test exists for — no raw
+    // snake_case ever reaches the user — is asserted above and is unchanged.
+    assert.equal(summary, "By Some New Field ID");
   });
 });

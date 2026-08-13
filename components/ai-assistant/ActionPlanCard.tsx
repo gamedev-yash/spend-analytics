@@ -8,19 +8,19 @@
 // readable there nor useful there — the Word and Excel files are the
 // deliverable, and this card's whole job is to hand them over. It therefore
 // shows only what you need in order to know WHICH file you are downloading:
-// the report's title, plus the honest provenance note when the content is
-// predefined demo data.
+// the report's title, plus a note when the objective reached past what the
+// dashboard could answer.
 //
 // The full ActionPlanResult still arrives in the API response and is still the
 // single source of truth behind both documents. Not rendering it here is a
 // presentation decision, not a narrowing of the contract — so bringing an
 // in-chat preview back later needs no server change.
 //
-// THE PROGRESS STEPS ARE HONEST ABOUT WHAT THEY ARE. The server does not
-// stream stage events (the workflow is one POST), so these indicate the phases
-// the request goes through, paced from the action's own estimatedSeconds. They
-// are never presented as live telemetry: the final step stays pending until
-// the real response lands, and everything resolves at once when it does.
+// THE PROGRESS STEPS ARE HONEST ABOUT WHAT THEY ARE. The server does not stream
+// stage events (the workflow is one POST), so these name the phases the request
+// really goes through but are paced client-side, NOT driven by server progress.
+// They are never presented as live telemetry: the final step stays pending
+// until the real response lands, and everything resolves at once when it does.
 
 import { useEffect, useState } from "react";
 import { AlertCircle, Check, FileSpreadsheet, FileText, Loader2 } from "lucide-react";
@@ -36,16 +36,22 @@ export interface ActionPlanState {
   /** Full result from the server. Only `title` is rendered — see the module comment. */
   report?: ActionPlanResult;
   artifacts?: { word: ArtifactDescriptor; excel: ArtifactDescriptor };
-  generator?: "demo" | "dynamic";
   cached?: boolean;
   error?: string;
 }
 
+// Named after the stages the engine really performs (see action-plan-engine's
+// HOW TO WORK block), so the labels describe the actual work rather than
+// inventing a plausible-sounding sequence.
 const STEPS = [
-  "Analysing dashboard data",
-  "Identifying insights",
+  "Understanding the objective",
+  "Querying dashboard data",
+  "Establishing facts",
+  "Analysing insights",
+  "Identifying opportunities",
   "Building recommendations",
-  "Generating report files",
+  "Preparing implementation plan",
+  "Generating Word and Excel",
 ];
 
 /**
@@ -54,13 +60,13 @@ const STEPS = [
  * a cached report (11ms) flashed past before a single step rendered, and a slow
  * one left three steps sitting untouched for a minute.
  *
- * Fast-then-hold works for both. The first three tick by in ~1.8s so there is
+ * Fast-then-hold works for both. The first seven tick by in ~1.8s so there is
  * always something to watch, then the LAST step holds — spinning — until the
  * real response lands. On a cached report that hold is momentary; on a live
  * generation it is minutes, which is honest, because generating is exactly
  * what's happening.
  */
-const STEP_INTERVAL_MS = 600;
+const STEP_INTERVAL_MS = 260;
 
 function ProgressSteps() {
   const [reached, setReached] = useState(0);
@@ -186,9 +192,13 @@ export function ActionPlanCard({ state }: { state: ActionPlanState }) {
         <DownloadLink artifact={artifacts.excel} icon={FileSpreadsheet} label="Download Excel" />
       </div>
 
-      {state.generator === "demo" && (
+      {/* Surfaced because it is the one thing the reader can't infer: the
+          objective reached past what this dashboard carries. The count only —
+          the documents themselves list the gaps. */}
+      {report.dataGaps.length > 0 && (
         <p className="mt-2 text-[0.68rem] text-amber-600 dark:text-amber-400">
-          Demo content — figures come from a predefined illustrative dataset, not a live query.
+          {report.dataGaps.length} item{report.dataGaps.length === 1 ? "" : "s"} this dashboard couldn&apos;t
+          answer — listed in the report.
         </p>
       )}
     </div>

@@ -5,8 +5,8 @@
 // constrains the JSON shape Claude emits, not its content, and it does not
 // constrain a hand-written generator at all. This module is where "do not
 // trust Claude output blindly" (§19) is actually enforced — and it runs on
-// the demo generator too, so the demo can never drift into a shape the
-// renderers can't handle.
+// every generator's output, and there is now exactly one generator, so no
+// report can reach a renderer unchecked.
 //
 // IT REJECTS RATHER THAN REPAIRS, with one deliberate exception: over-long
 // strings and over-long arrays are TRUNCATED, because a model returning 40
@@ -16,12 +16,24 @@
 // hard failure. Silently repairing those would mean shipping a document whose
 // numbers nobody can trace, which is the exact failure mode this whole
 // fact/insight/assumption separation exists to prevent.
+//
+// WHAT IT DELIBERATELY DOES NOT ENFORCE: any expectation about SUBJECT MATTER.
+// It never checks that a report mentions suppliers, spend, payments, or any
+// other business concept, and it never requires a minimum number of facts,
+// insights, or benefits. The engine is generic — a thin dashboard or a narrow
+// objective legitimately produces a short report, and a rule demanding "at
+// least N facts" would pressure the engine into padding one. The single
+// content-shaped rule below (at least one recommendation) exists because a plan
+// with nothing to do is not a plan, and "route this question elsewhere" already
+// satisfies it.
 
 import "server-only";
 
 import type {
   ActionPlanResult,
+  Confidence,
   Priority,
+  ReportOpportunity,
   ReportBenefit,
   ReportFact,
   ReportInsight,
@@ -39,6 +51,7 @@ const MAX_ITEMS = 25;
 const MAX_ASSUMPTIONS = 30;
 
 const PRIORITIES: Priority[] = ["High", "Medium", "Low"];
+const CONFIDENCES: Confidence[] = ["High", "Medium", "Low"];
 
 export class ActionPlanValidationError extends Error {
   readonly issues: string[];
@@ -125,6 +138,19 @@ function parseRecommendation(item: Record<string, unknown>, path: string, issues
     priority: priority ?? "Medium",
     reason: requireText(item.reason, `${path}.reason`, issues),
     expectedImpact: requireText(item.expectedImpact, `${path}.expectedImpact`, issues),
+    // Required: a recommendation nobody can trace back to a measured finding is
+    // an opinion wearing a report's clothes.
+    evidence: requireText(item.evidence, `${path}.evidence`, issues),
+    dependencies: optionalText(item.dependencies),
+  };
+}
+
+/** Scale is optional by design — an opportunity the data cannot size is still worth stating. */
+function parseOpportunity(item: Record<string, unknown>, path: string, issues: string[]): ReportOpportunity {
+  return {
+    opportunity: requireText(item.opportunity, `${path}.opportunity`, issues),
+    basedOn: requireText(item.basedOn, `${path}.basedOn`, issues),
+    scale: optionalText(item.scale),
   };
 }
 
@@ -136,10 +162,16 @@ function parseRecommendation(item: Record<string, unknown>, path: string, issues
  * render at all.
  */
 function parseBenefit(item: Record<string, unknown>, path: string, issues: string[]): ReportBenefit {
+  const confidence = CONFIDENCES.find((c) => c === item.confidence);
+  if (!confidence) issues.push(`${path}.confidence must be one of ${CONFIDENCES.join(", ")}`);
   return {
     metric: requireText(item.metric, `${path}.metric`, issues),
     formula: requireText(item.formula, `${path}.formula`, issues),
     assumption: requireText(item.assumption, `${path}.assumption`, issues),
+    // Required alongside formula/assumption: together they are what separate an
+    // estimate anchored in measured data from one anchored in nothing.
+    basis: requireText(item.basis, `${path}.basis`, issues),
+    confidence: confidence ?? "Low",
     value: optionalText(item.value),
   };
 }
@@ -157,6 +189,7 @@ function parsePhase(item: Record<string, unknown>, path: string, issues: string[
     action: requireText(item.action, `${path}.action`, issues),
     timeline: requireText(item.timeline, `${path}.timeline`, issues),
     owner: requireText(item.owner, `${path}.owner`, issues),
+    successMetric: optionalText(item.successMetric),
   };
 }
 
@@ -176,7 +209,7 @@ function parseStringList(value: unknown, path: string, issues: string[], max: nu
  * Throws ActionPlanValidationError on anything structurally wrong. The route
  * turns that into a 422 with the issue list — a real diagnostic, not a
  * generic "something went wrong", because the most likely cause is a
- * generator bug worth seeing during the demo.
+ * engine or prompt regression worth seeing rather than swallowing.
  */
 export function validateActionPlan(raw: unknown): ActionPlanResult {
   const issues: string[] = [];
@@ -191,12 +224,17 @@ export function validateActionPlan(raw: unknown): ActionPlanResult {
     scope: requireText(raw.scope, "scope", issues),
     facts: mapItems(raw.facts, "facts", issues, parseFact),
     insights: mapItems(raw.insights, "insights", issues, parseInsight),
+    opportunities: mapItems(raw.opportunities, "opportunities", issues, parseOpportunity),
     recommendations: mapItems(raw.recommendations, "recommendations", issues, parseRecommendation),
     benefits: mapItems(raw.benefits, "benefits", issues, parseBenefit),
     risks: mapItems(raw.risks, "risks", issues, parseRisk),
     implementationPlan: mapItems(raw.implementationPlan, "implementationPlan", issues, parsePhase),
     assumptions: parseStringList(raw.assumptions, "assumptions", issues, MAX_ASSUMPTIONS),
     nextSteps: parseStringList(raw.nextSteps, "nextSteps", issues, MAX_ITEMS),
+    // Empty is the healthy case — the objective was fully answerable. Never
+    // required, for the same reason no section is: demanding gaps would invent
+    // them exactly as demanding facts would pad them.
+    dataGaps: parseStringList(raw.dataGaps, "dataGaps", issues, MAX_ITEMS),
   };
 
   // A plan with nothing actionable in it isn't a report — better to fail loudly

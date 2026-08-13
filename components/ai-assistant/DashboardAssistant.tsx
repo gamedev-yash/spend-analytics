@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUpRight, ChevronDown, Sparkles, X } from "lucide-react";
+import { ChevronDown, Sparkles, X } from "lucide-react";
 import { dashboardKeyForPathname, dashboardMeta, type DashboardKey } from "@/lib/ai/dashboard-registry";
 import { stashPendingPrompt, takePendingPrompt } from "@/lib/ai/assistant-handoff";
 import { adoptConversationId, getOrCreateConversationId, resetConversationId } from "@/lib/ai/conversation-id";
@@ -69,6 +69,18 @@ function welcomeFor(key: DashboardKey): string {
   return `Hi! I'm grounded in the ${label} dashboard's own data only — ask me about what's on this page. If you need something from another dashboard, I'll point you to it instead of guessing.`;
 }
 
+interface DashboardAssistantProps {
+  /**
+   * Renders as a full-page standalone view (app/assistant/page.tsx) instead
+   * of the dashboard-embedded floating bubble+panel: no launcher bubble, no
+   * drag position, no outside-click-to-close, and the panel fills the
+   * viewport edge-to-edge rather than floating over dashboard content.
+   */
+  standalone?: boolean;
+  /** Only consulted when `standalone` is true — the standalone page has no pathname to infer a dashboard from, so it's passed in explicitly instead (see app/assistant/page.tsx's `?dashboard=` search param). */
+  standaloneDashboardKey?: DashboardKey | null;
+}
+
 /**
  * Floating chat scoped to exactly one of the dashboards in DASHBOARD_REGISTRY — whichever
  * the user is currently on. Unlike AiAssistant (the CSV-upload assistant),
@@ -77,10 +89,10 @@ function welcomeFor(key: DashboardKey): string {
  * A question that needs a different dashboard's data gets a redirect link,
  * never a guess — renders null outside the four dashboard routes.
  */
-export function DashboardAssistant() {
+export function DashboardAssistant({ standalone = false, standaloneDashboardKey = null }: DashboardAssistantProps = {}) {
   const pathname = usePathname();
   const router = useRouter();
-  const dashboardKey = pathname ? dashboardKeyForPathname(pathname) : null;
+  const dashboardKey = standalone ? standaloneDashboardKey : pathname ? dashboardKeyForPathname(pathname) : null;
   // Published by whichever dashboard is currently mounted — see
   // context/DashboardActiveFiltersContext.tsx for why the assistant needs
   // this at all (it lives outside every dashboard page's own filter state).
@@ -108,6 +120,14 @@ export function DashboardAssistant() {
 
   const [open, setOpen] = useState(false);
   const { isFullscreen: fullscreen, setIsFullscreen: setFullscreen } = useFullscreen();
+  // The standalone page has no launcher bubble to open from, so `open` itself
+  // never becomes true there — every effect/render decision that means "is
+  // the panel actually showing" reads `panelOpen`, not raw `open`, for
+  // exactly that reason. Likewise `effectiveFullscreen`: the standalone page
+  // always reads as "fullscreen" (wider message column, Composer's fullscreen
+  // toolbar slot for Report Mode) even though it has no toggle state of its own.
+  const panelOpen = standalone || open;
+  const effectiveFullscreen = standalone || fullscreen;
   const [messages, setMessages] = useState<ChatEntry[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -115,10 +135,13 @@ export function DashboardAssistant() {
   // composer. The two requests are independent, so the user can turn Report
   // off and keep asking normal questions while one renders.
   const [actionBusy, setActionBusy] = useState(false);
-  // Report mode — sticky until the user turns it off, the way an explicit mode
-  // should behave (a mode that silently reset after one use would be a
-  // surprise, and the composer makes its state unmissable). While OFF, nothing
-  // about the chat path changes at all: same request, same tools, same latency.
+  // Report mode — TURN-BASED: it survives a clarification (where it still has
+  // work to do) but switches itself off once a report is delivered, or once a
+  // request turns out to be factual/navigational and gets routed to normal chat.
+  // At ~160s and a full Claude session per run, a mode that silently stayed on
+  // after succeeding would make the next stray message expensive, and the user
+  // has already got what they enabled it for. While OFF, nothing about the chat
+  // path changes at all: same request, same tools, same latency.
   const [reportMode, setReportMode] = useState(false);
   const [unread, setUnread] = useState(false);
   const [showJumpToLatest, setShowJumpToLatest] = useState(false);
@@ -156,12 +179,32 @@ export function DashboardAssistant() {
     setOpen(false);
     setFullscreen(false);
   }, [setFullscreen]);
-  useOutsideClick(open && !fullscreen, closePanel, [panelRef, buttonRef]);
+  useOutsideClick(!standalone && open && !fullscreen, closePanel, [panelRef, buttonRef]);
+
+  // "Open in New Tab" — deliberately `noopener`: without it, a same-origin
+  // `window.open` clones this tab's sessionStorage into the new one, which
+  // would hand the "fresh chat session" a conversationId (and thus server-side
+  // memory) it was never supposed to have. See lib/ai/conversation-id.ts.
+  const openInNewTab = useCallback(() => {
+    if (!dashboardKey) return;
+    window.open(`/assistant?dashboard=${dashboardKey}`, "_blank", "noopener,noreferrer");
+  }, [dashboardKey]);
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
     actionAbortRef.current?.abort();
   }, []);
+
+  // Set for the duration of a reset so send()'s AbortError branch knows NOT
+  // to append its usual "Stopped." message. Without this: New Chat mid-stream
+  // calls stop() below, which aborts the in-flight fetch, but that abort's
+  // catch handler doesn't run until a later microtask — by then
+  // resetConversation has already replaced `messages` with the fresh welcome
+  // array, so the late "Stopped." would land appended onto the just-reset
+  // transcript instead of vanishing with it. Cleared via setTimeout(0) (a
+  // macrotask) rather than a microtask, so it reliably outlasts however many
+  // promise-chain hops the abort takes to actually reach that catch block.
+  const resettingRef = useRef(false);
 
   // "New chat" — an explicit reset, per the follow-up feature's reset rules
   // (§20): rotates the conversationId too, so the server's stored memory for
@@ -169,10 +212,13 @@ export function DashboardAssistant() {
   // into what looks like a brand-new conversation.
   const resetConversation = useCallback(() => {
     if (!dashboardKey) return;
+    resettingRef.current = true;
     stop();
+    setBusy(false);
     setConversationId(resetConversationId());
     setSuggestedFollowUps(null);
     setContextSummary(null);
+    setReportMode(false);
     setMessages([{ role: "assistant", content: welcomeFor(dashboardKey), timestamp: Date.now() }]);
     setInput("");
     // An in-flight report's own fetch isn't aborted here (it holds no
@@ -184,6 +230,14 @@ export function DashboardAssistant() {
     setUnread(false);
     stickToBottomRef.current = true;
     setShowJumpToLatest(false);
+    // Same landing spot the panel-open effect focuses — New Chat should feel
+    // as ready-to-type as first opening it.
+    requestAnimationFrame(() => {
+      panelRef.current?.querySelector<HTMLTextAreaElement>("textarea")?.focus();
+    });
+    setTimeout(() => {
+      resettingRef.current = false;
+    }, 0);
   }, [dashboardKey, stop]);
 
   // Reset the VISIBLE conversation when the user moves to a different
@@ -267,6 +321,22 @@ export function DashboardAssistant() {
     setShowJumpToLatest(false);
   }, []);
 
+  // Keeps the transcript pinned to the latest message as the composer below
+  // it grows (Composer.tsx's auto-resizing textarea) or the window resizes —
+  // either one shrinks this flex-1 container's own height, which is exactly
+  // what ResizeObserver reports, regardless of which caused it. Only acts
+  // when the user was already at the bottom, same rule as every other
+  // scroll-follow behavior here.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(() => {
+      if (stickToBottomRef.current) el.scrollTop = el.scrollHeight;
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   useEffect(() => {
     if (!scrollRef.current) return;
     // The empty state (just the seeded welcome message) is an onboarding
@@ -344,7 +414,12 @@ export function DashboardAssistant() {
         ]);
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") {
-          setMessages((prev) => [...prev, { role: "assistant", content: "Stopped.", timestamp: Date.now() }]);
+          // A New Chat reset aborts this same request (see resetConversation) —
+          // in that case `messages` has already moved on to the fresh welcome
+          // array, so this stale "Stopped." has nothing meaningful to append to.
+          if (!resettingRef.current) {
+            setMessages((prev) => [...prev, { role: "assistant", content: "Stopped.", timestamp: Date.now() }]);
+          }
         } else {
           setMessages((prev) => [
             ...prev,
@@ -429,14 +504,61 @@ export function DashboardAssistant() {
         if (!res.ok || !data.success) {
           throw new Error(data.success ? `Request failed (${res.status}).` : data.error);
         }
+
+        // Triage decided this request should not become a report. Each kind is
+        // routed to the mechanism that ALREADY handles it, rather than to a new
+        // report-shaped surface:
+        //
+        //   factual / navigation  → drop the report card and re-send the very
+        //     same question through normal chat. The chat path already answers
+        //     figures correctly and already owns redirect_to_dashboard, so
+        //     "Report Mode was on" costs the user nothing but a short detour —
+        //     they still get a real grounded answer to what they actually asked.
+        //   clarification → render the engine's question with the existing
+        //     option-chip mechanism, and LEAVE Report Mode on, so whichever
+        //     angle they pick flows straight into a report.
+        //   unsupported → state the limitation. No chips: there is nothing to
+        //     pick, and offering choices would imply the data exists.
+        if (data.type === "no_report") {
+          const routeToChat = data.kind === "factual" || data.kind === "navigation";
+          setMessages((prev) =>
+            prev
+              // Remove the running card — no report is coming, and leaving a
+              // spent progress card above the answer reads as a failure.
+              .filter((m) => m !== entry)
+              .concat(
+                routeToChat
+                  ? []
+                  : [
+                      {
+                        role: "assistant" as const,
+                        content: data.message,
+                        options: data.options ?? undefined,
+                        timestamp: Date.now(),
+                      },
+                    ]
+              )
+          );
+          if (routeToChat) {
+            setReportMode(false);
+            void send(objective);
+          }
+          return;
+        }
+
         await patch({
           status: "done",
           label: action.label,
           report: data.report,
           artifacts: data.artifacts,
-          generator: data.generator,
           cached: data.cached,
         });
+        // Turn-based lifecycle: a delivered report ends the mode. At ~160s and a
+        // full Claude session per run, a mode that silently stayed on after
+        // succeeding would make the next stray message expensive — and the user
+        // has already got what they switched it on for. Deliberately NOT reset
+        // after a clarification, where the mode still has work to do.
+        setReportMode(false);
       } catch (err) {
         // An abort is the one case that skips the floor — the user asked for it
         // to stop, so making them watch two more seconds of fake progress first
@@ -458,7 +580,7 @@ export function DashboardAssistant() {
         setActionBusy(false);
       }
     },
-    [dashboardKey, actionBusy, activeFilterSummary, conversationId]
+    [dashboardKey, actionBusy, activeFilterSummary, conversationId, send]
   );
 
   // Which action Report mode runs. Registry-driven, so this component never
@@ -521,25 +643,25 @@ export function DashboardAssistant() {
   // hidden behind the panel. The composer is the natural landing spot either
   // way (empty state or an ongoing conversation).
   useEffect(() => {
-    if (!open) return;
+    if (!panelOpen) return;
     const id = requestAnimationFrame(() => {
       panelRef.current?.querySelector<HTMLTextAreaElement>("textarea")?.focus();
     });
     return () => cancelAnimationFrame(id);
-  }, [open]);
+  }, [panelOpen]);
 
   // Esc closes the compact popup (full-screen's own Esc-to-exit already comes
   // from useFullscreen above). While full-screen, Tab/Shift+Tab wrap inside
   // the panel instead of escaping into the dashboard behind it — a minimal,
   // dependency-free stand-in for a real dialog focus trap.
   useEffect(() => {
-    if (!open) return;
+    if (!panelOpen) return;
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape" && !fullscreen) {
+      if (e.key === "Escape" && !effectiveFullscreen) {
         closePanel();
         return;
       }
-      if (e.key !== "Tab" || !fullscreen || !panelRef.current) return;
+      if (e.key !== "Tab" || !effectiveFullscreen || !panelRef.current) return;
       const focusables = Array.from(panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
         (el) => !el.hasAttribute("disabled")
       );
@@ -556,7 +678,7 @@ export function DashboardAssistant() {
     }
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [open, fullscreen, closePanel]);
+  }, [panelOpen, effectiveFullscreen, closePanel]);
 
   if (!dashboardKey) return null;
   if (isCapturing) return null;
@@ -565,56 +687,59 @@ export function DashboardAssistant() {
 
   return (
     <>
-      <button
-        id="ai-assistant-button"
-        ref={buttonRef}
-        type="button"
-        onClick={suppressClickAfterDrag(() => (open ? closePanel() : setOpen(true)))}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        aria-expanded={open}
-        aria-label={unread ? "AI Assistant — new reply available" : "AI Assistant"}
-        title="AI Assistant"
-        style={position ? { left: position.x, top: position.y } : undefined}
-        className={cn(
-          // `fixed` already establishes a positioning context for the absolute
-          // unread-dot child below — no separate `relative` needed (and adding
-          // one would conflict with `fixed` on the same element).
-          "fixed z-[60] inline-flex cursor-grab touch-none items-center gap-1.5 rounded-full border px-4 py-3 text-sm font-medium shadow-lg transition-all duration-200 select-none active:cursor-grabbing hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400",
-          !position && "bottom-6 right-6",
-          // Dark Navy in light mode, Off-White in dark mode — the enterprise
-          // high-contrast pair, not a brand gradient. Slightly dimmed while
-          // open so the launcher visually recedes behind the now-focused panel.
-          "border-slate-800 bg-slate-900 text-white hover:bg-slate-800 dark:border-transparent dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white",
-          open && "opacity-90 hover:opacity-100"
-        )}
-      >
-        {open ? <X className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
-        AI
-        {/* Subtle "new insight" glow — only shown when a reply landed while
-            minimized, never as a decorative always-on effect. */}
-        {!open && unread && (
-          <span className="absolute -top-1 -right-1 flex h-3 w-3" aria-hidden="true">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-white" />
-          </span>
-        )}
-      </button>
+      {!standalone && (
+        <button
+          id="ai-assistant-button"
+          ref={buttonRef}
+          type="button"
+          onClick={suppressClickAfterDrag(() => (open ? closePanel() : setOpen(true)))}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          aria-expanded={open}
+          aria-label={unread ? "AI Assistant — new reply available" : "AI Assistant"}
+          title="AI Assistant"
+          style={position ? { left: position.x, top: position.y } : undefined}
+          className={cn(
+            // `fixed` already establishes a positioning context for the absolute
+            // unread-dot child below — no separate `relative` needed (and adding
+            // one would conflict with `fixed` on the same element).
+            "fixed z-[60] inline-flex cursor-grab touch-none items-center gap-1.5 rounded-full border px-4 py-3 text-sm font-medium shadow-lg transition-all duration-200 select-none active:cursor-grabbing hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400",
+            !position && "bottom-6 right-6",
+            // Dark Navy in light mode, Off-White in dark mode — the enterprise
+            // high-contrast pair, not a brand gradient. Slightly dimmed while
+            // open so the launcher visually recedes behind the now-focused panel.
+            "border-slate-800 bg-slate-900 text-white hover:bg-slate-800 dark:border-transparent dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white",
+            open && "opacity-90 hover:opacity-100"
+          )}
+        >
+          {open ? <X className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+          AI
+          {/* Subtle "new insight" glow — only shown when a reply landed while
+              minimized, never as a decorative always-on effect. */}
+          {!open && unread && (
+            <span className="absolute -top-1 -right-1 flex h-3 w-3" aria-hidden="true">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-white" />
+            </span>
+          )}
+        </button>
+      )}
 
       <AnimatePresence>
-        {open && (
+        {panelOpen && (
           <motion.div
             ref={panelRef}
+            data-assistant-panel
             initial={{ opacity: 0, scale: 0.97, y: 6 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: 6 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            role="dialog"
-            aria-modal={fullscreen}
+            role={standalone ? undefined : "dialog"}
+            aria-modal={standalone ? undefined : fullscreen}
             aria-label="AI Assistant"
             style={
-              !fullscreen && position
+              !standalone && !fullscreen && position
                 ? {
                     left: Math.min(
                       position.x,
@@ -627,18 +752,24 @@ export function DashboardAssistant() {
                 : undefined
             }
             className={cn(
-              "fixed z-[60] flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900",
-              fullscreen
-                ? "inset-4 md:inset-10"
-                : cn("h-[min(34rem,calc(100vh-9rem))] w-[min(24rem,calc(100vw-3rem))]", !position && "bottom-24 right-6")
+              "fixed z-[60] flex flex-col overflow-hidden bg-white dark:bg-slate-900",
+              standalone
+                ? "inset-0"
+                : cn(
+                    "rounded-2xl border border-slate-200 shadow-2xl dark:border-slate-800",
+                    fullscreen
+                      ? "inset-4 md:inset-10"
+                      : cn("h-[min(34rem,calc(100vh-9rem))] w-[min(24rem,calc(100vw-3rem))]", !position && "bottom-24 right-6")
+                  )
             )}
           >
             <AssistantHeader
               dashboardLabel={meta.label}
-              fullscreen={fullscreen}
+              fullscreen={effectiveFullscreen}
               onNewChat={resetConversation}
-              onToggleFullscreen={() => setFullscreen((v) => !v)}
-              onClose={closePanel}
+              onToggleFullscreen={standalone ? undefined : () => setFullscreen((v) => !v)}
+              onMinimize={standalone ? undefined : closePanel}
+              onOpenInNewTab={standalone ? undefined : openInNewTab}
             />
 
             <div className="relative min-h-0 flex-1">
@@ -649,15 +780,15 @@ export function DashboardAssistant() {
                     welcomeText={messages[0]?.content ?? welcomeFor(dashboardKey)}
                     onSelect={(text) => void send(text)}
                     disabled={busy}
-                    fullscreen={fullscreen}
+                    fullscreen={effectiveFullscreen}
                   />
                 ) : (
-                  <div className={cn("mx-auto space-y-4", fullscreen && "max-w-3xl")}>
+                  <div className={cn("mx-auto space-y-4", effectiveFullscreen && "max-w-3xl")}>
                     {messages.map((m, i) => (
                       <MessageBubble
                         key={i}
                         message={m}
-                        fullscreen={fullscreen}
+                        fullscreen={effectiveFullscreen}
                         busy={busy}
                         onOptionSelect={(option) => void send(option)}
                         onRedirect={handleRedirect}
@@ -717,23 +848,6 @@ export function DashboardAssistant() {
               )}
             </div>
 
-            {/* Prominent full-screen entry point for the compact popup — the
-                header's icon-only toggle still exists for quick access, this
-                is the more discoverable, labeled version the compact widget
-                calls for. Same `setFullscreen` as the header button — no new
-                state, just another trigger for it — so the conversation
-                already in `messages` carries over untouched. */}
-            {!fullscreen && (
-              <button
-                type="button"
-                onClick={() => setFullscreen(true)}
-                className="flex shrink-0 items-center justify-center gap-1.5 border-t border-slate-100 bg-slate-50/80 py-2 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-slate-400 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-              >
-                Open full assistant
-                <ArrowUpRight className="h-3.5 w-3.5" />
-              </button>
-            )}
-
             {/* Transparency, not decoration: the answer about to come back is
                 grounded in this filtered view, not the full dataset — the
                 user should see that before asking, not have to infer it from
@@ -770,10 +884,11 @@ export function DashboardAssistant() {
                   ? `Describe the report you want from ${meta.label}…`
                   : `Ask about ${meta.label}…`
               }
-              fullscreen={fullscreen}
+              fullscreen={effectiveFullscreen}
               reportMode={reportMode}
               onToggleReportMode={() => setReportMode((v) => !v)}
               reportModeLabel={reportAction?.label ?? ""}
+              reportModeSeconds={reportAction?.estimatedSeconds ?? 0}
               reportModeAvailable={reportAction !== null}
             />
           </motion.div>

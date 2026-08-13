@@ -1,18 +1,29 @@
 "use client";
 
-import { Bot, Maximize2, Minimize2, SquarePen, X } from "lucide-react";
+import { Bot, ExternalLink, Maximize2, Minimize2, Minus, SquarePen } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AssistantHeaderProps {
   dashboardLabel: string;
   fullscreen: boolean;
   onNewChat: () => void;
-  onToggleFullscreen: () => void;
-  onClose: () => void;
+  /** Omitted on the standalone /assistant page — it's always full-viewport there, so there's nothing to toggle. */
+  onToggleFullscreen?: () => void;
+  /** Collapses the panel back to the launcher bubble — conversation state (messages, input, report mode) is preserved, not cleared; see DashboardAssistant.tsx. Omitted on the standalone page (no launcher bubble to minimize back to). */
+  onMinimize?: () => void;
+  /** Omitted on the standalone /assistant page (already its own tab) — the button is hidden rather than shown-and-broken. */
+  onOpenInNewTab?: () => void;
 }
 
-/** The panel's top bar — identity, dashboard context, and window controls. */
-export function AssistantHeader({ dashboardLabel, fullscreen, onNewChat, onToggleFullscreen, onClose }: AssistantHeaderProps) {
+/** The panel's top bar — identity, dashboard context, and window controls. Report Mode lives entirely in Composer.tsx's toolbar now (a Gemini-style inline pill next to Send) — this header never renders it. */
+export function AssistantHeader({
+  dashboardLabel,
+  fullscreen,
+  onNewChat,
+  onToggleFullscreen,
+  onMinimize,
+  onOpenInNewTab,
+}: AssistantHeaderProps) {
   return (
     <div className={cn("shrink-0 border-b border-slate-200 bg-white/80 px-4 py-3 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/80", fullscreen && "sm:px-6")}>
       <div className="flex items-center gap-3">
@@ -40,6 +51,10 @@ export function AssistantHeader({ dashboardLabel, fullscreen, onNewChat, onToggl
           )}
         </div>
 
+        {/* Every control lives in this one top-right cluster: New Chat, then
+            the window controls in a fixed order (Minimize, Full Screen, Open
+            in New Tab) — each hidden individually when its handler is omitted
+            (see the standalone-page doc comments above). */}
         <div className="flex shrink-0 items-center gap-1">
           <button
             type="button"
@@ -50,24 +65,39 @@ export function AssistantHeader({ dashboardLabel, fullscreen, onNewChat, onToggl
           >
             <SquarePen className="h-4 w-4" />
           </button>
-          <button
-            type="button"
-            onClick={onToggleFullscreen}
-            aria-label={fullscreen ? "Exit full screen" : "Full screen"}
-            title={fullscreen ? "Exit full screen (Esc)" : "Full screen"}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
-          >
-            {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close AI Assistant"
-            title="Close"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          {onMinimize && (
+            <button
+              type="button"
+              onClick={onMinimize}
+              aria-label="Minimize"
+              title="Minimize"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+            >
+              <Minus className="h-4 w-4" />
+            </button>
+          )}
+          {onToggleFullscreen && (
+            <button
+              type="button"
+              onClick={onToggleFullscreen}
+              aria-label={fullscreen ? "Exit full screen" : "Full screen"}
+              title={fullscreen ? "Exit full screen (Esc)" : "Full screen"}
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+            >
+              {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            </button>
+          )}
+          {onOpenInNewTab && (
+            <button
+              type="button"
+              onClick={onOpenInNewTab}
+              aria-label="Open in new tab"
+              title="Open in new tab"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+            >
+              <ExternalLink className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
     </div>
