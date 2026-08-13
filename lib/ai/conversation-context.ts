@@ -287,9 +287,52 @@ const FIELD_DISPLAY_LABELS: Record<string, string> = {
   tail_tier: "Tail Tier",
 };
 
-/** Never shows a raw column id to the user — an explicit label when known, otherwise a plain-word fallback (still no underscores/snake_case) rather than the literal identifier. */
-function humanizeFieldName(field: string): string {
-  return FIELD_DISPLAY_LABELS[field] ?? field.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+/**
+ * Never shows a raw column id to the user — an explicit label when known,
+ * otherwise a plain-word fallback (still no underscores/snake_case) rather than
+ * the literal identifier.
+ *
+ * Exported since lib/ai/actions/identifier-guard.ts needs the same mapping as a
+ * last-resort scrub for report text. Shared rather than copied: two independent
+ * "field id → human label" tables would drift, and this one is already the
+ * app's answer to that question.
+ */
+// Tokens that are acronyms or units, not words. Title-casing alone turned
+// these into "Actual Dpo", "Net Order Value Inr", "Cumulative Spend Pct" —
+// readable but visibly machine-generated, which defeats the point of a
+// human-facing label. Handled as a rule rather than as more entries in
+// FIELD_DISPLAY_LABELS above, because the same suffixes recur across a dozen
+// columns and will recur again on any column added later.
+const TOKEN_REPLACEMENTS: Record<string, string> = {
+  po: "PO",
+  dpo: "DPO",
+  id: "ID",
+  uom: "UoM",
+  qty: "Quantity",
+  avg: "Average",
+  pct: "%",
+  inr: "(₹)",
+  l1: "L1",
+  l2: "L2",
+};
+
+// Warehouse table prefixes. A table name has no business appearing in
+// user-facing text at all, but if one does reach the scrub, "PO Items records"
+// reads far better than "Fact PO Items".
+const TABLE_PREFIXES = /^(fact|dim|agg)_/;
+
+export function humanizeFieldName(field: string): string {
+  const explicit = FIELD_DISPLAY_LABELS[field];
+  if (explicit) return explicit;
+
+  const isTable = TABLE_PREFIXES.test(field);
+  const words = field
+    .replace(TABLE_PREFIXES, "")
+    .split("_")
+    .map((token) => TOKEN_REPLACEMENTS[token] ?? token.charAt(0).toUpperCase() + token.slice(1));
+
+  const label = words.join(" ").replace(/ (\(₹\)|%)$/, " $1").trim();
+  return isTable ? `${label} records` : label;
 }
 
 /**

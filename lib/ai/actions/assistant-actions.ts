@@ -2,12 +2,18 @@
 // assistant panel can offer alongside normal chat.
 //
 // WHY A REGISTRY FOR ONE ACTION: not speculative generality. It is the thing
-// that keeps the *next* action ("Generate Executive Summary", "Compare
-// Suppliers", "Export Analysis") from being another button hardcoded into
-// DashboardAssistant.tsx with another bespoke endpoint behind it. Adding one
-// means an entry here plus a generator; the button row, the request contract,
-// the validation, the artifact plumbing, and the download UI are already
-// action-agnostic.
+// that keeps the *next* action ("Generate Executive Summary", "Create
+// Presentation", "Export Analysis") from being another control hardcoded into
+// the composer with another bespoke endpoint behind it. Adding one means an
+// entry here plus its engine; the toggle, the request contract, the validation,
+// the artifact plumbing, and the download UI are already action-agnostic.
+//
+// THIS IS AN ACTION-TYPE REGISTRY, NOT A SCENARIO REGISTRY. The distinction
+// matters: entries here describe what KIND of output the user is asking for
+// (an action plan, a summary, a deck), never which business problem they are
+// asking about. Nothing here mentions a dashboard, a metric, or a keyword, and
+// the action-plan engine behind this entry handles every dashboard and every
+// objective through one generic path.
 //
 // WHAT THIS IS NOT: these are not Claude tools. Nothing in this file is ever
 // put in front of the model during normal chat — Claude cannot decide to run
@@ -33,7 +39,15 @@ export interface AssistantActionDefinition {
    * gating logic in the UI.
    */
   dashboards: DashboardKey[] | null;
-  /** Rough user-facing expectation, shown while it runs. */
+  /**
+   * Rough wall-clock expectation, surfaced in the toggle's tooltip so a user
+   * knows what they are committing to before enabling it.
+   *
+   * Measured, not guessed: live runs across all six dashboards land at
+   * 150-165s. It was 25 while the retired predefined-content generator made
+   * some reports near-instant; leaving that number in place would have
+   * understated the real cost by an order of magnitude.
+   */
   estimatedSeconds: number;
 }
 
@@ -44,7 +58,7 @@ export const ASSISTANT_ACTIONS: AssistantActionDefinition[] = [
     description:
       "Analyse this dashboard's data against your question and produce a structured action plan, downloadable as Word and Excel.",
     dashboards: null,
-    estimatedSeconds: 25,
+    estimatedSeconds: 160,
   },
 ];
 

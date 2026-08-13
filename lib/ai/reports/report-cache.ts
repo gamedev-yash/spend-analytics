@@ -35,7 +35,6 @@ const TTL_MS = 30 * 60 * 1000;
 
 export interface CachedReport {
   plan: ActionPlanResult;
-  generator: "demo" | "dynamic";
   wordArtifactId: string | null;
   excelArtifactId: string | null;
 }

@@ -23,6 +23,8 @@ interface ComposerProps {
   onToggleReportMode: () => void;
   /** Label from the action registry (lib/ai/actions/assistant-actions.ts) — never hardcoded here, so a renamed or added action needs no change in this file. */
   reportModeLabel: string;
+  /** Measured expectation from the same registry entry. Surfaced because enabling this commits the user to minutes, not seconds. */
+  reportModeSeconds: number;
   /** False when the current dashboard offers no report action — the toggle is then hidden rather than shown-and-broken. */
   reportModeAvailable: boolean;
 }
@@ -39,6 +41,7 @@ export function Composer({
   reportMode,
   onToggleReportMode,
   reportModeLabel,
+  reportModeSeconds,
   reportModeAvailable,
 }: ComposerProps) {
   return (
@@ -54,8 +57,8 @@ export function Composer({
             onClick={onToggleReportMode}
             title={
               reportMode
-                ? "Report is enabled — your next message will generate a downloadable report. Click to disable."
-                : `Enable to generate a downloadable report instead of a chat answer (${reportModeLabel}).`
+                ? `Report is enabled — your next message will generate a downloadable report instead of a chat answer. Takes around ${Math.round(reportModeSeconds / 60)} minutes. Click to disable.`
+                : `Enable to generate a downloadable report instead of a chat answer (${reportModeLabel}). Takes around ${Math.round(reportModeSeconds / 60)} minutes.`
             }
             className={cn(
               "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[0.7rem] font-medium shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1",
@@ -82,7 +85,7 @@ export function Composer({
           </button>
           {reportMode && (
             <span className="truncate text-[0.68rem] text-slate-500 dark:text-slate-400">
-              Next message generates Word + Excel
+              Next message generates Word + Excel · ~{Math.round(reportModeSeconds / 60)} min
             </span>
           )}
         </div>
