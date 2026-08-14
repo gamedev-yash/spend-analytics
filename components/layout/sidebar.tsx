@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { PanelLeft, PanelLeftClose, Sparkles, Trash2 } from "lucide-react";
+import { PanelLeft, PanelLeftClose, Search, Sparkles, Trash2 } from "lucide-react";
 import { NAV_ITEMS } from "@/lib/nav";
 import { useGeneratedDashboards, deleteGeneratedDashboard } from "@/lib/generated-dashboard/store";
 import { GenerateDashboardButton } from "@/components/generated-dashboard/generate-dashboard-dialog";
@@ -112,7 +112,14 @@ export function Sidebar({
   const router = useRouter();
   const generatedDashboards = useGeneratedDashboards();
   const [peeking, setPeeking] = useState(false);
+  const [dashboardQuery, setDashboardQuery] = useState("");
   const peekTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const filteredDashboards = useMemo(() => {
+    const query = dashboardQuery.trim().toLowerCase();
+    if (!query) return generatedDashboards;
+    return generatedDashboards.filter((dashboard) => dashboard.title.toLowerCase().includes(query));
+  }, [generatedDashboards, dashboardQuery]);
 
   useEffect(() => {
     return () => {
@@ -287,9 +294,10 @@ export function Sidebar({
         })}
 
         {/*
-          AI-generated dashboards, then the create entry point — the list
-          scrolls within its own capped box, with the generate button pinned
-          outside it so an unbounded list can't push it off the bottom.
+          Create entry point stays first and fixed — the search bar and list
+          render below it, so an unbounded/filtered list can never push the
+          button around. The list itself still scrolls within its own capped
+          box so it can't push anything else off the bottom either.
         */}
         <div className="pt-3">
           {showExpanded && (
@@ -298,31 +306,52 @@ export function Sidebar({
             </p>
           )}
           <div className="space-y-1">
+            <GenerateDashboardButton variant="nav" collapsed={!showExpanded} />
+
+            {showExpanded && generatedDashboards.length > 0 && (
+              <label className="relative block px-0 pt-1">
+                <Search className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+                <input
+                  type="search"
+                  value={dashboardQuery}
+                  onChange={(e) => setDashboardQuery(e.target.value)}
+                  placeholder="Search dashboards"
+                  aria-label="Search generated dashboards"
+                  className="w-full rounded-md border border-slate-200 bg-white py-1.5 pr-2.5 pl-8 text-sm text-slate-700 outline-none focus:ring-1 focus:ring-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:ring-slate-500"
+                />
+              </label>
+            )}
+
             {generatedDashboards.length > 0 && (
               <div className="max-h-56 space-y-1 overflow-y-auto overscroll-contain">
-                {generatedDashboards.map((dashboard) => {
-                  const href = `/generated/${dashboard.id}`;
-                  const isActive = pathname === href;
-                  return (
-                    <DashboardNavItem
-                      key={dashboard.id}
-                      href={href}
-                      title={dashboard.title}
-                      icon={<Sparkles className="h-4 w-4 shrink-0" />}
-                      isActive={isActive}
-                      showExpanded={showExpanded}
-                      onDelete={() => {
-                        if (window.confirm(`Delete "${dashboard.title}"? This cannot be undone.`)) {
-                          deleteGeneratedDashboard(dashboard.id);
-                          if (isActive) router.push("/");
-                        }
-                      }}
-                    />
-                  );
-                })}
+                {(showExpanded ? filteredDashboards : generatedDashboards).length > 0 ? (
+                  (showExpanded ? filteredDashboards : generatedDashboards).map((dashboard) => {
+                    const href = `/generated/${dashboard.id}`;
+                    const isActive = pathname === href;
+                    return (
+                      <DashboardNavItem
+                        key={dashboard.id}
+                        href={href}
+                        title={dashboard.title}
+                        icon={<Sparkles className="h-4 w-4 shrink-0" />}
+                        isActive={isActive}
+                        showExpanded={showExpanded}
+                        onDelete={() => {
+                          if (window.confirm(`Delete "${dashboard.title}"? This cannot be undone.`)) {
+                            deleteGeneratedDashboard(dashboard.id);
+                            if (isActive) router.push("/");
+                          }
+                        }}
+                      />
+                    );
+                  })
+                ) : showExpanded ? (
+                  <p className="px-3 py-2 text-xs text-slate-400 dark:text-slate-500">
+                    No dashboards match &quot;{dashboardQuery}&quot;.
+                  </p>
+                ) : null}
               </div>
             )}
-            <GenerateDashboardButton variant="nav" collapsed={!showExpanded} />
           </div>
         </div>
       </nav>
