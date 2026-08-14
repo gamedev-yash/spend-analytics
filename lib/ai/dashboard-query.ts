@@ -1,21 +1,31 @@
 import "server-only";
 
-// The Query Engine for the core dashboards' AI assistant, and its wiring to
-// the model. lib/ai/query-engine.ts already implements the dashboard-agnostic
-// filter/groupBy/aggregate/sort/limit engine over plain row arrays; this file
-// is what turns that into a `strict: true` tool call scoped to exactly one
-// dashboard's tables (lib/ai/dashboard-tables.ts), validates the model's
-// choice of table/field against that dashboard's real data before running
-// anything, and renders the result back as a correctable tool_result — the
-// same "enum is the first layer, the engine is the second" containment
-// app/api/assistant/route.ts already uses for the warehouse.
+// The Query Engine wiring for the dashboard AI assistant — for EVERY dashboard
+// kind. lib/ai/query-engine.ts already implements the dashboard-agnostic
+// filter/groupBy/aggregate/sort/limit engine over plain row arrays; this file is
+// what turns that into a `strict: true` tool call scoped to exactly one
+// dashboard's tables, validates the model's choice of table/field against that
+// dashboard's real data before running anything, and renders the result back as
+// a correctable tool_result — "the enum is the first layer, the engine is the
+// second" containment.
+//
+// It takes a DashboardDataContext (lib/ai/dashboard-data-context.ts), never a
+// DashboardKey and never a dashboard id, which is what makes ONE
+// query_dashboard_data tool serve both kinds:
+//
+//   built-in dashboard: warehouse row tables  ─┐
+//   custom dashboard:   GeneratedDashboard.rows ┴─► the same runQuery()
+//
+// The tool the model sees differs only in its table/field ENUMS, and those are
+// derived from whichever dashboard is actually open. There is no
+// query_custom_dashboard_data, no second validation path, and no way to name a
+// table belonging to a dashboard the user is not on.
 
 import Anthropic from "@anthropic-ai/sdk";
 import { runQuery, describeSchema } from "@/lib/ai/query-engine";
 import type { QueryAggregation, QueryOp, QueryResult, QuerySpec } from "@/lib/ai/query-engine";
-import { getDashboardTables, type DashboardTable } from "@/lib/ai/dashboard-tables";
-import type { DashboardKey } from "@/lib/ai/dashboard-registry";
-import { getDatasetVersion } from "@/lib/server/sample-data-source";
+import type { DashboardTable } from "@/lib/ai/dashboard-tables";
+import type { DashboardDataContext } from "@/lib/ai/dashboard-data-context";
 import { buildQueryCacheKey, getCachedQueryResult, setCachedQueryResult } from "@/lib/ai/query-cache";
 
 const AGGREGATIONS: QueryAggregation[] = ["sum", "avg", "count", "min", "max", "distinct"];
@@ -29,19 +39,24 @@ function allFieldIds(tables: DashboardTable[]): string[] {
   return [...ids].sort();
 }
 
-// Same rationale as lib/ai/dashboard-context.ts's contextCache: allFieldIds()
-// re-derives the schema (describeSchema per table) to build the enum lists
-// below, and that schema is stable for the process lifetime — so the tool
-// definition itself is memoized per dashboard rather than rebuilt on every
-// request.
-const toolCache = new Map<DashboardKey, Anthropic.Tool>();
+// Same rationale as the schema-block cache in lib/ai/dashboard-data-context.ts:
+// allFieldIds() re-derives the schema (describeSchema per table) to build the
+// enum lists below, and that schema is stable for a given dataVersion — so the
+// tool definition itself is memoized rather than rebuilt on every request.
+// Keyed by schemaCacheKey (dashboard identity AND data version — NOT dataVersion,
+// which every built-in dashboard shares), so no dashboard is ever handed the
+// enum lists of another, and a re-registered custom dashboard with different
+// columns can never be handed a tool schema built from the previous one's.
+const toolCache = new Map<string, Anthropic.Tool>();
+
+const MAX_TOOL_CACHE_ENTRIES = 32;
 
 /** Tool schema scoped to exactly one dashboard's own tables and columns. */
-export function queryDashboardDataTool(key: DashboardKey): Anthropic.Tool {
-  const cached = toolCache.get(key);
+export function queryDashboardDataTool(dataContext: DashboardDataContext): Anthropic.Tool {
+  const cached = toolCache.get(dataContext.schemaCacheKey);
   if (cached) return cached;
 
-  const tables = getDashboardTables(key);
+  const tables = dataContext.tables;
   const tableIds = tables.map((t) => t.id);
   const fieldIds = allFieldIds(tables);
 
@@ -106,7 +121,11 @@ export function queryDashboardDataTool(key: DashboardKey): Anthropic.Tool {
       additionalProperties: false,
     },
   };
-  toolCache.set(key, tool);
+  if (toolCache.size >= MAX_TOOL_CACHE_ENTRIES) {
+    const oldest = toolCache.keys().next();
+    if (!oldest.done) toolCache.delete(oldest.value);
+  }
+  toolCache.set(dataContext.schemaCacheKey, tool);
   return tool;
 }
 
@@ -158,16 +177,23 @@ function fieldsUsedBy(spec: Omit<QuerySpec, "table">): string[] {
 }
 
 /**
- * Validates the model's table/field choices against this dashboard's real
- * data before running anything, then executes via lib/ai/query-engine.ts. The
- * row arrays behind each table are today's Data Provider — CSV/mock data.
- * Once real SAP data is connected, only lib/ai/dashboard-tables.ts needs to
- * change (swap its row sources for a live query) — this validation, the tool
- * schema above, and the route that calls this never need to know the
- * difference.
+ * Validates the model's table/field choices against this dashboard's real data
+ * before running anything, then executes via lib/ai/query-engine.ts.
+ *
+ * The rows behind each table are resolved upstream, by
+ * resolveDashboardDataContext — the warehouse for a built-in dashboard, the
+ * registered GeneratedDashboard snapshot for a custom one. This function cannot
+ * see or reach any other dashboard's rows: `dataContext.tables` is the entire
+ * universe it validates against and executes over. That is the isolation
+ * guarantee, and it is structural rather than a prompt instruction — a model
+ * that asks for a table belonging to another dashboard gets the same
+ * "unknown table" rejection as one that invents a name.
  */
-export function runDashboardQuery(key: DashboardKey, input: Record<string, unknown>): DashboardQueryOutcome {
-  const tables = getDashboardTables(key);
+export function runDashboardQuery(
+  dataContext: DashboardDataContext,
+  input: Record<string, unknown>
+): DashboardQueryOutcome {
+  const tables = dataContext.tables;
   const tableId = typeof input.table === "string" ? input.table : "";
   const table = tables.find((t) => t.id === tableId);
   const spec = toQuerySpec(input);
@@ -195,11 +221,17 @@ export function runDashboardQuery(key: DashboardKey, input: Record<string, unkno
 
   // Cache check happens ONLY after both validations above pass — an invalid
   // table/field never reaches the cache, so the cache can only ever serve a
-  // result that was genuinely computed, never mask a rejected query as a
-  // hit. Keyed by table + normalized spec + datasetVersion, deliberately not
-  // dashboardKey — see lib/ai/query-cache.ts's module comment for why that's
-  // correct (and better) under the unified dataset.
-  const cacheKey = buildQueryCacheKey(getDatasetVersion(), fullSpec);
+  // result that was genuinely computed, never mask a rejected query as a hit.
+  //
+  // Keyed by table + normalized spec + dataVersion. For the built-in
+  // dashboards dataVersion is the shared dataset version, so two dashboards
+  // reading the identical warehouse table still share a cache entry for an
+  // identical query — see lib/ai/query-cache.ts's module comment for why that
+  // is correct. For a custom dashboard it is the context id plus a content
+  // fingerprint, which makes a collision between two custom dashboards (or
+  // between a custom dashboard and the warehouse) impossible even when the
+  // spec is byte-identical.
+  const cacheKey = buildQueryCacheKey(dataContext.dataVersion, fullSpec);
   const cached = getCachedQueryResult(cacheKey);
   if (cached) {
     return { table: tableId, spec: fullSpec, result: cached, cacheHit: true };

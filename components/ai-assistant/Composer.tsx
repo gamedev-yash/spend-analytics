@@ -33,6 +33,8 @@ interface ComposerProps {
   reportModeSeconds: number;
   /** False when the current dashboard offers no report action — the toggle is then hidden rather than shown-and-broken. */
   reportModeAvailable: boolean;
+  /** True when there is no data behind this dashboard to answer from at all (see DashboardAssistant's CUSTOM_DASHBOARD_MISSING_MESSAGE) — the input is inert rather than silently failing on submit. */
+  disabled?: boolean;
 }
 
 // Compact empty-state height (~1 line + padding) and the fraction of the
@@ -56,6 +58,7 @@ export function Composer({
   reportModeLabel,
   reportModeSeconds,
   reportModeAvailable,
+  disabled = false,
 }: ComposerProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   // The cap in px, recomputed whenever the panel itself resizes (fullscreen
@@ -112,10 +115,11 @@ export function Composer({
             }
           }}
           rows={1}
+          disabled={disabled}
           placeholder={placeholder}
           aria-label={reportMode ? "Describe the report to generate" : "Message the AI Assistant"}
           className={cn(
-            "ai-scrollbar block min-w-0 flex-1 resize-none rounded-2xl border bg-white px-4 py-2.5 text-sm leading-relaxed text-slate-700 shadow-sm transition-[height,border-color,box-shadow] duration-150 placeholder:text-slate-400 focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500",
+            "ai-scrollbar block min-w-0 flex-1 resize-none rounded-2xl border bg-white px-4 py-2.5 text-sm leading-relaxed text-slate-700 shadow-sm transition-[height,border-color,box-shadow] duration-150 placeholder:text-slate-400 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500 dark:disabled:bg-slate-800/60",
             // A second, unmissable signal that this input is about to do
             // something expensive — colour alone on a small toggle is too easy
             // to miss before hitting Enter.
@@ -126,7 +130,7 @@ export function Composer({
           style={{ minHeight: MIN_TEXTAREA_PX }}
         />
         <div className="flex shrink-0 items-center gap-1.5">
-          {reportModeAvailable && (
+          {reportModeAvailable && !disabled && (
             <ReportModeToggle
               reportMode={reportMode}
               onToggle={onToggleReportMode}
@@ -138,7 +142,7 @@ export function Composer({
           <button
             type="button"
             onClick={busy ? onStop : onSubmit}
-            disabled={!busy && !value.trim()}
+            disabled={disabled || (!busy && !value.trim())}
             aria-label={busy ? "Stop generating" : "Send message"}
             title={busy ? "Stop generating" : "Send message (Enter)"}
             className={cn(

@@ -33,7 +33,7 @@ import "server-only";
 // place.
 
 import type { QueryFilter, QueryResult, QuerySpec } from "@/lib/ai/query-engine";
-import type { DashboardKey } from "@/lib/ai/dashboard-registry";
+import type { DashboardContextId } from "@/lib/ai/dashboard-context";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -44,8 +44,8 @@ import type { DashboardKey } from "@/lib/ai/dashboard-registry";
  * (lib/ai/dashboard-query.ts) — deliberately not a redesigned "memory" shape,
  * so if a query-result cache is ever added later (none exists today — see
  * this feature's report on why not), this is already the right cache-key
- * material: dashboardKey + this spec + datasetVersion, never the natural-
- * language sentence that produced it.
+ * material: the dashboard context id + this spec + dataVersion, never the
+ * natural-language sentence that produced it.
  */
 export interface DashboardQueryMemory extends QuerySpec {
   table: string;
@@ -68,9 +68,21 @@ export interface ConversationContext {
   conversationId: string;
   updatedAt: number;
   entities: EntityMemory;
-  /** Dashboard-specific — never carried across a redirect, so a stale query shape from one dashboard can't contaminate another (see module comment on containment). */
+  /**
+   * Dashboard-specific — never carried across a redirect, so a stale query
+   * shape from one dashboard can't contaminate another (see module comment on
+   * containment).
+   *
+   * Keyed by DashboardContextId ("builtin:tail-spend", "custom:abc123") rather
+   * than by DashboardKey, which is what extends this memory to custom
+   * dashboards without changing how it behaves for built-in ones: a built-in
+   * dashboard's slot is simply named "builtin:<key>" now. Two custom dashboards
+   * get two slots for the same structural reason two built-ins do — their
+   * schemas are unrelated, so one's last query is meaningless (and would be
+   * invalid) against the other.
+   */
   perDashboard: Partial<
-    Record<DashboardKey, { lastQuery?: DashboardQueryMemory; lastResult?: DashboardResultMemory }>
+    Record<DashboardContextId, { lastQuery?: DashboardQueryMemory; lastResult?: DashboardResultMemory }>
   >;
 }
 
@@ -224,8 +236,11 @@ function describeQuery(q: DashboardQueryMemory): string {
  * conversation (or one with nothing memorable yet) costs the prompt nothing
  * extra — same "don't pad every request" rule activeFilters already follows.
  */
-export function buildConversationMemoryBlock(context: ConversationContext, dashboardKey: DashboardKey): string | null {
-  const perDashboard = context.perDashboard[dashboardKey];
+export function buildConversationMemoryBlock(
+  context: ConversationContext,
+  contextId: DashboardContextId
+): string | null {
+  const perDashboard = context.perDashboard[contextId];
   const lines: string[] = [];
 
   if (perDashboard?.lastQuery) {
@@ -341,8 +356,11 @@ export function humanizeFieldName(field: string): string {
  * human reading a small UI strip, not for the model. Deliberately never
  * shows a raw internal field id here — see humanizeFieldName.
  */
-export function buildContextSummaryForUI(context: ConversationContext, dashboardKey: DashboardKey): string | null {
-  const perDashboard = context.perDashboard[dashboardKey];
+export function buildContextSummaryForUI(
+  context: ConversationContext,
+  contextId: DashboardContextId
+): string | null {
+  const perDashboard = context.perDashboard[contextId];
   const parts: string[] = [];
   if (perDashboard?.lastQuery?.groupBy) parts.push(`By ${humanizeFieldName(perDashboard.lastQuery.groupBy)}`);
   if (perDashboard?.lastQuery?.limit) parts.push(`Top ${perDashboard.lastQuery.limit}`);
@@ -360,8 +378,8 @@ export function buildContextSummaryForUI(context: ConversationContext, dashboard
 
 const DEFAULT_LIMIT_TOGGLE = 10;
 
-export function suggestFollowUps(context: ConversationContext, dashboardKey: DashboardKey): string[] | null {
-  const perDashboard = context.perDashboard[dashboardKey];
+export function suggestFollowUps(context: ConversationContext, contextId: DashboardContextId): string[] | null {
+  const perDashboard = context.perDashboard[contextId];
   const lastQuery = perDashboard?.lastQuery;
   if (!lastQuery) return null;
 
@@ -423,7 +441,7 @@ export interface QueryMemoryUpdate {
  */
 export function applyQueryToContext(
   context: ConversationContext,
-  dashboardKey: DashboardKey,
+  contextId: DashboardContextId,
   update: QueryMemoryUpdate
 ): ConversationContext {
   return {
@@ -431,7 +449,7 @@ export function applyQueryToContext(
     entities: extractEntities(context.entities, update.spec.filters),
     perDashboard: {
       ...context.perDashboard,
-      [dashboardKey]: {
+      [contextId]: {
         lastQuery: { table: update.table, ...update.spec },
         lastResult: summarizeResult(update.result),
       },

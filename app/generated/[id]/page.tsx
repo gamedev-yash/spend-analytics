@@ -14,6 +14,8 @@ import {
   useGeneratedDashboardsReady,
 } from "@/lib/generated-dashboard/store";
 import { useFilterSlot } from "@/context/FilterContext";
+import { useSetDashboardActiveFilterSummary } from "@/context/DashboardActiveFiltersContext";
+import { formatMultiSelectPart, joinFilterSummaryParts } from "@/lib/dashboard-filters/format-filter-summary";
 import { ClearFiltersButton, FilterDateRange, FilterGroup } from "@/components/ui/filter-controls";
 import { MultiSelect } from "@/components/sap/multi-select";
 import {
@@ -27,15 +29,26 @@ import {
   type GeneratedFilterState,
 } from "./filters";
 
-// Viewer for an AI-generated dashboard: no widget editing, no AI assistant
-// hook-up. Everything the page needs (plan, widgets, raw rows) already lives
-// in the stored GeneratedDashboard record.
+// Viewer for an AI-generated dashboard. Everything the page needs (plan,
+// widgets, raw rows) already lives in the stored GeneratedDashboard record.
 //
 // Two interactive controls: filters, a plain client-side narrowing of the
 // stored rows (see ./filters.ts), and "Add Widget", which moves one of the
 // dashboard's catalog widgets onto the grid (see ../../components/
 // generated-dashboard/add-widget-sheet.tsx). Both are local to the stored
 // record — neither re-calls the model.
+//
+// THE AI ASSISTANT IS NOT WIRED UP HERE, AND THAT IS THE POINT. It is mounted
+// once in app/layout.tsx and works out which dashboard it is on from the
+// pathname (resolveDashboardContext in lib/ai/dashboard-context.ts), so
+// /generated/<id> gets the same assistant as the six built-in dashboards with no
+// page-specific chat code at all — same launcher, panel, Report Mode and
+// download UI, grounded in this record's own rows.
+//
+// The one thing this page DOES owe the assistant is the same thing every built-in
+// dashboard owes it: a plain-language summary of what is currently filtered, so
+// an answer agrees with what is on screen rather than with the full dataset (see
+// context/DashboardActiveFiltersContext.tsx).
 
 function EmptyShell({ title, message, children }: { title: string; message: string; children?: React.ReactNode }) {
   return (
@@ -76,6 +89,22 @@ export default function GeneratedDashboardPage({ params }: { params: Promise<{ i
   }, [dashboard, filters, dateColumn]);
 
   const activeFilters = hasActiveGeneratedFilters(filters);
+
+  // Column names are this dashboard's own headers, so they double as the labels
+  // — there is no code-to-display-name mapping to do here, unlike the built-in
+  // dashboards' plant codes. Dates are the raw ISO bounds the model already
+  // reads elsewhere.
+  const filterSummary = useMemo(
+    () =>
+      joinFilterSummaryParts([
+        ...Object.entries(filters.dimensions).map(([column, values]) => formatMultiSelectPart(column, values)),
+        filters.dateFrom || filters.dateTo
+          ? `${dateColumn?.name ?? "Date"}: ${filters.dateFrom || "start"} to ${filters.dateTo || "latest"}`
+          : null,
+      ]),
+    [filters, dateColumn]
+  );
+  useSetDashboardActiveFilterSummary(filterSummary);
 
   useFilterSlot(
     dimensionColumns.length === 0 && !dateColumn ? null : (

@@ -18,14 +18,24 @@
 // payload rather than a reply string.
 //   200 { success: true, type, report, artifacts, generator, cached }
 //   400 { success: false, error }   unknown action / dashboard / missing objective
+//   409 { success: false, error, needsDashboardSync } a generated dashboard's
+//                                   snapshot isn't loaded on this server yet —
+//                                   the client re-registers it and retries
 //   422 { success: false, error }   the generated plan failed validation
 //   502 { success: false, error }   the model or the workflow failed
 //   503 { success: false, error }   no API key / model configured
+//
+// Report Mode works on a generated dashboard through this same route, with the
+// same engine and the same two renderers: the dashboard is resolved to a
+// DashboardDataContext here, exactly as in the chat route, and nothing below
+// this line knows or cares which kind it got.
 
 import { runActionPlan, ActionPlanServiceError } from "@/lib/ai/actions/action-plan-service";
-import { assistantAction, ASSISTANT_ACTIONS } from "@/lib/ai/actions/assistant-actions";
+import { assistantAction, assistantActionsFor, ASSISTANT_ACTIONS } from "@/lib/ai/actions/assistant-actions";
 import type { AssistantActionFailure, AssistantActionId } from "@/lib/ai/actions/action-plan-types";
-import { DASHBOARD_REGISTRY, type DashboardKey } from "@/lib/ai/dashboard-registry";
+import { parseDashboardContext, type DashboardContext } from "@/lib/ai/dashboard-context";
+import { resolveDashboardDataContext } from "@/lib/ai/dashboard-data-context";
+import { DASHBOARD_REGISTRY } from "@/lib/ai/dashboard-registry";
 import { sanitizeConversationId } from "@/lib/ai/conversation-context";
 
 export const runtime = "nodejs";
@@ -52,6 +62,9 @@ function sanitizeText(value: unknown, max: number): string | null {
 
 interface AssistantActionBody {
   action?: unknown;
+  /** `{ type: "builtin", dashboardKey }` or `{ type: "custom", dashboardId }` — see lib/ai/dashboard-context.ts. */
+  dashboard?: unknown;
+  /** Legacy shorthand for a built-in dashboard; `dashboard` wins when both are sent. */
   dashboardKey?: unknown;
   objective?: unknown;
   activeFilters?: unknown;
@@ -75,15 +88,39 @@ export async function POST(request: Request): Promise<Response> {
     return failure(`action must be one of: ${ASSISTANT_ACTIONS.map((a) => a.id).join(", ")}`, 400);
   }
 
-  const dashboardKey = typeof body.dashboardKey === "string" ? body.dashboardKey : "";
-  if (!DASHBOARD_KEYS.includes(dashboardKey as DashboardKey)) {
-    return failure(`dashboardKey must be one of: ${DASHBOARD_KEYS.join(", ")}`, 400);
+  const dashboardContext: DashboardContext | null =
+    parseDashboardContext(body.dashboard) ??
+    parseDashboardContext(
+      typeof body.dashboardKey === "string" ? { type: "builtin", dashboardKey: body.dashboardKey } : null
+    );
+  if (!dashboardContext) {
+    return failure(
+      `dashboard must be { type: "builtin", dashboardKey: one of ${DASHBOARD_KEYS.join(" | ")} } or { type: "custom", dashboardId }`,
+      400
+    );
   }
   // Per-action dashboard gating — no-op while every action allows every
   // dashboard, but it means a future dashboard-specific action is enforced
-  // server-side and not only by the button being hidden.
-  if (action.dashboards && !action.dashboards.includes(dashboardKey as DashboardKey)) {
+  // server-side and not only by the button being hidden. Same registry rule the
+  // panel renders from, so the two can't disagree.
+  if (!assistantActionsFor(dashboardContext).some((a) => a.id === action.id)) {
     return failure("That action is not available on this dashboard.", 400);
+  }
+
+  // Resolved BEFORE the workflow starts: a dashboard this server can't load must
+  // fail in milliseconds, not part-way through a multi-minute generation. And,
+  // as in the chat route, an unresolvable dashboard is never substituted for
+  // another one.
+  const dataContext = resolveDashboardDataContext(dashboardContext);
+  if (!dataContext) {
+    return Response.json(
+      {
+        success: false,
+        error: "This dashboard's data isn't loaded on the server yet.",
+        needsDashboardSync: true,
+      },
+      { status: 409 }
+    );
   }
 
   const objective = sanitizeText(body.objective, MAX_OBJECTIVE_LENGTH);
@@ -111,7 +148,7 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const result = await runActionPlan({
       action: action.id satisfies AssistantActionId,
-      dashboardKey: dashboardKey as DashboardKey,
+      dataContext,
       objective,
       activeFilters,
       conversationId: conversationId || null,

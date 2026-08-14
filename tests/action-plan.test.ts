@@ -533,8 +533,12 @@ describe("assistant action registry", () => {
     assert.equal(assistantAction(""), null);
   });
 
-  it("offers the action on every dashboard today", () => {
-    assert.equal(assistantActionsFor("payment-terms").length, 1);
+  it("offers the action on every dashboard today — generated dashboards included", () => {
+    // `dashboards: null` means every dashboard of either kind, and the whole
+    // report pipeline reads a resolved data context rather than a dashboard key,
+    // so Report Mode on a generated dashboard needs no separate registration.
+    assert.equal(assistantActionsFor({ type: "custom", dashboardId: "abc123" }).length, 1);
+    assert.equal(assistantActionsFor({ type: "builtin", dashboardKey: "payment-terms" }).length, 1);
   });
 });
 
@@ -636,20 +640,20 @@ describe("artifact store", () => {
 
 describe("report cache key — what invalidates a report", () => {
   const base = {
-    datasetVersion: "v1",
-    dashboardKey: "supplier-fragmentation",
+    dataVersion: "v1",
+    contextId: "builtin:supplier-fragmentation",
     action: "action_plan" as const,
     activeFilters: "Category: Some Category",
     objective: "Improve the metric",
   };
 
   it("a new dataset version produces a different key — the staleness guarantee", () => {
-    assert.notEqual(buildReportCacheKey(base), buildReportCacheKey({ ...base, datasetVersion: "v2" }));
+    assert.notEqual(buildReportCacheKey(base), buildReportCacheKey({ ...base, dataVersion: "v2" }));
   });
 
   it("different filters, dashboard, or objective each produce a different key", () => {
     assert.notEqual(buildReportCacheKey(base), buildReportCacheKey({ ...base, activeFilters: "Category: Another Category" }));
-    assert.notEqual(buildReportCacheKey(base), buildReportCacheKey({ ...base, dashboardKey: "tail-spend" }));
+    assert.notEqual(buildReportCacheKey(base), buildReportCacheKey({ ...base, contextId: "builtin:tail-spend" }));
     assert.notEqual(buildReportCacheKey(base), buildReportCacheKey({ ...base, objective: "Something else" }));
   });
 

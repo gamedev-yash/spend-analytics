@@ -388,9 +388,9 @@ Registering a new canonical table is a **three-file change**:
 3. **If the table should be queryable by the AI assistant on a specific
    dashboard** — add a `DashboardTable` entry to `lib/ai/dashboard-tables.ts`
    (reusing the same `getSampleDataset()` rows) and reference it from that
-   dashboard's array in `DASHBOARD_TABLES`. `dashboard-context.ts`,
-   `dashboard-query.ts`, and the route's tool loop are all keyed off
-   `DashboardKey` generically and need no further changes.
+   dashboard's array in `DASHBOARD_TABLES`. `dashboard-data-context.ts`,
+   `dashboard-query.ts`, and the route's tool loop all operate on a resolved
+   `DashboardDataContext` generically and need no further changes.
 
 Skipping step 3 for a dashboard that should have it is not a no-op: a
 dashboard's assistant only ever sees its own table list, so a table that
@@ -463,18 +463,28 @@ app/{payment-terms,single-source-risk,supplier-fragmentation}/api/master/route.t
 app/spend-overview/loadFromProvider.ts
                                  Azure-mode override for Spend Overview's own widgets
 
-lib/ai/                         ── the dashboard-chat assistant ──
-  dashboard-registry.ts         routing/labels only — DashboardKey, route, description, no data
-  dashboard-tables.ts           per-dashboard table lists, built from getSampleDataset()
-  query-engine.ts               in-memory runQuery()/describeSchema() — §4.2
+lib/ai/                         ── the dashboard assistant, built-in AND generated ──
+  dashboard-registry.ts         built-in routing/labels only — DashboardKey, route, description, no data
+  dashboard-context.ts          WHICH dashboard: the DashboardContext union (builtin | custom),
+                                 the one route→dashboard resolver, and the context id used as the
+                                 key for conversation memory and caches. Client-safe.
+  dashboard-data-context.ts     identity → data: resolves a DashboardContext to a
+                                 DashboardDataContext (tables, label, business scope, versions)
+                                 and renders its schema — never rows — into the system prompt
+  dashboard-tables.ts           per-BUILT-IN-dashboard table lists, built from getSampleDataset()
+  custom-dashboard-registry.ts  per-GENERATED-dashboard rows, registered by the browser that owns
+                                 them (localStorage is the only store); TTL + row-budget bounded
+  custom-dashboard-sync.ts      client half of that handover — register once, re-register on 409
+  query-engine.ts               in-memory runQuery()/describeSchema() — §4.2, both kinds
   dashboard-query.ts            query_dashboard_data tool + validation + result rendering
-  dashboard-context.ts          renders a dashboard's schema (never rows) into the system prompt
   anthropic-client.ts           shared credential resolution
 
 app/api/
   v1/query/route.ts             POST — the widget query engine (all providers)
   v1/datasets/route.ts          GET  — warehouse metadata
-  dashboard-chat/route.ts       POST — the AI assistant, §4
+  dashboard-chat/route.ts       POST — the AI assistant, §4 — one endpoint for both dashboard kinds
+  dashboard-context/route.ts    POST — registers a generated dashboard's rows with the assistant.
+                                 No Claude call: a data handover, not a second chat endpoint
 
 db/
   schema.sql                    Azure SQL star schema DDL — currently covers only

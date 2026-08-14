@@ -1,18 +1,21 @@
 // Generated-report cache, modelled directly on lib/ai/query-cache.ts.
 //
-// STALENESS IS HANDLED THE SAME WAY THE QUERY CACHE ALREADY HANDLES IT: the
-// key leads with getDatasetVersion() (lib/server/sample-data-source.ts), so a
-// dataset reload or process restart makes every prior entry unreachable rather
-// than servable. This is the §18 requirement that a stale report must never be
-// reused after the data changes — and it reuses the app's existing version
-// identifier instead of inventing a second one.
+// STALENESS IS HANDLED THE SAME WAY THE QUERY CACHE ALREADY HANDLES IT: the key
+// leads with the dashboard's own dataVersion (lib/ai/dashboard-data-context.ts),
+// so a dataset reload, a process restart, or a generated dashboard whose content
+// fingerprint changed all make every prior entry unreachable rather than
+// servable. This is the §18 requirement that a stale report must never be reused
+// after the data changes — and it reuses the version identifier the query cache
+// already keys off instead of inventing a second one.
 //
 // WHAT ELSE IS IN THE KEY, AND WHY EACH MATTERS:
-//   datasetVersion  the data changed → the report's figures are wrong
-//   dashboardKey    a different dashboard is a different report entirely
-//   action          future actions (executive summary, comparison) must not collide
-//   activeFilters   "MRO & Spares only" and unfiltered are different reports
-//   objective       the user's own question is what the report answers
+//   dataVersion   the data changed → the report's figures are wrong
+//   contextId     a different dashboard is a different report entirely, and for
+//                 a generated dashboard this is what makes two dashboards with
+//                 identical column layouts impossible to confuse
+//   action        future actions (executive summary, comparison) must not collide
+//   activeFilters a filtered view and an unfiltered one are different reports
+//   objective     the user's own question is what the report answers
 // Objective is normalized (lowercased, whitespace-collapsed) so trivial
 // retyping still hits, but it is otherwise matched exactly — near-miss
 // semantic matching would serve someone a report answering a question they
@@ -46,8 +49,8 @@ interface CacheEntry extends CachedReport {
 const store = new Map<string, CacheEntry>();
 
 export interface ReportCacheKeyParts {
-  datasetVersion: string;
-  dashboardKey: string;
+  dataVersion: string;
+  contextId: string;
   action: AssistantActionId;
   activeFilters: string | null;
   objective: string;
@@ -59,8 +62,8 @@ function normalizeObjective(objective: string): string {
 
 export function buildReportCacheKey(parts: ReportCacheKeyParts): string {
   return [
-    parts.datasetVersion,
-    parts.dashboardKey,
+    parts.dataVersion,
+    parts.contextId,
     parts.action,
     (parts.activeFilters ?? "").trim().toLowerCase(),
     normalizeObjective(parts.objective),

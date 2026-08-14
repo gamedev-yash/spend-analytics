@@ -1,31 +1,48 @@
-// Per-dashboard grounded assistant for the real Vedanta dashboards registered
-// in lib/ai/dashboard-registry.ts (Spend Overview, Compliance, Payment Terms,
-// Tail Spend, Supplier Fragmentation, Single Source Risk, and any dashboard
-// added there later).
+// THE per-dashboard grounded assistant — one endpoint for BOTH dashboard kinds:
+// the built-in dashboards registered in lib/ai/dashboard-registry.ts (Spend
+// Overview, Compliance, Payment Terms, Tail Spend, Supplier Fragmentation,
+// Single Source Risk, and any added there later) AND the generated dashboards a
+// user builds from their own file (/generated/<id>).
 //
-// Unlike /api/assistant (which answers from a user-uploaded CSV), this
-// endpoint is handed exactly one dashboard's own real, current data — never
-// another dashboard's — and is told the names of the others purely so it
-// can redirect, never so it can answer from them. If the question needs data
-// this dashboard doesn't have, the model calls redirect_to_dashboard instead
-// of guessing; that tool call is structural, not prose, so the UI can render
-// a real link rather than parsing free text for a dashboard name.
+// There is no second chat endpoint, no second Claude integration, and no second
+// tool set. The request names a dashboard as a DashboardContext
+// (lib/ai/dashboard-context.ts); that resolves once, here, into a
+// DashboardDataContext (lib/ai/dashboard-data-context.ts) and everything after
+// that point is identical for both kinds — same system prompt shape, same
+// query_dashboard_data tool, same validation, same conversation memory, same
+// tool-calling loop. The ONLY difference between a built-in and a generated
+// dashboard is where the resolver found the rows.
+//
+// The endpoint is handed exactly one dashboard's own data — never another
+// dashboard's — and is told the names of the others purely so it can redirect,
+// never so it can answer from them. If the question needs data this dashboard
+// doesn't have, the model calls redirect_to_dashboard instead of guessing; that
+// tool call is structural, not prose, so the UI can render a real link rather
+// than parsing free text for a dashboard name.
 //
 // The model does not answer from a hardcoded summary. It is shown this
-// dashboard's real column/table schema (buildDashboardContext) and must call
-// query_dashboard_data to get an actual number back before stating one —
-// the same two-pass "query, then answer" loop app/api/assistant/route.ts
-// uses for the warehouse, just scoped to one dashboard's own tables
-// (lib/ai/dashboard-tables.ts, lib/ai/dashboard-query.ts).
+// dashboard's real column/table schema (buildDashboardSchemaBlock) and must call
+// query_dashboard_data to get an actual number back before stating one.
+//
+// GENERATED DASHBOARDS AND THE SYNC HANDSHAKE: a generated dashboard's rows live
+// in the browser's localStorage, so this process may not hold the snapshot the
+// request names (fresh server, second tab, evicted entry). That is answered with
+// 409 + needsDashboardSync, and the client re-registers via
+// /api/dashboard-context and retries. It is never answered from another
+// dashboard's data, and never from an empty dataset pretending to be this one.
 
 import { randomUUID } from "node:crypto";
 import Anthropic from "@anthropic-ai/sdk";
 import { resolveAnthropicClient, NO_KEY_ERROR } from "@/lib/ai/anthropic-client";
-import { buildDashboardContext, isDashboardContextCached } from "@/lib/ai/dashboard-context";
+import { parseDashboardContext, type DashboardContext } from "@/lib/ai/dashboard-context";
+import {
+  buildDashboardSchemaBlock,
+  isDashboardSchemaBlockCached,
+  resolveDashboardDataContext,
+  type DashboardDataContext,
+} from "@/lib/ai/dashboard-data-context";
 import { queryDashboardDataTool, runDashboardQuery, renderDashboardQueryResult } from "@/lib/ai/dashboard-query";
 import { DASHBOARD_REGISTRY, dashboardMeta, type DashboardKey } from "@/lib/ai/dashboard-registry";
-import { SEMANTIC_METRIC_DICTIONARY } from "@/lib/ai/semantic-metrics";
-import { getDatasetVersion } from "@/lib/server/sample-data-source";
 import {
   applyQueryToContext,
   buildContextSummaryForUI,
@@ -54,6 +71,18 @@ const MAX_TOOL_PASSES = 4;
 const DASHBOARD_KEYS = DASHBOARD_REGISTRY.map((d) => d.key);
 
 interface DashboardChatRequest {
+  /**
+   * Which dashboard is asking — `{ type: "builtin", dashboardKey }` or
+   * `{ type: "custom", dashboardId }`. The one field that decides what data
+   * this request can reach, so it is parsed, never trusted (see
+   * parseDashboardContext).
+   */
+  dashboard?: unknown;
+  /**
+   * Legacy shorthand for `{ type: "builtin", dashboardKey }`. Still accepted so
+   * an existing caller (or a hand-written curl from the docs) keeps working;
+   * `dashboard` wins when both are present.
+   */
   dashboardKey?: string;
   message?: string;
   history?: { role: "user" | "assistant"; content: string }[];
@@ -155,12 +184,11 @@ const ASK_OPTIONS_TOOL: Anthropic.Tool = {
 };
 
 function buildSystemPrompt(
-  currentKey: DashboardKey,
+  dataContext: DashboardDataContext,
   activeFilters: string | null,
   memoryBlock: string | null
 ): string {
-  const current = dashboardMeta(currentKey);
-  const others = DASHBOARD_REGISTRY.filter((d) => d.key !== currentKey);
+  const isCustom = dataContext.context.type === "custom";
 
   // Only added when something is actually filtered — an unfiltered dashboard
   // costs this prompt nothing extra, matching the "don't pad every request
@@ -175,26 +203,70 @@ function buildSystemPrompt(
   // exists alongside (not instead of) the raw message history below.
   const memoryPromptBlock = memoryBlock ? `\n${memoryBlock}\n` : "";
 
-  return `You are the assistant embedded in the "${current.label}" dashboard of a Vedanta procurement analytics app.
+  // Present only for the dashboards whose data it actually describes — see
+  // DashboardDataContext.semanticDictionary for why a generated dashboard must
+  // never be shown warehouse metric recipes.
+  const dictionaryBlock = dataContext.semanticDictionary ? `\n${dataContext.semanticDictionary}\n` : "";
 
-You have DATA ACCESS ONLY for this dashboard, via the query_dashboard_data tool. This is a business-scope boundary, not a separate database — every dashboard in this app reads the same underlying warehouse; "this dashboard's tables" below just means the slice of it relevant to this business area.
+  // The two kinds differ in ONE sentence of framing, and it is a factual
+  // difference rather than a behavioural one: the built-in dashboards are slices
+  // of one shared warehouse, whereas a generated dashboard is a self-contained
+  // dataset the user uploaded. Both then get the identical grounding rules
+  // below, because the rule ("only this dashboard's data, only via the tool") is
+  // the same rule.
+  const boundaryBlock = isCustom
+    ? `You have DATA ACCESS ONLY for this dashboard, via the query_dashboard_data tool. This dashboard was generated from a file the user supplied, and its records are a self-contained dataset: nothing outside the table listed below is in reach, and no other dashboard in this app shares its data. If a question needs something these columns do not contain, say so plainly — do not substitute a similar-sounding column, and do not answer from general knowledge.`
+    : `You have DATA ACCESS ONLY for this dashboard, via the query_dashboard_data tool. This is a business-scope boundary, not a separate database — every built-in dashboard in this app reads the same underlying warehouse; "this dashboard's tables" below just means the slice of it relevant to this business area.`;
+
+  // A built-in dashboard's column ids are warehouse internals a business reader
+  // has never seen, so they must never reach the user's screen. A generated
+  // dashboard's OWN columns are the opposite — they are the user's file headers,
+  // printed on that dashboard's filter controls, so quoting one is not a leak.
+  //
+  // The clause both variants MUST carry is the one about the OTHER dashboards:
+  // their registry descriptions name real warehouse tables and columns
+  // (fact_payments, actual_dpo, ...) and are in this prompt for routing, so
+  // without it the model quotes them straight into a redirect reason. That is
+  // not hypothetical — it was observed on a generated dashboard the first time
+  // this rule was written without it.
+  const vocabularyRule = isCustom
+    ? `- Use only the table and field names listed above. There are no others — a column that is not in that list does not exist in this dataset, however reasonable it would be for it to. This dashboard's own column names came from the user's own file, so naming one in your reply is fine where plain language wouldn't be clearer. The internal table and column names in the OTHER dashboards' descriptions below are NOT: never write one into anything the user reads — not your reply, not a redirect_to_dashboard reason, not an ask_with_options question or option. Describe what that dashboard covers in plain business language instead (say "payment records", not a table name; "days payable outstanding", not a column name).`
+    : `- Use only the table and field names listed above. There are no others. But those exact names (fact_po_items, vendor_name, actual_dpo, and so on) are for YOUR use when calling query_dashboard_data — never write them, or any other internal table/column/schema name, into anything the user actually reads: not your reply, not a redirect_to_dashboard reason, not an ask_with_options question or option. Translate every one into plain business language instead (say "payment records", not "fact_payments"; "days payable outstanding", not "actual_dpo"; "suppliers", not "vendor_name").`;
+
+  // The asymmetry is deliberate. Among the built-in dashboards, a same-topic
+  // question usually DOES belong to a sibling, so redirecting is the right
+  // default. From a generated dashboard it is the opposite: its own columns are
+  // the reason the user is here, and a question that merely sounds like a
+  // built-in dashboard's subject ("which suppliers are most profitable") is
+  // almost always answerable from this dataset. Redirect is the last resort
+  // there, never the reflex.
+  const redirectRule = isCustom
+    ? `- Answer from THIS dashboard's data whenever its columns can support the question, even when the topic resembles one of the other dashboards listed above. Use redirect_to_dashboard ONLY when the question is unmistakably about the app's built-in dashboards rather than this dataset — and never as a way to answer a question this dataset cannot: for that, say the information is not in this dashboard.`
+    : `- If the user asks about something that belongs to one of the other dashboards listed above, do NOT answer it yourself — call redirect_to_dashboard with that dashboard's key, even if you could plausibly guess the answer.`;
+
+  const othersBlock = isCustom
+    ? `Other dashboards exist in this app, built on a DIFFERENT dataset from this one. You do NOT have their data, and their figures have nothing to do with this dashboard's — only their names and scope are listed, so that a question clearly about one of them can be pointed there with redirect_to_dashboard instead of guessed at. Answer from THIS dashboard whenever it can answer; a redirect is a last resort for a question this dataset genuinely has nothing to say about:
+${dataContext.otherDashboards.map((d) => `- ${d.label} (${d.route}): ${d.description.slice(0, 200)}`).join("\n")}`
+    : `Other dashboards exist in this app. You do NOT have their data — only their names and scope, so you can redirect the user there instead of guessing:
+${dataContext.otherDashboards.map((d) => `- ${d.label} (${d.route}): ${d.description}`).join("\n")}`;
+
+  return `You are the assistant embedded in the "${dataContext.label}" dashboard of a business analytics app.
+
+${boundaryBlock}
 
 What this dashboard is for — use this to judge whether a question belongs here at all, before reaching for a tool:
-${current.description}
+${dataContext.description}
 ${activeFiltersBlock}${memoryPromptBlock}
-${buildDashboardContext(currentKey)}
-
-${SEMANTIC_METRIC_DICTIONARY}
-
-Other dashboards exist in this app. You do NOT have their data — only their names and scope, so you can redirect the user there instead of guessing:
-${others.map((d) => `- ${d.label} (${d.route}): ${d.description}`).join("\n")}
+${buildDashboardSchemaBlock(dataContext)}
+${dictionaryBlock}
+${othersBlock}
 
 Grounding rules — absolute:
 - This is an ongoing conversation: a short message like "only Pune", "what about March", "compare with last year", or "just the top 3" is a follow-up, not a new question — keep whatever the CONVERSATION MEMORY / recent messages above already established (dashboard, metric, dimension, entity, filters) and change only the part the user actually mentioned. Resolve "them"/"that"/"the second one" the same way. Never ask the user to repeat something already known; if it genuinely can't be resolved, use ask_with_options instead of guessing.
 - To state any real figure, first call query_dashboard_data and read the number off the result. Never estimate, never recall a number from an earlier turn as if it were fresh, never fabricate.
-- Use only the table and field names listed above. There are no others. But those exact names (fact_po_items, vendor_name, actual_dpo, and so on) are for YOUR use when calling query_dashboard_data — never write them, or any other internal table/column/schema name, into anything the user actually reads: not your reply, not a redirect_to_dashboard reason, not an ask_with_options question or option. Translate every one into plain business language instead (say "payment records", not "fact_payments"; "days payable outstanding", not "actual_dpo"; "suppliers", not "vendor_name").
-- If the user asks about something that belongs to one of the other dashboards listed above, do NOT answer it yourself — call redirect_to_dashboard with that dashboard's key, even if you could plausibly guess the answer.
-- If a query returns no rows, or the question needs a column that genuinely isn't listed above, say so plainly rather than softening it into an approximation.
+${vocabularyRule}
+${redirectRule}
+- If a query returns no rows, or the question needs a column that genuinely isn't listed above, say so plainly rather than softening it into an approximation. Never fill the gap from a different column, from an earlier answer, or from what you know about this subject in general.
 - Ordinary conversation (greetings, thanks, what can you help with) doesn't need the tool — answer it directly and briefly.
 - If the request is ambiguous among a small set of clear choices (which metric, which time range, this quarter vs. last), call ask_with_options with a short question and 2-5 concise options instead of guessing or asking an open-ended follow-up in prose.
 
@@ -209,12 +281,13 @@ const DEBUG_TIMING = process.env.NODE_ENV !== "production";
 
 interface RequestTiming {
   requestId: string;
-  dashboardKey: string;
+  /** "builtin:<key>" / "custom:<id>" — the dashboard this request was answered for, and nothing else could have been. */
+  dashboard: string;
   model: string;
   contextCacheHit: boolean;
   hasActiveFilters: boolean;
   hasConversationMemory: boolean;
-  datasetVersion: string;
+  dataVersion: string;
   promptConstructionMs: number;
   llmRounds: number;
   toolCalls: number;
@@ -243,11 +316,35 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Request body must be JSON." }, { status: 400 });
   }
 
-  const dashboardKey = body.dashboardKey;
-  if (!dashboardKey || !DASHBOARD_KEYS.includes(dashboardKey as DashboardKey)) {
+  // ONE resolution step, before anything else happens. Everything downstream
+  // reads `dataContext` and cannot widen it, which is what makes "answers only
+  // from the dashboard the user is on" a property of the code rather than a
+  // promise in a prompt.
+  const dashboardContext: DashboardContext | null =
+    parseDashboardContext(body.dashboard) ??
+    parseDashboardContext(
+      typeof body.dashboardKey === "string" ? { type: "builtin", dashboardKey: body.dashboardKey } : null
+    );
+  if (!dashboardContext) {
     return Response.json(
-      { error: `dashboardKey must be one of: ${DASHBOARD_KEYS.join(", ")}` },
+      {
+        error: `dashboard must be { type: "builtin", dashboardKey: one of ${DASHBOARD_KEYS.join(" | ")} } or { type: "custom", dashboardId }`,
+      },
       { status: 400 }
+    );
+  }
+
+  const dataContext = resolveDashboardDataContext(dashboardContext);
+  if (!dataContext) {
+    // Only reachable for a generated dashboard this process holds no snapshot
+    // for. Deliberately NOT a fallback to some other dashboard and not an empty
+    // dataset — the client re-registers it (/api/dashboard-context) and retries.
+    return Response.json(
+      {
+        error: "This dashboard's data isn't loaded on the server yet.",
+        needsDashboardSync: true,
+      },
+      { status: 409 }
     );
   }
 
@@ -275,20 +372,20 @@ export async function POST(request: Request): Promise<Response> {
 
   const activeFilters = sanitizeActiveFilters(body.activeFilters);
 
-  // Both the schema and the context string are per-dashboardKey memoized
-  // (lib/ai/dashboard-query.ts, lib/ai/dashboard-context.ts) — the check here
-  // is only to report whether *this* request paid the describeSchema() cost,
-  // for the debug line below; it has no effect on behavior.
-  const contextCacheHitBeforeBuild = isDashboardContextCached(dashboardKey as DashboardKey);
+  // Both the tool schema and the schema block are memoized per dashboard+version
+  // (lib/ai/dashboard-query.ts, lib/ai/dashboard-data-context.ts) — the check
+  // here is only to report whether *this* request paid the describeSchema()
+  // cost, for the debug line below; it has no effect on behavior.
+  const contextCacheHitBeforeBuild = isDashboardSchemaBlockCached(dataContext);
   const promptStartedAt = performance.now();
   // Cheap in-memory lookup (lib/ai/conversation-context.ts) — not the
   // describeSchema() cost the cache check above is about, just folded into
   // the same "prompt construction" timing bucket since it happens at the
   // same phase of the request.
   let conversationContext = getConversationContext(conversationId);
-  const memoryBlock = buildConversationMemoryBlock(conversationContext, dashboardKey as DashboardKey);
+  const memoryBlock = buildConversationMemoryBlock(conversationContext, dataContext.contextId);
   // Built ONCE per request, not once per tool-calling pass: neither the
-  // dashboardKey nor activeFilters/memoryBlock changes mid-request, so
+  // dashboard nor activeFilters/memoryBlock changes mid-request, so
   // re-deriving byte-identical system prompt text on every pass (previously
   // up to MAX_TOOL_PASSES times) was pure waste even with the per-dashboard
   // memoization above. Note activeFilters/memoryBlock (unlike the memoized
@@ -296,12 +393,8 @@ export async function POST(request: Request): Promise<Response> {
   // ephemeral prompt cache still hits across consecutive messages sent with
   // the same filters/memory, and only misses when either actually changed,
   // which is exactly when the model needs the fresh text anyway.
-  const systemPrompt = buildSystemPrompt(dashboardKey as DashboardKey, activeFilters, memoryBlock);
-  const tools: Anthropic.Tool[] = [
-    queryDashboardDataTool(dashboardKey as DashboardKey),
-    REDIRECT_TOOL,
-    ASK_OPTIONS_TOOL,
-  ];
+  const systemPrompt = buildSystemPrompt(dataContext, activeFilters, memoryBlock);
+  const tools: Anthropic.Tool[] = [queryDashboardDataTool(dataContext), REDIRECT_TOOL, ASK_OPTIONS_TOOL];
   const promptConstructionMs = performance.now() - promptStartedAt;
 
   let claudeLatencyMs = 0;
@@ -316,12 +409,12 @@ export async function POST(request: Request): Promise<Response> {
   const finishTiming = (outcome: RequestTiming["outcome"]) =>
     logTiming({
       requestId,
-      dashboardKey,
+      dashboard: dataContext.contextId,
       model,
       contextCacheHit: contextCacheHitBeforeBuild,
       hasActiveFilters: activeFilters !== null,
       hasConversationMemory: memoryBlock !== null,
-      datasetVersion: getDatasetVersion(),
+      dataVersion: dataContext.dataVersion,
       promptConstructionMs: round2(promptConstructionMs),
       llmRounds,
       toolCalls: toolCallCount,
@@ -423,7 +516,7 @@ export async function POST(request: Request): Promise<Response> {
       const queryStartedAt = performance.now();
       const results: Anthropic.ToolResultBlockParam[] = await Promise.all(
         queryCalls.map(async (call) => {
-          const outcome = runDashboardQuery(dashboardKey as DashboardKey, call.input as Record<string, unknown>);
+          const outcome = runDashboardQuery(dataContext, call.input as Record<string, unknown>);
           if (outcome.cacheHit) queryCacheHitCount += 1;
           rowsProcessed += outcome.result.matchedRows;
           rowsReturned += outcome.result.groups?.length ?? outcome.result.rows?.length ?? (outcome.result.value !== undefined ? 1 : 0);
@@ -455,7 +548,7 @@ export async function POST(request: Request): Promise<Response> {
     // so the TTL refreshes and an active conversation's memory doesn't
     // expire out from under it.
     conversationContext = lastSuccessfulQuery
-      ? applyQueryToContext(conversationContext, dashboardKey as DashboardKey, lastSuccessfulQuery)
+      ? applyQueryToContext(conversationContext, dataContext.contextId, lastSuccessfulQuery)
       : conversationContext;
     saveConversationContext(conversationContext);
 
@@ -464,8 +557,8 @@ export async function POST(request: Request): Promise<Response> {
       redirect,
       options,
       conversationId,
-      suggestedFollowUps: suggestFollowUps(conversationContext, dashboardKey as DashboardKey),
-      contextSummary: buildContextSummaryForUI(conversationContext, dashboardKey as DashboardKey),
+      suggestedFollowUps: suggestFollowUps(conversationContext, dataContext.contextId),
+      contextSummary: buildContextSummaryForUI(conversationContext, dataContext.contextId),
     };
     finishTiming(redirect ? "redirect" : options ? "options" : "ok");
     return Response.json(payload);

@@ -125,10 +125,12 @@ export const DASHBOARD_REGISTRY: DashboardMeta[] = [
   },
 ];
 
-export function dashboardKeyForPathname(pathname: string): DashboardKey | null {
-  const found = DASHBOARD_REGISTRY.find((d) => pathname.startsWith(d.route));
-  return found ? found.key : null;
-}
+// NOTE: there is no dashboardKeyForPathname() here any more. Route → dashboard
+// resolution lives in exactly one place now — resolveDashboardContext() in
+// lib/ai/dashboard-context.ts — because a pathname can also name a CUSTOM
+// dashboard (/generated/<id>), and a resolver that could only return a
+// DashboardKey had to answer null for those, which is what left custom
+// dashboards without an assistant at all.
 
 export function dashboardMeta(key: DashboardKey): DashboardMeta {
   const meta = DASHBOARD_REGISTRY.find((d) => d.key === key);

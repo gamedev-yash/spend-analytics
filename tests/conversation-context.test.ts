@@ -162,13 +162,13 @@ describe("applyQueryToContext — dashboard-scoped containment", () => {
       entities: EMPTY_ENTITIES,
       perDashboard: {},
     };
-    const updated = applyQueryToContext(empty, "spend-overview", {
+    const updated = applyQueryToContext(empty, "builtin:spend-overview", {
       table: "fact_po_items",
       spec: { table: "fact_po_items", groupBy: "vendor_name", measure: "net_order_value_inr", aggregation: "sum", limit: 5 },
       result: { matchedRows: 5, truncated: false, groups: [{ group: "ABC", value: 100, rowCount: 1 }] },
     });
-    assert.ok(updated.perDashboard["spend-overview"]?.lastQuery);
-    assert.equal(updated.perDashboard["compliance"], undefined, "a sibling dashboard's slot must stay untouched");
+    assert.ok(updated.perDashboard["builtin:spend-overview"]?.lastQuery);
+    assert.equal(updated.perDashboard["builtin:compliance"], undefined, "a sibling dashboard's slot must stay untouched");
   });
 
   it("also updates the global entity bag from the query's filters", () => {
@@ -178,7 +178,7 @@ describe("applyQueryToContext — dashboard-scoped containment", () => {
       entities: EMPTY_ENTITIES,
       perDashboard: {},
     };
-    const updated = applyQueryToContext(empty, "spend-overview", {
+    const updated = applyQueryToContext(empty, "builtin:spend-overview", {
       table: "fact_po_items",
       spec: { table: "fact_po_items", filters: [{ field: "plant_name", op: "eq", value: "Jharsuguda" }] },
       result: { matchedRows: 10, truncated: false, value: 10 },
@@ -190,17 +190,17 @@ describe("applyQueryToContext — dashboard-scoped containment", () => {
 describe("buildConversationMemoryBlock", () => {
   it("is null when there is nothing memorable for this dashboard yet", () => {
     const context: ConversationContext = { conversationId: "x", updatedAt: Date.now(), entities: EMPTY_ENTITIES, perDashboard: {} };
-    assert.equal(buildConversationMemoryBlock(context, "spend-overview"), null);
+    assert.equal(buildConversationMemoryBlock(context, "builtin:spend-overview"), null);
   });
 
   it("describes the last query and top results when present", () => {
     let context: ConversationContext = { conversationId: "x", updatedAt: Date.now(), entities: EMPTY_ENTITIES, perDashboard: {} };
-    context = applyQueryToContext(context, "spend-overview", {
+    context = applyQueryToContext(context, "builtin:spend-overview", {
       table: "fact_po_items",
       spec: { table: "fact_po_items", groupBy: "vendor_name", measure: "net_order_value_inr", aggregation: "sum", sort: "desc", limit: 5 },
       result: { matchedRows: 5, truncated: false, groups: [{ group: "ABC", value: 100, rowCount: 1 }, { group: "XYZ", value: 90, rowCount: 1 }] },
     });
-    const block = buildConversationMemoryBlock(context, "spend-overview");
+    const block = buildConversationMemoryBlock(context, "builtin:spend-overview");
     assert.ok(block);
     assert.match(block!, /grouped by vendor_name/);
     assert.match(block!, /ABC, XYZ/);
@@ -208,75 +208,75 @@ describe("buildConversationMemoryBlock", () => {
 
   it("never surfaces a query stored under a DIFFERENT dashboard (redirect containment)", () => {
     let context: ConversationContext = { conversationId: "x", updatedAt: Date.now(), entities: EMPTY_ENTITIES, perDashboard: {} };
-    context = applyQueryToContext(context, "spend-overview", {
+    context = applyQueryToContext(context, "builtin:spend-overview", {
       table: "fact_po_items",
       spec: { table: "fact_po_items", groupBy: "vendor_name" },
       result: { matchedRows: 1, truncated: false, groups: [{ group: "ABC", value: 1, rowCount: 1 }] },
     });
     // Nothing queried on payment-terms yet in this conversation.
-    assert.equal(buildConversationMemoryBlock(context, "payment-terms"), null);
+    assert.equal(buildConversationMemoryBlock(context, "builtin:payment-terms"), null);
   });
 });
 
 describe("suggestFollowUps", () => {
   it("is null with no prior query on this dashboard", () => {
     const context: ConversationContext = { conversationId: "x", updatedAt: Date.now(), entities: EMPTY_ENTITIES, perDashboard: {} };
-    assert.equal(suggestFollowUps(context, "spend-overview"), null);
+    assert.equal(suggestFollowUps(context, "builtin:spend-overview"), null);
   });
 
   it("suggests widening a small top-N and offers a recently-discussed entity not already filtered", () => {
     let context: ConversationContext = { conversationId: "x", updatedAt: Date.now(), entities: EMPTY_ENTITIES, perDashboard: {} };
-    context = applyQueryToContext(context, "spend-overview", {
+    context = applyQueryToContext(context, "builtin:spend-overview", {
       table: "fact_po_items",
       spec: { table: "fact_po_items", groupBy: "vendor_name", limit: 5, filters: [{ field: "plant_name", op: "eq", value: "Jharsuguda" }] },
       result: { matchedRows: 5, truncated: false, groups: [{ group: "ABC", value: 1, rowCount: 1 }] },
     });
     // Discuss a second plant afterwards, without it being part of the stored query's own filters.
     context = { ...context, entities: { ...context.entities, plants: ["Pune", "Jharsuguda"] } };
-    const suggestions = suggestFollowUps(context, "spend-overview")!;
+    const suggestions = suggestFollowUps(context, "builtin:spend-overview")!;
     assert.ok(suggestions.includes("Show top 10"));
     assert.ok(suggestions.some((s) => s.includes("Pune")), `expected a Pune suggestion in ${JSON.stringify(suggestions)}`);
   });
 
   it("does not suggest a plant/category/supplier that's already the active filter", () => {
     let context: ConversationContext = { conversationId: "x", updatedAt: Date.now(), entities: { suppliers: [], categories: [], plants: ["Jharsuguda"] }, perDashboard: {} };
-    context = applyQueryToContext(context, "spend-overview", {
+    context = applyQueryToContext(context, "builtin:spend-overview", {
       table: "fact_po_items",
       spec: { table: "fact_po_items", filters: [{ field: "plant_name", op: "eq", value: "Jharsuguda" }] },
       result: { matchedRows: 5, truncated: false, value: 5 },
     });
-    const suggestions = suggestFollowUps(context, "spend-overview") ?? [];
+    const suggestions = suggestFollowUps(context, "builtin:spend-overview") ?? [];
     assert.ok(!suggestions.some((s) => s === "Only for Jharsuguda"));
   });
 
   it("offers a breakdown and a YoY comparison for a plain scalar answer (e.g. \"total spend\") — the previously-missed common case", () => {
     let context: ConversationContext = { conversationId: "x", updatedAt: Date.now(), entities: EMPTY_ENTITIES, perDashboard: {} };
-    context = applyQueryToContext(context, "spend-overview", {
+    context = applyQueryToContext(context, "builtin:spend-overview", {
       table: "fact_po_items",
       // No groupBy, no limit, no select — exactly what "What is our total spend?" produces.
       spec: { table: "fact_po_items", measure: "net_order_value_inr", aggregation: "sum" },
       result: { matchedRows: 50000, truncated: false, value: 243610000000 },
     });
-    const suggestions = suggestFollowUps(context, "spend-overview") ?? [];
+    const suggestions = suggestFollowUps(context, "builtin:spend-overview") ?? [];
     assert.ok(suggestions.includes("Break down by category"));
     assert.ok(suggestions.includes("Compare with last year"));
   });
 
   it("does not suggest a breakdown or YoY comparison for a row-level lookup (select set) — neither means anything against raw rows", () => {
     let context: ConversationContext = { conversationId: "x", updatedAt: Date.now(), entities: EMPTY_ENTITIES, perDashboard: {} };
-    context = applyQueryToContext(context, "spend-overview", {
+    context = applyQueryToContext(context, "builtin:spend-overview", {
       table: "fact_po_items",
       spec: { table: "fact_po_items", select: ["po_number", "vendor_name"], limit: 5 },
       result: { matchedRows: 5, truncated: false, rows: [{ po_number: "PO1", vendor_name: "ABC" }] },
     });
-    const suggestions = suggestFollowUps(context, "spend-overview") ?? [];
+    const suggestions = suggestFollowUps(context, "builtin:spend-overview") ?? [];
     assert.ok(!suggestions.includes("Break down by category"));
     assert.ok(!suggestions.includes("Compare with last year"));
   });
 
   it("skips the YoY suggestion once a date filter is already applied, but still offers a breakdown", () => {
     let context: ConversationContext = { conversationId: "x", updatedAt: Date.now(), entities: EMPTY_ENTITIES, perDashboard: {} };
-    context = applyQueryToContext(context, "spend-overview", {
+    context = applyQueryToContext(context, "builtin:spend-overview", {
       table: "fact_po_items",
       spec: {
         table: "fact_po_items",
@@ -286,7 +286,7 @@ describe("suggestFollowUps", () => {
       },
       result: { matchedRows: 1409, truncated: false, value: 5177600000 },
     });
-    const suggestions = suggestFollowUps(context, "spend-overview") ?? [];
+    const suggestions = suggestFollowUps(context, "builtin:spend-overview") ?? [];
     assert.ok(suggestions.includes("Break down by category"));
     assert.ok(!suggestions.includes("Compare with last year"));
   });
@@ -295,29 +295,29 @@ describe("suggestFollowUps", () => {
 describe("buildContextSummaryForUI", () => {
   it("is null with nothing memorable", () => {
     const context: ConversationContext = { conversationId: "x", updatedAt: Date.now(), entities: EMPTY_ENTITIES, perDashboard: {} };
-    assert.equal(buildContextSummaryForUI(context, "spend-overview"), null);
+    assert.equal(buildContextSummaryForUI(context, "builtin:spend-overview"), null);
   });
 
   it("combines groupBy, limit, and the most recent named entity — using a human label, never the raw column id", () => {
     let context: ConversationContext = { conversationId: "x", updatedAt: Date.now(), entities: EMPTY_ENTITIES, perDashboard: {} };
-    context = applyQueryToContext(context, "spend-overview", {
+    context = applyQueryToContext(context, "builtin:spend-overview", {
       table: "fact_po_items",
       spec: { table: "fact_po_items", groupBy: "vendor_name", limit: 5, filters: [{ field: "plant_name", op: "eq", value: "Jharsuguda" }] },
       result: { matchedRows: 5, truncated: false, groups: [{ group: "ABC", value: 1, rowCount: 1 }] },
     });
     // "Supplier", not "vendor_name" — a raw internal column id must never
     // reach the user-facing "Remembering: …" strip.
-    assert.equal(buildContextSummaryForUI(context, "spend-overview"), "By Supplier · Top 5 · Jharsuguda");
+    assert.equal(buildContextSummaryForUI(context, "builtin:spend-overview"), "By Supplier · Top 5 · Jharsuguda");
   });
 
   it("still produces a readable label (never raw snake_case) for a groupBy field with no explicit mapping", () => {
     let context: ConversationContext = { conversationId: "x", updatedAt: Date.now(), entities: EMPTY_ENTITIES, perDashboard: {} };
-    context = applyQueryToContext(context, "tail-spend", {
+    context = applyQueryToContext(context, "builtin:tail-spend", {
       table: "agg_vendor_annual",
       spec: { table: "agg_vendor_annual", groupBy: "some_new_field_id" },
       result: { matchedRows: 1, truncated: false, groups: [{ group: "X", value: 1, rowCount: 1 }] },
     });
-    const summary = buildContextSummaryForUI(context, "tail-spend");
+    const summary = buildContextSummaryForUI(context, "builtin:tail-spend");
     assert.ok(summary);
     assert.ok(!summary!.includes("_"), `expected no raw snake_case in "${summary}"`);
     // "ID", not "Id": humanizeFieldName gained an acronym/unit rule so the

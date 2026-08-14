@@ -7,6 +7,15 @@ import { SuggestionChips, type Suggestion } from "./SuggestionChips";
 
 interface EmptyStateProps {
   dashboardLabel: string;
+  /**
+   * Which starter prompts make sense here. The built-in dashboards all sit on
+   * the same procurement warehouse, so "Show top vendors" is a real question on
+   * every one of them; a generated dashboard's subject is unknown at build time
+   * (it could be inventory, headcount, anything), so it gets starters that are
+   * about the DATA rather than about a domain — otherwise the first thing the
+   * assistant would have to say is "this dashboard has no vendors".
+   */
+  dashboardKind?: "builtin" | "custom";
   welcomeText: string;
   onSelect: (text: string) => void;
   disabled?: boolean;
@@ -36,6 +45,7 @@ interface EmptyStateProps {
  */
 export function EmptyState({
   dashboardLabel,
+  dashboardKind = "builtin",
   welcomeText,
   onSelect,
   disabled,
@@ -43,13 +53,23 @@ export function EmptyState({
   onEnableReportMode,
   reportMode,
 }: EmptyStateProps) {
-  const allStarters: Suggestion[] = [
+  const builtinStarters: Suggestion[] = [
     { label: "Top vendors", value: "Show top vendors", description: "Rank suppliers by spend on this dashboard", icon: Trophy },
     { label: "Spend trend", value: "Show the spend trend over time", description: "Visualize how spend has moved over time", icon: TrendingUp },
     { label: "Compare periods", value: "Compare this month with last month", description: "Spot period-over-period movement", icon: Activity },
     { label: "Find unusual changes", value: "Show unusual spending", description: "Flag outliers worth a closer look", icon: AlertTriangle },
     { label: "Explain this metric", value: `Explain the ${dashboardLabel} dashboard`, description: "Get a walkthrough of what's shown here", icon: BookOpenText },
   ];
+  // Phrased against whatever this dashboard turns out to hold: the model reads
+  // its own schema and picks the columns, so none of these presume a subject.
+  const customStarters: Suggestion[] = [
+    { label: "Headline numbers", value: "What are the headline numbers in this dashboard?", description: "The totals this data leads with", icon: Trophy },
+    { label: "Top contributors", value: "What are the top contributors to the main measure, and how concentrated are they?", description: "Where the biggest values sit", icon: TrendingUp },
+    { label: "Trend over time", value: "How has the main measure changed over time?", description: "Movement across the periods in this data", icon: Activity },
+    { label: "Outliers", value: "Which records or groups look unusual compared with the rest?", description: "Flag anything worth a closer look", icon: AlertTriangle },
+    { label: "What's in here", value: "What does this dashboard cover, and what can you answer from it?", description: "A walkthrough of this dataset's scope", icon: BookOpenText },
+  ];
+  const allStarters = dashboardKind === "custom" ? customStarters : builtinStarters;
   // The compact popup is short on vertical space — 5 stacked cards need
   // scrolling before the user sees the composer at all. 3 stays within the
   // "3–5 suggested questions" range and mostly fits without scrolling; the

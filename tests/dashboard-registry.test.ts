@@ -14,13 +14,20 @@
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { DASHBOARD_REGISTRY, dashboardMeta, type DashboardKey } from "@/lib/ai/dashboard-registry";
+import { resolveDashboardContext } from "@/lib/ai/dashboard-context";
 import {
-  DASHBOARD_REGISTRY,
-  dashboardKeyForPathname,
-  dashboardMeta,
-} from "@/lib/ai/dashboard-registry";
-import { buildDashboardContext, isDashboardContextCached } from "@/lib/ai/dashboard-context";
+  buildDashboardSchemaBlock,
+  isDashboardSchemaBlockCached,
+  resolveDashboardDataContext,
+  type DashboardDataContext,
+} from "@/lib/ai/dashboard-data-context";
 import { queryDashboardDataTool } from "@/lib/ai/dashboard-query";
+
+/** Built-in dashboards always resolve, so the assertion is safe. */
+function builtin(key: DashboardKey): DashboardDataContext {
+  return resolveDashboardDataContext({ type: "builtin", dashboardKey: key })!;
+}
 
 const MIN_DESCRIPTION_LENGTH = 300;
 
@@ -42,10 +49,10 @@ describe("DASHBOARD_REGISTRY descriptions", () => {
     }
   });
 
-  it("every registry entry's route still round-trips through dashboardKeyForPathname", () => {
+  it("every registry entry's route still round-trips through the shared resolver", () => {
     for (const { key, route } of DASHBOARD_REGISTRY) {
-      assert.equal(dashboardKeyForPathname(route), key);
-      assert.equal(dashboardKeyForPathname(`${route}/sub-page`), key);
+      assert.deepEqual(resolveDashboardContext(route), { type: "builtin", dashboardKey: key });
+      assert.deepEqual(resolveDashboardContext(`${route}/sub-page`), { type: "builtin", dashboardKey: key });
     }
   });
 
@@ -56,31 +63,33 @@ describe("DASHBOARD_REGISTRY descriptions", () => {
 });
 
 describe("per-dashboard context/tool-schema memoization", () => {
-  it("buildDashboardContext(key) is marked cached after being built once", () => {
-    const context = buildDashboardContext("spend-overview");
-    assert.ok(context.length > 0);
-    assert.equal(isDashboardContextCached("spend-overview"), true);
-    // Same key, second call — must be the identical content, not a fresh rebuild.
-    assert.equal(buildDashboardContext("spend-overview"), context);
+  it("the schema block is marked cached after being built once", () => {
+    const block = buildDashboardSchemaBlock(builtin("spend-overview"));
+    assert.ok(block.length > 0);
+    assert.equal(isDashboardSchemaBlockCached(builtin("spend-overview")), true);
+    // Same dashboard, second call — must be the identical content, not a fresh rebuild.
+    assert.equal(buildDashboardSchemaBlock(builtin("spend-overview")), block);
   });
 
   it("different dashboards get independently cached, non-identical context", () => {
-    const spendOverview = buildDashboardContext("spend-overview");
-    const paymentTerms = buildDashboardContext("payment-terms");
+    const spendOverview = buildDashboardSchemaBlock(builtin("spend-overview"));
+    const paymentTerms = buildDashboardSchemaBlock(builtin("payment-terms"));
     assert.notEqual(spendOverview, paymentTerms);
-    assert.equal(isDashboardContextCached("payment-terms"), true);
+    assert.equal(isDashboardSchemaBlockCached(builtin("payment-terms")), true);
   });
 
-  it("queryDashboardDataTool(key) returns the same cached object on repeat calls", () => {
+  it("queryDashboardDataTool returns the same cached object on repeat calls", () => {
     // Reference equality (not just deepEqual) is the actual proof of
     // memoization — two independently-built tool schemas would never be
     // ===, since input_schema is a fresh object literal each time.
-    assert.strictEqual(queryDashboardDataTool("tail-spend"), queryDashboardDataTool("tail-spend"));
+    assert.strictEqual(queryDashboardDataTool(builtin("tail-spend")), queryDashboardDataTool(builtin("tail-spend")));
   });
 
   it("memoized tool schemas still don't leak fields across dashboards", () => {
-    const tailSpend = queryDashboardDataTool("tail-spend") as { input_schema: { properties: { table: { enum: string[] } } } };
-    const paymentTerms = queryDashboardDataTool("payment-terms") as {
+    const tailSpend = queryDashboardDataTool(builtin("tail-spend")) as {
+      input_schema: { properties: { table: { enum: string[] } } };
+    };
+    const paymentTerms = queryDashboardDataTool(builtin("payment-terms")) as {
       input_schema: { properties: { table: { enum: string[] } } };
     };
     assert.notDeepEqual(tailSpend.input_schema.properties.table.enum, paymentTerms.input_schema.properties.table.enum);

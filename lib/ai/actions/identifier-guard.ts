@@ -15,6 +15,16 @@
 // getDashboardTables()/describeSchema() the tool schema is built from, so it is
 // automatically correct for every dashboard, including any added later.
 //
+// WHY A GENERATED DASHBOARD'S OWN COLUMNS ARE NOT IN THIS LIST, DELIBERATELY:
+// the names below are warehouse internals a business reader has never seen, and
+// a report is the last place they should appear. A generated dashboard's columns
+// are the opposite — they are the user's own file headers, printed on that
+// dashboard's own filter controls, so quoting one in a report is not a leak and
+// replacing it with a guessed label would make the report LESS faithful to what
+// the reader is looking at. The warehouse list still applies to every report,
+// including one produced from a generated dashboard: no report should ever name
+// a table this app happens to have internally.
+//
 // HOW A LEAK IS HANDLED: detection feeds the engine's existing repair channel
 // (lib/ai/actions/action-plan-engine.ts), so the model rephrases into business
 // language itself — far better than a mechanical substitution. Only if the

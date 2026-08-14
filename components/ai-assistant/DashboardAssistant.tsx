@@ -4,7 +4,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, Sparkles, X } from "lucide-react";
-import { dashboardKeyForPathname, dashboardMeta, type DashboardKey } from "@/lib/ai/dashboard-registry";
+import { dashboardMeta, type DashboardKey } from "@/lib/ai/dashboard-registry";
+import {
+  dashboardContextId,
+  parseDashboardContextId,
+  resolveDashboardContext,
+  type DashboardContext,
+} from "@/lib/ai/dashboard-context";
+// Throws CustomDashboardSyncError with an already-user-safe message, which
+// send()/runAction()'s existing `err.message` branches surface as-is.
+import { ensureCustomDashboardSynced } from "@/lib/ai/custom-dashboard-sync";
+import { useGeneratedDashboard, useGeneratedDashboardsReady } from "@/lib/generated-dashboard/store";
 import { stashPendingPrompt, takePendingPrompt } from "@/lib/ai/assistant-handoff";
 import { adoptConversationId, getOrCreateConversationId, resetConversationId } from "@/lib/ai/conversation-id";
 import { useDashboardActiveFilterSummary } from "@/context/DashboardActiveFiltersContext";
@@ -19,6 +29,7 @@ import { MessageBubble } from "./MessageBubble";
 import { Composer } from "./Composer";
 import type { Suggestion } from "./SuggestionChips";
 import type { ActionPlanState } from "./ActionPlanCard";
+import { dropActionRun, writeActionPlan } from "./action-run-state";
 import { assistantActionsFor, type AssistantActionDefinition } from "@/lib/ai/actions/assistant-actions";
 import type { AssistantActionResponse } from "@/lib/ai/actions/action-plan-types";
 import { cn } from "@/lib/utils";
@@ -38,6 +49,13 @@ export interface ChatEntry {
    * action feature adds nothing to the normal message path.
    */
   actionPlan?: ActionPlanState;
+  /**
+   * Identifies THIS action run, so its progress card can be found again after it
+   * has already been rewritten once. Object identity cannot do that job (an
+   * immutable update replaces the object) and an index goes stale when a chat
+   * turn lands mid-generation. Only ever set alongside `actionPlan`.
+   */
+  actionRunId?: string;
 }
 
 const FOCUSABLE_SELECTOR = 'button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])';
@@ -50,6 +68,12 @@ const FOCUSABLE_SELECTOR = 'button, [href], input, textarea, select, [tabindex]:
 // whether the response took 13ms or three minutes. Covers ActionPlanCard's own
 // walk-out (8 steps at 120ms) with a little air.
 const REPORT_FINISH_MS = 1_150;
+
+// Monotonic per-tab counter for action-run ids. A counter rather than a
+// timestamp or a random value: the id only has to be unique within one
+// transcript, and this is the one form that cannot collide when two runs start
+// in the same millisecond.
+let actionRunSeq = 0;
 
 const BUBBLE_HEIGHT_PX = 48;
 const PANEL_GAP_PX = 12;
@@ -67,10 +91,15 @@ const FOLLOW_UPS: Suggestion[] = [
   { label: "Explain", value: "Explain why this changed" },
 ];
 
-function welcomeFor(key: DashboardKey): string {
-  const { label } = dashboardMeta(key);
-  return `Hi! I'm grounded in the ${label} dashboard's own data only — ask me about what's on this page. If you need something from another dashboard, I'll point you to it instead of guessing.`;
+function welcomeFor(label: string, kind: DashboardContext["type"]): string {
+  return kind === "custom"
+    ? `Hi! I'm grounded in the ${label} dashboard's own data only — the records it was generated from, nothing else. Ask me anything those columns can answer; if something isn't in this data, I'll say so rather than guess.`
+    : `Hi! I'm grounded in the ${label} dashboard's own data only — ask me about what's on this page. If you need something from another dashboard, I'll point you to it instead of guessing.`;
 }
+
+/** Shown in place of the composer when a generated dashboard's record isn't in this browser (a link opened elsewhere, or site data cleared). */
+const CUSTOM_DASHBOARD_MISSING_MESSAGE =
+  "I can't find this dashboard's data in this browser, so there's nothing for me to answer from. Generated dashboards are stored locally — a link opened in another browser, or after clearing site data, won't resolve. Open a dashboard from the list on the home page and I'll pick it up there.";
 
 interface DashboardAssistantProps {
   /**
@@ -80,22 +109,75 @@ interface DashboardAssistantProps {
    * viewport edge-to-edge rather than floating over dashboard content.
    */
   standalone?: boolean;
-  /** Only consulted when `standalone` is true — the standalone page has no pathname to infer a dashboard from, so it's passed in explicitly instead (see app/assistant/page.tsx's `?dashboard=` search param). */
-  standaloneDashboardKey?: DashboardKey | null;
+  /** Only consulted when `standalone` is true — the standalone page has no dashboard pathname to infer from, so the context is passed in explicitly instead (see app/assistant/page.tsx's `?dashboard=` search param). */
+  standaloneContext?: DashboardContext | null;
 }
 
 /**
  * Floating chat scoped to exactly one of the dashboards in DASHBOARD_REGISTRY — whichever
  * the user is currently on. Unlike AiAssistant (the CSV-upload assistant),
  * this one needs no dataset upload: it's grounded server-side in that
- * dashboard's real, current aggregate data (see lib/ai/dashboard-context.ts).
+ * dashboard's own real data (see lib/ai/dashboard-data-context.ts).
  * A question that needs a different dashboard's data gets a redirect link,
- * never a guess — renders null outside the four dashboard routes.
+ * never a guess — renders null outside a dashboard route.
+ *
+ * "One of the dashboards" now means either kind: a built-in dashboard from
+ * DASHBOARD_REGISTRY, or a generated dashboard at /generated/<id>. The component
+ * is the same in both cases — same launcher, panel, Report Mode, transcript and
+ * download UI — because the only thing that differs is the DashboardContext it
+ * sends to the API (see lib/ai/dashboard-context.ts). The one piece of extra
+ * work a generated dashboard needs is registering its rows with the server the
+ * first time they are used, since they live in this browser and nowhere else
+ * (lib/ai/custom-dashboard-sync.ts).
  */
-export function DashboardAssistant({ standalone = false, standaloneDashboardKey = null }: DashboardAssistantProps = {}) {
+export function DashboardAssistant({ standalone = false, standaloneContext = null }: DashboardAssistantProps = {}) {
   const pathname = usePathname();
   const router = useRouter();
-  const dashboardKey = standalone ? standaloneDashboardKey : pathname ? dashboardKeyForPathname(pathname) : null;
+  // THE resolver, used in exactly one place. A null here means "not on a
+  // dashboard" (the home page, this app's other routes) — no longer "this is a
+  // generated dashboard and I have no way to name it", which is what used to
+  // make the assistant vanish on /generated/<id>.
+  const resolvedContext = standalone ? standaloneContext : pathname ? resolveDashboardContext(pathname) : null;
+  const contextKey = resolvedContext ? dashboardContextId(resolvedContext) : null;
+  // Round-tripped through its own id so the OBJECT identity is stable for as
+  // long as the dashboard is. Every callback below depends on it, and a fresh
+  // literal on each render (which is what a resolver returns) would rebuild all
+  // of them on every keystroke.
+  const dashboardContext = useMemo(() => (contextKey ? parseDashboardContextId(contextKey) : null), [contextKey]);
+
+  // Hooks must run unconditionally, so the store is always read — with an id
+  // that matches nothing when the current dashboard is a built-in one.
+  const customDashboardId = dashboardContext?.type === "custom" ? dashboardContext.dashboardId : "";
+  const customDashboard = useGeneratedDashboard(customDashboardId);
+  const generatedStoreReady = useGeneratedDashboardsReady();
+
+  // A generated dashboard whose record genuinely isn't in this browser. Only
+  // meaningful once the store has hydrated, otherwise every first paint would
+  // flash the missing state.
+  const customDashboardMissing =
+    dashboardContext?.type === "custom" && generatedStoreReady && customDashboard === null;
+
+  const dashboardLabel =
+    dashboardContext === null
+      ? ""
+      : dashboardContext.type === "builtin"
+        ? dashboardMeta(dashboardContext.dashboardKey).label
+        : (customDashboard?.title ?? "this dashboard");
+
+  const welcomeText = useMemo(
+    () =>
+      dashboardContext === null
+        ? ""
+        : customDashboardMissing
+          ? CUSTOM_DASHBOARD_MISSING_MESSAGE
+          : welcomeFor(dashboardLabel, dashboardContext.type),
+    [dashboardContext, dashboardLabel, customDashboardMissing]
+  );
+  // Read (not depended on) by the navigation-reset effect below, which must not
+  // re-run when only the greeting text changes.
+  const welcomeTextRef = useRef(welcomeText);
+  welcomeTextRef.current = welcomeText;
+
   // Published by whichever dashboard is currently mounted — see
   // context/DashboardActiveFiltersContext.tsx for why the assistant needs
   // this at all (it lives outside every dashboard page's own filter state).
@@ -189,9 +271,11 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
   // would hand the "fresh chat session" a conversationId (and thus server-side
   // memory) it was never supposed to have. See lib/ai/conversation-id.ts.
   const openInNewTab = useCallback(() => {
-    if (!dashboardKey) return;
-    window.open(`/assistant?dashboard=${dashboardKey}`, "_blank", "noopener,noreferrer");
-  }, [dashboardKey]);
+    if (!contextKey) return;
+    // The context id, not a bare dashboard key — it names either kind, and the
+    // standalone page parses it back with parseDashboardContextId.
+    window.open(`/assistant?dashboard=${encodeURIComponent(contextKey)}`, "_blank", "noopener,noreferrer");
+  }, [contextKey]);
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
@@ -214,7 +298,7 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
   // the old one is simply never looked up again rather than silently leaking
   // into what looks like a brand-new conversation.
   const resetConversation = useCallback(() => {
-    if (!dashboardKey) return;
+    if (!dashboardContext) return;
     resettingRef.current = true;
     stop();
     setBusy(false);
@@ -222,7 +306,7 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
     setSuggestedFollowUps(null);
     setContextSummary(null);
     setReportMode(false);
-    setMessages([{ role: "assistant", content: welcomeFor(dashboardKey), timestamp: Date.now() }]);
+    setMessages([{ role: "assistant", content: welcomeText, timestamp: Date.now() }]);
     setInput("");
     // An in-flight report's own fetch isn't aborted here (it holds no
     // AbortController — it never blocks the composer, so there is nothing for
@@ -241,7 +325,7 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
     setTimeout(() => {
       resettingRef.current = false;
     }, 0);
-  }, [dashboardKey, stop]);
+  }, [dashboardContext, welcomeText, stop]);
 
   // Reset the VISIBLE conversation when the user moves to a different
   // dashboard — an old exchange grounded in Payment Terms data would be
@@ -249,8 +333,8 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
   // conversationId deliberately does NOT reset here (see its declaration
   // above) — cross-dashboard entity memory (§12) needs it to survive this.
   useEffect(() => {
-    if (!dashboardKey) return;
-    setMessages([{ role: "assistant", content: welcomeFor(dashboardKey), timestamp: Date.now() }]);
+    if (!contextKey) return;
+    setMessages([{ role: "assistant", content: welcomeTextRef.current, timestamp: Date.now() }]);
     setSuggestedFollowUps(null);
     setContextSummary(null);
     setActionBusy(false);
@@ -268,7 +352,24 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
       setInput(pending);
       setOpen(true);
     }
-  }, [dashboardKey]);
+    // Keyed on the CONTEXT id, so moving between two generated dashboards resets
+    // the visible transcript exactly as moving between two built-in ones does.
+    // Deliberately not on welcomeText: a generated dashboard's title arrives
+    // from the local store a beat after the first paint, and re-running this on
+    // that would wipe a conversation already in progress. The small effect below
+    // patches the greeting instead.
+  }, [contextKey]);
+
+  // Greeting-only refresh: replaces the seeded welcome once a generated
+  // dashboard's own title is known (or after a rename), and does nothing at all
+  // once the user has actually said something.
+  useEffect(() => {
+    setMessages((prev) =>
+      prev.length === 1 && prev[0].role === "assistant" && prev[0].content !== welcomeText
+        ? [{ ...prev[0], content: welcomeText }]
+        : prev
+    );
+  }, [welcomeText]);
 
   // "New insight" indicator on the launcher bubble: purely a UI read of state
   // that already exists (messages + open), not new business logic or
@@ -359,10 +460,49 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
     prevScrollCountRef.current = messages.length;
   }, [messages, busy, open]);
 
+  /**
+   * The ONE place either request is actually sent, for both dashboard kinds.
+   *
+   * Everything kind-specific about talking to the server lives here and nowhere
+   * else: the DashboardContext goes on every request, and a generated dashboard's
+   * rows are registered with the server first (once — see
+   * lib/ai/custom-dashboard-sync.ts). A 409 + needsDashboardSync means this
+   * process lost the snapshot (restart, eviction, a different server instance),
+   * so it re-registers and retries exactly once rather than surfacing an error
+   * the user can do nothing about. A built-in dashboard skips all of it.
+   */
+  const postToAssistantApi = useCallback(
+    async <T,>(url: string, payload: Record<string, unknown>, signal: AbortSignal): Promise<{ res: Response; data: T }> => {
+      if (!dashboardContext) throw new Error("No dashboard is open.");
+      const isCustom = dashboardContext.type === "custom";
+      if (isCustom && !customDashboard) throw new Error(CUSTOM_DASHBOARD_MISSING_MESSAGE);
+
+      const body = JSON.stringify({ ...payload, dashboard: dashboardContext });
+      const post = async () => {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body,
+          signal,
+        });
+        const data = (await res.json().catch(() => ({}))) as T & { needsDashboardSync?: boolean };
+        return { res, data };
+      };
+
+      if (isCustom && customDashboard) await ensureCustomDashboardSynced(customDashboard, { signal });
+      const first = await post();
+      if (first.res.ok || !first.data.needsDashboardSync || !isCustom || !customDashboard) return first;
+
+      await ensureCustomDashboardSynced(customDashboard, { force: true, signal });
+      return post();
+    },
+    [dashboardContext, customDashboard]
+  );
+
   const send = useCallback(
     async (text?: string) => {
       const message = (text ?? input).trim();
-      if (!message || busy || !dashboardKey) return;
+      if (!message || busy || !dashboardContext) return;
 
       const history = messages
         .filter((m) => !m.isError)
@@ -375,13 +515,7 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
       const controller = new AbortController();
       abortRef.current = controller;
       try {
-        const res = await fetch("/api/dashboard-chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ dashboardKey, message, history, activeFilters: activeFilterSummary, conversationId }),
-          signal: controller.signal,
-        });
-        const data: {
+        const { res, data } = await postToAssistantApi<{
           reply?: string;
           redirect?: { key: DashboardKey; label: string; route: string } | null;
           options?: string[] | null;
@@ -389,7 +523,11 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
           suggestedFollowUps?: string[] | null;
           contextSummary?: string | null;
           error?: string;
-        } = await res.json().catch(() => ({}));
+        }>(
+          "/api/dashboard-chat",
+          { message, history, activeFilters: activeFilterSummary, conversationId },
+          controller.signal
+        );
         if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status}).`);
         // The server only ever changes this when the id it received was
         // missing/malformed (see sanitizeConversationId) — adopt its
@@ -435,7 +573,7 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
         setBusy(false);
       }
     },
-    [input, busy, dashboardKey, messages, activeFilterSummary, conversationId]
+    [input, busy, dashboardContext, messages, activeFilterSummary, conversationId, postToAssistantApi]
   );
 
   /**
@@ -451,18 +589,21 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
    */
   const runAction = useCallback(
     async (action: AssistantActionDefinition, objective: string) => {
-      if (!dashboardKey || actionBusy) return;
+      if (!dashboardContext || actionBusy) return;
 
-      // Held by reference so the response can find this exact entry again even
-      // if chat messages land in the meantime — an index would go stale.
+      // Found again by a STABLE ID, not by object identity — see
+      // ./action-run-state.ts for what identity matching broke and why the
+      // reveal's two consecutive writes are the case that exposed it.
+      const runId = `action-run-${(actionRunSeq += 1)}`;
       const entry: ChatEntry = {
         role: "assistant",
         content: "",
         timestamp: Date.now(),
+        actionRunId: runId,
         actionPlan: { status: "running", label: action.label, estimatedSeconds: action.estimatedSeconds },
       };
       const write = (actionPlan: ActionPlanState) =>
-        setMessages((prev) => prev.map((m) => (m === entry ? { ...m, actionPlan } : m)));
+        setMessages((prev) => writeActionPlan(prev, runId, actionPlan));
 
       /**
        * Reveal in two beats: tell the card the response has landed so it runs any
@@ -487,23 +628,25 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
       const controller = new AbortController();
       actionAbortRef.current = controller;
       try {
-        const res = await fetch("/api/assistant-actions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        const { res, data } = await postToAssistantApi<AssistantActionResponse>(
+          "/api/assistant-actions",
+          {
             action: action.id,
-            dashboardKey,
             objective,
             activeFilters: activeFilterSummary,
             conversationId,
-          }),
-          signal: controller.signal,
-        });
-        const data: AssistantActionResponse = await res
-          .json()
-          .catch(() => ({ success: false, error: `Request failed (${res.status}).` }) as AssistantActionResponse);
+          },
+          controller.signal
+        );
+        // `data.error` can be missing — an unparseable/empty body leaves `data`
+        // as {}. Before this fallback that produced `new Error(undefined)`, i.e.
+        // a failed report card carrying an EMPTY message, which is
+        // indistinguishable from the generation silently going nowhere. A report
+        // that fails must always say something.
         if (!res.ok || !data.success) {
-          throw new Error(data.success ? `Request failed (${res.status}).` : data.error);
+          throw new Error(
+            (data.success ? undefined : data.error) || `The report request failed (${res.status}).`
+          );
         }
 
         // Triage decided this request should not become a report. Each kind is
@@ -523,10 +666,9 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
         if (data.type === "no_report") {
           const routeToChat = data.kind === "factual" || data.kind === "navigation";
           setMessages((prev) =>
-            prev
-              // Remove the running card — no report is coming, and leaving a
-              // spent progress card above the answer reads as a failure.
-              .filter((m) => m !== entry)
+            // Remove the running card — no report is coming, and leaving a spent
+            // progress card above the answer reads as a failure.
+            dropActionRun(prev, runId)
               .concat(
                 routeToChat
                   ? []
@@ -576,14 +718,14 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
         setActionBusy(false);
       }
     },
-    [dashboardKey, actionBusy, activeFilterSummary, conversationId, send]
+    [dashboardContext, actionBusy, activeFilterSummary, conversationId, send, postToAssistantApi]
   );
 
   // Which action Report mode runs. Registry-driven, so this component never
   // names a specific action; a dashboard with none simply hides the toggle.
   const reportAction = useMemo(
-    () => (dashboardKey ? (assistantActionsFor(dashboardKey)[0] ?? null) : null),
-    [dashboardKey]
+    () => (dashboardContext && !customDashboardMissing ? (assistantActionsFor(dashboardContext)[0] ?? null) : null),
+    [dashboardContext, customDashboardMissing]
   );
 
   /**
@@ -691,9 +833,13 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [panelOpen, effectiveFullscreen, closePanel]);
 
-  if (!dashboardKey) return null;
+  if (!dashboardContext) return null;
   if (isCapturing) return null;
-  const meta = dashboardMeta(dashboardKey);
+  // A generated dashboard whose local record hasn't been read yet — one paint at
+  // most (the store reads localStorage synchronously). Rendering nothing rather
+  // than a launcher labelled "this dashboard" avoids a visible flicker on every
+  // page load.
+  if (dashboardContext.type === "custom" && !generatedStoreReady) return null;
   const isEmpty = messages.length === 1;
 
   return (
@@ -775,7 +921,7 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
             )}
           >
             <AssistantHeader
-              dashboardLabel={meta.label}
+              dashboardLabel={dashboardLabel}
               fullscreen={effectiveFullscreen}
               onNewChat={resetConversation}
               onToggleFullscreen={standalone ? undefined : () => setFullscreen((v) => !v)}
@@ -787,10 +933,11 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
               <div ref={scrollRef} onScroll={handleScroll} className="ai-scrollbar h-full overflow-y-auto px-4 py-4">
                 {isEmpty ? (
                   <EmptyState
-                    dashboardLabel={meta.label}
-                    welcomeText={messages[0]?.content ?? welcomeFor(dashboardKey)}
+                    dashboardLabel={dashboardLabel}
+                    dashboardKind={dashboardContext.type}
+                    welcomeText={messages[0]?.content ?? welcomeText}
                     onSelect={(text) => void send(text)}
-                    disabled={busy}
+                    disabled={busy || customDashboardMissing}
                     fullscreen={effectiveFullscreen}
                     // Undefined when this dashboard has no report action, which
                     // is what hides the card rather than showing a dead one.
@@ -822,7 +969,7 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 pl-9 text-xs text-slate-400 dark:text-slate-500" aria-hidden="true">
                           <Sparkles className="h-3.5 w-3.5 animate-pulse" />
-                          <span>Analyzing {meta.label} data</span>
+                          <span>Analyzing {dashboardLabel} data</span>
                           <span className="flex items-center gap-0.5">
                             <span className="h-1 w-1 animate-bounce rounded-full bg-current [animation-delay:-0.3s]" />
                             <span className="h-1 w-1 animate-bounce rounded-full bg-current [animation-delay:-0.15s]" />
@@ -847,7 +994,7 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
                   </div>
                 )}
                 <div role="status" aria-live="polite" className="sr-only">
-                  {busy ? `Analyzing ${meta.label} data…` : ""}
+                  {busy ? `Analyzing ${dashboardLabel} data…` : ""}
                 </div>
               </div>
 
@@ -890,14 +1037,20 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
               onChange={setInput}
               onSubmit={submitComposer}
               onStop={stop}
+              // Nothing to ground an answer in — see CUSTOM_DASHBOARD_MISSING_MESSAGE,
+              // which the transcript is already showing. Disabled rather than
+              // hidden so the panel still looks like itself.
+              disabled={customDashboardMissing}
               // Either request in flight puts the composer in its stop state —
               // a 3-minute report generation with no way to cancel it would be
               // the worst version of this feature.
               busy={busy || actionBusy}
               placeholder={
-                reportMode
-                  ? `Describe the report you want from ${meta.label}…`
-                  : `Ask about ${meta.label}…`
+                customDashboardMissing
+                  ? "This dashboard's data isn't available in this browser"
+                  : reportMode
+                    ? `Describe the report you want from ${dashboardLabel}…`
+                    : `Ask about ${dashboardLabel}…`
               }
               fullscreen={effectiveFullscreen}
               reportMode={reportMode}

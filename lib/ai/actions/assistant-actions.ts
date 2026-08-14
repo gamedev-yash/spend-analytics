@@ -25,6 +25,7 @@
 // this list. Labels and gating rules only — no generator code, no data.
 
 import type { AssistantActionId } from "@/lib/ai/actions/action-plan-types";
+import type { DashboardContext } from "@/lib/ai/dashboard-context";
 import type { DashboardKey } from "@/lib/ai/dashboard-registry";
 
 export interface AssistantActionDefinition {
@@ -34,9 +35,12 @@ export interface AssistantActionDefinition {
   /** Tooltip / aria description — says what will happen, since this is a slow, deliberate operation. */
   description: string;
   /**
-   * Which dashboards offer this action. `null` means all of them. Present so a
-   * future action that only makes sense on one dashboard doesn't need new
-   * gating logic in the UI.
+   * Which dashboards offer this action. `null` means every dashboard — built-in
+   * AND generated. A non-null list names specific BUILT-IN dashboards, which is
+   * the only kind that can be enumerated at compile time; an action restricted
+   * that way is therefore unavailable on generated dashboards by construction.
+   * Present so a future action that only makes sense on one dashboard doesn't
+   * need new gating logic in the UI.
    */
   dashboards: DashboardKey[] | null;
   /**
@@ -62,8 +66,16 @@ export const ASSISTANT_ACTIONS: AssistantActionDefinition[] = [
   },
 ];
 
-export function assistantActionsFor(dashboardKey: DashboardKey): AssistantActionDefinition[] {
-  return ASSISTANT_ACTIONS.filter((a) => a.dashboards === null || a.dashboards.includes(dashboardKey));
+/**
+ * Which actions the panel offers on the dashboard the user is currently on —
+ * generated dashboards included, since `dashboards: null` means every dashboard
+ * and the workflow behind the one action registered today is dashboard-agnostic
+ * end to end (it reads whatever DashboardDataContext it is handed).
+ */
+export function assistantActionsFor(context: DashboardContext): AssistantActionDefinition[] {
+  return ASSISTANT_ACTIONS.filter(
+    (a) => a.dashboards === null || (context.type === "builtin" && a.dashboards.includes(context.dashboardKey))
+  );
 }
 
 /** Null for anything not in the registry — the API rejects on null rather than trusting a client-supplied id. */

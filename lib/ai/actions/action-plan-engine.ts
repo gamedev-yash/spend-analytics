@@ -2,19 +2,21 @@
 //
 // GENERIC BY CONSTRUCTION, NOT BY DISCIPLINE. This file contains no dashboard
 // name, no keyword list, no scenario branch, no per-business-problem path, and
-// no hardcoded fact, insight, recommendation, or benefit. Everything it knows
-// about the situation arrives through ActionPlanContext, and every field of
-// that context is derived from `dashboardKey` by modules that already existed:
+// no hardcoded fact, insight, recommendation, or benefit. It does not even know
+// which KIND of dashboard it is reporting on. Everything it knows about the
+// situation arrives through ActionPlanContext, whose substance is one resolved
+// DashboardDataContext (lib/ai/dashboard-data-context.ts):
 //
-//   dashboardKey ─┬─► queryDashboardDataTool(key)    WHAT IT MAY QUERY (enum-scoped)
-//                 ├─► buildDashboardContext(key)     the schema it can see
-//                 └─► dashboardMeta(key)             label + business scope
+//   DashboardDataContext ─┬─► queryDashboardDataTool()     WHAT IT MAY QUERY (enum-scoped)
+//                         ├─► buildDashboardSchemaBlock()  the schema it can see
+//                         ├─► .label / .description        label + business scope
+//                         └─► .semanticDictionary          named-metric recipes, when any apply
 //   plus  activeFilters (the user's live view) and conversationMemory (prior queries)
 //
-// The consequence worth understanding: adding a seventh dashboard to
-// DASHBOARD_REGISTRY + dashboard-tables.ts makes reports work there with ZERO
-// changes to this file. Nothing here enumerates dashboards, so nothing here can
-// fall out of date when one is added.
+// The consequence worth understanding: a seventh built-in dashboard, or a
+// generated dashboard built from a CSV nobody has seen yet, both produce reports
+// with ZERO changes to this file. Nothing here enumerates dashboards or branches
+// on their kind, so nothing here can fall out of date when one is added.
 //
 // WHY THERE IS NO GENERATOR-SELECTION SEAM ANYMORE: there used to be a second,
 // scenario-scoped generator holding predefined content for one dashboard, plus
@@ -24,12 +26,12 @@
 // problem was recognised.
 //
 // WHAT IT REUSES, UNCHANGED — this is the point of the file:
-//   queryDashboardDataTool()      the SAME per-dashboard enum-scoped schema chat uses
-//   runDashboardQuery()           the SAME validation + engine + result cache
-//   renderDashboardQueryResult()  the SAME correctable tool_result rendering
-//   buildDashboardContext()       the SAME memoized schema text
-//   SEMANTIC_METRIC_DICTIONARY    the SAME metric definitions
-//   resolveAnthropicClient()      the SAME key/model resolution
+//   queryDashboardDataTool()       the SAME per-dashboard enum-scoped schema chat uses
+//   runDashboardQuery()            the SAME validation + engine + result cache
+//   renderDashboardQueryResult()   the SAME correctable tool_result rendering
+//   buildDashboardSchemaBlock()    the SAME memoized schema text
+//   dataContext.semanticDictionary the SAME metric definitions
+//   resolveAnthropicClient()       the SAME key/model resolution
 // There is no second query path, no second SQL surface, no relaxed validation.
 // A query composed here is validated against exactly the same table/field
 // enums a chat query is, because it goes through exactly the same function.
@@ -55,28 +57,29 @@ import "server-only";
 
 import Anthropic from "@anthropic-ai/sdk";
 import { resolveAnthropicClient } from "@/lib/ai/anthropic-client";
-import { buildDashboardContext } from "@/lib/ai/dashboard-context";
+import { buildDashboardSchemaBlock, type DashboardDataContext } from "@/lib/ai/dashboard-data-context";
 import {
   queryDashboardDataTool,
   runDashboardQuery,
   renderDashboardQueryResult,
 } from "@/lib/ai/dashboard-query";
-import { SEMANTIC_METRIC_DICTIONARY } from "@/lib/ai/semantic-metrics";
 import { validateActionPlan } from "@/lib/ai/actions/action-plan-validate";
 import { findLeakedIdentifiers, scrubIdentifiers } from "@/lib/ai/actions/identifier-guard";
 import type { ActionPlanResult, NoReportKind } from "@/lib/ai/actions/action-plan-types";
-import type { DashboardKey } from "@/lib/ai/dashboard-registry";
 
 /**
  * Everything the engine is allowed to see. Assembled once by
  * action-plan-service.ts — the engine never reads the raw HTTP request, and
- * every field here is derived from `dashboardKey` or supplied by the user, so
- * there is nothing for a scenario-specific value to attach to.
+ * every field here is either the resolved data context or supplied by the user,
+ * so there is nothing for a scenario-specific value to attach to.
  */
 export interface ActionPlanContext {
-  dashboardKey: DashboardKey;
-  dashboardLabel: string;
-  dashboardDescription: string;
+  /**
+   * The one dashboard this report may read, already resolved to its tables,
+   * label and business scope. The engine cannot widen it: there is no id or key
+   * here to look a second dashboard up with.
+   */
+  dataContext: DashboardDataContext;
   /** The user's own words, already trimmed and length-bounded by the route. Never parsed, matched, or classified. */
   objective: string;
   /** Free-text summary of the dashboard's current filter state, or null when unfiltered. */
@@ -86,7 +89,7 @@ export interface ActionPlanContext {
    * the SAME structured memory normal chat uses, not a second memory system, and
    * not the full raw transcript. It already carries the last query's shape and
    * its top results, which is exactly the "relevant previous query result" this
-   * workflow needs in order to avoid re-asking the warehouse for something the
+   * workflow needs in order to avoid re-querying the data for something the
    * conversation just established.
    */
   conversationMemory: string | null;
@@ -353,6 +356,15 @@ const GENERATE_ACTION_PLAN_TOOL: Anthropic.Tool = {
 };
 
 function buildSystemPrompt(context: ActionPlanContext): string {
+  const isCustom = context.dataContext.context.type === "custom";
+  // Verbatim for the built-in dashboards (see the persona note below); generic
+  // only where a fixed currency or a fixed job-role vocabulary would be wrong.
+  const unitsAndOwnersRules = isCustom
+    ? `- Amounts and units: follow whatever convention this dashboard's own description and schema establish, and never restate a figure in a currency or unit the data does not use.
+- Owners are job roles drawn from this dashboard's own subject area, never invented personal names.`
+    : `- Amounts in rupees: use Cr and L, matching how the dashboards display money.
+- Owners are procurement roles ("Category Manager", "Sourcing Lead"), never invented personal names.`;
+
   const filtersBlock = context.activeFilters
     ? `\nThe user has this filtered view open on the dashboard: ${context.activeFilters}\nScope your queries to match it, so the report agrees with what is on their screen. Say so in the scope field.\n`
     : "";
@@ -363,10 +375,35 @@ function buildSystemPrompt(context: ActionPlanContext): string {
   // something the conversation just established (§17).
   const memoryBlock = context.conversationMemory ? `\n${context.conversationMemory}\n` : "";
 
-  return `You are a procurement analyst producing a structured action plan from the "${context.dashboardLabel}" dashboard of a Vedanta procurement analytics app.
+  const dictionaryBlock = context.dataContext.semanticDictionary
+    ? `
+${context.dataContext.semanticDictionary}
+`
+    : "";
+
+  // WHY THIS IS SPLIT BY DASHBOARD KIND RATHER THAN GENERALISED.
+  //
+  // The first version of generated-dashboard support rewrote these three lines
+  // generically for BOTH kinds — "data analyst", "business analytics app", no
+  // currency convention, no role vocabulary. That was a mistake, and the kind
+  // that is easy to miss: nothing failed, no test caught it, and the prompt still
+  // read sensibly. But this text is TUNED. It was arrived at over many live runs
+  // against these six dashboards, and loosening it changes how much the model
+  // explores before it emits — which on this workflow is paid in whole extra
+  // Claude round trips.
+  //
+  // So the built-in wording is now reproduced EXACTLY as it was, and the generic
+  // wording applies only where the specific wording would have been wrong (a
+  // generated dashboard may be about anything, in any unit, owned by any role).
+  // A shared prompt with a per-kind clause, not one prompt bent to cover both.
+  const persona = isCustom
+    ? `You are a data analyst producing a structured action plan from the "${context.dataContext.label}" dashboard of a business analytics app.`
+    : `You are a procurement analyst producing a structured action plan from the "${context.dataContext.label}" dashboard of a Vedanta procurement analytics app.`;
+
+  return `${persona}
 
 What this dashboard covers:
-${context.dashboardDescription}
+${context.dataContext.description}
 
 FIRST DECIDE WHETHER THIS REQUEST SHOULD BECOME A REPORT AT ALL.
 
@@ -384,10 +421,8 @@ The distinction that matters is DIRECTION, not breadth. "What should management 
 Make this decision BEFORE you query. Deciding does not require data: it requires reading the request and knowing what your tables hold, both of which you already have. Do not run queries in order to work out whether to build a report.
 
 ${filtersBlock}${memoryBlock}
-${buildDashboardContext(context.dashboardKey)}
-
-${SEMANTIC_METRIC_DICTIONARY}
-
+${buildDashboardSchemaBlock(context.dataContext)}
+${dictionaryBlock}
 IF IT IS A VALID OBJECTIVE — derive every step from the objective and the schema above. There is no template for any particular kind of question:
 
 1. INTERPRET THE OBJECTIVE. Decide what it is actually asking for. If it is broad ("what needs attention here", "create an executive report"), treat the dashboard's own scope as the objective and survey its most material dimensions rather than guessing at a narrower question. If it is specific, answer that.
@@ -420,8 +455,7 @@ LANGUAGE — the most common mistake in this report, so read carefully:
     WRONG: "Pull <table_name> to quantify the gap"
     RIGHT: "Pull <what that table holds, in business terms> to quantify the gap"
   Translate the MEANING of a flag or code, never its name. If you cannot say what a column means in business language, do not cite it.
-- Amounts in rupees: use Cr and L, matching how the dashboards display money.
-- Owners are procurement roles ("Category Manager", "Sourcing Lead"), never invented personal names.
+${unitsAndOwnersRules}
 - Write for an executive audience: specific, concrete, no filler.
 
 The user's objective for this report:
@@ -448,7 +482,7 @@ export async function generateActionPlan(context: ActionPlanContext): Promise<Ac
 
   const systemPrompt = buildSystemPrompt(context);
   const tools: Anthropic.Tool[] = [
-    queryDashboardDataTool(context.dashboardKey),
+    queryDashboardDataTool(context.dataContext),
     GENERATE_ACTION_PLAN_TOOL,
     RESPOND_WITHOUT_REPORT_TOOL,
   ];
@@ -621,7 +655,7 @@ export async function generateActionPlan(context: ActionPlanContext): Promise<Ac
     // tool_use_id of the call that produced it. Same shape as the chat loop.
     const results: Anthropic.ToolResultBlockParam[] = await Promise.all(
       queryCalls.map(async (call) => {
-        const outcome = runDashboardQuery(context.dashboardKey, call.input as Record<string, unknown>);
+        const outcome = runDashboardQuery(context.dataContext, call.input as Record<string, unknown>);
         return {
           type: "tool_result" as const,
           tool_use_id: call.id,

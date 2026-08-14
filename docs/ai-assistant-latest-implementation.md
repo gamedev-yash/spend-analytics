@@ -118,11 +118,14 @@ loop). Composed of, **only when each piece is non-empty**:
 ## 6. Caching — three independent layers, each solving a different problem
 
 ### 6a. Static dashboard metadata (schema + tool definitions)
-`lib/ai/dashboard-context.ts` and `lib/ai/dashboard-query.ts` each hold a
-`Map<DashboardKey, ...>` memoizing `buildDashboardContext()` and
-`queryDashboardDataTool()` — built once per dashboard per process, never
-rebuilt per request. `isDashboardContextCached()` exposes this for the debug
-log.
+`lib/ai/dashboard-data-context.ts` and `lib/ai/dashboard-query.ts` each hold a
+`Map` memoizing `buildDashboardSchemaBlock()` and `queryDashboardDataTool()`,
+keyed by the resolved context's `schemaCacheKey` (dashboard identity **and** data
+version — not `dataVersion` alone, which all six built-in dashboards share).
+Built once per dashboard per process, never rebuilt per request;
+`isDashboardSchemaBlockCached()` exposes this for the debug log. A generated
+dashboard participates in exactly the same memoization, and a re-registered one
+whose content changed gets a fresh entry rather than a stale one.
 
 ### 6b. The unified dataset itself
 Already loaded once, in-memory, per process (§2) — untouched by this work,
@@ -338,9 +341,12 @@ test against a direct Anthropic key, not yet run.
 | File | Role |
 |---|---|
 | `app/api/dashboard-chat/route.ts` | Request orchestration, tool loop, timing |
-| `lib/ai/dashboard-registry.ts` | Six dashboards' routing-grade descriptions |
-| `lib/ai/dashboard-tables.ts` | Unified-dataset → per-dashboard table scoping |
-| `lib/ai/dashboard-context.ts` | Memoized schema description for the prompt |
+| `lib/ai/dashboard-registry.ts` | The six built-in dashboards' routing-grade descriptions |
+| `lib/ai/dashboard-context.ts` | `DashboardContext` (builtin \| custom), the one route resolver, context ids |
+| `lib/ai/dashboard-data-context.ts` | Identity → data: tables, scope, versions + memoized schema block |
+| `lib/ai/dashboard-tables.ts` | Unified-dataset → per-built-in-dashboard table scoping |
+| `lib/ai/custom-dashboard-registry.ts` | Generated dashboards' rows, registered by the owning browser |
+| `lib/ai/custom-dashboard-sync.ts` | Client half of that handover (register once, re-register on 409) |
 | `lib/ai/dashboard-query.ts` | Tool schema, query validation + execution + cache wiring |
 | `lib/ai/query-engine.ts` | Dashboard-agnostic filter/groupBy/aggregate engine |
 | `lib/ai/query-cache.ts` | Deterministic, dataset-version-keyed result cache |

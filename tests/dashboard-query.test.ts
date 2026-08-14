@@ -14,6 +14,7 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { queryDashboardDataTool, runDashboardQuery, renderDashboardQueryResult } from "@/lib/ai/dashboard-query";
 import { getDashboardTables } from "@/lib/ai/dashboard-tables";
+import { resolveDashboardDataContext, type DashboardDataContext } from "@/lib/ai/dashboard-data-context";
 import { DASHBOARD_REGISTRY, type DashboardKey } from "@/lib/ai/dashboard-registry";
 import { getSampleDataset } from "@/lib/server/sample-data-source";
 import { _clearQueryCacheForTests } from "@/lib/ai/query-cache";
@@ -21,6 +22,16 @@ import { _clearQueryCacheForTests } from "@/lib/ai/query-cache";
 afterEach(() => {
   _clearQueryCacheForTests();
 });
+
+/**
+ * Both entry points now take a RESOLVED DashboardDataContext rather than a
+ * DashboardKey (lib/ai/dashboard-data-context.ts) — the abstraction that lets
+ * one query path serve built-in and generated dashboards alike. For a built-in
+ * dashboard resolution cannot fail, so the non-null assertion is safe here.
+ */
+function builtin(key: DashboardKey): DashboardDataContext {
+  return resolveDashboardDataContext({ type: "builtin", dashboardKey: key })!;
+}
 
 type Schema = Record<string, unknown>;
 
@@ -36,7 +47,7 @@ function enumOf(schema: Schema): unknown[] {
 describe("query_dashboard_data tool schema", () => {
   it("is strict, so the model cannot invent properties or values", () => {
     for (const { key } of DASHBOARD_REGISTRY) {
-      const tool = queryDashboardDataTool(key);
+      const tool = queryDashboardDataTool(builtin(key));
       assert.equal(tool.strict, true);
       assert.equal((tool.input_schema as Schema).additionalProperties, false);
     }
@@ -44,14 +55,14 @@ describe("query_dashboard_data tool schema", () => {
 
   it("constrains table to exactly this dashboard's own tables", () => {
     for (const { key } of DASHBOARD_REGISTRY) {
-      const props = properties(queryDashboardDataTool(key));
+      const props = properties(queryDashboardDataTool(builtin(key)));
       assert.deepEqual(enumOf(props.table), getDashboardTables(key).map((t) => t.id));
     }
   });
 
   it("never offers another dashboard's table id", () => {
-    const spendOverviewTables = new Set(enumOf(properties(queryDashboardDataTool("spend-overview")).table));
-    const paymentTermsTables = new Set(enumOf(properties(queryDashboardDataTool("payment-terms")).table));
+    const spendOverviewTables = new Set(enumOf(properties(queryDashboardDataTool(builtin("spend-overview"))).table));
+    const paymentTermsTables = new Set(enumOf(properties(queryDashboardDataTool(builtin("payment-terms"))).table));
     for (const id of paymentTermsTables) {
       assert.equal(spendOverviewTables.has(id), false, `${String(id)} leaked across dashboards`);
     }
@@ -60,13 +71,13 @@ describe("query_dashboard_data tool schema", () => {
 
 describe("runDashboardQuery — validation before execution", () => {
   it("rejects an unknown table as a correctable error, not a silent empty result", () => {
-    const outcome = runDashboardQuery("spend-overview", { table: "not_a_table" });
+    const outcome = runDashboardQuery(builtin("spend-overview"), { table: "not_a_table" });
     assert.ok(outcome.error);
     assert.match(outcome.error!, /Unknown table "not_a_table"/);
   });
 
   it("rejects a groupBy field that does not exist on the requested table", () => {
-    const outcome = runDashboardQuery("spend-overview", {
+    const outcome = runDashboardQuery(builtin("spend-overview"), {
       table: "fact_po_items",
       groupBy: "not_a_field",
       aggregation: "count",
@@ -77,7 +88,7 @@ describe("runDashboardQuery — validation before execution", () => {
 
   it("rejects a field that is real on a sibling table but not the requested one", () => {
     // invoice_number only exists on the "fact_invoices" table of this same dashboard.
-    const outcome = runDashboardQuery("spend-overview", {
+    const outcome = runDashboardQuery(builtin("spend-overview"), {
       table: "fact_po_items",
       select: ["invoice_number"],
     });
@@ -87,7 +98,7 @@ describe("runDashboardQuery — validation before execution", () => {
 
   it("rejects a filter field that does not exist on the requested table", () => {
     // spend_rank only exists on tail-spend's other table, agg_vendor_annual.
-    const outcome = runDashboardQuery("tail-spend", {
+    const outcome = runDashboardQuery(builtin("tail-spend"), {
       table: "fact_po_items",
       filters: [{ field: "spend_rank", op: "eq", value: 1 }],
       aggregation: "count",
@@ -103,7 +114,7 @@ describe("runDashboardQuery — correctness against an independent total", () =>
       (s, r) => s + (Number(r.net_order_value_inr) || 0),
       0
     );
-    const outcome = runDashboardQuery("spend-overview", {
+    const outcome = runDashboardQuery(builtin("spend-overview"), {
       table: "fact_po_items",
       measure: "net_order_value_inr",
       aggregation: "sum",
@@ -126,12 +137,12 @@ describe("runDashboardQuery — correctness against an independent total", () =>
   it("agg_vendor_annual's total_spend_inr reconciles against fact_po_items' net_order_value_inr", () => {
     // agg_vendor_annual is pre-aggregated from fact_po_items (metadata-registry.ts) —
     // summed across every vendor and year, the two totals must agree.
-    const aggOutcome = runDashboardQuery("tail-spend", {
+    const aggOutcome = runDashboardQuery(builtin("tail-spend"), {
       table: "agg_vendor_annual",
       measure: "total_spend_inr",
       aggregation: "sum",
     });
-    const poOutcome = runDashboardQuery("tail-spend", {
+    const poOutcome = runDashboardQuery(builtin("tail-spend"), {
       table: "fact_po_items",
       measure: "net_order_value_inr",
       aggregation: "sum",
@@ -145,20 +156,20 @@ describe("runDashboardQuery — correctness against an independent total", () =>
   });
 
   it("payment-terms fact_payments table carries every warehouse payment row", () => {
-    const outcome = runDashboardQuery("payment-terms", { table: "fact_payments", aggregation: "count" });
+    const outcome = runDashboardQuery(builtin("payment-terms"), { table: "fact_payments", aggregation: "count" });
     assert.equal(outcome.error, undefined);
     assert.equal(outcome.result.value, getSampleDataset("fact_payments")?.rows.length);
   });
 
   it("groups sum back up to the ungrouped total (grouping never drops or double-counts rows)", () => {
-    const grouped = runDashboardQuery("spend-overview", {
+    const grouped = runDashboardQuery(builtin("spend-overview"), {
       table: "fact_po_items",
       groupBy: "category_l1_name",
       measure: "net_order_value_inr",
       aggregation: "sum",
       limit: 50,
     });
-    const ungrouped = runDashboardQuery("spend-overview", {
+    const ungrouped = runDashboardQuery(builtin("spend-overview"), {
       table: "fact_po_items",
       measure: "net_order_value_inr",
       aggregation: "sum",
@@ -172,7 +183,7 @@ describe("runDashboardQuery — correctness against an independent total", () =>
 
 describe("renderDashboardQueryResult", () => {
   it("surfaces a failure as a correctable error, not as empty data", () => {
-    const outcome = runDashboardQuery("spend-overview", { table: "not_a_table" });
+    const outcome = runDashboardQuery(builtin("spend-overview"), { table: "not_a_table" });
     const rendered = renderDashboardQueryResult(outcome);
     assert.match(rendered, /QUERY FAILED/);
     assert.match(rendered, /Do not invent numbers/);
@@ -184,7 +195,7 @@ describe("renderDashboardQueryResult", () => {
       .filter((r) => r.category_l1_name === "IT & Telecom")
       .reduce((s, r) => s + (Number(r.net_order_value_inr) || 0), 0);
 
-    const outcome = runDashboardQuery("supplier-fragmentation", {
+    const outcome = runDashboardQuery(builtin("supplier-fragmentation"), {
       table: "fact_po_items",
       groupBy: "category_l1_name",
       measure: "net_order_value_inr",
@@ -199,7 +210,7 @@ describe("renderDashboardQueryResult", () => {
   });
 
   it("says so plainly when an aggregate query matches nothing", () => {
-    const outcome = runDashboardQuery("tail-spend", {
+    const outcome = runDashboardQuery(builtin("tail-spend"), {
       table: "fact_po_items",
       filters: [{ field: "vendor_id", op: "eq", value: "does-not-exist" }],
       aggregation: "count",
@@ -209,7 +220,7 @@ describe("renderDashboardQueryResult", () => {
   });
 
   it("says so plainly when a row-level lookup matches nothing", () => {
-    const outcome = runDashboardQuery("tail-spend", {
+    const outcome = runDashboardQuery(builtin("tail-spend"), {
       table: "fact_po_items",
       filters: [{ field: "vendor_id", op: "eq", value: "does-not-exist" }],
       select: ["vendor_name"],
@@ -231,13 +242,13 @@ describe("every dashboard exposes at least one non-empty table", () => {
 
 describe("runDashboardQuery — result caching (lib/ai/query-cache.ts)", () => {
   it("MISSes the first time, HITs the identical query the second time", () => {
-    const first = runDashboardQuery("spend-overview", {
+    const first = runDashboardQuery(builtin("spend-overview"), {
       table: "fact_po_items",
       measure: "net_order_value_inr",
       aggregation: "sum",
     });
     assert.equal(first.cacheHit, false);
-    const second = runDashboardQuery("spend-overview", {
+    const second = runDashboardQuery(builtin("spend-overview"), {
       table: "fact_po_items",
       measure: "net_order_value_inr",
       aggregation: "sum",
@@ -247,12 +258,12 @@ describe("runDashboardQuery — result caching (lib/ai/query-cache.ts)", () => {
   });
 
   it("MISSes when the filter is different, even on the same table/dashboard", () => {
-    runDashboardQuery("spend-overview", {
+    runDashboardQuery(builtin("spend-overview"), {
       table: "fact_po_items",
       filters: [{ field: "plant_name", op: "eq", value: "Vedanta Aluminium (Jharsuguda)" }],
       aggregation: "count",
     });
-    const differentFilter = runDashboardQuery("spend-overview", {
+    const differentFilter = runDashboardQuery(builtin("spend-overview"), {
       table: "fact_po_items",
       filters: [{ field: "plant_name", op: "eq", value: "Hindustan Zinc (Rajasthan)" }],
       aggregation: "count",
@@ -261,7 +272,7 @@ describe("runDashboardQuery — result caching (lib/ai/query-cache.ts)", () => {
   });
 
   it("never caches an error outcome — an unknown table/field never reports cacheHit at all", () => {
-    const outcome = runDashboardQuery("spend-overview", { table: "not_a_table" });
+    const outcome = runDashboardQuery(builtin("spend-overview"), { table: "not_a_table" });
     assert.ok(outcome.error);
     assert.equal(outcome.cacheHit, undefined);
   });
@@ -273,7 +284,7 @@ describe("runDashboardQuery — result caching (lib/ai/query-cache.ts)", () => {
       "fact_invoices tables\"), so this is a correct consequence of the unified dataset, not a bug. " +
       "See lib/ai/query-cache.ts's module comment for the full reasoning.",
     () => {
-      const spendOverviewResult = runDashboardQuery("spend-overview", {
+      const spendOverviewResult = runDashboardQuery(builtin("spend-overview"), {
         table: "fact_po_items",
         groupBy: "category_l1_name",
         measure: "net_order_value_inr",
@@ -282,7 +293,7 @@ describe("runDashboardQuery — result caching (lib/ai/query-cache.ts)", () => {
       });
       assert.equal(spendOverviewResult.cacheHit, false);
 
-      const complianceResult = runDashboardQuery("compliance", {
+      const complianceResult = runDashboardQuery(builtin("compliance"), {
         table: "fact_po_items",
         groupBy: "category_l1_name",
         measure: "net_order_value_inr",
@@ -298,9 +309,9 @@ describe("runDashboardQuery — result caching (lib/ai/query-cache.ts)", () => {
     // agg_vendor_annual is on tail-spend but not on spend-overview — nothing
     // to cross-share here; this just pins that an unrelated table on a
     // DIFFERENT dashboard was never at risk of colliding in the cache.
-    const tailSpendResult = runDashboardQuery("tail-spend", { table: "agg_vendor_annual", aggregation: "count" });
+    const tailSpendResult = runDashboardQuery(builtin("tail-spend"), { table: "agg_vendor_annual", aggregation: "count" });
     assert.equal(tailSpendResult.cacheHit, false);
-    const spendOverviewAttempt = runDashboardQuery("spend-overview", { table: "agg_vendor_annual", aggregation: "count" });
+    const spendOverviewAttempt = runDashboardQuery(builtin("spend-overview"), { table: "agg_vendor_annual", aggregation: "count" });
     // spend-overview doesn't have this table at all — rejected before the cache is ever consulted.
     assert.ok(spendOverviewAttempt.error);
   });
