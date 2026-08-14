@@ -21,9 +21,12 @@ interface ComposerProps {
    * Research toggle: the user declares intent BEFORE typing, and the mode is
    * the only thing that decides which pipeline runs.
    *
-   * Rendered inline in THIS row — a Gemini-style compact pill directly left
-   * of Send, in both popover and fullscreen — never in the header (see
-   * AssistantHeader, which no longer knows about Report Mode at all).
+   * Positioned adaptively (see the render below): its own row above the
+   * textarea in compact/popover mode, where there isn't enough width for a
+   * third element beside Send without squeezing the textarea into a narrow
+   * column — inline next to Send in fullscreen/standalone, where there's
+   * ample width to spare. Never in the header (see AssistantHeader, which
+   * doesn't know about Report Mode at all).
    */
   reportMode: boolean;
   onToggleReportMode: () => void;
@@ -42,7 +45,7 @@ interface ComposerProps {
 const MIN_TEXTAREA_PX = 40;
 const MAX_HEIGHT_RATIO = 0.35;
 
-/** The message input + inline report-mode toggle + send/stop control, fixed at the bottom of the panel. */
+/** The message input + adaptively-placed report-mode toggle + send/stop control, fixed at the bottom of the panel. */
 export function Composer({
   value,
   onChange,
@@ -98,59 +101,76 @@ export function Composer({
   // before paint and never visibly lags the character that triggered it.
   useLayoutEffect(syncHeight, [value]);
 
+  const reportToggle = reportModeAvailable ? (
+    <ReportModeToggle
+      reportMode={reportMode}
+      onToggle={onToggleReportMode}
+      label={reportModeLabel}
+      estimatedSeconds={reportModeSeconds}
+      compact
+    />
+  ) : null;
+
+  const sendButton = (
+    <button
+      type="button"
+      onClick={busy ? onStop : onSubmit}
+      disabled={!busy && !value.trim()}
+      aria-label={busy ? "Stop generating" : "Send message"}
+      title={busy ? "Stop generating" : "Send message (Enter)"}
+      className={cn(
+        "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl shadow-sm transition-colors duration-200 disabled:opacity-40",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1",
+        busy
+          ? "bg-rose-600 text-white hover:bg-rose-700 focus-visible:ring-rose-400"
+          : "bg-slate-900 text-white hover:bg-slate-800 focus-visible:ring-slate-400 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+      )}
+    >
+      {busy ? <Square className="h-4 w-4 fill-current" /> : <Send className="h-4 w-4" />}
+    </button>
+  );
+
   return (
     <div className={cn("shrink-0 border-t border-slate-200 bg-white/80 p-3 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/80", fullscreen && "sm:p-4")}>
-      <div className={cn("mx-auto flex items-end gap-2", fullscreen && "max-w-3xl")}>
-        <textarea
-          ref={textareaRef}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              onSubmit();
-            }
-          }}
-          rows={1}
-          placeholder={placeholder}
-          aria-label={reportMode ? "Describe the report to generate" : "Message the AI Assistant"}
-          className={cn(
-            "ai-scrollbar block min-w-0 flex-1 resize-none rounded-2xl border bg-white px-4 py-2.5 text-sm leading-relaxed text-slate-700 shadow-sm transition-[height,border-color,box-shadow] duration-150 placeholder:text-slate-400 focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500",
-            // A second, unmissable signal that this input is about to do
-            // something expensive — colour alone on a small toggle is too easy
-            // to miss before hitting Enter.
-            reportMode
-              ? "border-slate-900 ring-1 ring-slate-900/20 focus:border-slate-900 focus:ring-slate-900/30 dark:border-slate-300 dark:ring-slate-300/20 dark:focus:border-slate-200 dark:focus:ring-slate-300/30"
-              : "border-slate-200 focus:border-slate-400 focus:ring-slate-400/40 dark:border-slate-700 dark:focus:border-slate-500 dark:focus:ring-slate-500/30"
-          )}
-          style={{ minHeight: MIN_TEXTAREA_PX }}
-        />
-        <div className="flex shrink-0 items-center gap-1.5">
-          {reportModeAvailable && (
-            <ReportModeToggle
-              reportMode={reportMode}
-              onToggle={onToggleReportMode}
-              label={reportModeLabel}
-              estimatedSeconds={reportModeSeconds}
-              compact
-            />
-          )}
-          <button
-            type="button"
-            onClick={busy ? onStop : onSubmit}
-            disabled={!busy && !value.trim()}
-            aria-label={busy ? "Stop generating" : "Send message"}
-            title={busy ? "Stop generating" : "Send message (Enter)"}
+      <div className={cn("mx-auto", fullscreen && "max-w-3xl")}>
+        {/* Compact/popover mode only: Report Mode gets its own row above the
+            textarea. A third element sharing the input row with Send there
+            would squeeze the textarea into a narrow column at popover width —
+            fullscreen has the width to spare, so it stays inline below. */}
+        {!fullscreen && reportToggle && <div className="mb-2">{reportToggle}</div>}
+        <div className="flex items-end gap-2">
+          <textarea
+            ref={textareaRef}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                onSubmit();
+              }
+            }}
+            rows={1}
+            placeholder={placeholder}
+            aria-label={reportMode ? "Describe the report to generate" : "Message the AI Assistant"}
             className={cn(
-              "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl shadow-sm transition-colors duration-200 disabled:opacity-40",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1",
-              busy
-                ? "bg-rose-600 text-white hover:bg-rose-700 focus-visible:ring-rose-400"
-                : "bg-slate-900 text-white hover:bg-slate-800 focus-visible:ring-slate-400 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+              "ai-scrollbar block min-w-0 flex-1 resize-none rounded-2xl border bg-white px-4 py-2.5 text-sm leading-relaxed text-slate-700 shadow-sm transition-[height,border-color,box-shadow] duration-150 placeholder:text-slate-400 focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500",
+              // A second, unmissable signal that this input is about to do
+              // something expensive — colour alone on a small toggle is too easy
+              // to miss before hitting Enter.
+              reportMode
+                ? "border-slate-900 ring-1 ring-slate-900/20 focus:border-slate-900 focus:ring-slate-900/30 dark:border-slate-300 dark:ring-slate-300/20 dark:focus:border-slate-200 dark:focus:ring-slate-300/30"
+                : "border-slate-200 focus:border-slate-400 focus:ring-slate-400/40 dark:border-slate-700 dark:focus:border-slate-500 dark:focus:ring-slate-500/30"
             )}
-          >
-            {busy ? <Square className="h-4 w-4 fill-current" /> : <Send className="h-4 w-4" />}
-          </button>
+            style={{ minHeight: MIN_TEXTAREA_PX }}
+          />
+          {fullscreen ? (
+            <div className="flex shrink-0 items-center gap-1.5">
+              {reportToggle}
+              {sendButton}
+            </div>
+          ) : (
+            sendButton
+          )}
         </div>
       </div>
       {fullscreen && (
