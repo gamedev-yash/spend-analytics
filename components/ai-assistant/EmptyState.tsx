@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Activity, AlertTriangle, BookOpenText, Sparkles, TrendingUp, Trophy } from "lucide-react";
+import { Activity, AlertTriangle, BookOpenText, FileText, Sparkles, TrendingUp, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SuggestionChips, type Suggestion } from "./SuggestionChips";
 
@@ -12,6 +12,19 @@ interface EmptyStateProps {
   disabled?: boolean;
   /** The compact popup is a fixed narrow width — keep the starter grid single-column there. */
   fullscreen?: boolean;
+  /**
+   * Turns Report Mode on and puts the cursor in the composer. Omitted when the
+   * current dashboard offers no report action, which is what hides the card
+   * rather than showing one that cannot work.
+   *
+   * Note what this does NOT do: it does not generate anything. There is no
+   * objective yet at the empty state, and firing a ~3-minute analysis off a
+   * click with nothing to analyse would be the worst version of this feature.
+   * The card arms the mode; the user still says what they want.
+   */
+  onEnableReportMode?: () => void;
+  /** Reflected in the card's copy so it reads as "already on" rather than inviting a second click. */
+  reportMode?: boolean;
 }
 
 /**
@@ -21,7 +34,15 @@ interface EmptyStateProps {
  * nothing here is fabricated data, just a richer presentation of it plus a
  * set of generic starter prompts that route through the existing `send()`.
  */
-export function EmptyState({ dashboardLabel, welcomeText, onSelect, disabled, fullscreen }: EmptyStateProps) {
+export function EmptyState({
+  dashboardLabel,
+  welcomeText,
+  onSelect,
+  disabled,
+  fullscreen,
+  onEnableReportMode,
+  reportMode,
+}: EmptyStateProps) {
   const allStarters: Suggestion[] = [
     { label: "Top vendors", value: "Show top vendors", description: "Rank suppliers by spend on this dashboard", icon: Trophy },
     { label: "Spend trend", value: "Show the spend trend over time", description: "Visualize how spend has moved over time", icon: TrendingUp },
@@ -34,6 +55,23 @@ export function EmptyState({ dashboardLabel, welcomeText, onSelect, disabled, fu
   // "3–5 suggested questions" range and mostly fits without scrolling; the
   // full-screen surface has room for all 5.
   const starters = fullscreen ? allStarters : allStarters.slice(0, 3);
+
+  // Appended AFTER the slice, not included in it, so the report card survives the
+  // compact popup's 3-card trim instead of competing with the starters for a slot.
+  const items: Suggestion[] = onEnableReportMode
+    ? [
+        ...starters,
+        {
+          label: reportMode ? "Report mode is on" : "Generate report",
+          description: reportMode
+            ? "Type what to analyse — you'll get Word + Excel"
+            : "Turn on Report mode, then describe what to analyse",
+          icon: FileText,
+          emphasis: true,
+          action: onEnableReportMode,
+        },
+      ]
+    : starters;
 
   return (
     <motion.div
@@ -63,7 +101,7 @@ export function EmptyState({ dashboardLabel, welcomeText, onSelect, disabled, fu
       </p>
 
       <SuggestionChips
-        items={starters}
+        items={items}
         onSelect={onSelect}
         disabled={disabled}
         variant="card"

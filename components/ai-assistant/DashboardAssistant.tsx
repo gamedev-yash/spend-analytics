@@ -42,11 +42,14 @@ export interface ChatEntry {
 
 const FOCUSABLE_SELECTOR = 'button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])';
 
-// Minimum time the report card stays in its "running" state before revealing a
-// result, so a cache hit (~11ms) still plays the generating → building →
-// files choreography instead of appearing instantly and reading as canned.
-// Comfortably covers ActionPlanCard's own step pacing (3 steps at 600ms).
-const MIN_REPORT_PROGRESS_MS = 2_000;
+// How long the card stays in its "finishing" state — steps walking out — before
+// the result is revealed. Replaces a flat minimum-duration floor, which made an
+// instant cached result wait but did nothing about the steps themselves: they
+// had either all ticked long ago or barely started. Handing the card an explicit
+// finishing signal instead lets it complete the sequence it was mid-way through,
+// whether the response took 13ms or three minutes. Covers ActionPlanCard's own
+// walk-out (8 steps at 120ms) with a little air.
+const REPORT_FINISH_MS = 1_150;
 
 const BUBBLE_HEIGHT_PX = 48;
 const PANEL_GAP_PX = 12;
@@ -251,13 +254,9 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
     setSuggestedFollowUps(null);
     setContextSummary(null);
     setActionBusy(false);
-    // Report mode resets on NAVIGATION but survives "New chat": moving to a
-    // different dashboard changes which data a report would be built from, so
-    // carrying an expensive mode across that boundary risks generating
-    // something the user didn't mean to ask for. Restarting a conversation on
-    // the same dashboard is a deliberate act where the mode is still what they
-    // set it to.
-    setReportMode(false);
+    // Report mode deliberately SURVIVES navigation. Nothing turns it off except
+    // the toggle itself and an explicit "New chat" — see the note beside its
+    // useState declaration.
     setUnread(false);
     stickToBottomRef.current = true;
     setShowJumpToLatest(false);
@@ -460,19 +459,21 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
         role: "assistant",
         content: "",
         timestamp: Date.now(),
-        actionPlan: { status: "running", label: action.label },
+        actionPlan: { status: "running", label: action.label, estimatedSeconds: action.estimatedSeconds },
       };
-      // A cached report comes back in ~11ms. Revealing it that fast reads as a
-      // canned response rather than a generated one — the progress steps never
-      // even render. So the reveal is floored: whatever the server takes, the
-      // running state is on screen long enough for the choreography to play.
-      // This only ever ADDS delay to an already-instant response; a slow live
-      // generation is unaffected, since it has long since passed the floor.
-      const startedAt = Date.now();
-      const patch = async (actionPlan: ActionPlanState) => {
-        const remaining = MIN_REPORT_PROGRESS_MS - (Date.now() - startedAt);
-        if (remaining > 0) await new Promise((resolve) => setTimeout(resolve, remaining));
+      const write = (actionPlan: ActionPlanState) =>
         setMessages((prev) => prev.map((m) => (m === entry ? { ...m, actionPlan } : m)));
+
+      /**
+       * Reveal in two beats: tell the card the response has landed so it runs any
+       * remaining steps out, wait for that, then show the result. Applies equally
+       * to a 13ms cache hit and a three-minute generation — in both cases the
+       * step sequence is seen to finish rather than being abandoned part-way.
+       */
+      const patch = async (actionPlan: ActionPlanState) => {
+        write({ status: "running", label: action.label, estimatedSeconds: action.estimatedSeconds, finishing: true });
+        await new Promise((resolve) => setTimeout(resolve, REPORT_FINISH_MS));
+        write(actionPlan);
       };
 
       // The typed message still appears as a user turn — the transcript should
@@ -539,26 +540,20 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
                     ]
               )
           );
-          if (routeToChat) {
-            setReportMode(false);
-            void send(objective);
-          }
+          // Report Mode is NOT switched off here: routing one factual question
+          // to chat is no reason to discard the user's stated intent for the next.
+          if (routeToChat) void send(objective);
           return;
         }
 
         await patch({
           status: "done",
           label: action.label,
+          estimatedSeconds: action.estimatedSeconds,
           report: data.report,
           artifacts: data.artifacts,
           cached: data.cached,
         });
-        // Turn-based lifecycle: a delivered report ends the mode. At ~160s and a
-        // full Claude session per run, a mode that silently stayed on after
-        // succeeding would make the next stray message expensive — and the user
-        // has already got what they switched it on for. Deliberately NOT reset
-        // after a clarification, where the mode still has work to do.
-        setReportMode(false);
       } catch (err) {
         // An abort is the one case that skips the floor — the user asked for it
         // to stop, so making them watch two more seconds of fake progress first
@@ -567,13 +562,14 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
         const failure: ActionPlanState = {
           status: "error",
           label: action.label,
+          estimatedSeconds: action.estimatedSeconds,
           error: aborted
             ? "Stopped before the report finished."
             : err instanceof Error
               ? err.message
               : "Something went wrong generating that report.",
         };
-        if (aborted) setMessages((prev) => prev.map((m) => (m === entry ? { ...m, actionPlan: failure } : m)));
+        if (aborted) write(failure);
         else await patch(failure);
       } finally {
         actionAbortRef.current = null;
@@ -589,6 +585,21 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
     () => (dashboardKey ? (assistantActionsFor(dashboardKey)[0] ?? null) : null),
     [dashboardKey]
   );
+
+  /**
+   * The empty state's "Generate report" card. Arms the mode and moves the cursor
+   * into the composer — it deliberately does NOT start a generation, because at
+   * the empty state there is no objective to generate against.
+   *
+   * Routed through the same setReportMode as the composer's own toggle, so the
+   * two controls can never disagree about the mode's state.
+   */
+  const enableReportMode = useCallback(() => {
+    setReportMode(true);
+    requestAnimationFrame(() => {
+      panelRef.current?.querySelector<HTMLTextAreaElement>("textarea")?.focus();
+    });
+  }, []);
 
   /**
    * The composer's submit handler, and the ONE place the mode is read. Chat
@@ -781,6 +792,10 @@ export function DashboardAssistant({ standalone = false, standaloneDashboardKey 
                     onSelect={(text) => void send(text)}
                     disabled={busy}
                     fullscreen={effectiveFullscreen}
+                    // Undefined when this dashboard has no report action, which
+                    // is what hides the card rather than showing a dead one.
+                    onEnableReportMode={reportAction ? enableReportMode : undefined}
+                    reportMode={reportMode}
                   />
                 ) : (
                   <div className={cn("mx-auto space-y-4", effectiveFullscreen && "max-w-3xl")}>

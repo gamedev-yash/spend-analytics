@@ -33,6 +33,14 @@ export interface ActionPlanState {
   status: ActionPlanStatus;
   /** The action's own label, so the card names what is running. */
   label: string;
+  /** Measured expectation from the action registry — the steps are paced across it. */
+  estimatedSeconds: number;
+  /**
+   * Set the moment the real response lands, before the result is revealed. Tells
+   * the card to run any remaining steps out quickly rather than leaving them
+   * unticked, so the sequence always completes.
+   */
+  finishing?: boolean;
   /** Full result from the server. Only `title` is rendered — see the module comment. */
   report?: ActionPlanResult;
   artifacts?: { word: ArtifactDescriptor; excel: ArtifactDescriptor };
@@ -55,28 +63,37 @@ const STEPS = [
 ];
 
 /**
- * Pace of the first three steps. Fixed and fast — NOT derived from the action's
- * estimated duration, which was the old approach and got it wrong at both ends:
- * a cached report (11ms) flashed past before a single step rendered, and a slow
- * one left three steps sitting untouched for a minute.
+ * Steps are paced across the action's OWN estimated duration, so they advance at
+ * roughly the rate the work happens — about 18s apart on a ~160s run.
  *
- * Fast-then-hold works for both. The first seven tick by in ~1.8s so there is
- * always something to watch, then the LAST step holds — spinning — until the
- * real response lands. On a cached report that hold is momentary; on a live
- * generation it is minutes, which is honest, because generating is exactly
- * what's happening.
+ * This replaces a fixed fast tick that ran all seven leading steps out in under
+ * two seconds and then left the last one spinning for two and a half minutes.
+ * That was worse than no progress bar: it implied seven stages completed almost
+ * instantly and the entire cost sat in "generating files", which is the opposite
+ * of what the engine actually does.
  */
-const STEP_INTERVAL_MS = 260;
+const FINISHING_STEP_MS = 120;
 
-function ProgressSteps() {
+function ProgressSteps({ estimatedSeconds, finishing }: { estimatedSeconds: number; finishing?: boolean }) {
   const [reached, setReached] = useState(0);
 
+  // Divided by STEPS.length + 1 so the final step still has a share of the
+  // estimate to sit in, rather than being reached exactly as the response is due.
   useEffect(() => {
-    const timers = STEPS.slice(0, -1).map((_, i) =>
-      setTimeout(() => setReached(i + 1), STEP_INTERVAL_MS * (i + 1))
-    );
+    if (finishing) return;
+    const perStepMs = Math.max(400, (estimatedSeconds * 1000) / (STEPS.length + 1));
+    const timers = STEPS.slice(0, -1).map((_, i) => setTimeout(() => setReached(i + 1), perStepMs * (i + 1)));
     return () => timers.forEach(clearTimeout);
-  }, []);
+  }, [estimatedSeconds, finishing]);
+
+  // The response arrived — walk out whatever is left instead of jumping. A cached
+  // report (~13ms) gets its whole sequence here, which is why an instant result
+  // still reads as work having happened.
+  useEffect(() => {
+    if (!finishing) return;
+    const timers = STEPS.map((_, i) => setTimeout(() => setReached(i + 1), FINISHING_STEP_MS * (i + 1)));
+    return () => timers.forEach(clearTimeout);
+  }, [finishing]);
 
   return (
     <ul className="mt-2 space-y-1.5">
@@ -150,7 +167,7 @@ export function ActionPlanCard({ state }: { state: ActionPlanState }) {
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
           {state.label}…
         </p>
-        <ProgressSteps />
+        <ProgressSteps estimatedSeconds={state.estimatedSeconds} finishing={state.finishing} />
         {/* Says what is actually true: the composer is in its Stop state for
             the duration, because being able to cancel a multi-minute
             generation matters more than sending a chat message mid-report. */}
