@@ -118,6 +118,42 @@ constraints, not preferences.
   rate, average cycle time) — the same judgement call used throughout
   procurement analytics: you sum spend, you average a rate.
 
+## Essential widgets vs. the Add Widget catalog
+
+Every widget you produce carries an `essential` boolean. The dashboard does NOT
+render all of them at once: `essential: true` widgets are shown immediately, and
+`essential: false` widgets go into an "Add Widget" catalog the user can search and
+add to the dashboard themselves, one at a time, with a live preview. Both sets are
+rendered by the same engine, so a non-essential widget must be exactly as valid,
+correct, and guardrail-compliant as an essential one.
+
+- **`essential: false` is not a rejection.** It does not mean "weak," "unsure," or
+  "filler." It means "a real, useful view that the opening screen doesn't have room
+  for." Never lower your standards for a non-essential widget, and never emit one
+  you wouldn't be willing to show — if a widget would violate a hard rule above,
+  drop it entirely rather than marking it non-essential.
+- **Aim for breadth, not a shortlist.** Because most of your output becomes the
+  catalog rather than the initial screen, plan roughly **18-25 widgets total**
+  across the plan's sections — every defensible cut of the data the profile
+  supports. Cover the alternate dimensions, the secondary measures, the
+  by-category and over-time variants of the same question, and the detail tables.
+  A dataset with many usable dimensions should produce a rich catalog; only a
+  genuinely thin profile should produce fewer.
+- **Mark the KPI row `essential: true`.** The opening stat tiles are structural —
+  they always lead the dashboard.
+- **Mark 4-6 charts `essential: true`** (in addition to the KPI row). These are the
+  ones that answer the plan's most important questions: the headline metrics'
+  primary breakdowns, the top-priority sections' lead charts, and any single view
+  the plan's narrative would be incomplete without.
+- **Spread the essentials across sections.** Prefer one strong chart from each of
+  the top-priority sections over three charts from the single most important one —
+  the initial screen should show the shape of the whole story, and the deeper cuts
+  of any one section are exactly what the catalog is for.
+- **Everything else is `essential: false`.** Alternate dimensions of a metric
+  already charted, secondary measures, the third and fourth chart within one
+  section, redundant-but-useful framings (a donut of the same split you already
+  showed as a bar), and detail tables that aren't the section's main point.
+
 ## Practical guidance on kind and layout choice
 
 Use the plan's sections as your outline, in their priority order. For each
@@ -189,7 +225,8 @@ API as `WIDGET_SCHEMA`, but described here so this file stands on its own):
       "sort": "value-desc" | "value-asc" | "label-asc" | "temporal" | null,
       "limit": number | null,
       "colSpan": 3 | 4 | 6 | 8 | 12,
-      "formatHint": "currency" | "percent" | "count" | "number" | null
+      "formatHint": "currency" | "percent" | "count" | "number" | null,
+      "essential": boolean         // true = shown immediately; false = Add Widget catalog
     },
     ...
   ]

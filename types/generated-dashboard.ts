@@ -44,6 +44,14 @@ export interface WidgetSpec {
   limit?: number;
   colSpan: 3 | 4 | 6 | 8 | 12;
   formatHint?: "currency" | "percent" | "count" | "number";
+  /**
+   * The widget planner's own judgement on whether this widget carries the
+   * dashboard's core story. `true` -> shown on the dashboard from the start;
+   * `false` -> generated but parked in the Add Widget catalog. Optional
+   * because dashboards generated before this field existed don't carry it —
+   * see lib/generated-dashboard/select-initial.ts for the fallback.
+   */
+  essential?: boolean;
 }
 
 export interface DashboardSection {
@@ -73,7 +81,15 @@ export interface GeneratedDashboard {
   sourceFileName: string;
   profile: DatasetProfile;
   plan: DashboardPlan;
+  /** The widgets currently rendered on the dashboard. */
   widgets: WidgetSpec[];
+  /**
+   * Generated-but-not-shown widgets, offered through "Add Widget". A widget
+   * is in exactly one of `widgets`/`library` at a time — adding moves it
+   * across rather than copying it, so it can never be shown twice. Optional:
+   * dashboards stored before this feature have no catalog and read as [].
+   */
+  library?: WidgetSpec[];
   rows: Record<string, unknown>[];
   columns: string[];
 }
