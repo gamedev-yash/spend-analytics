@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LayoutDashboard, Trash2 } from "lucide-react";
 import { DashboardGrid } from "@/components/generated-dashboard/dashboard-grid";
+import { AddWidgetSheet } from "@/components/generated-dashboard/add-widget-sheet";
 import { WidgetGridSkeleton } from "@/components/dashboard/widget-grid-skeleton";
 import {
   deleteGeneratedDashboard,
+  removeWidgetToLibrary,
   useGeneratedDashboard,
   useGeneratedDashboardsReady,
 } from "@/lib/generated-dashboard/store";
@@ -25,12 +27,15 @@ import {
   type GeneratedFilterState,
 } from "./filters";
 
-// Read-only viewer for an AI-generated dashboard: no editing, no add-widget
-// affordance, no AI assistant hook-up. Everything the page needs (plan,
-// widgets, raw rows) already lives in the stored GeneratedDashboard record.
-// Filters are the one interactive control this page owns — a plain
-// client-side narrowing of the stored rows (see ./filters.ts), independent
-// of everything else being static.
+// Viewer for an AI-generated dashboard: no widget editing, no AI assistant
+// hook-up. Everything the page needs (plan, widgets, raw rows) already lives
+// in the stored GeneratedDashboard record.
+//
+// Two interactive controls: filters, a plain client-side narrowing of the
+// stored rows (see ./filters.ts), and "Add Widget", which moves one of the
+// dashboard's catalog widgets onto the grid (see ../../components/
+// generated-dashboard/add-widget-sheet.tsx). Both are local to the stored
+// record — neither re-calls the model.
 
 function EmptyShell({ title, message, children }: { title: string; message: string; children?: React.ReactNode }) {
   return (
@@ -151,17 +156,29 @@ export default function GeneratedDashboardPage({ params }: { params: Promise<{ i
             · {createdAt}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleDelete}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-rose-300 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 shadow-sm transition-colors hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-950"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-          Delete Dashboard
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          {/* Previews render against filteredRows, so what the sheet shows is
+              exactly what lands on the grid. */}
+          <AddWidgetSheet dashboard={dashboard} rows={filteredRows} />
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-rose-300 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 shadow-sm transition-colors hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-950"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete Dashboard
+          </button>
+        </div>
       </div>
 
-      <DashboardGrid plan={dashboard.plan} widgets={dashboard.widgets} rows={filteredRows} />
+      <DashboardGrid
+        plan={dashboard.plan}
+        widgets={dashboard.widgets}
+        rows={filteredRows}
+        // Removing returns the widget to the Add Widget catalog rather than
+        // discarding its spec, so it's a one-click undo away.
+        onRemoveWidget={(widgetId) => removeWidgetToLibrary(id, widgetId)}
+      />
     </div>
   );
 }

@@ -10,13 +10,18 @@
 // from, or reuse any logic belonging to, the older manual custom-dashboard
 // builder or floating AI assistant.
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Papa from "papaparse";
 import { Dialog } from "@base-ui/react/dialog";
 import { AlertCircle, Loader2, Sparkles, Upload, X } from "lucide-react";
+import {
+  GenerationProgress,
+  type GenerationStage,
+} from "@/components/generated-dashboard/generation-progress";
 import { buildDatasetProfile } from "@/lib/ai/profile/build-profile";
 import { validateWidgets } from "@/lib/generated-dashboard/validate";
+import { splitInitialWidgets } from "@/lib/generated-dashboard/select-initial";
 import { createGeneratedDashboard } from "@/lib/generated-dashboard/store";
 import type { DashboardPlan, WidgetSpec } from "@/types/generated-dashboard";
 import { cn } from "@/lib/utils";
@@ -25,6 +30,20 @@ interface GenerateDashboardResponse {
   plan: DashboardPlan;
   widgets: WidgetSpec[];
   error?: string;
+}
+
+/**
+ * How long to show "Planning the dashboard" before moving on to "Designing
+ * the widgets". Both happen inside one POST that reports nothing until it's
+ * finished, so this is an estimate of the first Claude call's share of the
+ * wait, not a signal — see generation-progress.tsx. If the response lands
+ * first, the real completion supersedes it.
+ */
+const PLAN_STAGE_MS = 35_000;
+
+/** Let React paint the new stage before a synchronous step blocks the thread. */
+function yieldToPaint(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
 function parseCsvFile(file: File): Promise<Record<string, unknown>[]> {
@@ -64,9 +83,18 @@ function GenerateDashboardForm({
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
-  const [statusText, setStatusText] = useState<string | null>(null);
+  const [stage, setStage] = useState<GenerationStage>("parse");
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // The one simulated transition: nothing observable separates the two Claude
+  // calls, so step off "plan" on a timer. Self-cancelling, so a response that
+  // lands first (which moves `stage` on for real) wins.
+  useEffect(() => {
+    if (stage !== "plan") return;
+    const timer = setTimeout(() => setStage("widgets"), PLAN_STAGE_MS);
+    return () => clearTimeout(timer);
+  }, [stage]);
 
   function setBusyState(next: boolean) {
     setBusy(next);
@@ -81,15 +109,18 @@ function GenerateDashboardForm({
   async function generate() {
     if (!file || busy) return;
     setError(null);
+    setStage("parse");
     setBusyState(true);
     try {
-      setStatusText("Reading and profiling your CSV...");
       const rows = await parseCsvFile(file);
+
+      // buildDatasetProfile is synchronous and can run for a while on a large
+      // CSV — yield first, or this stage never gets painted.
+      setStage("profile");
+      await yieldToPaint();
       const profile = buildDatasetProfile(rows);
 
-      setStatusText(
-        "Generating your dashboard — this can take a minute or two while Claude analyzes your data..."
-      );
+      setStage("plan");
       const response = await fetch("/api/generate-dashboard", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -110,6 +141,9 @@ function GenerateDashboardForm({
         throw new Error(message);
       }
 
+      setStage("finalize");
+      await yieldToPaint();
+
       const validatedWidgets = validateWidgets(payload.widgets ?? [], profile);
       if (validatedWidgets.length === 0) {
         throw new Error(
@@ -117,12 +151,18 @@ function GenerateDashboardForm({
         );
       }
 
+      // The model plans a deliberately broad set and flags which widgets carry
+      // the core story; this splits that into the opening screen and the
+      // searchable "Add Widget" catalog behind it.
+      const { initial, library } = splitInitialWidgets(payload.plan, validatedWidgets);
+
       const dashboard = createGeneratedDashboard({
         title: payload.plan.title,
         sourceFileName: file.name,
         profile,
         plan: payload.plan,
-        widgets: validatedWidgets,
+        widgets: initial,
+        library,
         rows,
         columns: Object.keys(rows[0] ?? {}),
       });
@@ -131,7 +171,6 @@ function GenerateDashboardForm({
       router.push(`/generated/${dashboard.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not generate a dashboard for this file.");
-      setStatusText(null);
       setBusyState(false);
     }
   }
@@ -139,41 +178,43 @@ function GenerateDashboardForm({
   return (
     <>
       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-        Pick a CSV from your computer — Claude will analyze its shape and propose a full
-        dashboard of charts and KPIs for it.
+        {busy ? (
+          <>
+            Building a dashboard from <span className="font-medium">{file?.name}</span>. Leave this
+            open — it&apos;ll open automatically when it&apos;s ready.
+          </>
+        ) : (
+          <>
+            Pick a CSV from your computer — Claude will analyze its shape and propose a full
+            dashboard of charts and KPIs for it.
+          </>
+        )}
       </p>
 
-      <div className="mt-4 space-y-3">
-        <label
-          className={cn(
-            "flex cursor-pointer flex-col items-center gap-2 rounded-lg border border-dashed border-slate-300 px-4 py-6 text-center transition-colors hover:border-slate-400 dark:border-slate-700 dark:hover:border-slate-500",
-            busy && "pointer-events-none opacity-60"
-          )}
-        >
-          <Upload className="h-5 w-5 text-slate-400 dark:text-slate-500" />
-          <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-            {file ? file.name : "Choose a CSV file"}
-          </span>
-          {!file && (
-            <span className="text-xs text-slate-400 dark:text-slate-500">
-              Single file, .csv only
+      {/* The picker gives way to the progress panel: there's nothing to change
+          while a run is in flight, and a disabled dropzone just takes up room. */}
+      {busy ? (
+        <GenerationProgress stage={stage} />
+      ) : (
+        <div className="mt-4 space-y-3">
+          <label className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border border-dashed border-slate-300 px-4 py-6 text-center transition-colors hover:border-slate-400 dark:border-slate-700 dark:hover:border-slate-500">
+            <Upload className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+              {file ? file.name : "Choose a CSV file"}
             </span>
-          )}
-          <input
-            ref={inputRef}
-            type="file"
-            accept=".csv,text/csv"
-            disabled={busy}
-            onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
-            className="sr-only"
-          />
-        </label>
-      </div>
-
-      {busy && statusText && (
-        <div className="mt-4 flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2.5 text-xs text-slate-600 dark:bg-slate-800/60 dark:text-slate-300">
-          <Loader2 className="mt-0.5 h-3.5 w-3.5 shrink-0 animate-spin" />
-          <span>{statusText}</span>
+            {!file && (
+              <span className="text-xs text-slate-400 dark:text-slate-500">
+                Single file, .csv only
+              </span>
+            )}
+            <input
+              ref={inputRef}
+              type="file"
+              accept=".csv,text/csv"
+              onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
+              className="sr-only"
+            />
+          </label>
         </div>
       )}
 

@@ -121,6 +121,11 @@ const WIDGET_ITEM_SCHEMA = {
       enum: ["currency", "percent", "count", "number", null],
       description: "Value formatting hint for axes/labels/tooltips, or null to infer.",
     },
+    essential: {
+      type: "boolean",
+      description:
+        "True if this widget is core to the dashboard's story and must be visible immediately; false if it is a worthwhile-but-secondary view, which the user can add later from the Add Widget catalog. Not a quality judgement — a false widget must still be fully valid and renderable.",
+    },
   },
   required: [
     "id",
@@ -133,6 +138,7 @@ const WIDGET_ITEM_SCHEMA = {
     "limit",
     "colSpan",
     "formatHint",
+    "essential",
   ],
 } as const;
 

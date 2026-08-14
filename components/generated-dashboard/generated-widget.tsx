@@ -20,7 +20,7 @@ import {
   YAxis,
 } from "recharts";
 import { ChartCard } from "@/components/dashboard/chart-card";
-import { FullscreenResponsiveContainer } from "@/components/dashboard/fullscreen-overlay";
+import { FullscreenResponsiveContainer, useIsFullscreenChart } from "@/components/dashboard/fullscreen-overlay";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,14 @@ import type { WidgetSpec } from "@/types/generated-dashboard";
 interface GeneratedWidgetProps {
   widget: WidgetSpec;
   rows: Record<string, unknown>[];
+  /**
+   * Renders this widget as a preview instance rather than a dashboard tile —
+   * currently the Add Widget catalog's live preview. Drops the fullscreen
+   * affordance: the preview sits inside a Sheet, and FullscreenOverlay shares
+   * that Sheet's z-50 layer and also takes over `document.body`'s overflow,
+   * so a maximize button there would fight the panel it opened from.
+   */
+  preview?: boolean;
 }
 
 const DONUT_MAX_SLICES = 6;
@@ -190,6 +198,7 @@ function KpiWidget({ widget, rows }: GeneratedWidgetProps) {
 function BarLikeWidget({
   widget,
   rows,
+  preview,
   stacked,
   withTotalLine,
 }: GeneratedWidgetProps & { stacked: boolean; withTotalLine: boolean }) {
@@ -199,7 +208,7 @@ function BarLikeWidget({
 
   if (data.length === 0 || keys.length === 0) {
     return (
-      <ChartCard title={widget.title}>
+      <ChartCard title={widget.title} expandable={!preview}>
         <EmptyNote message={NO_DATA_MESSAGE} />
       </ChartCard>
     );
@@ -216,7 +225,7 @@ function BarLikeWidget({
   const barRadius: [number, number, number, number] = horizontal ? [0, 3, 3, 0] : [3, 3, 0, 0];
 
   return (
-    <ChartCard title={widget.title}>
+    <ChartCard title={widget.title} expandable={!preview}>
       <FullscreenResponsiveContainer height={horizontal ? Math.max(260, data.length * 38 + 40) : 300}>
         <Chart
           data={data}
@@ -300,7 +309,7 @@ function BarLikeWidget({
  * share of the grand total), not an independent second measure, so this
  * isn't the dual-axis chart the hard rules ban.
  */
-function ParetoWidget({ widget, rows }: GeneratedWidgetProps) {
+function ParetoWidget({ widget, rows, preview }: GeneratedWidgetProps) {
   const palette = usePalette();
   // The ranking must be strictly value-descending for the cumulative line to
   // mean anything — re-sort defensively rather than trust widget.sort.
@@ -310,7 +319,7 @@ function ParetoWidget({ widget, rows }: GeneratedWidgetProps) {
 
   if (data.length === 0 || keys.length === 0) {
     return (
-      <ChartCard title={widget.title}>
+      <ChartCard title={widget.title} expandable={!preview}>
         <EmptyNote message={NO_DATA_MESSAGE} />
       </ChartCard>
     );
@@ -332,7 +341,7 @@ function ParetoWidget({ widget, rows }: GeneratedWidgetProps) {
   const rotateLabels = maxLabelLength > 10;
 
   return (
-    <ChartCard title={widget.title}>
+    <ChartCard title={widget.title} expandable={!preview}>
       <FullscreenResponsiveContainer height={300}>
         <ComposedChart data={points} margin={{ top: 8, right: 16, bottom: rotateLabels ? 28 : 8, left: 0 }}>
           <CartesianGrid vertical={false} stroke={palette.ink.grid} />
@@ -423,13 +432,13 @@ function ParetoWidget({ widget, rows }: GeneratedWidgetProps) {
  * bar renderer. Colored by sign (increase/decrease) rather than category,
  * since a bridge's story is the direction of each step, not series identity.
  */
-function WaterfallWidget({ widget, rows }: GeneratedWidgetProps) {
+function WaterfallWidget({ widget, rows, preview }: GeneratedWidgetProps) {
   const palette = usePalette();
   const data = toChartData(widget, rows);
 
   if (data.length === 0) {
     return (
-      <ChartCard title={widget.title}>
+      <ChartCard title={widget.title} expandable={!preview}>
         <EmptyNote message={NO_DATA_MESSAGE} />
       </ChartCard>
     );
@@ -457,7 +466,7 @@ function WaterfallWidget({ widget, rows }: GeneratedWidgetProps) {
   const decreaseColor = palette.categorical.red;
 
   return (
-    <ChartCard title={widget.title}>
+    <ChartCard title={widget.title} expandable={!preview}>
       {/* A manual increase/decrease legend, not Recharts' <Legend> — this
           repo's Recharts version doesn't expose a `payload` prop for a
           legend with no real per-series dataKey behind it (color here is
@@ -540,6 +549,7 @@ function WaterfallWidget({ widget, rows }: GeneratedWidgetProps) {
 function LineLikeWidget({
   widget,
   rows,
+  preview,
   area,
   stacked = false,
 }: GeneratedWidgetProps & { area: boolean; stacked?: boolean }) {
@@ -549,7 +559,7 @@ function LineLikeWidget({
 
   if (data.length === 0 || keys.length === 0) {
     return (
-      <ChartCard title={widget.title}>
+      <ChartCard title={widget.title} expandable={!preview}>
         <EmptyNote message={NO_DATA_MESSAGE} />
       </ChartCard>
     );
@@ -558,7 +568,7 @@ function LineLikeWidget({
   const Chart = area ? AreaChart : LineChart;
 
   return (
-    <ChartCard title={widget.title}>
+    <ChartCard title={widget.title} expandable={!preview}>
       <FullscreenResponsiveContainer height={300}>
         <Chart data={data} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
           <CartesianGrid vertical={false} stroke={palette.ink.grid} />
@@ -613,20 +623,20 @@ function LineLikeWidget({
   );
 }
 
-function DonutWidget({ widget, rows }: GeneratedWidgetProps) {
+function DonutWidget({ widget, rows, preview }: GeneratedWidgetProps) {
   const palette = usePalette();
   const points = computeWidgetSeries(widget, rows).slice(0, DONUT_MAX_SLICES);
 
   if (points.length === 0) {
     return (
-      <ChartCard title={widget.title}>
+      <ChartCard title={widget.title} expandable={!preview}>
         <EmptyNote message={NO_DATA_MESSAGE} />
       </ChartCard>
     );
   }
 
   return (
-    <ChartCard title={widget.title}>
+    <ChartCard title={widget.title} expandable={!preview}>
       <FullscreenResponsiveContainer height={360}>
         <PieChart>
           <Pie
@@ -762,14 +772,14 @@ function HeatmapLegend({
  * scorecard). Plain CSS grid rather than a Recharts chart — there's no
  * Recharts primitive for this shape.
  */
-function HeatmapWidget({ widget, rows }: GeneratedWidgetProps) {
+function HeatmapWidget({ widget, rows, preview }: GeneratedWidgetProps) {
   const palette = usePalette();
   const points = computeWidgetSeries(widget, rows);
   const columns = seriesKeys(widget);
 
   if (points.length === 0 || columns.length === 0) {
     return (
-      <ChartCard title={widget.title}>
+      <ChartCard title={widget.title} expandable={!preview}>
         <EmptyNote message={NO_DATA_MESSAGE} />
       </ChartCard>
     );
@@ -785,58 +795,101 @@ function HeatmapWidget({ widget, rows }: GeneratedWidgetProps) {
   const tFor = (value: number) => (span > 0 ? (value - min) / span : 0.5);
 
   return (
-    <ChartCard title={widget.title}>
+    <ChartCard title={widget.title} expandable={!preview}>
       <div className="flex h-full flex-col">
         {/* Legend precedes the scroller (not after) so fullscreen's generic
             "last child grows" cascade — see globals.css — targets the
             scroller, not this fixed-height caption row. */}
         <HeatmapLegend palette={palette} min={min} max={max} formatHint={widget.formatHint} />
         <div className="fullscreen-scroll-list max-h-[320px] flex-1 overflow-auto">
-          <div
-            className="fullscreen-grid-matrix inline-grid min-w-full text-xs"
-            style={{ gridTemplateColumns: `minmax(120px, auto) repeat(${columns.length}, minmax(72px, 1fr))` }}
-          >
-            <div className="sticky left-0 top-0 z-20 bg-white dark:bg-slate-900" />
-            {columns.map((col) => (
-              <div
-                key={col}
-                title={col}
-                className="sticky top-0 z-10 truncate bg-white px-2 py-2 text-center font-medium text-slate-500 dark:bg-slate-900 dark:text-slate-400"
-              >
-                {col}
-              </div>
-            ))}
-            {points.map((point, rowIndex) => (
-              <HeatmapRow
-                key={point.label}
-                point={point}
-                columns={columns}
-                values={cellValues[rowIndex]}
-                palette={palette}
-                formatHint={widget.formatHint}
-                tFor={tFor}
-              />
-            ))}
-          </div>
+          <HeatmapGridMatrix
+            columns={columns}
+            points={points}
+            cellValues={cellValues}
+            palette={palette}
+            formatHint={widget.formatHint}
+            tFor={tFor}
+          />
         </div>
       </div>
     </ChartCard>
   );
 }
 
-function TableWidget({ widget, rows }: GeneratedWidgetProps) {
+/**
+ * The `.fullscreen-grid-matrix` grid itself, split out of `HeatmapWidget` so
+ * `useIsFullscreenChart()` is called from inside the tree ChartCard duplicates
+ * (inline copy + overlay copy) rather than from `HeatmapWidget`, which is the
+ * component that calls `<ChartCard>` — see that hook's doc comment in
+ * fullscreen-overlay.tsx for why calling it one level too high always reads
+ * `false`. globals.css's `.fullscreen-grid-matrix` rule lets this grid's own
+ * box grow to fill the fullscreen overlay, but growing the box doesn't grow
+ * its rows unless their track sizing says to; a dynamic `1fr` row list here
+ * does that, the same job `FullscreenResponsiveContainer` does for Recharts
+ * via a numeric height prop.
+ */
+function HeatmapGridMatrix({
+  columns,
+  points,
+  cellValues,
+  palette,
+  formatHint,
+  tFor,
+}: {
+  columns: string[];
+  points: SeriesPoint[];
+  cellValues: number[][];
+  palette: ChartPalette;
+  formatHint: WidgetSpec["formatHint"];
+  tFor: (value: number) => number;
+}) {
+  const isFullscreen = useIsFullscreenChart();
+  return (
+    <div
+      className="fullscreen-grid-matrix inline-grid min-w-full text-xs"
+      style={{
+        gridTemplateColumns: `minmax(120px, auto) repeat(${columns.length}, minmax(72px, 1fr))`,
+        ...(isFullscreen && { gridTemplateRows: `auto repeat(${points.length}, minmax(32px, 1fr))` }),
+      }}
+    >
+      <div className="sticky left-0 top-0 z-20 bg-white dark:bg-slate-900" />
+      {columns.map((col) => (
+        <div
+          key={col}
+          title={col}
+          className="sticky top-0 z-10 truncate bg-white px-2 py-2 text-center font-medium text-slate-500 dark:bg-slate-900 dark:text-slate-400"
+        >
+          {col}
+        </div>
+      ))}
+      {points.map((point, rowIndex) => (
+        <HeatmapRow
+          key={point.label}
+          point={point}
+          columns={columns}
+          values={cellValues[rowIndex]}
+          palette={palette}
+          formatHint={formatHint}
+          tFor={tFor}
+        />
+      ))}
+    </div>
+  );
+}
+
+function TableWidget({ widget, rows, preview }: GeneratedWidgetProps) {
   const points = computeWidgetSeries(widget, rows);
 
   if (points.length === 0) {
     return (
-      <ChartCard title={widget.title}>
+      <ChartCard title={widget.title} expandable={!preview}>
         <EmptyNote message={NO_DATA_MESSAGE} />
       </ChartCard>
     );
   }
 
   return (
-    <ChartCard title={widget.title}>
+    <ChartCard title={widget.title} expandable={!preview}>
       <div className="flex h-full flex-col gap-2">
         <div className="flex shrink-0 justify-end">
           <Button size="sm" variant="outline" onClick={() => exportTableCsv(widget, points)}>
@@ -881,33 +934,35 @@ function TableWidget({ widget, rows }: GeneratedWidgetProps) {
 // Dispatch
 // ---------------------------------------------------------------------------
 
-export function GeneratedWidget({ widget, rows }: GeneratedWidgetProps) {
+export function GeneratedWidget({ widget, rows, preview }: GeneratedWidgetProps) {
   switch (widget.kind) {
     case "kpi":
+      // KpiWidget renders a KpiCard, not a ChartCard — nothing to expand, so
+      // `preview` has no bearing on it.
       return <KpiWidget widget={widget} rows={rows} />;
     case "bar":
     case "groupedBar":
-      return <BarLikeWidget widget={widget} rows={rows} stacked={false} withTotalLine={false} />;
+      return <BarLikeWidget widget={widget} rows={rows} preview={preview} stacked={false} withTotalLine={false} />;
     case "stackedBar":
-      return <BarLikeWidget widget={widget} rows={rows} stacked withTotalLine={false} />;
+      return <BarLikeWidget widget={widget} rows={rows} preview={preview} stacked withTotalLine={false} />;
     case "stackedBarWithTotalLine":
-      return <BarLikeWidget widget={widget} rows={rows} stacked withTotalLine />;
+      return <BarLikeWidget widget={widget} rows={rows} preview={preview} stacked withTotalLine />;
     case "pareto":
-      return <ParetoWidget widget={widget} rows={rows} />;
+      return <ParetoWidget widget={widget} rows={rows} preview={preview} />;
     case "line":
-      return <LineLikeWidget widget={widget} rows={rows} area={false} />;
+      return <LineLikeWidget widget={widget} rows={rows} preview={preview} area={false} />;
     case "area":
-      return <LineLikeWidget widget={widget} rows={rows} area />;
+      return <LineLikeWidget widget={widget} rows={rows} preview={preview} area />;
     case "stackedArea":
-      return <LineLikeWidget widget={widget} rows={rows} area stacked />;
+      return <LineLikeWidget widget={widget} rows={rows} preview={preview} area stacked />;
     case "donut":
-      return <DonutWidget widget={widget} rows={rows} />;
+      return <DonutWidget widget={widget} rows={rows} preview={preview} />;
     case "heatmap":
-      return <HeatmapWidget widget={widget} rows={rows} />;
+      return <HeatmapWidget widget={widget} rows={rows} preview={preview} />;
     case "waterfall":
-      return <WaterfallWidget widget={widget} rows={rows} />;
+      return <WaterfallWidget widget={widget} rows={rows} preview={preview} />;
     case "table":
-      return <TableWidget widget={widget} rows={rows} />;
+      return <TableWidget widget={widget} rows={rows} preview={preview} />;
     default:
       // Exhaustive over ChartKind — unreachable, but keeps rendering graceful
       // if a future kind is added to the type without a renderer here.
