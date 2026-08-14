@@ -3,24 +3,27 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Check, Loader2 } from "lucide-react";
+import type { GenerationStage } from "@/lib/generated-dashboard/generate";
 import { cn } from "@/lib/utils";
 
 // Staged progress panel for "Generate Custom Dashboard".
 //
 // The stages are the pipeline's real ones (see
-// components/generated-dashboard/generate-dashboard-dialog.tsx and
-// app/api/generate-dashboard/route.ts), but only some of them are observable:
-// parsing, profiling and validation all happen in the browser and report
-// exactly when they finish, while the two Claude calls happen inside one
-// opaque POST that returns nothing until both are done. So "planning" ->
-// "designing widgets" advances on an estimate rather than a signal.
+// lib/generated-dashboard/generate.ts and app/api/generate-dashboard/route.ts),
+// but only some of them are observable: profiling and validation happen in the
+// browser and report exactly when they finish, while the two Claude calls
+// happen inside one opaque POST that returns nothing until both are done. So
+// "planning" -> "designing widgets" advances on an estimate rather than a
+// signal.
 //
 // Because of that, this deliberately avoids a percentage or a determinate
 // bar: it would be inventing precision the request can't provide. The active
 // stage spins until something real moves it on, and says so if it outlasts
 // the estimate.
-
-export type GenerationStage = "parse" | "profile" | "plan" | "widgets" | "finalize";
+//
+// Reading the CSV (or fetching the spend table) isn't listed: both happen
+// before field selection, on the step that owns them, and by the time this
+// panel appears there are already rows on hand.
 
 interface StageDescriptor {
   id: GenerationStage;
@@ -30,13 +33,8 @@ interface StageDescriptor {
 
 const STAGES: StageDescriptor[] = [
   {
-    id: "parse",
-    label: "Reading your CSV",
-    detail: "Parsing rows and headers.",
-  },
-  {
     id: "profile",
-    label: "Profiling the dataset",
+    label: "Profiling the fields you picked",
     detail: "Column types, ranges and cardinality — computed here, so raw rows never leave your device.",
   },
   {
