@@ -176,7 +176,15 @@ export default function GeneratedDashboardPage({ params }: { params: Promise<{ i
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-2xl font-semibold text-slate-900 dark:text-slate-100">{dashboard.title}</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="truncate text-2xl font-semibold text-slate-900 dark:text-slate-100">{dashboard.title}</h1>
+            {/* Which branch of the data-source picker built this. Absent on
+                dashboards stored before the picker existed — those were all
+                uploads, which is what the store defaults them to. */}
+            <span className="shrink-0 rounded-full border border-slate-200 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:border-slate-700 dark:text-slate-400">
+              {dashboard.sourceKind === "spend" ? "Spend Analytics Data" : "Uploaded CSV"}
+            </span>
+          </div>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Generated from {dashboard.sourceFileName} ·{" "}
             {activeFilters

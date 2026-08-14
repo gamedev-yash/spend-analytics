@@ -1,6 +1,6 @@
 "use client";
 
-import { Bot, ExternalLink, Maximize2, Minimize2, Minus, SquarePen } from "lucide-react";
+import { Bot, ExternalLink, Maximize2, Minimize2, MessageCircleX, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AssistantHeaderProps {
@@ -51,7 +51,7 @@ export function AssistantHeader({
           )}
         </div>
 
-        {/* Every control lives in this one top-right cluster: New Chat, then
+        {/* Every control lives in this one top-right cluster: Clear Chat, then
             the window controls in a fixed order (Minimize, Full Screen, Open
             in New Tab) — each hidden individually when its handler is omitted
             (see the standalone-page doc comments above). */}
@@ -59,11 +59,11 @@ export function AssistantHeader({
           <button
             type="button"
             onClick={onNewChat}
-            aria-label="Start a new chat"
-            title="New chat"
+            aria-label="Clear conversation"
+            title="Clear Chat"
             className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
           >
-            <SquarePen className="h-4 w-4" />
+            <MessageCircleX className="h-4 w-4" />
           </button>
           {onMinimize && (
             <button

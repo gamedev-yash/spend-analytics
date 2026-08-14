@@ -16,6 +16,7 @@ import {
 import { ensureCustomDashboardSynced } from "@/lib/ai/custom-dashboard-sync";
 import { useGeneratedDashboard, useGeneratedDashboardsReady } from "@/lib/generated-dashboard/store";
 import { stashPendingPrompt, takePendingPrompt } from "@/lib/ai/assistant-handoff";
+import { stashTransferState, takeTransferState } from "@/lib/ai/assistant-transfer";
 import { adoptConversationId, getOrCreateConversationId, resetConversationId } from "@/lib/ai/conversation-id";
 import { useDashboardActiveFilterSummary } from "@/context/DashboardActiveFiltersContext";
 import { useIsExportCapturing } from "@/context/ExportCaptureContext";
@@ -264,18 +265,37 @@ export function DashboardAssistant({ standalone = false, standaloneContext = nul
     setOpen(false);
     setFullscreen(false);
   }, [setFullscreen]);
+
+  // A backdrop (click-to-minimize) only makes sense for the embedded
+  // dashboard popover's OWN maximized view — mirrors the click-outside-closes
+  // pattern FullscreenOverlay already uses for widget "expand to fullscreen"
+  // dialogs elsewhere in this app. The standalone /assistant page has no
+  // dashboard behind it to darken, and the small (non-fullscreen) popover
+  // already closes via useOutsideClick instead of a backdrop.
+  const showBackdrop = !standalone && fullscreen;
   useOutsideClick(!standalone && open && !fullscreen, closePanel, [panelRef, buttonRef]);
 
   // "Open in New Tab" — deliberately `noopener`: without it, a same-origin
   // `window.open` clones this tab's sessionStorage into the new one, which
   // would hand the "fresh chat session" a conversationId (and thus server-side
   // memory) it was never supposed to have. See lib/ai/conversation-id.ts.
+  // The ongoing conversation itself still travels across, just via
+  // localStorage instead (see lib/ai/assistant-transfer.ts's module comment
+  // for why noopener rules out sessionStorage for this specific handoff).
   const openInNewTab = useCallback(() => {
     if (!contextKey) return;
+    // Stashed and re-read under the CONTEXT id, not a bare dashboard key, so a
+    // conversation on a generated dashboard transfers exactly like one on a
+    // built-in dashboard.
+    stashTransferState({ contextId: contextKey, messages, conversationId, reportMode, input });
     // The context id, not a bare dashboard key — it names either kind, and the
     // standalone page parses it back with parseDashboardContextId.
-    window.open(`/assistant?dashboard=${encodeURIComponent(contextKey)}`, "_blank", "noopener,noreferrer");
-  }, [contextKey]);
+    window.open(
+      `/assistant?dashboard=${encodeURIComponent(contextKey)}&transfer=true`,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  }, [contextKey, messages, conversationId, reportMode, input]);
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
@@ -332,12 +352,30 @@ export function DashboardAssistant({ standalone = false, standaloneContext = nul
   // misleading once the assistant is answering for Tail Spend instead.
   // conversationId deliberately does NOT reset here (see its declaration
   // above) — cross-dashboard entity memory (§12) needs it to survive this.
+  //
+  // Also where a transferred conversation (openInNewTab's "Open in New Tab")
+  // gets hydrated: this effect already runs once on mount (contextKey has no
+  // "previous" value to compare against yet), which is exactly when a
+  // freshly-opened standalone tab needs to pick up whatever the opener just
+  // stashed. Checked here — inside the SAME effect that would otherwise reset
+  // to the plain welcome message — rather than a separate effect, so there is
+  // one obvious order of precedence instead of two effects racing to decide
+  // `messages`/`input` on the same commit.
   useEffect(() => {
     if (!contextKey) return;
-    setMessages([{ role: "assistant", content: welcomeTextRef.current, timestamp: Date.now() }]);
+    const transfer = standalone ? takeTransferState(contextKey) : null;
+    setMessages(
+      transfer?.messages ?? [{ role: "assistant", content: welcomeTextRef.current, timestamp: Date.now() }]
+    );
     setSuggestedFollowUps(null);
     setContextSummary(null);
     setActionBusy(false);
+    if (transfer) {
+      setConversationId(transfer.conversationId);
+      setReportMode(transfer.reportMode);
+      setInput(transfer.input);
+      return;
+    }
     // Report mode deliberately SURVIVES navigation. Nothing turns it off except
     // the toggle itself and an explicit "New chat" — see the note beside its
     // useState declaration.
@@ -358,7 +396,7 @@ export function DashboardAssistant({ standalone = false, standaloneContext = nul
     // from the local store a beat after the first paint, and re-running this on
     // that would wipe a conversation already in progress. The small effect below
     // patches the greeting instead.
-  }, [contextKey]);
+  }, [contextKey, standalone]);
 
   // Greeting-only refresh: replaces the seeded welcome once a generated
   // dashboard's own title is known (or after a rename), and does nothing at all
@@ -885,181 +923,206 @@ export function DashboardAssistant({ standalone = false, standaloneContext = nul
 
       <AnimatePresence>
         {panelOpen && (
-          <motion.div
-            ref={panelRef}
-            data-assistant-panel
-            initial={{ opacity: 0, scale: 0.97, y: 6 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.97, y: 6 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-            role={standalone ? undefined : "dialog"}
-            aria-modal={standalone ? undefined : fullscreen}
-            aria-label="AI Assistant"
-            style={
-              !standalone && !fullscreen && position
-                ? {
-                    left: Math.min(
-                      position.x,
-                      window.innerWidth - Math.min(PANEL_WIDTH_PX, window.innerWidth - 48) - 8
-                    ),
-                    ...(position.y < window.innerHeight / 2
-                      ? { top: position.y + BUBBLE_HEIGHT_PX + PANEL_GAP_PX }
-                      : { bottom: window.innerHeight - position.y + PANEL_GAP_PX }),
-                  }
-                : undefined
-            }
+          // Always the same element in this position regardless of
+          // showBackdrop/fullscreen — only its className/onClick vary. Making
+          // the wrapper's own PRESENCE conditional on fullscreen would give
+          // the motion.div a different parent shape between popover and
+          // fullscreen, so React would unmount+remount it (replaying the exit
+          // then enter animation, and losing the transcript's scroll
+          // position) on every Maximize/Minimize click — exactly the glitch
+          // this stable wrapper avoids.
+          <div
             className={cn(
-              "fixed z-[60] flex flex-col overflow-hidden bg-white dark:bg-slate-900",
-              standalone
-                ? "inset-0"
-                : cn(
-                    "rounded-2xl border border-slate-200 shadow-2xl dark:border-slate-800",
-                    fullscreen
-                      ? "inset-4 md:inset-10"
-                      : cn("h-[min(34rem,calc(100vh-9rem))] w-[min(24rem,calc(100vw-3rem))]", !position && "bottom-24 right-6")
-                  )
+              "fixed inset-0 z-[60]",
+              showBackdrop ? "bg-slate-950/60 backdrop-blur-sm" : "pointer-events-none"
             )}
+            onClick={showBackdrop ? closePanel : undefined}
           >
-            <AssistantHeader
-              dashboardLabel={dashboardLabel}
-              fullscreen={effectiveFullscreen}
-              onNewChat={resetConversation}
-              onToggleFullscreen={standalone ? undefined : () => setFullscreen((v) => !v)}
-              onMinimize={standalone ? undefined : closePanel}
-              onOpenInNewTab={standalone ? undefined : openInNewTab}
-            />
-
-            <div className="relative min-h-0 flex-1">
-              <div ref={scrollRef} onScroll={handleScroll} className="ai-scrollbar h-full overflow-y-auto px-4 py-4">
-                {isEmpty ? (
-                  <EmptyState
-                    dashboardLabel={dashboardLabel}
-                    dashboardKind={dashboardContext.type}
-                    welcomeText={messages[0]?.content ?? welcomeText}
-                    onSelect={(text) => void send(text)}
-                    disabled={busy || customDashboardMissing}
-                    fullscreen={effectiveFullscreen}
-                    // Undefined when this dashboard has no report action, which
-                    // is what hides the card rather than showing a dead one.
-                    onEnableReportMode={reportAction ? enableReportMode : undefined}
-                    reportMode={reportMode}
-                  />
-                ) : (
-                  <div className={cn("mx-auto space-y-4", effectiveFullscreen && "max-w-3xl")}>
-                    {messages.map((m, i) => (
-                      <MessageBubble
-                        key={i}
-                        message={m}
-                        fullscreen={effectiveFullscreen}
-                        busy={busy}
-                        onOptionSelect={(option) => void send(option)}
-                        onRedirect={handleRedirect}
-                        // Never alongside a pending clarifying question (m.options) —
-                        // answering that comes first, so "Compare with last month"
-                        // showing up next to "PO spend or Invoice value?" would be
-                        // a non-sequitur.
-                        followUps={
-                          i === lastAssistantIndex && !busy && !m.isError && !m.redirect && !m.options?.length
-                            ? activeFollowUps
-                            : undefined
-                        }
-                      />
-                    ))}
-                    {busy && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 pl-9 text-xs text-slate-400 dark:text-slate-500" aria-hidden="true">
-                          <Sparkles className="h-3.5 w-3.5 animate-pulse" />
-                          <span>Analyzing {dashboardLabel} data</span>
-                          <span className="flex items-center gap-0.5">
-                            <span className="h-1 w-1 animate-bounce rounded-full bg-current [animation-delay:-0.3s]" />
-                            <span className="h-1 w-1 animate-bounce rounded-full bg-current [animation-delay:-0.15s]" />
-                            <span className="h-1 w-1 animate-bounce rounded-full bg-current" />
-                          </span>
-                        </div>
-                        {/* Skeleton preview of the response card about to
-                            arrive, in the same shape/position a real answer
-                            will render — reuses the existing shadcn Skeleton
-                            primitive (components/ui/skeleton.tsx) rather than
-                            a one-off shimmer. */}
-                        <div
-                          className="ml-9 max-w-[80%] space-y-2 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800/70"
-                          aria-hidden="true"
-                        >
-                          <Skeleton className="h-3 w-4/5" />
-                          <Skeleton className="h-3 w-3/5" />
-                          <Skeleton className="h-3 w-full" />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-                <div role="status" aria-live="polite" className="sr-only">
-                  {busy ? `Analyzing ${dashboardLabel} data…` : ""}
-                </div>
-              </div>
-
-              {!isEmpty && showJumpToLatest && (
-                <button
-                  type="button"
-                  onClick={scrollToLatest}
-                  className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-md transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-                >
-                  <ChevronDown className="h-3.5 w-3.5" />
-                  New activity
-                </button>
-              )}
-            </div>
-
-            {/* Transparency, not decoration: the answer about to come back is
-                grounded in this filtered view, not the full dataset — the
-                user should see that before asking, not have to infer it from
-                a number that doesn't match what they expected. */}
-            {activeFilterSummary && (
-              <div className="shrink-0 border-t border-slate-100 bg-slate-50/80 px-4 py-1.5 text-[11px] text-slate-500 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-400">
-                Answering for: {activeFilterSummary}
-              </div>
-            )}
-
-            {/* §19 of the follow-up feature: what the assistant currently
-                remembers from this conversation (lib/ai/conversation-context.ts),
-                so a terse follow-up like "only Pune" doesn't feel like it
-                works by magic — never internal implementation detail (no
-                table/field names), just the same plain-language shape as the
-                filter line above. */}
-            {contextSummary && (
-              <div className="shrink-0 border-t border-slate-100 bg-slate-50/80 px-4 py-1.5 text-[11px] text-slate-500 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-400">
-                Remembering: {contextSummary}
-              </div>
-            )}
-
-            <Composer
-              value={input}
-              onChange={setInput}
-              onSubmit={submitComposer}
-              onStop={stop}
-              // Nothing to ground an answer in — see CUSTOM_DASHBOARD_MISSING_MESSAGE,
-              // which the transcript is already showing. Disabled rather than
-              // hidden so the panel still looks like itself.
-              disabled={customDashboardMissing}
-              // Either request in flight puts the composer in its stop state —
-              // a 3-minute report generation with no way to cancel it would be
-              // the worst version of this feature.
-              busy={busy || actionBusy}
-              placeholder={
-                customDashboardMissing
-                  ? "This dashboard's data isn't available in this browser"
-                  : reportMode
-                    ? `Describe the report you want from ${dashboardLabel}…`
-                    : `Ask about ${dashboardLabel}…`
+            <motion.div
+              ref={panelRef}
+              data-assistant-panel
+              initial={{ opacity: 0, scale: 0.97, y: 6 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.97, y: 6 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              role={standalone ? undefined : "dialog"}
+              aria-modal={standalone ? undefined : fullscreen}
+              aria-label="AI Assistant"
+              // The backdrop's own onClick (above) minimizes — this stops a
+              // click anywhere inside the panel (transcript, header,
+              // composer) from bubbling up and triggering that.
+              onClick={(e) => e.stopPropagation()}
+              style={
+                !standalone && !fullscreen && position
+                  ? {
+                      left: Math.min(
+                        position.x,
+                        window.innerWidth - Math.min(PANEL_WIDTH_PX, window.innerWidth - 48) - 8
+                      ),
+                      ...(position.y < window.innerHeight / 2
+                        ? { top: position.y + BUBBLE_HEIGHT_PX + PANEL_GAP_PX }
+                        : { bottom: window.innerHeight - position.y + PANEL_GAP_PX }),
+                    }
+                  : undefined
               }
-              fullscreen={effectiveFullscreen}
-              reportMode={reportMode}
-              onToggleReportMode={() => setReportMode((v) => !v)}
-              reportModeLabel={reportAction?.label ?? ""}
-              reportModeSeconds={reportAction?.estimatedSeconds ?? 0}
-              reportModeAvailable={reportAction !== null}
-            />
-          </motion.div>
+              className={cn(
+                // absolute, not fixed: the wrapper above is already a
+                // fixed, exactly-viewport-sized (inset-0) positioning
+                // context, so absolute positioning here resolves against the
+                // viewport identically to `fixed` — while letting the
+                // wrapper's own pointer-events toggle apply.
+                "pointer-events-auto absolute flex flex-col overflow-hidden bg-white dark:bg-slate-900",
+                standalone
+                  ? "inset-0"
+                  : cn(
+                      "rounded-2xl border border-slate-200 shadow-2xl dark:border-slate-800",
+                      fullscreen
+                        ? "inset-4 md:inset-10"
+                        : cn("h-[min(34rem,calc(100vh-9rem))] w-[min(24rem,calc(100vw-3rem))]", !position && "bottom-24 right-6")
+                    )
+              )}
+            >
+              <AssistantHeader
+                dashboardLabel={dashboardLabel}
+                fullscreen={effectiveFullscreen}
+                onNewChat={resetConversation}
+                onToggleFullscreen={standalone ? undefined : () => setFullscreen((v) => !v)}
+                onMinimize={standalone ? undefined : closePanel}
+                onOpenInNewTab={standalone ? undefined : openInNewTab}
+              />
+
+              <div className="relative min-h-0 flex-1">
+                <div ref={scrollRef} onScroll={handleScroll} className="ai-scrollbar h-full overflow-y-auto px-4 py-4">
+                  {isEmpty ? (
+                    <EmptyState
+                      dashboardLabel={dashboardLabel}
+                      dashboardKind={dashboardContext.type}
+                      welcomeText={messages[0]?.content ?? welcomeText}
+                      onSelect={(text) => void send(text)}
+                      disabled={busy || customDashboardMissing}
+                      fullscreen={effectiveFullscreen}
+                      // Undefined when this dashboard has no report action, which
+                      // is what hides the card rather than showing a dead one.
+                      onEnableReportMode={reportAction ? enableReportMode : undefined}
+                      reportMode={reportMode}
+                    />
+                  ) : (
+                    <div className={cn("mx-auto space-y-4", effectiveFullscreen && "max-w-3xl")}>
+                      {messages.map((m, i) => (
+                        <MessageBubble
+                          key={i}
+                          message={m}
+                          fullscreen={effectiveFullscreen}
+                          busy={busy}
+                          onOptionSelect={(option) => void send(option)}
+                          onRedirect={handleRedirect}
+                          // Never alongside a pending clarifying question (m.options) —
+                          // answering that comes first, so "Compare with last month"
+                          // showing up next to "PO spend or Invoice value?" would be
+                          // a non-sequitur.
+                          followUps={
+                            i === lastAssistantIndex && !busy && !m.isError && !m.redirect && !m.options?.length
+                              ? activeFollowUps
+                              : undefined
+                          }
+                        />
+                      ))}
+                      {busy && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 pl-9 text-xs text-slate-400 dark:text-slate-500" aria-hidden="true">
+                            <Sparkles className="h-3.5 w-3.5 animate-pulse" />
+                            <span>Analyzing {dashboardLabel} data</span>
+                            <span className="flex items-center gap-0.5">
+                              <span className="h-1 w-1 animate-bounce rounded-full bg-current [animation-delay:-0.3s]" />
+                              <span className="h-1 w-1 animate-bounce rounded-full bg-current [animation-delay:-0.15s]" />
+                              <span className="h-1 w-1 animate-bounce rounded-full bg-current" />
+                            </span>
+                          </div>
+                          {/* Skeleton preview of the response card about to
+                              arrive, in the same shape/position a real answer
+                              will render — reuses the existing shadcn Skeleton
+                              primitive (components/ui/skeleton.tsx) rather than
+                              a one-off shimmer. */}
+                          <div
+                            className="ml-9 max-w-[80%] space-y-2 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800/70"
+                            aria-hidden="true"
+                          >
+                            <Skeleton className="h-3 w-4/5" />
+                            <Skeleton className="h-3 w-3/5" />
+                            <Skeleton className="h-3 w-full" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div role="status" aria-live="polite" className="sr-only">
+                    {busy ? `Analyzing ${dashboardLabel} data…` : ""}
+                  </div>
+                </div>
+
+                {!isEmpty && showJumpToLatest && (
+                  <button
+                    type="button"
+                    onClick={scrollToLatest}
+                    className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-md transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                  >
+                    <ChevronDown className="h-3.5 w-3.5" />
+                    New activity
+                  </button>
+                )}
+              </div>
+
+              {/* Transparency, not decoration: the answer about to come back is
+                  grounded in this filtered view, not the full dataset — the
+                  user should see that before asking, not have to infer it from
+                  a number that doesn't match what they expected. */}
+              {activeFilterSummary && (
+                <div className="shrink-0 border-t border-slate-100 bg-slate-50/80 px-4 py-1.5 text-[11px] text-slate-500 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-400">
+                  Answering for: {activeFilterSummary}
+                </div>
+              )}
+
+              {/* §19 of the follow-up feature: what the assistant currently
+                  remembers from this conversation (lib/ai/conversation-context.ts),
+                  so a terse follow-up like "only Pune" doesn't feel like it
+                  works by magic — never internal implementation detail (no
+                  table/field names), just the same plain-language shape as the
+                  filter line above. */}
+              {contextSummary && (
+                <div className="shrink-0 border-t border-slate-100 bg-slate-50/80 px-4 py-1.5 text-[11px] text-slate-500 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-400">
+                  Remembering: {contextSummary}
+                </div>
+              )}
+
+              <Composer
+                value={input}
+                onChange={setInput}
+                onSubmit={submitComposer}
+                onStop={stop}
+                // Nothing to ground an answer in — see CUSTOM_DASHBOARD_MISSING_MESSAGE,
+                // which the transcript is already showing. Disabled rather than
+                // hidden so the panel still looks like itself.
+                disabled={customDashboardMissing}
+                // Either request in flight puts the composer in its stop state —
+                // a 3-minute report generation with no way to cancel it would be
+                // the worst version of this feature.
+                busy={busy || actionBusy}
+                placeholder={
+                  customDashboardMissing
+                    ? "This dashboard's data isn't available in this browser"
+                    : reportMode
+                      ? `Describe the report you want from ${dashboardLabel}…`
+                      : `Ask about ${dashboardLabel}…`
+                }
+                fullscreen={effectiveFullscreen}
+                reportMode={reportMode}
+                onToggleReportMode={() => setReportMode((v) => !v)}
+                reportModeLabel={reportAction?.label ?? ""}
+                reportModeSeconds={reportAction?.estimatedSeconds ?? 0}
+                reportModeAvailable={reportAction !== null}
+              />
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </>

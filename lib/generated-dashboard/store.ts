@@ -4,6 +4,7 @@ import { useCallback, useSyncExternalStore } from "react";
 import type {
   DashboardPlan,
   GeneratedDashboard,
+  GeneratedDashboardSourceKind,
   WidgetSpec,
 } from "@/types/generated-dashboard";
 import type { DatasetProfile } from "@/types/dataset-profile";
@@ -106,6 +107,8 @@ export function newGeneratedDashboardId(prefix = "gen"): string {
 export function createGeneratedDashboard(params: {
   title: string;
   sourceFileName: string;
+  /** Which data-source branch produced this — defaults to "csv" when omitted. */
+  sourceKind?: GeneratedDashboardSourceKind;
   profile: DatasetProfile;
   plan: DashboardPlan;
   widgets: WidgetSpec[];
@@ -119,6 +122,7 @@ export function createGeneratedDashboard(params: {
     title: params.title.trim() || "Untitled dashboard",
     createdAt: new Date().toISOString(),
     sourceFileName: params.sourceFileName,
+    sourceKind: params.sourceKind ?? "csv",
     profile: params.profile,
     plan: params.plan,
     widgets: params.widgets,

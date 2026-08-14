@@ -74,11 +74,24 @@ export interface DashboardPlan {
   excludedColumns: { name: string; reason: string }[];
 }
 
+/**
+ * Which branch of the data-source picker produced a dashboard: an uploaded
+ * CSV, or one of the platform's own spend tables.
+ */
+export type GeneratedDashboardSourceKind = "csv" | "spend";
+
 export interface GeneratedDashboard {
   id: string;
   title: string;
   createdAt: string;
+  /** The uploaded file's name, or the spend table's label — displayed as provenance. */
   sourceFileName: string;
+  /**
+   * Where `sourceFileName` points. Optional: dashboards stored before the
+   * data-source picker existed were all uploads, so an absent value reads as
+   * "csv".
+   */
+  sourceKind?: GeneratedDashboardSourceKind;
   profile: DatasetProfile;
   plan: DashboardPlan;
   /** The widgets currently rendered on the dashboard. */
