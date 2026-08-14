@@ -34,7 +34,7 @@ export function MultiSelect({ label, options, selected, onChange, allLabel = "Al
 
   return (
     <div className="space-y-1.5">
-      <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</label>
+      <label className="block text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</label>
       <Popover>
         <PopoverTrigger
           render={
