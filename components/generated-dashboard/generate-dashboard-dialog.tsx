@@ -408,7 +408,7 @@ function GenerateDashboardFlow({
         ) : (
           <>
             Measures and dimensions were detected from the data. Keep the ones this dashboard
-            should be about — Claude plans its charts around exactly these.
+            should be about — our AI assistant plans its charts around exactly these.
           </>
         )}
       </p>

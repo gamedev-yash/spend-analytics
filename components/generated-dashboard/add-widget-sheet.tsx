@@ -111,7 +111,7 @@ function AddWidgetPanel({ dashboard, rows }: AddWidgetSheetProps) {
           message={
             dashboard.library === undefined
               ? "This dashboard was generated before the widget catalog existed, so every widget it planned is already on screen. Generating a new dashboard from the same CSV will build one."
-              : "Every widget Claude planned for this dataset is already on the dashboard."
+              : "Every widget our AI assistant planned for this dataset is already on the dashboard."
           }
         />
       </div>
@@ -242,7 +242,7 @@ export function AddWidgetSheet({ dashboard, rows }: AddWidgetSheetProps) {
         <SheetHeader>
           <SheetTitle>Add a widget</SheetTitle>
           <SheetDescription>
-            Widgets Claude planned for this dataset but kept off the opening screen. Previews use the
+            Widgets our AI assistant planned for this dataset but kept off the opening screen. Previews use the
             dashboard&apos;s current filters.
           </SheetDescription>
         </SheetHeader>

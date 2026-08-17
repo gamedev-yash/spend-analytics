@@ -44,7 +44,7 @@ export function DataSourceStep({
     <>
       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         Choose where this dashboard&apos;s data comes from. Either way you pick the fields next,
-        and Claude plans the charts around them.
+        and our AI assistant plans the charts around them.
       </p>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">

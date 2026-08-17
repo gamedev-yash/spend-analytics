@@ -40,7 +40,7 @@ const STAGES: StageDescriptor[] = [
   {
     id: "plan",
     label: "Planning the dashboard",
-    detail: "Claude works out what story this data can tell, and which sections it needs.",
+    detail: "Our AI assistant works out what story this data can tell, and which sections it needs.",
   },
   {
     id: "widgets",
