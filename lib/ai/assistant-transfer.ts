@@ -29,6 +29,8 @@ export interface AssistantTransferState {
   conversationId: string;
   reportMode: boolean;
   input: string;
+  /** Normalized text of every follow-up suggestion already clicked — see lib/ai/conversation-store.ts. Optional so a transfer stashed before this field existed still parses (defaults to none used). */
+  usedSuggestions?: string[];
 }
 
 export function stashTransferState(state: AssistantTransferState): void {

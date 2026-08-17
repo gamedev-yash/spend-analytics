@@ -290,6 +290,67 @@ describe("suggestFollowUps", () => {
     assert.ok(suggestions.includes("Break down by category"));
     assert.ok(!suggestions.includes("Compare with last year"));
   });
+
+  // Chat persistence + dynamic follow-ups feature: a suggestion already
+  // asked or already clicked must never be offered again.
+  describe("excluded (already-asked / already-used) questions", () => {
+    it("drops an excluded candidate and promotes the next-best one instead of shrinking the list", () => {
+      let context: ConversationContext = { conversationId: "x", updatedAt: Date.now(), entities: EMPTY_ENTITIES, perDashboard: {} };
+      context = applyQueryToContext(context, "builtin:spend-overview", {
+        table: "fact_po_items",
+        spec: {
+          table: "fact_po_items",
+          measure: "net_order_value_inr",
+          aggregation: "sum",
+          groupBy: "vendor_name",
+        },
+        result: { matchedRows: 50000, truncated: false, value: 243610000000 },
+      });
+      const withoutExclusion = suggestFollowUps(context, "builtin:spend-overview") ?? [];
+      assert.ok(withoutExclusion.includes("Compare with last year"));
+
+      const withExclusion = suggestFollowUps(context, "builtin:spend-overview", ["Compare with last year"]) ?? [];
+      assert.ok(!withExclusion.includes("Compare with last year"));
+      // A different, structurally distinct next step takes its place rather
+      // than the list just getting shorter.
+      assert.ok(withExclusion.includes("Show this as a trend over time"));
+    });
+
+    it("normalizes case/whitespace before comparing, so a differently-cased or padded match still excludes", () => {
+      let context: ConversationContext = { conversationId: "x", updatedAt: Date.now(), entities: EMPTY_ENTITIES, perDashboard: {} };
+      context = applyQueryToContext(context, "builtin:spend-overview", {
+        table: "fact_po_items",
+        spec: { table: "fact_po_items", measure: "net_order_value_inr", aggregation: "sum" },
+        result: { matchedRows: 50000, truncated: false, value: 243610000000 },
+      });
+      const suggestions = suggestFollowUps(context, "builtin:spend-overview", ["  BREAK DOWN by category  "]) ?? [];
+      assert.ok(!suggestions.includes("Break down by category"));
+    });
+
+    it("returns null instead of an empty array when every candidate is excluded", () => {
+      let context: ConversationContext = { conversationId: "x", updatedAt: Date.now(), entities: EMPTY_ENTITIES, perDashboard: {} };
+      // A row-level lookup with a small limit produces exactly one candidate
+      // ("Show top 10") — no breakdown/compare/trend, since none of those mean
+      // anything against raw rows (see the row-level-lookup tests above).
+      context = applyQueryToContext(context, "builtin:spend-overview", {
+        table: "fact_po_items",
+        spec: { table: "fact_po_items", select: ["po_number"], limit: 5 },
+        result: { matchedRows: 5, truncated: false, rows: [{ po_number: "PO1" }] },
+      });
+      assert.deepEqual(suggestFollowUps(context, "builtin:spend-overview"), ["Show top 10"]);
+      assert.equal(suggestFollowUps(context, "builtin:spend-overview", ["Show top 10"]), null);
+    });
+
+    it("is unaffected when excluded is omitted — existing callers keep working", () => {
+      let context: ConversationContext = { conversationId: "x", updatedAt: Date.now(), entities: EMPTY_ENTITIES, perDashboard: {} };
+      context = applyQueryToContext(context, "builtin:spend-overview", {
+        table: "fact_po_items",
+        spec: { table: "fact_po_items", select: ["po_number"], limit: 5 },
+        result: { matchedRows: 5, truncated: false, rows: [{ po_number: "PO1" }] },
+      });
+      assert.deepEqual(suggestFollowUps(context, "builtin:spend-overview"), ["Show top 10"]);
+    });
+  });
 });
 
 describe("buildContextSummaryForUI", () => {

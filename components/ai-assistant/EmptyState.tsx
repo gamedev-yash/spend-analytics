@@ -4,6 +4,57 @@ import { motion } from "framer-motion";
 import { Activity, AlertTriangle, BookOpenText, FileText, Sparkles, TrendingUp, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SuggestionChips, type Suggestion } from "./SuggestionChips";
+import type { DashboardPlan } from "@/types/generated-dashboard";
+
+/**
+ * Starters that name THIS generated dashboard's own real headline metrics
+ * and sections, instead of the generic template text below — chat
+ * persistence + dynamic follow-ups feature (spec §10/§18: starters must
+ * adapt to whatever a custom dashboard actually contains, e.g. an inventory
+ * dashboard's own metrics vs a supplier-spend one's). Built purely from
+ * metadata the dashboard already carries client-side (no extra request, no
+ * Claude call) — falls back to nothing (caller fills gaps with the generic
+ * starters below) when a plan has too few headline metrics/sections to draw
+ * from, which happens for a freshly-generated dashboard.
+ */
+function planHeadlineStarters(plan: DashboardPlan): Suggestion[] {
+  const metrics = plan.headlineMetrics.filter((m) => m.trim().length > 0);
+  const sections = [...plan.sections].sort((a, b) => a.priority - b.priority);
+  const items: Suggestion[] = [];
+
+  if (metrics[0]) {
+    items.push({
+      label: `About ${metrics[0]}`,
+      value: `What's the current ${metrics[0]}, and what's driving it?`,
+      description: "This dashboard's own headline number",
+      icon: Trophy,
+    });
+  }
+  if (sections[0]) {
+    items.push({
+      label: sections[0].heading,
+      value: `Walk me through ${sections[0].heading.toLowerCase()} in this dashboard.`,
+      description: sections[0].whyItMatters || sections[0].intent,
+      icon: TrendingUp,
+    });
+  }
+  if (metrics[1]) {
+    items.push({
+      label: `${metrics[1]} over time`,
+      value: `How has ${metrics[1]} changed over time?`,
+      description: "Movement in this dashboard's own data",
+      icon: Activity,
+    });
+  } else if (sections[1]) {
+    items.push({
+      label: sections[1].heading,
+      value: `Walk me through ${sections[1].heading.toLowerCase()} in this dashboard.`,
+      description: sections[1].whyItMatters || sections[1].intent,
+      icon: Activity,
+    });
+  }
+  return items;
+}
 
 interface EmptyStateProps {
   dashboardLabel: string;
@@ -34,6 +85,8 @@ interface EmptyStateProps {
   onEnableReportMode?: () => void;
   /** Reflected in the card's copy so it reads as "already on" rather than inviting a second click. */
   reportMode?: boolean;
+  /** Only meaningful for a custom dashboard — its own headline metrics/sections, used to template starters that name real data instead of generic phrasing. See planHeadlineStarters above. */
+  plan?: DashboardPlan;
 }
 
 /**
@@ -52,6 +105,7 @@ export function EmptyState({
   fullscreen,
   onEnableReportMode,
   reportMode,
+  plan,
 }: EmptyStateProps) {
   const builtinStarters: Suggestion[] = [
     { label: "Top vendors", value: "Show top vendors", description: "Rank suppliers by spend on this dashboard", icon: Trophy },
@@ -69,7 +123,17 @@ export function EmptyState({
     { label: "Outliers", value: "Which records or groups look unusual compared with the rest?", description: "Flag anything worth a closer look", icon: AlertTriangle },
     { label: "What's in here", value: "What does this dashboard cover, and what can you answer from it?", description: "A walkthrough of this dataset's scope", icon: BookOpenText },
   ];
-  const allStarters = dashboardKind === "custom" ? customStarters : builtinStarters;
+  // A generated dashboard's own metrics/sections beat the generic template
+  // text whenever there's enough plan data to draw from — see
+  // planHeadlineStarters above. Gaps (a fresh plan with few headline metrics)
+  // are filled from the generic set rather than showing fewer than 3.
+  const dynamicStarters = dashboardKind === "custom" && plan ? planHeadlineStarters(plan) : [];
+  const allStarters =
+    dashboardKind === "custom"
+      ? dynamicStarters.length > 0
+        ? [...dynamicStarters, ...customStarters].slice(0, 5)
+        : customStarters
+      : builtinStarters;
   // The compact popup is short on vertical space — 5 stacked cards need
   // scrolling before the user sees the composer at all. 3 stays within the
   // "3–5 suggested questions" range and mostly fits without scrolling; the

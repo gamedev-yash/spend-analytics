@@ -109,6 +109,16 @@ interface DashboardChatRequest {
   conversationId?: string;
   /** "New chat" clicked — wipes this conversation's stored memory before handling the message, same session-only store either way. */
   clearContext?: boolean;
+  /**
+   * Normalized-on-the-client text of every follow-up suggestion the user has
+   * already clicked in this dashboard's persisted conversation (see
+   * lib/ai/conversation-store.ts) — chat persistence + dynamic follow-ups
+   * feature. Combined here with the raw `history` above (already-asked
+   * questions) so suggestFollowUps() never re-offers either. Optional and
+   * additive: an older client that never sends it simply gets no extra
+   * exclusion, same as before this field existed.
+   */
+  usedSuggestions?: string[];
 }
 
 // Bounds what a client can put in front of the model as "current filters" —
@@ -122,6 +132,20 @@ function sanitizeActiveFilters(value: unknown): string | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
   return trimmed.length > MAX_ACTIVE_FILTERS_LENGTH ? trimmed.slice(0, MAX_ACTIVE_FILTERS_LENGTH) : trimmed;
+}
+
+// Same defense-in-depth reasoning as sanitizeActiveFilters above — attacker-
+// controlled the same way `message` is, so both the array length and each
+// entry's length are bounded before it's ever used as generator input.
+const MAX_USED_SUGGESTIONS = 50;
+const MAX_USED_SUGGESTION_LENGTH = 200;
+
+function sanitizeUsedSuggestions(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((v): v is string => typeof v === "string" && v.trim().length > 0)
+    .slice(0, MAX_USED_SUGGESTIONS)
+    .map((v) => v.slice(0, MAX_USED_SUGGESTION_LENGTH));
 }
 
 interface DashboardChatResponse {
@@ -371,6 +395,17 @@ export async function POST(request: Request): Promise<Response> {
   ];
 
   const activeFilters = sanitizeActiveFilters(body.activeFilters);
+  const usedSuggestions = sanitizeUsedSuggestions(body.usedSuggestions);
+  // suggestFollowUps() must never re-offer a question already asked (in this
+  // turn or an earlier one) or already clicked as a suggestion — combines the
+  // history this request already carries (so no extra payload for that part)
+  // with the explicit usedSuggestions list, which covers a clicked suggestion
+  // older than the last-10-turn history window would otherwise drop.
+  const excludedFollowUps = [
+    ...history.filter((m) => m.role === "user" && typeof m.content === "string").map((m) => m.content),
+    message,
+    ...usedSuggestions,
+  ];
 
   // Both the tool schema and the schema block are memoized per dashboard+version
   // (lib/ai/dashboard-query.ts, lib/ai/dashboard-data-context.ts) — the check
@@ -557,7 +592,7 @@ export async function POST(request: Request): Promise<Response> {
       redirect,
       options,
       conversationId,
-      suggestedFollowUps: suggestFollowUps(conversationContext, dataContext.contextId),
+      suggestedFollowUps: suggestFollowUps(conversationContext, dataContext.contextId, excludedFollowUps),
       contextSummary: buildContextSummaryForUI(conversationContext, dataContext.contextId),
     };
     finishTiming(redirect ? "redirect" : options ? "options" : "ok");

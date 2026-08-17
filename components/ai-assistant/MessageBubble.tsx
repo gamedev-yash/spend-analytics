@@ -18,6 +18,15 @@ interface MessageBubbleProps {
   onRedirect: (redirect: NonNullable<ChatEntry["redirect"]>) => void;
   /** Canned follow-up prompts shown under the last assistant answer — only passed for that one message. */
   followUps?: Suggestion[];
+  /**
+   * Picking a follow-up suggestion (as opposed to an ask_with_options
+   * clarifying choice, still routed through onOptionSelect above) — chat
+   * persistence + dynamic follow-ups feature. Separate from onOptionSelect so
+   * only a genuine follow-up click is recorded as "used" and excluded from
+   * future suggestions; a clarifying-question choice is a different kind of
+   * pick and was never itself a suggestion to retire.
+   */
+  onFollowUpSelect?: (text: string) => void;
 }
 
 function formatTime(timestamp: number): string {
@@ -31,7 +40,7 @@ function formatTime(timestamp: number): string {
  * visual identity so replies read as structured analytics answers rather
  * than generic chat blobs.
  */
-export function MessageBubble({ message, fullscreen, busy, onOptionSelect, onRedirect, followUps }: MessageBubbleProps) {
+export function MessageBubble({ message, fullscreen, busy, onOptionSelect, onRedirect, followUps, onFollowUpSelect }: MessageBubbleProps) {
   const isUser = message.role === "user";
   // A report card carries no prose of its own, so the copy affordance and the
   // markdown body below both have nothing to act on.
@@ -135,7 +144,7 @@ export function MessageBubble({ message, fullscreen, busy, onOptionSelect, onRed
               <p className="mb-1.5 text-[0.7rem] font-medium tracking-wide text-slate-400 uppercase dark:text-slate-500">
                 Follow up
               </p>
-              <SuggestionChips items={followUps} onSelect={onOptionSelect} disabled={busy} variant="pill" />
+              <SuggestionChips items={followUps} onSelect={onFollowUpSelect ?? onOptionSelect} disabled={busy} variant="pill" />
             </div>
           )}
         </div>

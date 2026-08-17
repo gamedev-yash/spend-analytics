@@ -34,6 +34,7 @@ import "server-only";
 
 import type { QueryFilter, QueryResult, QuerySpec } from "@/lib/ai/query-engine";
 import type { DashboardContextId } from "@/lib/ai/dashboard-context";
+import { normalizeQuestion } from "@/lib/ai/question-normalize";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -378,12 +379,29 @@ export function buildContextSummaryForUI(
 
 const DEFAULT_LIMIT_TOGGLE = 10;
 
-export function suggestFollowUps(context: ConversationContext, contextId: DashboardContextId): string[] | null {
+/**
+ * `excluded` — normalized text of every question the user already asked or
+ * already clicked as a suggestion in this conversation (chat persistence +
+ * dynamic follow-ups feature). Candidates are generated in priority order
+ * same as before, then filtered against this set before the final slice, so
+ * a suggestion already used simply drops out in favor of the next-best one
+ * instead of being offered again. Comparison is normalized-string only (trim
+ * / lowercase / collapse whitespace, see question-normalize.ts) — sufficient
+ * here because every candidate below maps to a structurally distinct
+ * analytical action, so two different candidates rephrasing the same
+ * question essentially never happens.
+ */
+export function suggestFollowUps(
+  context: ConversationContext,
+  contextId: DashboardContextId,
+  excluded: Iterable<string> = []
+): string[] | null {
   const perDashboard = context.perDashboard[contextId];
   const lastQuery = perDashboard?.lastQuery;
   if (!lastQuery) return null;
 
-  const suggestions: string[] = [];
+  const excludedSet = new Set(Array.from(excluded, normalizeQuestion));
+  const candidates: string[] = [];
   // A row-level lookup (specific fields per matching row, e.g. "show me
   // supplier ABC's contract rows") isn't a metric — "compare with last
   // year" or "break down by category" don't mean anything against it, so
@@ -393,7 +411,7 @@ export function suggestFollowUps(context: ConversationContext, contextId: Dashbo
 
   if (lastQuery.limit) {
     const toggled = lastQuery.limit <= 5 ? DEFAULT_LIMIT_TOGGLE : Math.max(3, Math.floor(lastQuery.limit / 2));
-    suggestions.push(`Show top ${toggled}`);
+    candidates.push(`Show top ${toggled}`);
   } else if (!lastQuery.groupBy && !isRowLevelLookup) {
     // The single most common shape this used to miss entirely: a plain
     // scalar answer ("What is our total spend?") has no limit to toggle and
@@ -402,21 +420,32 @@ export function suggestFollowUps(context: ConversationContext, contextId: Dashbo
     // phrase here (not a real column name the model has to match) since
     // every dashboard's tables carry SOME category field — Claude resolves
     // it to the right one the same way it resolves anything typed by hand.
-    suggestions.push("Break down by category");
+    candidates.push("Break down by category");
   }
 
-  const namedEntity =
-    context.entities.plants[0] ?? context.entities.categories[0] ?? context.entities.suppliers[0] ?? null;
-  const alreadyFiltered = lastQuery.filters?.some((f) => String(f.value) === namedEntity) ?? false;
-  if (namedEntity && !alreadyFiltered) {
-    suggestions.push(`Only for ${namedEntity}`);
+  // Every recently-discussed entity that isn't already the active filter —
+  // most-recent-per-bucket, plants first (existing priority order), but ALL
+  // three buckets rather than just the single best one: if the top pick is
+  // already used/asked it drops out in the excluded-filter below, and
+  // without the other buckets there would be nothing left to replace it with.
+  const filteredValues = new Set((lastQuery.filters ?? []).map((f) => String(f.value)));
+  for (const bucket of ["plants", "categories", "suppliers"] as const) {
+    const entity = context.entities[bucket][0];
+    if (entity && !filteredValues.has(entity)) candidates.push(`Only for ${entity}`);
   }
 
   if (!isRowLevelLookup && !hasDateFilter) {
-    suggestions.push("Compare with last year");
+    candidates.push("Compare with last year");
+  }
+  // A second, structurally distinct next step for when "Compare with last
+  // year" is the one already asked/used — a query already broken down by
+  // something is exactly the shape a trend line over time reads well against.
+  if (!isRowLevelLookup && !hasDateFilter && lastQuery.groupBy) {
+    candidates.push("Show this as a trend over time");
   }
 
-  return suggestions.length > 0 ? suggestions.slice(0, 3) : null;
+  const fresh = candidates.filter((c) => !excludedSet.has(normalizeQuestion(c)));
+  return fresh.length > 0 ? fresh.slice(0, 3) : null;
 }
 
 // ---------------------------------------------------------------------------

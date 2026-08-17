@@ -18,6 +18,8 @@ import { useGeneratedDashboard, useGeneratedDashboardsReady } from "@/lib/genera
 import { stashPendingPrompt, takePendingPrompt } from "@/lib/ai/assistant-handoff";
 import { stashTransferState, takeTransferState } from "@/lib/ai/assistant-transfer";
 import { adoptConversationId, getOrCreateConversationId, resetConversationId } from "@/lib/ai/conversation-id";
+import { clearConversation, getPersistedConversation, saveConversation } from "@/lib/ai/conversation-store";
+import { normalizeQuestion } from "@/lib/ai/question-normalize";
 import { useDashboardActiveFilterSummary } from "@/context/DashboardActiveFiltersContext";
 import { useIsExportCapturing } from "@/context/ExportCaptureContext";
 import { useDraggableBubble } from "@/hooks/use-draggable-bubble";
@@ -79,18 +81,6 @@ let actionRunSeq = 0;
 const BUBBLE_HEIGHT_PX = 48;
 const PANEL_GAP_PX = 12;
 const PANEL_WIDTH_PX = 384; // matches w-[min(24rem,...)] below
-
-// Generic, dashboard-agnostic follow-ups shown under the latest answer — canned
-// prompt text only, sent through the same real `send()` as anything typed by
-// hand. Not model-generated, so they never claim capabilities the assistant
-// doesn't have. `label` is the terse chip text; `value` is the full question
-// actually sent, so a one-word chip still asks the model something unambiguous.
-const FOLLOW_UPS: Suggestion[] = [
-  { label: "Compare", value: "Compare with last month" },
-  { label: "Break down", value: "Break this down by vendor" },
-  { label: "Show trend", value: "Show the trend" },
-  { label: "Explain", value: "Explain why this changed" },
-];
 
 function welcomeFor(label: string, kind: DashboardContext["type"]): string {
   return kind === "custom"
@@ -203,6 +193,12 @@ export function DashboardAssistant({ standalone = false, standaloneContext = nul
   // in this indicator after a reset/navigation.
   const [suggestedFollowUps, setSuggestedFollowUps] = useState<string[] | null>(null);
   const [contextSummary, setContextSummary] = useState<string | null>(null);
+  // Normalized (question-normalize.ts) text of every follow-up suggestion
+  // clicked in this conversation — chat persistence + dynamic follow-ups
+  // feature. Sent back to the server on every request so suggestFollowUps()
+  // never re-offers one, and persisted alongside `messages` so a used
+  // suggestion stays retired across a refresh (see lib/ai/conversation-store.ts).
+  const [usedSuggestions, setUsedSuggestions] = useState<string[]>([]);
 
   const [open, setOpen] = useState(false);
   const { isFullscreen: fullscreen, setIsFullscreen: setFullscreen } = useFullscreen();
@@ -287,7 +283,7 @@ export function DashboardAssistant({ standalone = false, standaloneContext = nul
     // Stashed and re-read under the CONTEXT id, not a bare dashboard key, so a
     // conversation on a generated dashboard transfers exactly like one on a
     // built-in dashboard.
-    stashTransferState({ contextId: contextKey, messages, conversationId, reportMode, input });
+    stashTransferState({ contextId: contextKey, messages, conversationId, reportMode, input, usedSuggestions });
     // The context id, not a bare dashboard key — it names either kind, and the
     // standalone page parses it back with parseDashboardContextId.
     window.open(
@@ -295,7 +291,7 @@ export function DashboardAssistant({ standalone = false, standaloneContext = nul
       "_blank",
       "noopener,noreferrer"
     );
-  }, [contextKey, messages, conversationId, reportMode, input]);
+  }, [contextKey, messages, conversationId, reportMode, input, usedSuggestions]);
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
@@ -313,21 +309,38 @@ export function DashboardAssistant({ standalone = false, standaloneContext = nul
   // promise-chain hops the abort takes to actually reach that catch block.
   const resettingRef = useRef(false);
 
+  // Suppresses exactly one persistence write right after the navigation
+  // effect below restores `messages`/etc. for a (possibly new) dashboard.
+  // Without this: that effect's setState calls don't take effect until the
+  // NEXT render, so the persistence effect (keyed on `messages` et al.) would
+  // otherwise run once more in the SAME commit — with the OLD dashboard's
+  // still-stale `messages` closure but the NEW `contextKey` — and write the
+  // wrong dashboard's transcript into the new one's slot. Set true by the nav
+  // effect, consumed (and cleared) by the very next persistence-effect run,
+  // which by then sees the correctly-restored state.
+  const skipNextSaveRef = useRef(false);
+
   // "New chat" — an explicit reset, per the follow-up feature's reset rules
   // (§20): rotates the conversationId too, so the server's stored memory for
   // the old one is simply never looked up again rather than silently leaking
   // into what looks like a brand-new conversation.
   const resetConversation = useCallback(() => {
-    if (!dashboardContext) return;
+    if (!dashboardContext || !contextKey) return;
     resettingRef.current = true;
     stop();
     setBusy(false);
     setConversationId(resetConversationId());
     setSuggestedFollowUps(null);
     setContextSummary(null);
+    setUsedSuggestions([]);
     setReportMode(false);
     setMessages([{ role: "assistant", content: welcomeText, timestamp: Date.now() }]);
     setInput("");
+    // Drops the persisted record entirely — without this, the very next
+    // persistence-effect run would just re-save this fresh welcome-only
+    // state anyway (harmless), but an explicit clear here makes "New chat"
+    // unambiguous rather than relying on that as an implementation detail.
+    clearConversation(contextKey);
     // An in-flight report's own fetch isn't aborted here (it holds no
     // AbortController — it never blocks the composer, so there is nothing for
     // "Stop" to cancel); clearing the flag just re-enables the action row for
@@ -345,13 +358,20 @@ export function DashboardAssistant({ standalone = false, standaloneContext = nul
     setTimeout(() => {
       resettingRef.current = false;
     }, 0);
-  }, [dashboardContext, welcomeText, stop]);
+  }, [dashboardContext, contextKey, welcomeText, stop]);
 
   // Reset the VISIBLE conversation when the user moves to a different
   // dashboard — an old exchange grounded in Payment Terms data would be
   // misleading once the assistant is answering for Tail Spend instead.
   // conversationId deliberately does NOT reset here (see its declaration
   // above) — cross-dashboard entity memory (§12) needs it to survive this.
+  //
+  // Chat persistence feature: "reset" no longer always means "back to the
+  // welcome line" — it means "whatever this dashboard's own persisted
+  // conversation last looked like" (lib/ai/conversation-store.ts), falling
+  // back to the welcome message only the first time this dashboard is ever
+  // visited. conversationId is still never restored from that record — see
+  // the store's module comment for why.
   //
   // Also where a transferred conversation (openInNewTab's "Open in New Tab")
   // gets hydrated: this effect already runs once on mount (contextKey has no
@@ -363,22 +383,39 @@ export function DashboardAssistant({ standalone = false, standaloneContext = nul
   // `messages`/`input` on the same commit.
   useEffect(() => {
     if (!contextKey) return;
+    // See skipNextSaveRef's own comment: the persistence effect below must not
+    // write anything until the setState calls in this effect have actually
+    // flushed into `messages` et al.
+    skipNextSaveRef.current = true;
+
     const transfer = standalone ? takeTransferState(contextKey) : null;
-    setMessages(
-      transfer?.messages ?? [{ role: "assistant", content: welcomeTextRef.current, timestamp: Date.now() }]
-    );
-    setSuggestedFollowUps(null);
-    setContextSummary(null);
-    setActionBusy(false);
     if (transfer) {
+      setMessages(transfer.messages);
+      setSuggestedFollowUps(null);
+      setContextSummary(null);
+      setUsedSuggestions(transfer.usedSuggestions ?? []);
+      setActionBusy(false);
       setConversationId(transfer.conversationId);
       setReportMode(transfer.reportMode);
       setInput(transfer.input);
       return;
     }
-    // Report mode deliberately SURVIVES navigation. Nothing turns it off except
-    // the toggle itself and an explicit "New chat" — see the note beside its
-    // useState declaration.
+
+    const persisted = getPersistedConversation(contextKey);
+    setMessages(
+      persisted?.messages ?? [{ role: "assistant", content: welcomeTextRef.current, timestamp: Date.now() }]
+    );
+    setSuggestedFollowUps(persisted?.suggestedFollowUps ?? null);
+    setContextSummary(persisted?.contextSummary ?? null);
+    setUsedSuggestions(persisted?.usedSuggestions ?? []);
+    setActionBusy(false);
+    // A dashboard visited for the first time has nothing to restore Report
+    // Mode from — leave it exactly as it was (it deliberately SURVIVES
+    // navigation otherwise; nothing turns it off except the toggle itself or
+    // an explicit "New chat"). A dashboard with its own persisted
+    // conversation restores ITS last Report Mode setting instead, matching
+    // this feature's per-dashboard scoping.
+    if (persisted) setReportMode(persisted.reportMode);
     setUnread(false);
     stickToBottomRef.current = true;
     setShowJumpToLatest(false);
@@ -397,6 +434,31 @@ export function DashboardAssistant({ standalone = false, standaloneContext = nul
     // that would wipe a conversation already in progress. The small effect below
     // patches the greeting instead.
   }, [contextKey, standalone]);
+
+  // Persists {messages, reportMode, suggestedFollowUps, usedSuggestions,
+  // contextSummary} for the CURRENT dashboard whenever any of them change —
+  // chat persistence feature. Deliberately NOT persisted: busy/actionBusy/
+  // open/unread/showJumpToLatest/scroll state — none of that belongs in a
+  // durable record (see lib/ai/conversation-store.ts). Guarded by
+  // skipNextSaveRef so the transitional commit right after a dashboard switch
+  // (new contextKey, but `messages` still holding the PREVIOUS dashboard's
+  // stale value until the effect above's setState calls flush) never writes
+  // the wrong dashboard's transcript into the new key's slot.
+  useEffect(() => {
+    if (!contextKey) return;
+    if (skipNextSaveRef.current) {
+      skipNextSaveRef.current = false;
+      return;
+    }
+    saveConversation({
+      contextId: contextKey,
+      messages,
+      reportMode,
+      suggestedFollowUps,
+      usedSuggestions,
+      contextSummary,
+    });
+  }, [contextKey, messages, reportMode, suggestedFollowUps, usedSuggestions, contextSummary]);
 
   // Greeting-only refresh: replaces the seeded welcome once a generated
   // dashboard's own title is known (or after a rename), and does nothing at all
@@ -563,7 +625,7 @@ export function DashboardAssistant({ standalone = false, standaloneContext = nul
           error?: string;
         }>(
           "/api/dashboard-chat",
-          { message, history, activeFilters: activeFilterSummary, conversationId },
+          { message, history, activeFilters: activeFilterSummary, conversationId, usedSuggestions },
           controller.signal
         );
         if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status}).`);
@@ -611,7 +673,23 @@ export function DashboardAssistant({ standalone = false, standaloneContext = nul
         setBusy(false);
       }
     },
-    [input, busy, dashboardContext, messages, activeFilterSummary, conversationId, postToAssistantApi]
+    [input, busy, dashboardContext, messages, activeFilterSummary, conversationId, usedSuggestions, postToAssistantApi]
+  );
+
+  /**
+   * Picking a follow-up suggestion — chat persistence + dynamic follow-ups
+   * feature. Records the exact clicked text (normalized) as used BEFORE
+   * sending, so it's excluded from this turn's own request and never
+   * reappears afterward, then calls the same `send()` used for typed input —
+   * no separate execution path (spec §14).
+   */
+  const handleFollowUpSelect = useCallback(
+    (text: string) => {
+      const normalized = normalizeQuestion(text);
+      setUsedSuggestions((prev) => (prev.some((s) => normalizeQuestion(s) === normalized) ? prev : [...prev, text]));
+      void send(text);
+    },
+    [send]
   );
 
   /**
@@ -819,15 +897,20 @@ export function DashboardAssistant({ standalone = false, standaloneContext = nul
     return -1;
   }, [messages]);
 
-  // Prefer the server's context-derived suggestions (lib/ai/conversation-context.ts's
+  // The server's context-derived suggestions (lib/ai/conversation-context.ts's
   // suggestFollowUps — built from what was actually just queried, e.g. "Show
-  // top 10" after a top-5 answer) over the generic static chips, so long as
-  // it actually returned any; falls back to FOLLOW_UPS otherwise, same as
-  // before this feature existed.
-  const activeFollowUps: Suggestion[] = useMemo(
-    () => (suggestedFollowUps && suggestedFollowUps.length > 0 ? suggestedFollowUps.map((s) => ({ label: s })) : FOLLOW_UPS),
-    [suggestedFollowUps]
-  );
+  // top 10" after a top-5 answer), already excluding used/asked questions
+  // server-side. Filtered again here against `usedSuggestions` as a race-
+  // safety net (e.g. a suggestion clicked a beat before a slightly stale
+  // response lands) — chat persistence + dynamic follow-ups feature.
+  // Deliberately no hardcoded fallback list: when the server has nothing
+  // context-aware to suggest, no follow-up chips render for that turn (spec
+  // §27 — a generic canned list is exactly what this feature replaces).
+  const activeFollowUps: Suggestion[] = useMemo(() => {
+    if (!suggestedFollowUps || suggestedFollowUps.length === 0) return [];
+    const used = new Set(usedSuggestions.map(normalizeQuestion));
+    return suggestedFollowUps.filter((s) => !used.has(normalizeQuestion(s))).map((s) => ({ label: s }));
+  }, [suggestedFollowUps, usedSuggestions]);
 
   // Move focus into the panel when it opens — otherwise a keyboard/screen
   // reader user's focus stays stranded on the launcher button that's now
@@ -1005,6 +1088,7 @@ export function DashboardAssistant({ standalone = false, standaloneContext = nul
                       // is what hides the card rather than showing a dead one.
                       onEnableReportMode={reportAction ? enableReportMode : undefined}
                       reportMode={reportMode}
+                      plan={dashboardContext.type === "custom" ? customDashboard?.plan : undefined}
                     />
                   ) : (
                     <div className={cn("mx-auto space-y-4", effectiveFullscreen && "max-w-3xl")}>
@@ -1015,6 +1099,7 @@ export function DashboardAssistant({ standalone = false, standaloneContext = nul
                           fullscreen={effectiveFullscreen}
                           busy={busy}
                           onOptionSelect={(option) => void send(option)}
+                          onFollowUpSelect={handleFollowUpSelect}
                           onRedirect={handleRedirect}
                           // Never alongside a pending clarifying question (m.options) —
                           // answering that comes first, so "Compare with last month"
