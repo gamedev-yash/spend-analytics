@@ -26,6 +26,14 @@ export interface MeasureRef {
   column: string;
   aggregation: Aggregation;
   label: string;
+  /**
+   * This measure's own value-formatting hint, independent of the widget's
+   * `formatHint`. Matters when several `MeasureRef`s share one widget with
+   * genuinely different units — chiefly a `heatmap` scorecard (spend next to
+   * an on-time %) — where a single widget-level hint can't be right for all
+   * of them. Falls back to the widget's `formatHint` when absent.
+   */
+  formatHint?: "currency" | "percent" | "count" | "number";
 }
 
 export type SeriesSpec =
@@ -53,6 +61,14 @@ export interface WidgetSpec {
    */
   essential?: boolean;
 }
+
+/**
+ * The shape the AI planner actually produces (WIDGET_SCHEMA). `colSpan` is
+ * deliberately absent: it's a layout decision, derived after the fact by
+ * lib/generated-dashboard/validate.ts from `kind` and whether `dimension` is
+ * temporal, not something the model chooses. See validate.ts's `deriveColSpan`.
+ */
+export type WidgetSpecDraft = Omit<WidgetSpec, "colSpan">;
 
 export interface DashboardSection {
   id: string;
