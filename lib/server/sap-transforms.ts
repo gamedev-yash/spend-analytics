@@ -42,10 +42,22 @@ export function fiscalParts(year: number, month: number): {
   };
 }
 
-/** "CATERPILLAR-GRP" → "Caterpillar Group" — the source carries only a code. */
+/**
+ * "CATERPILLAR-GRP" → "Caterpillar Group"; "CUMMINS GROUP" → "Cummins Group"
+ * (not "Cummins Group Group" — an existing GROUP/GRP suffix is stripped before
+ * the canonical one below is appended). "GRP-008" is this extract's
+ * placeholder for a domestic group with no assigned brand name, so it renders
+ * as "Group 008" — its own number, never the SAP-style code verbatim.
+ */
 export function humanizeGroupName(code: string): string {
-  return code
-    .replace(/-GRP$/i, "")
+  const trimmed = code.trim();
+
+  const numbered = /^GRP-(\d+)$/i.exec(trimmed);
+  if (numbered) return `Group ${numbered[1]}`;
+
+  const withoutSuffix = trimmed.replace(/[-_\s]+(GROUP|GRP)$/i, "");
+
+  const titled = withoutSuffix
     .split(/[-_\s]+/)
     .filter(Boolean)
     .map((word) =>
@@ -53,6 +65,7 @@ export function humanizeGroupName(code: string): string {
         ? word
         : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
     )
-    .join(" ")
-    .concat(" Group");
+    .join(" ");
+
+  return `${titled} Group`;
 }

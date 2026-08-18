@@ -13,6 +13,7 @@ import fs from "node:fs";
 import path from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import { jsonSchemaOutputFormat } from "@anthropic-ai/sdk/helpers/json-schema";
+import { resolveAnthropicClient, NO_KEY_ERROR } from "@/lib/ai/anthropic-client";
 import { renderDatasetProfile } from "@/lib/ai/profile/render-profile";
 import { PLAN_SCHEMA } from "@/lib/ai/schemas/plan-schema";
 import { WIDGET_SCHEMA } from "@/lib/ai/schemas/widget-schema";
@@ -56,41 +57,6 @@ function getWidgetPlanningSkill(): string {
   return widgetPlanningSkill;
 }
 
-interface ResolvedClient {
-  client: Anthropic;
-  model: string;
-}
-
-/**
- * This deployment routes through Azure AI Foundry (AZURE_FOUNDRY_* in .env),
- * which addresses models by deployment name, not the public Anthropic model
- * id — so the deployment name (AZURE_FOUNDRY_MODEL) is required, and
- * AZURE_FOUNDRY_API_VERSION (Azure-style routing) goes on every request as a
- * query param. Falls back to a direct Anthropic API key for local/non-Azure use.
- */
-function resolveClient(): ResolvedClient | null {
-  const foundryKey = process.env.AZURE_FOUNDRY_API_KEY;
-  const foundryEndpoint = process.env.AZURE_FOUNDRY_ENDPOINT;
-  if (foundryKey && foundryEndpoint) {
-    const model = process.env.AZURE_FOUNDRY_MODEL;
-    if (!model) return null;
-    const apiVersion = process.env.AZURE_FOUNDRY_API_VERSION;
-    const client = new Anthropic({
-      apiKey: foundryKey,
-      baseURL: foundryEndpoint,
-      defaultQuery: apiVersion ? { "api-version": apiVersion } : undefined,
-    });
-    return { client, model };
-  }
-
-  const directKey = process.env.ANTHROPIC_API_KEY;
-  if (directKey) {
-    return { client: new Anthropic({ apiKey: directKey }), model: "claude-opus-5" };
-  }
-
-  return null;
-}
-
 interface GenerateDashboardRequest {
   profile: DatasetProfile;
   sourceFileName?: string;
@@ -120,15 +86,9 @@ export async function POST(request: Request): Promise<Response> {
   }
   const { profile } = body;
 
-  const resolved = resolveClient();
+  const resolved = resolveAnthropicClient();
   if (!resolved) {
-    return Response.json(
-      {
-        error:
-          "Dashboard generation needs an API key. Set AZURE_FOUNDRY_API_KEY, AZURE_FOUNDRY_ENDPOINT, and AZURE_FOUNDRY_MODEL (optionally AZURE_FOUNDRY_API_VERSION) for Azure AI Foundry, or ANTHROPIC_API_KEY for the direct Anthropic API, then restart the dev server.",
-      },
-      { status: 503 }
-    );
+    return Response.json({ error: NO_KEY_ERROR }, { status: 503 });
   }
   const { client, model } = resolved;
 
@@ -154,6 +114,12 @@ export async function POST(request: Request): Promise<Response> {
       return Response.json(
         { error: "The model declined to plan a dashboard for this dataset." },
         { status: 422 }
+      );
+    }
+    if (planResponse.stop_reason === "max_tokens") {
+      return Response.json(
+        { error: "The dashboard plan was too long to complete. Try a smaller or simpler dataset." },
+        { status: 502 }
       );
     }
 
@@ -186,6 +152,12 @@ export async function POST(request: Request): Promise<Response> {
       return Response.json(
         { error: "The model declined to turn the plan into dashboard widgets." },
         { status: 422 }
+      );
+    }
+    if (widgetResponse.stop_reason === "max_tokens") {
+      return Response.json(
+        { error: "The widget plan was too long to complete. Try a smaller or simpler dataset." },
+        { status: 502 }
       );
     }
 

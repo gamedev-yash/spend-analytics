@@ -3,6 +3,8 @@ import {
   Wallet,
   PackageSearch,
   Network,
+  AlertTriangle,
+  ShieldAlert,
   type LucideIcon,
 } from "lucide-react";
 
@@ -27,12 +29,20 @@ export interface NavItem {
  */
 export const NAV_ITEMS: NavItem[] = [
   {
-    label: "Spend Overview",
+    label: "Spend Overview-Summary",
     href: "/spend-overview",
     icon: LayoutDashboard,
     owner: "Shravani",
     description:
       "Total spend, YTD trends, and category/entity breakdowns across the procurement portfolio.",
+  },
+  {
+    label: "Spend Overview-Compliance",
+    href: "/compliance",
+    icon: ShieldAlert,
+    owner: "Shravani",
+    description:
+      "Unmanaged (off-PO + off-contract) spend: headline KPIs and breakdowns by category, supplier, and business unit.",
   },
   {
     label: "Payment Terms",
@@ -58,5 +68,14 @@ export const NAV_ITEMS: NavItem[] = [
     owner: "Anish",
     description:
       "Supplier counts, single-use suppliers, and concentration ratios by category.",
+  },
+  {
+    label: "Single Source Risk",
+    href: "/single-source-risk",
+    icon: AlertTriangle,
+    owner: "Varad",
+    description:
+      "Spend Assessment: categories dependent on too few suppliers, and the product/plant/supplier exposure behind them.",
+    hasCustomFilterPanel: true,
   },
 ];

@@ -22,23 +22,19 @@ export type { Dataset, DatasetRow, JoinInfo } from "@/types/dataset";
 // Types
 // ---------------------------------------------------------------------------
 
-/** The four core dashboard routes a dataset can be uploaded against. */
+/** The core dashboard routes a dataset can be uploaded against. */
 export const DASHBOARD_PAGE_KEYS = [
   "tail-spend",
   "spend-overview",
   "payment-terms",
   "supplier-fragmentation",
+  "single-source-risk",
 ] as const;
 
 export type DashboardPageKey = (typeof DASHBOARD_PAGE_KEYS)[number];
 
 /** Which IDataProvider implementation answers widget queries. */
 export type DataProviderType = "client-csv" | "azure-sql";
-
-export const DATA_PROVIDER_LABELS: Record<DataProviderType, string> = {
-  "client-csv": "CSV Mode",
-  "azure-sql": "Azure SQL Mode",
-};
 
 export interface CreateJoinedDatasetParams {
   name: string;
@@ -189,7 +185,14 @@ function newDatasetId(): string {
 
 const clientCsvAdapter = new ClientCsvAdapter(() => getSnapshot().datasets);
 
-const azureSqlAdapter = new AzureSqlAdapter({
+/**
+ * Exported (unlike clientCsvAdapter) so a page can query the warehouse/sample
+ * baseline directly regardless of the CSV/Azure toggle — see
+ * app/tail-spend/page.tsx, which needs canonical fact_po_items data even in
+ * CSV mode, where activeProvider would otherwise be clientCsvAdapter over
+ * this browser's (empty, by default) uploaded datasets.
+ */
+export const azureSqlAdapter = new AzureSqlAdapter({
   fallback: clientCsvAdapter,
   // An uploaded CSV only exists in this browser, so it is answered here rather
   // than posted to an API that has never heard of it.

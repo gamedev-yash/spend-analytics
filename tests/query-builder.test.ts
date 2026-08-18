@@ -464,14 +464,30 @@ describe("aggregations", () => {
 // ---------------------------------------------------------------------------
 
 describe("metadata registry", () => {
-  it("defines both fact datasets with the fields the dashboards use", () => {
+  it("defines all ten warehouse tables with the fields the dashboards use", () => {
     assert.deepEqual(
       listDatasets().map((d) => d.id).sort(),
-      ["fact_invoices", "fact_po_items"]
+      [
+        "agg_vendor_annual",
+        "dim_contract",
+        "dim_material",
+        "dim_payment_terms",
+        "fact_invoices",
+        "fact_payments",
+        "fact_po_items",
+      ]
     );
+    // dim_vendor / dim_category / dim_plant are not in this list: they are
+    // shared join-only dimensions, never their own DatasetDefinition — see
+    // metadata-registry.ts's header comment.
     const required: Record<string, string[]> = {
       fact_po_items: ["vendor_name", "category_l1_name", "plant_name", "net_order_value_inr", "po_date"],
       fact_invoices: ["vendor_name", "category_l1_name", "plant_name", "gross_amount_inr", "posting_date"],
+      fact_payments: ["vendor_name", "category_l1_name", "plant_name", "payment_status", "actual_dpo", "invoice_amount_inr"],
+      agg_vendor_annual: ["vendor_name", "tail_tier", "cumulative_spend_pct", "total_spend_inr", "year"],
+      dim_contract: ["vendor_name", "category_l1_name", "plant_name", "is_active", "contract_value_inr"],
+      dim_material: ["material_description", "material_type", "category_l1_name"],
+      dim_payment_terms: ["payment_term_description", "net_days", "is_discount_term"],
     };
     for (const [datasetId, fields] of Object.entries(required)) {
       const dataset = getDataset(datasetId);

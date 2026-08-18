@@ -1,19 +1,54 @@
 "use client";
 
-import { use } from "react";
+import { use, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LayoutDashboard, Trash2 } from "lucide-react";
 import { DashboardGrid } from "@/components/generated-dashboard/dashboard-grid";
+import { AddWidgetSheet } from "@/components/generated-dashboard/add-widget-sheet";
+import { WidgetGridSkeleton } from "@/components/dashboard/widget-grid-skeleton";
 import {
   deleteGeneratedDashboard,
+  removeWidgetToLibrary,
   useGeneratedDashboard,
   useGeneratedDashboardsReady,
 } from "@/lib/generated-dashboard/store";
+import { useFilterSlot } from "@/context/FilterContext";
+import { useSetDashboardActiveFilterSummary } from "@/context/DashboardActiveFiltersContext";
+import { formatMultiSelectPart, joinFilterSummaryParts } from "@/lib/dashboard-filters/format-filter-summary";
+import { ClearFiltersButton, FilterDateRange, FilterGroup } from "@/components/ui/filter-controls";
+import { MultiSelect } from "@/components/sap/multi-select";
+import {
+  applyGeneratedDashboardFilters,
+  distinctValuesForColumn,
+  filterableDimensionColumns,
+  hasActiveGeneratedFilters,
+  temporalColumn,
+  toDateInputValue,
+  EMPTY_GENERATED_FILTERS,
+  type GeneratedFilterState,
+} from "./filters";
 
-// Read-only viewer for an AI-generated dashboard: no editing, no add-widget
-// affordance, no AI assistant hook-up. Everything the page needs (plan,
+// Viewer for an AI-generated dashboard. Everything the page needs (plan,
 // widgets, raw rows) already lives in the stored GeneratedDashboard record.
+//
+// Two interactive controls: filters, a plain client-side narrowing of the
+// stored rows (see ./filters.ts), and "Add Widget", which moves one of the
+// dashboard's catalog widgets onto the grid (see ../../components/
+// generated-dashboard/add-widget-sheet.tsx). Both are local to the stored
+// record — neither re-calls the model.
+//
+// THE AI ASSISTANT IS NOT WIRED UP HERE, AND THAT IS THE POINT. It is mounted
+// once in app/layout.tsx and works out which dashboard it is on from the
+// pathname (resolveDashboardContext in lib/ai/dashboard-context.ts), so
+// /generated/<id> gets the same assistant as the six built-in dashboards with no
+// page-specific chat code at all — same launcher, panel, Report Mode and
+// download UI, grounded in this record's own rows.
+//
+// The one thing this page DOES owe the assistant is the same thing every built-in
+// dashboard owes it: a plain-language summary of what is currently filtered, so
+// an answer agrees with what is on screen rather than with the full dataset (see
+// context/DashboardActiveFiltersContext.tsx).
 
 function EmptyShell({ title, message, children }: { title: string; message: string; children?: React.ReactNode }) {
   return (
@@ -32,8 +67,84 @@ export default function GeneratedDashboardPage({ params }: { params: Promise<{ i
   const dashboard = useGeneratedDashboard(id);
   const ready = useGeneratedDashboardsReady();
 
+  const [filters, setFilters] = useState<GeneratedFilterState>(EMPTY_GENERATED_FILTERS);
+
+  const dimensionColumns = useMemo(
+    () => (dashboard ? filterableDimensionColumns(dashboard) : []),
+    [dashboard]
+  );
+  const dateColumn = useMemo(() => (dashboard ? temporalColumn(dashboard) : null), [dashboard]);
+  const dimensionOptions = useMemo(() => {
+    const map = new Map<string, string[]>();
+    if (!dashboard) return map;
+    for (const column of dimensionColumns) {
+      map.set(column.name, distinctValuesForColumn(dashboard.rows, column.name));
+    }
+    return map;
+  }, [dashboard, dimensionColumns]);
+
+  const filteredRows = useMemo(() => {
+    if (!dashboard) return [];
+    return applyGeneratedDashboardFilters(dashboard.rows, filters, dateColumn?.name ?? null);
+  }, [dashboard, filters, dateColumn]);
+
+  const activeFilters = hasActiveGeneratedFilters(filters);
+
+  // Column names are this dashboard's own headers, so they double as the labels
+  // — there is no code-to-display-name mapping to do here, unlike the built-in
+  // dashboards' plant codes. Dates are the raw ISO bounds the model already
+  // reads elsewhere.
+  const filterSummary = useMemo(
+    () =>
+      joinFilterSummaryParts([
+        ...Object.entries(filters.dimensions).map(([column, values]) => formatMultiSelectPart(column, values)),
+        filters.dateFrom || filters.dateTo
+          ? `${dateColumn?.name ?? "Date"}: ${filters.dateFrom || "start"} to ${filters.dateTo || "latest"}`
+          : null,
+      ]),
+    [filters, dateColumn]
+  );
+  useSetDashboardActiveFilterSummary(filterSummary);
+
+  useFilterSlot(
+    dimensionColumns.length === 0 && !dateColumn ? null : (
+      <FilterGroup title="Filters">
+        {dateColumn?.temporal && (
+          <FilterDateRange
+            // Empty state stays "" (so hasActiveGeneratedFilters and the
+            // row filter both read it as unbounded) — only the displayed
+            // value falls back to the column's real bounds, matching every
+            // other dashboard's date picker showing a populated range
+            // rather than an empty mm/dd/yyyy placeholder.
+            fromValue={filters.dateFrom || toDateInputValue(dateColumn.temporal.minDate)}
+            toValue={filters.dateTo || toDateInputValue(dateColumn.temporal.maxDate)}
+            min={toDateInputValue(dateColumn.temporal.minDate)}
+            max={toDateInputValue(dateColumn.temporal.maxDate)}
+            onFromChange={(value) => setFilters((f) => ({ ...f, dateFrom: value }))}
+            onToChange={(value) => setFilters((f) => ({ ...f, dateTo: value }))}
+          />
+        )}
+        {dimensionColumns.map((column) => (
+          <MultiSelect
+            key={column.name}
+            label={column.name}
+            allLabel={`All ${column.name}`}
+            options={(dimensionOptions.get(column.name) ?? []).map((value) => ({ value, label: value }))}
+            selected={filters.dimensions[column.name] ?? []}
+            onChange={(values) =>
+              setFilters((f) => ({ ...f, dimensions: { ...f.dimensions, [column.name]: values } }))
+            }
+          />
+        ))}
+        {activeFilters && (
+          <ClearFiltersButton onClick={() => setFilters(EMPTY_GENERATED_FILTERS)} />
+        )}
+      </FilterGroup>
+    )
+  );
+
   // Store hydrates on the client, so "not found" is only real once ready.
-  if (!ready) return null;
+  if (!ready) return <WidgetGridSkeleton widgetCount={4} />;
 
   if (!dashboard) {
     return (
@@ -65,22 +176,46 @@ export default function GeneratedDashboardPage({ params }: { params: Promise<{ i
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-2xl font-semibold text-slate-900 dark:text-slate-100">{dashboard.title}</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="truncate text-2xl font-semibold text-slate-900 dark:text-slate-100">{dashboard.title}</h1>
+            {/* Which branch of the data-source picker built this. Absent on
+                dashboards stored before the picker existed — those were all
+                uploads, which is what the store defaults them to. */}
+            <span className="shrink-0 rounded-full border border-slate-200 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:border-slate-700 dark:text-slate-400">
+              {dashboard.sourceKind === "spend" ? "Spend Analytics Data" : "Uploaded CSV"}
+            </span>
+          </div>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Generated from {dashboard.sourceFileName} · {dashboard.rows.length.toLocaleString("en-IN")} rows · {createdAt}
+            Generated from {dashboard.sourceFileName} ·{" "}
+            {activeFilters
+              ? `${filteredRows.length.toLocaleString("en-IN")} of ${dashboard.rows.length.toLocaleString("en-IN")} rows`
+              : `${dashboard.rows.length.toLocaleString("en-IN")} rows`}{" "}
+            · {createdAt}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleDelete}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-rose-300 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 shadow-sm transition-colors hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-950"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-          Delete Dashboard
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          {/* Previews render against filteredRows, so what the sheet shows is
+              exactly what lands on the grid. */}
+          <AddWidgetSheet dashboard={dashboard} rows={filteredRows} />
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-rose-300 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 shadow-sm transition-colors hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-950"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete Dashboard
+          </button>
+        </div>
       </div>
 
-      <DashboardGrid plan={dashboard.plan} widgets={dashboard.widgets} rows={dashboard.rows} />
+      <DashboardGrid
+        plan={dashboard.plan}
+        widgets={dashboard.widgets}
+        rows={filteredRows}
+        // Removing returns the widget to the Add Widget catalog rather than
+        // discarding its spec, so it's a one-click undo away.
+        onRemoveWidget={(widgetId) => removeWidgetToLibrary(id, widgetId)}
+      />
     </div>
   );
 }

@@ -31,6 +31,8 @@ interface ThresholdsContextValue {
   /** Grade a live metric value against a threshold id. Null for unknown ids. */
   evaluate: (id: string, value: number) => ThresholdStatus | null;
   setTargetValue: (id: string, targetValue: number) => void;
+  /** Upper bound of a 'between' target zone. Ignored by single-bound operators. */
+  setUpperBound: (id: string, upperBound: number) => void;
   /** Drop overrides for one page's thresholds, reverting them to presets. */
   resetPage: (pageKey: string) => void;
   /** True when any of the page's thresholds differ from their preset. */
@@ -144,6 +146,11 @@ export function ThresholdsProvider({ children }: { children: ReactNode }) {
     updateStore((prev) => ({ ...prev, [id]: { ...prev[id], targetValue } }));
   }, []);
 
+  const setUpperBound = useCallback((id: string, upperBound: number) => {
+    if (!Number.isFinite(upperBound)) return;
+    updateStore((prev) => ({ ...prev, [id]: { ...prev[id], upperBound } }));
+  }, []);
+
   const resetPage = useCallback((pageKey: string) => {
     const pageIds = new Set((THRESHOLD_PRESETS[pageKey] ?? []).map((c) => c.id));
     updateStore((prev) =>
@@ -161,8 +168,24 @@ export function ThresholdsProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo<ThresholdsContextValue>(
-    () => ({ getThreshold, thresholdsForPage, evaluate, setTargetValue, resetPage, pageHasOverrides }),
-    [getThreshold, thresholdsForPage, evaluate, setTargetValue, resetPage, pageHasOverrides]
+    () => ({
+      getThreshold,
+      thresholdsForPage,
+      evaluate,
+      setTargetValue,
+      setUpperBound,
+      resetPage,
+      pageHasOverrides,
+    }),
+    [
+      getThreshold,
+      thresholdsForPage,
+      evaluate,
+      setTargetValue,
+      setUpperBound,
+      resetPage,
+      pageHasOverrides,
+    ]
   );
 
   return <ThresholdsContext.Provider value={value}>{children}</ThresholdsContext.Provider>;

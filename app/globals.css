@@ -175,3 +175,231 @@ input[type="range"]::-moz-range-thumb {
     @apply font-sans;
   }
 }
+
+/*
+ * Thin scrollbar for the AI assistant's message list (DashboardAssistant.tsx)
+ * — the popup and its full-screen mode are small, self-contained scroll
+ * areas where the browser's default wide scrollbar reads as un-styled next
+ * to the rest of the panel's deliberate spacing/border treatment.
+ */
+.ai-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-slate-300, #cbd5e1) transparent;
+}
+.ai-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.ai-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ai-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1; /* slate-300 */
+  border-radius: 9999px;
+}
+.dark .ai-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #334155; /* slate-700 */
+}
+.dark .ai-scrollbar {
+  scrollbar-color: #334155 transparent;
+}
+
+/*
+ * Fullscreen widget overlay (components/dashboard/fullscreen-overlay.tsx):
+ * every chart across the app hardcodes a fixed pixel height on its own
+ * <ResponsiveContainer>, since that's the right default for a compact card.
+ * Inside the fullscreen overlay we want the same chart to actually fill the
+ * enlarged canvas instead.
+ *
+ * `height: 100% !important` alone does NOT work here: each chart file wraps
+ * its <ResponsiveContainer> in its own plain (unstyled, auto-height) <div>,
+ * and CSS only resolves a percentage height against a DEFINITE ancestor
+ * height — an auto-height block box doesn't count, so the percentage chain
+ * breaks at that uncontrolled intermediate level no matter what this wrapper
+ * itself is given. flex-grow sizing is treated as definite for descendant
+ * percentage resolution, so turning every level from this wrapper down into
+ * a flex column whose last child grows propagates a real, definite height
+ * all the way to the chart regardless of each file's exact structure.
+ *
+ * Only the LAST child at each level grows (`:last-child`, not every child):
+ * several chart files put a hint/caption <p> before the <ResponsiveContainer>
+ * (e.g. InvoiceValueBucketChart's "click a bar to isolate..." line, or
+ * ParetoCurveChart's crossover sentence) — giving every child equal flex:1
+ * would split the space with that caption instead of handing it to the
+ * chart. The chart is consistently the last element in every file that has
+ * a leading caption, so `:last-child` reliably targets it.
+ *
+ * This is a real layout change, not a CSS transform/zoom — Recharts' own
+ * ResizeObserver sees the new size and redraws its SVG at it, so mouse/
+ * tooltip coordinates stay correct (a transform: scale() trick would not:
+ * it changes paint size without changing the layout box Recharts measures,
+ * silently misaligning every tooltip and click handler in the enlarged view).
+ */
+[data-fullscreen-chart] {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+[data-fullscreen-chart] * {
+  min-height: 0;
+}
+[data-fullscreen-chart] > *:last-child {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+[data-fullscreen-chart] > *:last-child > *:last-child {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+/*
+ * `.recharts-responsive-container` only — NOT `.recharts-wrapper`. Recharts
+ * (this repo is on 3.x) renders `.recharts-wrapper` inside its own internal
+ * `<div style="width:0;height:0;overflow:visible">` — a ResizeObserver-loop
+ * guard, so the wrapper's real rendered size can never feed back into what
+ * the observer is measuring. Recharts sizes `.recharts-wrapper` itself via
+ * inline style, computed in JS from its own measurement of this container —
+ * correctly, already, with no CSS involved.
+ *
+ * Including `.recharts-wrapper` here used to force `width/height: 100%
+ * !important` onto it too. A non-!important inline style loses to an
+ * !important stylesheet rule regardless of specificity, so that override
+ * WON even though Recharts' own inline style was already correct — and
+ * `100%` of `.recharts-wrapper`'s 0x0 phantom parent resolves to 0x0. The
+ * chart didn't fail to stretch; it collapsed to nothing and rendered blank.
+ * That 0x0 wrapper div is Recharts-internal with no class to target, so
+ * there's nothing else useful to put this rule on — leaving `.recharts-wrapper`
+ * alone entirely is the fix.
+ */
+[data-fullscreen-chart] .recharts-responsive-container {
+  width: 100% !important;
+  height: 100% !important;
+  flex: 1;
+}
+
+/*
+ * `.chart-fixed-height-scroll` (payment-terms-by-supplier-chart.tsx) opts a
+ * chart OUT of the stretch-to-fill rule above. Its height is content-driven
+ * — one row per data point, e.g. a ranked supplier list — rather than an
+ * arbitrary compact-view pixel number that should grow given more room. That
+ * chart renders at its natural full height in both compact and fullscreen
+ * views and relies on its own wrapper's scroll to reach the rest; forcing
+ * height:100% onto its Recharts internals would compress every row to fit
+ * the fullscreen viewport instead of leaving them at a legible fixed height.
+ *
+ * `auto`/`none` (not `revert`) deliberately: `revert` rolls back past BOTH
+ * this stylesheet's rules AND Recharts' own inline style (inline style is
+ * the same "author" cascade origin as a stylesheet, just higher-specificity
+ * within it), landing on the UA default and collapsing to 0 — verified
+ * empirically. `auto` height + `flex: none` instead let this element size to
+ * its own content, same as with no fullscreen CSS involved at all: its child
+ * is Recharts' own SVG, which carries its own explicit width/height
+ * attributes regardless of what CSS says about its ancestors, so content-box
+ * auto-sizing naturally arrives back at that same size.
+ *
+ * A `:not()`-based exclusion on the general rule above was tried first and
+ * reverted: this project's build pipeline merges adjacent same-body rules by
+ * combining their selectors into one comma-separated list, and a comma-list
+ * (or complex descendant selector) inside `:not()` made that merged rule
+ * fail to parse — silently dropping the ENTIRE rule, including the original,
+ * previously-working `*:last-child` cascade for every other chart. Plain
+ * class/descendant selectors only below, no `:not()`, to stay safe.
+ */
+[data-fullscreen-chart] .chart-fixed-height-scroll .recharts-wrapper,
+[data-fullscreen-chart] .chart-fixed-height-scroll .recharts-responsive-container {
+  height: auto !important;
+  flex: none !important;
+}
+
+/*
+ * `.exposure-trend-fullscreen-grid` (single-source-risk's exposure-trend-chart.tsx)
+ * is a two-column CSS grid of independent mini line charts — a shape the
+ * generic cascade above doesn't handle: it turns this grid's display:grid
+ * into display:flex (same specificity, and `[data-fullscreen-chart] > *:last-child`
+ * matches this element same as any other last/only child), and its 2-levels-
+ * deep `:last-child` selector only ever reaches the SECOND column, leaving
+ * the first frozen at its compact height while the second's lone child gets
+ * squeezed by flex-shrink against a smaller, wrongly-computed parent —
+ * verified empirically (220px / 194px instead of both stretching). These
+ * rules replace that assumption for this specific two-column shape: restore
+ * the grid, make BOTH columns flex-column containers (not just the last),
+ * and let each column's last child grow to fill it.
+ */
+[data-fullscreen-chart] .exposure-trend-fullscreen-grid {
+  display: grid !important;
+  flex: 1;
+}
+[data-fullscreen-chart] .exposure-trend-fullscreen-grid > div {
+  display: flex !important;
+  flex-direction: column !important;
+}
+[data-fullscreen-chart] .exposure-trend-fullscreen-grid > div > div:last-child {
+  flex: 1;
+  height: auto !important;
+}
+
+/*
+ * `.fullscreen-natural-table` — same class of problem as the grid above, in
+ * the shape `<div class="overflow-x-auto"><table>`. The generic cascade's
+ * second level lands directly on the <table> and gives it
+ * display:flex + flex:1. That destroys the table formatting context: <thead>
+ * and <tbody> stop being table-header-group/table-row-group and each ends up
+ * wrapping its <tr>s in its own separate anonymous table box, so the header
+ * columns are sized independently of the body columns and the two visibly
+ * stop lining up (the sortable header arrows drift off their columns).
+ * `w-full` / `min-w-[Npx]` then apply to the outer flex box, not to either
+ * anonymous table.
+ *
+ * Put this on the <table> to keep it a table. The wrapper above it still
+ * flexes and still becomes the definite-height scroller — which is what makes
+ * fullscreen worth using here: many more rows visible, columns still aligned.
+ * Nothing needs to stretch inside a table; row height is content.
+ */
+[data-fullscreen-chart] .fullscreen-natural-table {
+  display: table !important;
+  flex: none !important;
+}
+
+/*
+ * `.fullscreen-grid-matrix` — same class of problem as `.fullscreen-natural-table`
+ * just above, for a CSS-grid matrix instead of a `<table>` (generated-widget.tsx's
+ * HeatmapWidget: `<div class="fullscreen-scroll-list"><div class="fullscreen-grid-matrix">`,
+ * a sticky-header/sticky-first-column grid of colored cells). The generic
+ * cascade's second level lands on this inner grid div and swaps its
+ * `display: inline-grid` for `display: flex`, which drops the grid's row/
+ * column track sizing — the sticky row and column headers stop lining up
+ * with their cells, the same way the table rule's comment describes for
+ * `<thead>`/`<tbody>`. Restore the grid the same way that rule restores the
+ * table formatting context; pair this class on the inner grid with
+ * `.fullscreen-scroll-list` on its scrolling parent, same as the table.
+ */
+[data-fullscreen-chart] .fullscreen-grid-matrix {
+  display: inline-grid !important;
+  flex: none !important;
+}
+
+/*
+ * `.fullscreen-scroll-list` — for a fixed-height scrolling list of plain HTML
+ * rows (single-source-risk's products/plants/suppliers bar lists), which
+ * contain no Recharts at all.
+ *
+ * These previously carried `.chart-fixed-height-scroll`, which was a no-op on
+ * them: its two rules only select `.recharts-wrapper` /
+ * `.recharts-responsive-container` descendants, and there are none. So the
+ * generic cascade applied in full — flex:1 on the inner row list, plus the
+ * blanket `[data-fullscreen-chart] * { min-height: 0 }` removing every row's
+ * content-based minimum. Together those let the row <button>s shrink below
+ * their own content, so maximizing made the list *worse*: squashed rows AND
+ * still capped at its compact max-height.
+ *
+ * Two rules, matching that: drop the compact max-height so the viewport uses
+ * the whole overlay via the flex:1 it already gets, and stop flexing the row
+ * list so rows keep their natural height and the viewport simply scrolls.
+ */
+[data-fullscreen-chart] .fullscreen-scroll-list {
+  max-height: none !important;
+}
+[data-fullscreen-chart] .fullscreen-scroll-list > * {
+  flex: none !important;
+}

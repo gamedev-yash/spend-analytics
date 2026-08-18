@@ -19,14 +19,6 @@ export function KpiRibbon() {
   const { distinctPaymentTerms, avgPaidDays } = computeKpis(filteredInvoices);
   const { getThreshold, evaluate } = useThresholds();
 
-  // Share of invoices carrying a standard payment term (non-null code).
-  const adherencePercent =
-    filteredInvoices.length > 0
-      ? (filteredInvoices.filter((inv) => inv.payment_term_code !== null).length /
-          filteredInvoices.length) *
-        100
-      : 0;
-
   const badgeFor = (id: string, value: number | null): RibbonStat["badge"] => {
     if (value === null) return null;
     const config = getThreshold(id);
@@ -45,15 +37,10 @@ export function KpiRibbon() {
       value: formatDays(avgPaidDays),
       badge: badgeFor("payment-terms.avg-paid-days", avgPaidDays),
     },
-    {
-      label: "Standard Terms Adherence",
-      value: `${adherencePercent.toLocaleString("en-IN", { maximumFractionDigits: 1 })}%`,
-      badge: badgeFor("payment-terms.terms-adherence", adherencePercent),
-    },
   ];
 
   return (
-    <div className="w-full rounded-xl border border-slate-200 bg-white px-6 py-5 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80">
+    <div className="kpi-ribbon w-full rounded-xl border border-slate-200 bg-white px-6 py-5 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80">
       <div className="flex flex-wrap gap-8">
         {stats.map((stat) => (
           <div key={stat.label} className="flex flex-col">

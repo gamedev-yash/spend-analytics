@@ -1,8 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Table2 } from "lucide-react";
+import { Download, Table2 } from "lucide-react";
 import { ChartCard } from "@/components/dashboard/chart-card";
+import { Button } from "@/components/ui/button";
+import { PaginationFooter } from "@/components/ui/pagination-footer";
+import { usePagination } from "@/hooks/use-pagination";
+import { useIsExportCapturing } from "@/context/ExportCaptureContext";
 import { cn } from "@/lib/utils";
 import { usePaymentTerms } from "../provider";
 import { aggregateForTable, type TableRow } from "../selectors";
@@ -25,13 +29,35 @@ interface ColumnDef {
 }
 
 const COLUMNS: ColumnDef[] = [
-  { key: "globalUltimateName", label: "Supplier (Global Ultimate) Name", align: "left" },
+  { key: "globalUltimateName", label: "Supplier Name", align: "left" },
   { key: "paymentTermCount", label: "Payment Terms", align: "right" },
   { key: "categoryCount", label: "Categories", align: "right" },
   { key: "plantCount", label: "Plants", align: "right" },
   { key: "avgPaidDays", label: "Average Number of Paid Days", align: "right" },
   { key: "spend", label: "Spend", align: "right" },
 ];
+
+function exportCsv(rows: TableRow[]) {
+  const header = ["Supplier Name", "Payment Terms", "Categories", "Plants", "Average Number of Paid Days", "Spend"];
+  const lines = rows.map((r) =>
+    [
+      `"${r.globalUltimateName.replace(/"/g, '""')}"`,
+      r.paymentTermCount,
+      r.categoryCount,
+      r.plantCount,
+      r.avgPaidDays ?? "",
+      r.spend,
+    ].join(",")
+  );
+  const csv = [header.join(","), ...lines].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "payment-terms-detail-report.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 function compareRows(a: TableRow, b: TableRow, column: SortColumn): number {
   switch (column) {
@@ -71,6 +97,9 @@ export function DetailReportTable() {
     return copy;
   }, [rows, sortColumn, sortDirection]);
 
+  const isCapturing = useIsExportCapturing();
+  const pagination = usePagination(sortedRows, isCapturing ? Math.max(sortedRows.length, 1) : 10);
+
   function handleSort(column: SortColumn) {
     if (column === sortColumn) {
       setSortDirection((d) => (d === "asc" ? "desc" : "asc"));
@@ -82,8 +111,15 @@ export function DetailReportTable() {
 
   return (
     <ChartCard title="Detail Report" description="Sortable by any column" icon={<Table2 />}>
+      <div className="flex h-full flex-col gap-2">
+        <div className="flex shrink-0 justify-end">
+          <Button size="sm" variant="outline" onClick={() => exportCsv(sortedRows)}>
+            <Download className="h-3.5 w-3.5" />
+            Export CSV
+          </Button>
+        </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] text-sm">
+          <table className="fullscreen-natural-table w-full min-w-[720px] text-sm">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/50">
                 {COLUMNS.map((col) => {
@@ -121,7 +157,7 @@ export function DetailReportTable() {
                   </td>
                 </tr>
               ) : (
-                sortedRows.map((row) => (
+                pagination.pageItems.map((row) => (
                   <tr
                     key={row.globalUltimateId}
                     className="border-b border-slate-100 last:border-b-0 dark:border-slate-800/60"
@@ -138,6 +174,19 @@ export function DetailReportTable() {
             </tbody>
           </table>
         </div>
+        <PaginationFooter
+          page={pagination.page}
+          pageCount={pagination.pageCount}
+          startIndex={pagination.startIndex}
+          endIndex={pagination.endIndex}
+          totalCount={pagination.totalCount}
+          onPrevious={pagination.goToPrevious}
+          onNext={pagination.goToNext}
+          hasPrevious={pagination.hasPrevious}
+          hasNext={pagination.hasNext}
+          itemLabel="suppliers"
+        />
+      </div>
     </ChartCard>
   );
 }

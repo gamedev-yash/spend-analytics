@@ -16,6 +16,12 @@ export function SupplierSizeChart({ buckets }: SupplierSizeChartProps) {
   return (
     <ResponsiveContainer width="100%" height={320}>
       <BarChart data={buckets} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
+        <defs>
+          <linearGradient id="grad-supplierSize" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={palette.categorical.aqua} stopOpacity={0.95} />
+            <stop offset="95%" stopColor={palette.categorical.aqua} stopOpacity={0.25} />
+          </linearGradient>
+        </defs>
         <CartesianGrid vertical={false} stroke={palette.ink.grid} />
         <XAxis
           dataKey="bucket"
@@ -41,7 +47,11 @@ export function SupplierSizeChart({ buckets }: SupplierSizeChartProps) {
           }}
           cursor={{ fill: palette.isDark ? "rgba(148, 163, 184, 0.08)" : "rgba(15, 23, 42, 0.05)" }}
         />
-        <Bar dataKey="supplierCount" fill={palette.categorical.aqua} radius={[4, 4, 0, 0]} />
+        <Bar
+          dataKey="supplierCount"
+          fill={palette.isDark ? "url(#grad-supplierSize)" : palette.categorical.aqua}
+          radius={[4, 4, 0, 0]}
+        />
       </BarChart>
     </ResponsiveContainer>
   );

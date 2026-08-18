@@ -1,0 +1,76 @@
+category_code,category_name,category_l1,category_l2
+001,Zinc Concentrate,Raw Materials,Zinc Concentrate
+002,Lead Concentrate,Raw Materials,Lead Concentrate
+003,Copper Concentrate,Raw Materials,Copper Concentrate
+004,Bauxite,Raw Materials,Bauxite
+005,Alumina,Raw Materials,Alumina
+006,Iron Ore Fines,Raw Materials,Iron Ore Fines
+007,Coking Coal,Raw Materials,Coking Coal
+008,Calcined Petroleum Coke,Raw Materials,Calcined Petroleum Coke
+009,Bearings,MRO & Spares,Bearings
+010,Seals & Gaskets,MRO & Spares,Seals & Gaskets
+011,Pumps,MRO & Spares,Pumps
+012,Conveyor Components,MRO & Spares,Conveyor Components
+013,Grinding Media,MRO & Spares,Grinding Media
+014,Flotation Cells,MRO & Spares,Flotation Cells
+015,Crusher Parts,MRO & Spares,Crusher Parts
+016,Motor Spares,MRO & Spares,Motor Spares
+017,Valves & Fittings,MRO & Spares,Valves & Fittings
+018,Hydraulic Components,MRO & Spares,Hydraulic Components
+019,Grinding Mills,Capital Equipment,Grinding Mills
+020,Crushers,Capital Equipment,Crushers
+021,Smelting Furnaces,Capital Equipment,Smelting Furnaces
+022,Electrolytic Cells,Capital Equipment,Electrolytic Cells
+023,Mobile Mining Equipment,Capital Equipment,Mobile Mining Equipment
+024,Cranes & Hoists,Capital Equipment,Cranes & Hoists
+025,Sodium Cyanide,Chemicals & Reagents,Sodium Cyanide
+026,Xanthates,Chemicals & Reagents,Xanthates
+027,Frothers,Chemicals & Reagents,Frothers
+028,Flocculants,Chemicals & Reagents,Flocculants
+029,Sulphuric Acid,Chemicals & Reagents,Sulphuric Acid
+030,Caustic Soda,Chemicals & Reagents,Caustic Soda
+031,Lime & Limestone,Chemicals & Reagents,Lime & Limestone
+032,Diesel (HSD),Fuel & Energy,Diesel (HSD)
+033,Furnace Oil,Fuel & Energy,Furnace Oil
+034,Thermal Coal,Fuel & Energy,Thermal Coal
+035,Natural Gas,Fuel & Energy,Natural Gas
+036,LPG & Industrial Gases,Fuel & Energy,LPG & Industrial Gases
+037,Plant Maintenance Services,Services,Plant Maintenance Services
+038,Civil Works Services,Services,Civil Works Services
+039,Manpower Contracting,Services,Manpower Contracting
+040,Security Services,Services,Security Services
+041,Housekeeping,Services,Housekeeping
+042,Consulting & Advisory,Services,Consulting & Advisory
+043,Equipment Rental,Services,Equipment Rental
+044,Road Freight,Logistics & Transport,Road Freight
+045,Rail Freight,Logistics & Transport,Rail Freight
+046,Ocean Freight,Logistics & Transport,Ocean Freight
+047,Warehousing,Logistics & Transport,Warehousing
+048,Material Handling,Logistics & Transport,Material Handling
+049,IT Hardware,IT & Telecom,IT Hardware
+050,Software Licenses,IT & Telecom,Software Licenses
+051,IT Consumables,IT & Telecom,IT Consumables
+052,Telecom Services,IT & Telecom,Telecom Services
+053,Cloud & Hosting,IT & Telecom,Cloud & Hosting
+054,Safety PPE,Safety & PPE,Safety PPE
+055,Fire & Safety Equipment,Safety & PPE,Fire & Safety Equipment
+056,Gas Detection,Safety & PPE,Gas Detection
+057,Fall Protection,Safety & PPE,Fall Protection
+058,Cement & Concrete,Civil & Construction,Cement & Concrete
+059,Structural Steel,Civil & Construction,Structural Steel
+060,Refractories,Civil & Construction,Refractories
+061,Construction Aggregates,Civil & Construction,Construction Aggregates
+062,Transformers,Electrical,Transformers
+063,Switchgear,Electrical,Switchgear
+064,Cables & Wires,Electrical,Cables & Wires
+065,Electrical Motors,Electrical,Electrical Motors
+066,Batteries & UPS,Electrical,Batteries & UPS
+067,Flow Instruments,Instrumentation,Flow Instruments
+068,Pressure Instruments,Instrumentation,Pressure Instruments
+069,Analysers,Instrumentation,Analysers
+070,Control Systems (DCS/PLC),Instrumentation,Control Systems (DCS/PLC)
+071,Jumbo Bags,Packaging,Jumbo Bags
+072,Steel Strapping,Packaging,Steel Strapping
+073,Wooden Pallets,Packaging,Wooden Pallets
+074,Office Supplies,Packaging,Office Supplies
+075,IT Consumables Misc,Packaging,IT Consumables Misc

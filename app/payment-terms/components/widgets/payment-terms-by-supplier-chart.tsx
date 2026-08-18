@@ -14,15 +14,18 @@ import {
 } from "recharts";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
+import { useIsFullscreenChart } from "@/components/dashboard/fullscreen-overlay";
 import { usePalette } from "@/hooks/use-palette";
 import { useWidgetInvoices } from "../../provider";
 import { aggregateByGlobalUltimate, type GlobalUltimateAgg } from "../../selectors";
 import { formatCurrencyCompact, formatCurrencyFull, usePaymentTermsChartColors } from "../../constants";
 
-const TOP_N = 20;
-const ROW_HEIGHT = 26;
 const MIN_CHART_HEIGHT = 160;
-const MAX_CHART_HEIGHT = 520;
+/**
+ * Viewport cap, not a data cap — the chart itself grows to ROW_HEIGHT per
+ * supplier so every row stays legible, and this scrolls to reach the rest.
+ */
+const MAX_VIEWPORT_HEIGHT = 520;
 const LABEL_MAX_CHARS = 24;
 
 function truncateLabel(label: string): string {
@@ -32,35 +35,59 @@ function truncateLabel(label: string): string {
 export function PaymentTermsBySupplierChart() {
   const palette = usePalette();
   const chartColors = usePaymentTermsChartColors();
+  const isFullscreen = useIsFullscreenChart();
   const { invoicesForWidget, selectedKey, onBarClick } = useWidgetInvoices("globalUltimate");
 
-  const { displayedRows, totalCount } = useMemo(() => {
-    const rows = aggregateByGlobalUltimate(invoicesForWidget).sort((a, b) => b.spend - a.spend);
-    return { displayedRows: rows.slice(0, TOP_N), totalCount: rows.length };
-  }, [invoicesForWidget]);
-
-  const chartHeight = Math.min(
-    MAX_CHART_HEIGHT,
-    Math.max(MIN_CHART_HEIGHT, displayedRows.length * ROW_HEIGHT)
+  const displayedRows = useMemo(
+    () => aggregateByGlobalUltimate(invoicesForWidget).sort((a, b) => b.spend - a.spend),
+    [invoicesForWidget]
   );
+
+  const rowHeight = isFullscreen ? 40 : 32;
+  const barSize = isFullscreen ? 28 : 20;
+  const chartHeight = Math.max(MIN_CHART_HEIGHT, displayedRows.length * rowHeight);
 
   return (
     <ChartCard
-      title="Payment Terms by Suppliers (Global Ultimate)"
-      description={
-        totalCount > TOP_N
-          ? `Showing top ${TOP_N} of ${totalCount} suppliers by spend`
-          : "Ranked by total spend"
-      }
+      title="Payment Terms by Suppliers"
+      description={`All ${displayedRows.length} suppliers, ranked by total spend`}
       icon={<Users />}
       accent="violet"
     >
+      {/*
+        Deliberately a plain ResponsiveContainer, not FullscreenResponsiveContainer:
+        chartHeight here is content-driven (every supplier gets a fixed, legible
+        rowHeight), and overflow is meant to be handled by scrolling this viewport,
+        not by stretching the chart to fill it. Switching to height="100%" in
+        fullscreen would make Recharts compress all rows into the capped viewport
+        height instead, shrinking 50 suppliers into unreadable ~10px slivers.
+
+        Two globals.css opt-outs, doing different jobs:
+        - `chart-fixed-height-scroll` keeps this chart's internals at their
+          natural height, instead of the fullscreen cascade forcing height:100%
+          onto them regardless of the prop value.
+        - `fullscreen-scroll-list` drops MAX_VIEWPORT_HEIGHT while maximized, so
+          the viewport uses the whole overlay rather than leaving ~280px of it
+          empty below a still-520px box. rowHeight/barSize still scale up via
+          isFullscreen — you also see more rows at once, which is the point of
+          maximizing this widget.
+      */}
+      <div
+        className="fullscreen-scroll-list overflow-y-auto chart-fixed-height-scroll"
+        style={{ maxHeight: MAX_VIEWPORT_HEIGHT }}
+      >
       <ResponsiveContainer width="100%" height={chartHeight}>
           <BarChart
             data={displayedRows}
             layout="vertical"
             margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
           >
+            <defs>
+              <linearGradient id="grad-paymentTermsSupplierBar" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={chartColors.supplierBar} stopOpacity={0.95} />
+                <stop offset="95%" stopColor={chartColors.supplierBar} stopOpacity={0.25} />
+              </linearGradient>
+            </defs>
             <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={palette.ink.grid} />
             <XAxis
               type="number"
@@ -95,6 +122,8 @@ export function PaymentTermsBySupplierChart() {
             />
             <Bar
               dataKey="spend"
+              barSize={barSize}
+              radius={[0, 4, 4, 0]}
               style={{ cursor: "pointer" }}
               onClick={(_, index: number) => {
                 const row = displayedRows[index];
@@ -107,7 +136,7 @@ export function PaymentTermsBySupplierChart() {
                 return (
                   <Cell
                     key={row.key}
-                    fill={chartColors.supplierBar}
+                    fill={palette.isDark ? "url(#grad-paymentTermsSupplierBar)" : chartColors.supplierBar}
                     fillOpacity={isDimmed ? chartColors.dimmedOpacity : 1}
                     stroke={isSelected ? chartColors.highlightStroke : undefined}
                     strokeWidth={isSelected ? 2 : undefined}
@@ -117,6 +146,7 @@ export function PaymentTermsBySupplierChart() {
             </Bar>
       </BarChart>
       </ResponsiveContainer>
+      </div>
     </ChartCard>
   );
 }

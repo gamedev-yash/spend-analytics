@@ -50,7 +50,7 @@ export function StrategicComparison({ segments }: StrategicComparisonProps) {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[520px] border-collapse text-sm">
+      <table className="fullscreen-natural-table w-full min-w-[520px] border-collapse text-sm">
         <thead>
           <tr>
             <th className="w-40 border-b border-slate-200 pb-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">

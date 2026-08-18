@@ -8,14 +8,6 @@ import { usePalette } from "@/hooks/use-palette";
 import type { ChartPalette } from "@/lib/chart-colors";
 import type { SpendSegment } from "./tailSpendMock";
 
-// SAP Spend Control Tower ribbon — fixed SAP-brand navy chrome, not a
-// data-encoding color. Intentionally the same in both themes (like a fixed
-// brand header bar), independent of the rest of the page's theming.
-export const SAP_NAVY = "#0a1f44";
-export const SAP_NAVY_BORDER = "#16305e";
-
-export const CHART_MARGIN = { top: 8, right: 16, bottom: 8, left: 8 };
-
 function hexToRgb(hex: string): [number, number, number] {
   const n = parseInt(hex.slice(1), 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
@@ -37,6 +29,24 @@ function buildRamp(darkest: string, lightest: string, steps: number): string[] {
   });
 }
 
+/**
+ * Categorical (not sequential) palette for the 7 SAP invoice-value buckets,
+ * smallest to largest — matches tailSpendMock's invoiceValueBuckets order
+ * (<1K ... >5M). A single-hue ramp made every slice of the donut read as
+ * near-identical light blue; each bucket now gets its own distinct hue so
+ * they're separable at a glance, with saturation still trending from muted
+ * (smallest, least consequential) to vivid (largest, highest-spend-share).
+ */
+const INVOICE_BUCKET_CATEGORICAL = [
+  "#64748b", // <1K — slate
+  "#8b5cf6", // 1K-5K — violet
+  "#f43f5e", // 5K-10K — rose
+  "#f59e0b", // 10K-100K — amber
+  "#10b981", // 100K-1M — emerald
+  "#0284c7", // 1M-5M — sky
+  "#6366f1", // >5M — indigo
+];
+
 export interface TailSpendTheme {
   /** Matches the card background — used as the stroke separator between pie/donut slices. */
   chartSurface: string;
@@ -51,7 +61,7 @@ export interface TailSpendTheme {
   actionColor: Record<string, string>;
   paretoBarColor: string;
   paretoLineColor: string;
-  /** 7-step ordinal ramp for the SAP invoice-value buckets, darkest = smallest bucket. */
+  /** 7-color categorical palette for the SAP invoice-value buckets, smallest to largest — distinct hues, not a single-hue ramp, so donut slices stay separable at a glance. */
   invoiceBucketRamp: string[];
   /** 6-step ordinal ramp for the micro-PO value buckets, same convention. */
   microPoRamp: string[];
@@ -83,7 +93,7 @@ export function useTailSpendTheme(): TailSpendTheme {
     },
     paretoBarColor: palette.categorical.blue,
     paretoLineColor: palette.categorical.orange,
-    invoiceBucketRamp: buildRamp(palette.isDark ? "#0f3a73" : "#123d78", palette.isDark ? "#cde2fb" : "#8ec2ee", 7),
+    invoiceBucketRamp: INVOICE_BUCKET_CATEGORICAL,
     microPoRamp: buildRamp(palette.isDark ? "#184f95" : "#1d5a9e", palette.isDark ? "#cde2fb" : "#8ec2ee", 6),
   };
 }

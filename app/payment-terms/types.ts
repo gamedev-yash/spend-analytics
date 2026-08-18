@@ -46,20 +46,22 @@ export interface SourceSystemDim {
   name: string;
 }
 
-/** Trailing-12-completed-month window + the global/page-option dropdown filters this dashboard defines. */
+/** User-picked date window + the global/page-option dropdown filters this dashboard defines. Every categorical filter is multi-select: empty array = all. */
 export interface FilterState {
-  /** "YYYY-MM" — inclusive end of the trailing 12-month window. */
-  endMonth: string;
-  /** category_code, the NO_VALUE_KEY sentinel, or null for "All Categories". */
-  categoryCode: string | null;
-  /** global_ultimate_id, or null for "All Suppliers". */
-  globalUltimateId: string | null;
-  /** source_system_id, or null for "All Source Systems". */
-  sourceSystemId: string | null;
-  /** plant_id, or null for "All Plants". */
-  plantId: string | null;
-  /** payment_term_code, the NO_VALUE_KEY sentinel, or null for "All Payment Terms". */
-  paymentTermCode: string | null;
+  /** "YYYY-MM-DD" — inclusive first day of the window. Never later than dateTo. */
+  dateFrom: string;
+  /** "YYYY-MM-DD" — inclusive last day of the window. */
+  dateTo: string;
+  /** category_code values, may include the NO_VALUE_KEY sentinel. Empty = all. */
+  categoryCodes: string[];
+  /** global_ultimate_id values. Empty = all. */
+  globalUltimateIds: string[];
+  /** source_system_id values. Empty = all. */
+  sourceSystemIds: string[];
+  /** plant_id values. Empty = all. */
+  plantIds: string[];
+  /** payment_term_code values, may include the NO_VALUE_KEY sentinel. Empty = all. */
+  paymentTermCodes: string[];
 }
 
 /** Which grouping dimension a widget contributed the active "linked analysis" selection on. */

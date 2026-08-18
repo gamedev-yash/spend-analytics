@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { TopHeader } from "@/components/layout/top-header";
 import { FilterBar } from "@/components/layout/filter-bar";
 import { FilterSlotProvider } from "@/context/FilterContext";
+import { SIDEBAR_COLLAPSED_WIDTH, useSidebarWidth } from "@/hooks/use-sidebar-width";
 import { cn } from "@/lib/utils";
 
 interface DashboardShellProps {
@@ -20,13 +21,16 @@ interface DashboardShellProps {
  * page, which registers via useFilterSlot) so a route's registered filters
  * render in the drawer. `children` is a prop DashboardShell receives rather
  * than creates, so this component's own state (sidebarCollapsed,
- * filtersVisible) — and the provider's state — re-rendering never forces the
- * page itself to re-render, which is what keeps filter registration from
- * looping back on the page that registered it.
+ * filtersVisible, the sidebar width) — and the provider's state —
+ * re-rendering never forces the page itself to re-render, which is what keeps
+ * filter registration from looping back on the page that registered it. It is
+ * also what makes a drag-resize cheap: the width changes every pointermove
+ * frame, and only this shell re-renders.
  */
 export function DashboardShell({ children }: DashboardShellProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [filtersVisible, setFiltersVisible] = useState(true);
+  const sidebar = useSidebarWidth();
 
   return (
     <FilterSlotProvider>
@@ -34,12 +38,20 @@ export function DashboardShell({ children }: DashboardShellProps) {
         <Sidebar
           collapsed={sidebarCollapsed}
           onToggleCollapsed={() => setSidebarCollapsed((v) => !v)}
+          width={sidebar.width}
+          isResizing={sidebar.isResizing}
+          onStartResize={sidebar.startResize}
+          onNudgeWidth={sidebar.nudgeWidth}
+          onResetWidth={sidebar.resetWidth}
         />
+        {/*
+          The sidebar is `fixed`, so nothing reserves its space — this padding
+          is what keeps content clear of it, and it has to track the dragged
+          width rather than a static pl-60.
+        */}
         <div
-          className={cn(
-            "transition-all duration-300",
-            sidebarCollapsed ? "pl-16" : "pl-60"
-          )}
+          style={{ paddingLeft: sidebarCollapsed ? SIDEBAR_COLLAPSED_WIDTH : sidebar.width }}
+          className={cn(!sidebar.isResizing && "transition-[padding] duration-300")}
         >
           <TopHeader
             filtersVisible={filtersVisible}

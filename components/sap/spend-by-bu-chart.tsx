@@ -1,70 +1,90 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { PlotMouseEvent } from "plotly.js";
-import { PlotlyChart, type PlotlyTrace } from "@/components/sap/plotly-chart";
+import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import { usePalette } from "@/hooks/use-palette";
-import { colorForL1, orderL1s } from "@/lib/sap/theme";
+import { formatInr } from "@/lib/sap/format-inr";
 import type { BuSpendRow } from "@/lib/sap/aggregate";
 
 interface SpendByBuChartProps {
   rows: BuSpendRow[];
 }
 
-/** Horizontal stacked bar by BU, segments by L1, with a % annotation past each bar's end. Bars cross-filter to that BU. */
+const CRORE = 10_000_000;
+
+interface BuBarDatum {
+  plantName: string;
+  valueCr: number;
+  totalInr: number;
+  percentOfTotal: number;
+}
+
+/**
+ * Vertical bar of total spend by business unit / plant (x = BU, y = spend in
+ * ₹ Cr), with a % of total label above each bar.
+ */
 export function SpendByBuChart({ rows }: SpendByBuChartProps) {
   const palette = usePalette();
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
 
-  const ordered = [...rows].reverse(); // highest spend renders at top
-  const allL1 = orderL1s(Array.from(new Set(rows.flatMap((r) => Object.keys(r.byL1)))));
-
-  function handleClick(event: Readonly<PlotMouseEvent>) {
-    const point = event.points?.[0] as unknown as { y?: string };
-    const row = ordered.find((r) => r.plantName === point?.y);
-    if (!row) return;
-    const params = new URLSearchParams(searchParams.toString());
-    if (params.get("bu") === row.plantCode) params.delete("bu");
-    else params.set("bu", row.plantCode);
-    const query = params.toString();
-    router.push(query ? `${pathname}?${query}` : pathname);
-  }
-
-  const barTraces: PlotlyTrace[] = allL1.map((l1) => ({
-    type: "bar",
-    orientation: "h",
-    name: l1,
-    x: ordered.map((r) => r.byL1[l1] ?? 0),
-    y: ordered.map((r) => r.plantName),
-    marker: { color: colorForL1(l1, palette) },
-    hovertemplate: `<b>%{y}</b><br>${l1}: ₹%{x:,.0f}<extra></extra>`,
-  }));
-
-  const annotations = ordered.map((r) => ({
-    x: r.total,
-    y: r.plantName,
-    xref: "x" as const,
-    yref: "y" as const,
-    text: `${r.percentOfTotal.toFixed(1)}%`,
-    showarrow: false,
-    xanchor: "left" as const,
-    xshift: 8,
-    font: { size: 11, color: palette.ink.secondary },
-  }));
+  const data: BuBarDatum[] = [...rows]
+    .sort((a, b) => b.total - a.total)
+    .map((r) => ({ plantName: r.plantName, valueCr: r.total / CRORE, totalInr: r.total, percentOfTotal: r.percentOfTotal }));
 
   return (
-    <PlotlyChart
-      data={barTraces}
-      onClick={handleClick}
-      layout={{
-        barmode: "stack",
-        yaxis: { automargin: true },
-        legend: { orientation: "h", y: -0.14 },
-        margin: { t: 16, r: 52, b: 16, l: 16 },
-        annotations,
-      }}
-    />
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={data} margin={{ top: 28, right: 12, bottom: 40, left: 8 }} barCategoryGap="30%">
+        <defs>
+          <linearGradient id="grad-spendByBu" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={palette.categorical.orange} stopOpacity={0.95} />
+            <stop offset="95%" stopColor={palette.categorical.orange} stopOpacity={0.25} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke={palette.ink.grid} />
+        <XAxis
+          dataKey="plantName"
+          angle={-30}
+          textAnchor="end"
+          interval={0}
+          height={56}
+          stroke={palette.ink.baseline}
+          tick={{ fontSize: 11, fill: palette.ink.muted }}
+          tickLine={false}
+        />
+        <YAxis
+          tickFormatter={(v: number) => v.toFixed(0)}
+          stroke={palette.ink.baseline}
+          tick={{ fontSize: 11, fill: palette.ink.muted }}
+          tickLine={false}
+          width={44}
+          label={{ value: "₹ Cr", angle: -90, position: "insideLeft", fontSize: 11, fill: palette.ink.muted }}
+        />
+        <Tooltip
+          content={({ active, payload }) => {
+            const row = (payload?.[0]?.payload ?? null) as BuBarDatum | null;
+            if (!row) return null;
+            return (
+              <ChartTooltipCard
+                active={active}
+                heading={row.plantName}
+                rows={[
+                  { label: "Spend", value: formatInr(row.totalInr) },
+                  { label: "% of total", value: `${row.percentOfTotal.toFixed(1)}%` },
+                ]}
+              />
+            );
+          }}
+          cursor={{ fill: palette.isDark ? "rgba(148,163,184,0.08)" : "rgba(15,23,42,0.05)" }}
+        />
+        <Bar dataKey="valueCr" fill={palette.isDark ? "url(#grad-spendByBu)" : palette.categorical.orange} radius={[4, 4, 0, 0]}>
+          <LabelList
+            dataKey="percentOfTotal"
+            position="top"
+            formatter={(v) => `${Number(v).toFixed(1)}%`}
+            fontSize={11}
+            fill={palette.ink.secondary}
+          />
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
   );
 }

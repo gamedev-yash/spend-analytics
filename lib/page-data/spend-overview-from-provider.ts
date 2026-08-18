@@ -7,7 +7,7 @@
 //
 // Row budget per query (cap is 1,000):
 //   treemap / metrics      category L1 x L2      ~65
-//   top suppliers          10 suppliers x L1     ~130
+//   top suppliers          all suppliers, 1 dim  ~500
 //   trend                  36 months x L1        ~470
 //   BU split               7 plants x L1         ~91
 
@@ -18,21 +18,25 @@ import type {
   MonthlyTrendPoint,
   SpikeMarker,
   SunburstNode,
+  SupplierDetailRow,
   TopSupplierRow,
   TreemapNode,
 } from "@/lib/sap/aggregate";
 import type { SpendOverviewData } from "@/app/spend-overview/fromDataset";
 import {
+  CATEGORIES,
+  INVOICES_DATASET,
+  PLANTS,
   PO_ITEMS_DATASET,
   ROWS,
   SUPPLIERS,
   VALUE,
   createRunner,
   grouped,
-  inFilter,
   nest,
   percent,
   round2,
+  rowCountQuery,
   toLabel,
   toNumber,
   type QueryRunner,
@@ -40,7 +44,8 @@ import {
 } from "@/lib/page-data/provider-queries";
 import { COUNT_ALL, type IDataProvider, type QueryFilter } from "@/types/data-provider";
 
-const TOP_SUPPLIERS = 10;
+/** Now that the chart drops the per-category breakdown, one query can return every supplier. */
+const SUPPLIER_ROW_LIMIT = 500;
 /** A month whose spend deviates more than this from the mean is flagged. */
 const SPIKE_DEVIATION = 0.25;
 
@@ -53,7 +58,7 @@ function contractFilter(backed: boolean): QueryFilter {
 // ---------------------------------------------------------------------------
 
 async function loadKpis(runner: QueryRunner): Promise<{ kpis: HeadlineKpis; total: number }> {
-  const [totals, offContract, byYear] = await Promise.all([
+  const [totals, offContract, byYear, invoiceTotals] = await Promise.all([
     runner.run(
       grouped({
         datasetId: PO_ITEMS_DATASET,
@@ -83,11 +88,15 @@ async function loadKpis(runner: QueryRunner): Promise<{ kpis: HeadlineKpis; tota
         limit: 20,
       })
     ),
+    // fact_invoices is its own dataset (separate row grain from fact_po_items),
+    // so the Invoices KPI needs its own count query rather than reusing poCount.
+    runner.run(rowCountQuery(INVOICES_DATASET)),
   ]);
 
   const row = totals[0] ?? {};
   const total = toNumber(row[VALUE]);
   const poCount = toNumber(row[ROWS]);
+  const invoiceCount = toNumber((invoiceTotals[0] ?? {})[ROWS]);
 
   // Compare the last two complete fiscal years present in the data.
   const years = byYear.map((y) => toNumber(y[VALUE]));
@@ -98,6 +107,7 @@ async function loadKpis(runner: QueryRunner): Promise<{ kpis: HeadlineKpis; tota
     total,
     kpis: {
       totalSpendInr: round2(total),
+      invoiceCount,
       poCount,
       activeSupplierCount: toNumber(row[SUPPLIERS]),
       avgPoValueInr: poCount > 0 ? round2(total / poCount) : 0,
@@ -115,10 +125,11 @@ interface CategoryAggregates {
   l1Rows: ResultRow[];
   l2Rows: ResultRow[];
   offContractByL1: Map<string, number>;
+  yoyByL1: Map<string, number>;
 }
 
 async function loadCategories(runner: QueryRunner): Promise<CategoryAggregates> {
-  const [l1Rows, l2Rows, offContractRows] = await Promise.all([
+  const [l1Rows, l2Rows, offContractRows, yearByL1Rows] = await Promise.all([
     runner.run(
       grouped({
         datasetId: PO_ITEMS_DATASET,
@@ -155,28 +166,65 @@ async function loadCategories(runner: QueryRunner): Promise<CategoryAggregates> 
         limit: 100,
       })
     ),
+    // Fiscal-year totals per L1 — the same "compare the last two complete
+    // years present" trick loadKpis uses for the headline, one level deeper.
+    runner.run(
+      grouped({
+        datasetId: PO_ITEMS_DATASET,
+        dimensions: ["category_l1_name", "po_date"],
+        measures: { [VALUE]: ["net_order_value_inr", "sum"] },
+        timeGrain: "year",
+        limit: 1000,
+      })
+    ),
   ]);
 
   const offContractByL1 = new Map<string, number>();
   for (const row of offContractRows) {
     offContractByL1.set(toLabel(row.category_l1_name), toNumber(row[VALUE]));
   }
-  return { l1Rows, l2Rows, offContractByL1 };
+
+  const yoyByL1 = new Map<string, number>();
+  for (const [category, years] of nest(yearByL1Rows, "category_l1_name", "po_date")) {
+    const sortedYearKeys = Object.keys(years).sort();
+    const latest = years[sortedYearKeys.at(-1) ?? ""] ?? 0;
+    const previous = years[sortedYearKeys.at(-2) ?? ""] ?? 0;
+    yoyByL1.set(category, previous > 0 ? round2(((latest - previous) / previous) * 100) : 0);
+  }
+
+  return { l1Rows, l2Rows, offContractByL1, yoyByL1 };
 }
 
-function buildTreemap(aggregates: CategoryAggregates, total: number): TreemapNode[] {
-  const nodes: TreemapNode[] = [];
+function buildTreemap(
+  aggregates: CategoryAggregates,
+  total: number,
+  rootSupplierCount: number,
+  rootPoCount: number
+): TreemapNode[] {
+  // Root wrapper node — matches the mock-data (lib/sap/aggregate.ts) and
+  // CSV-upload (fromDataset.ts) conventions, both of which nest L1 categories
+  // under an explicit "All Spend" root rather than parenting them to "".
+  const nodes: TreemapNode[] = [
+    {
+      id: "All Spend",
+      label: "All Spend",
+      parent: "",
+      value: round2(total),
+      yoyChangePercent: 0,
+      supplierCount: rootSupplierCount,
+      poCount: rootPoCount,
+      percentOfTotal: 100,
+    },
+  ];
   for (const row of aggregates.l1Rows) {
     const label = toLabel(row.category_l1_name);
     const value = toNumber(row[VALUE]);
     nodes.push({
       id: label,
       label,
-      parent: "",
+      parent: "All Spend",
       value: round2(value),
-      // Year-on-year per category needs a second dated window per node; the
-      // headline KPI carries the movement instead.
-      yoyChangePercent: 0,
+      yoyChangePercent: aggregates.yoyByL1.get(label) ?? 0,
       supplierCount: toNumber(row[SUPPLIERS]),
       poCount: toNumber(row[ROWS]),
       percentOfTotal: percent(value, total),
@@ -191,7 +239,9 @@ function buildTreemap(aggregates: CategoryAggregates, total: number): TreemapNod
       label,
       parent,
       value: round2(value),
-      yoyChangePercent: 0,
+      // No L2-grain fiscal-year query (a second, much larger one) — L2 nodes
+      // carry their parent L1's movement.
+      yoyChangePercent: aggregates.yoyByL1.get(parent) ?? 0,
       supplierCount: toNumber(row[SUPPLIERS]),
       poCount: toNumber(row[ROWS]),
       percentOfTotal: percent(value, total),
@@ -226,7 +276,7 @@ function buildMetricsRows(aggregates: CategoryAggregates, total: number): Metric
       supplierCount: toNumber(row[SUPPLIERS]),
       poCount,
       avgPoValueInr: poCount > 0 ? round2(value / poCount) : 0,
-      yoyChangePercent: 0,
+      yoyChangePercent: aggregates.yoyByL1.get(category) ?? 0,
       offContractPercent: percent(aggregates.offContractByL1.get(category) ?? 0, value),
     };
   });
@@ -240,32 +290,19 @@ async function loadTopSuppliers(
   runner: QueryRunner,
   total: number
 ): Promise<{ rows: TopSupplierRow[]; top5Percent: number; allL1: string[] }> {
+  // Single query, one row per supplier — the chart no longer stacks by category,
+  // so there's no need for a second per-L1 breakdown pass.
   const ranked = await runner.run(
     grouped({
       datasetId: PO_ITEMS_DATASET,
       dimensions: ["vendor_name"],
       measures: { [VALUE]: ["net_order_value_inr", "sum"] },
       sortBy: VALUE,
-      limit: TOP_SUPPLIERS,
+      limit: SUPPLIER_ROW_LIMIT,
     })
   );
   if (ranked.length === 0) return { rows: [], top5Percent: 0, allL1: [] };
 
-  const names = ranked.map((row) => toLabel(row.vendor_name));
-  // Second pass restricted to the winners, so the L1 breakdown stays small.
-  const breakdown = await runner.run(
-    grouped({
-      datasetId: PO_ITEMS_DATASET,
-      dimensions: ["vendor_name", "category_l1_name"],
-      measures: { [VALUE]: ["net_order_value_inr", "sum"] },
-      filters: [inFilter("vendor_name", names)],
-      sortBy: VALUE,
-      limit: 1000,
-    })
-  );
-  const bySupplier = nest(breakdown, "vendor_name", "category_l1_name");
-
-  const allL1 = [...new Set(breakdown.map((row) => toLabel(row.category_l1_name)))].sort();
   let cumulative = 0;
   const rows: TopSupplierRow[] = ranked.map((row) => {
     const key = toLabel(row.vendor_name);
@@ -275,13 +312,76 @@ async function loadTopSuppliers(
       key,
       displayName: key,
       totalValue: round2(value),
-      byL1: bySupplier.get(key) ?? {},
+      byL1: {},
       cumulativePercent: percent(cumulative, total),
     };
   });
 
   const top5 = rows.slice(0, 5).reduce((sum, row) => sum + row.totalValue, 0);
-  return { rows, top5Percent: percent(top5, total), allL1 };
+  return { rows, top5Percent: percent(top5, total), allL1: [] };
+}
+
+/**
+ * Supplier-grain "Detailed Report" (SAP Spend Control Tower's own name for
+ * this widget) — spend/plants/categories come from POs, invoices are counted
+ * from fact_invoices rather than reused from the PO count.
+ */
+async function loadSupplierDetailReport(runner: QueryRunner): Promise<SupplierDetailRow[]> {
+  const [poRows, invoiceRows] = await Promise.all([
+    runner.run(
+      grouped({
+        datasetId: PO_ITEMS_DATASET,
+        dimensions: ["vendor_name"],
+        measures: {
+          [VALUE]: ["net_order_value_inr", "sum"],
+          [PLANTS]: ["plant_code", "distinct"],
+          [CATEGORIES]: ["category_l1_name", "distinct"],
+        },
+        sortBy: VALUE,
+        limit: SUPPLIER_ROW_LIMIT,
+      })
+    ),
+    runner.run(
+      grouped({
+        datasetId: INVOICES_DATASET,
+        dimensions: ["vendor_name"],
+        measures: { docs: ["invoice_number", "distinct"] },
+        limit: SUPPLIER_ROW_LIMIT,
+      })
+    ),
+  ]);
+
+  const rows = new Map<string, SupplierDetailRow>();
+  for (const row of poRows) {
+    const supplierName = toLabel(row.vendor_name);
+    rows.set(supplierName, {
+      key: supplierName,
+      supplierName,
+      invoices: 0,
+      plants: toNumber(row[PLANTS]),
+      categories: toNumber(row[CATEGORIES]),
+      products: null,
+      spendInr: round2(toNumber(row[VALUE])),
+    });
+  }
+  for (const row of invoiceRows) {
+    const supplierName = toLabel(row.vendor_name);
+    const existing = rows.get(supplierName);
+    if (existing) existing.invoices = toNumber(row.docs);
+    else {
+      rows.set(supplierName, {
+        key: supplierName,
+        supplierName,
+        invoices: toNumber(row.docs),
+        plants: 0,
+        categories: 0,
+        products: null,
+        spendInr: 0,
+      });
+    }
+  }
+
+  return Array.from(rows.values()).sort((a, b) => b.spendInr - a.spendInr);
 }
 
 async function loadTrend(runner: QueryRunner): Promise<{ trend: MonthlyTrendPoint[]; spikes: SpikeMarker[] }> {
@@ -377,7 +477,7 @@ function buildInsight(kpis: HeadlineKpis, metricsRows: MetricsTableRow[], buSpen
     parts.push(`${topCategory.category} dominates at ${Math.round(topCategory.percentOfTotal)}% of total spend.`);
   }
   if (topBu) {
-    parts.push(`${topBu.plantName} is the highest-spending BU at ${crore(topBu.total)}.`);
+    parts.push(`${topBu.plantName} is the highest-spending business unit at ${crore(topBu.total)}.`);
   }
   parts.push(`Off-contract spend is ${Math.round(kpis.offContractPercent)}%.`);
   return parts.join(" ");
@@ -395,11 +495,12 @@ export async function loadSpendOverviewFromProvider(
   const { kpis, total } = await loadKpis(runner);
   if (total <= 0 && kpis.poCount === 0) return null;
 
-  const [categories, topSuppliers, trendData, buData] = await Promise.all([
+  const [categories, topSuppliers, trendData, buData, supplierDetailRows] = await Promise.all([
     loadCategories(runner),
     loadTopSuppliers(runner, total),
     loadTrend(runner),
     loadBuSpend(runner, total),
+    loadSupplierDetailReport(runner),
   ]);
 
   const metricsRows = buildMetricsRows(categories, total);
@@ -407,7 +508,7 @@ export async function loadSpendOverviewFromProvider(
   return {
     kpis,
     insightText: buildInsight(kpis, metricsRows, buData.buSpend),
-    treemapNodes: buildTreemap(categories, total),
+    treemapNodes: buildTreemap(categories, total, kpis.activeSupplierCount, kpis.poCount),
     topSuppliers,
     trend: trendData.trend,
     spikes: trendData.spikes,
@@ -415,5 +516,6 @@ export async function loadSpendOverviewFromProvider(
     sunburstNodes: buildSunburst(categories),
     plantNameToCode: buData.plantNameToCode,
     metricsRows,
+    supplierDetailRows,
   };
 }

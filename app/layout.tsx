@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { Inter, Geist } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
-import { DashboardShell } from "@/components/layout/dashboard-shell";
+import { AppShellGate } from "@/components/layout/app-shell-gate";
 import { DatasetsProvider } from "@/context/DatasetsContext";
 import { ThresholdsProvider } from "@/context/ThresholdsContext";
-import { AiAssistant } from "@/components/ai-assistant/AiAssistant";
+import { DashboardActiveFiltersProvider } from "@/context/DashboardActiveFiltersContext";
+import { ExportCaptureProvider } from "@/context/ExportCaptureContext";
 import { DashboardAssistant } from "@/components/ai-assistant/DashboardAssistant";
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -32,9 +33,12 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
           <DatasetsProvider>
             <ThresholdsProvider>
-              <DashboardShell>{children}</DashboardShell>
-              <AiAssistant />
-              <DashboardAssistant />
+              <DashboardActiveFiltersProvider>
+                <ExportCaptureProvider>
+                  <AppShellGate>{children}</AppShellGate>
+                  <DashboardAssistant />
+                </ExportCaptureProvider>
+              </DashboardActiveFiltersProvider>
             </ThresholdsProvider>
           </DatasetsProvider>
         </ThemeProvider>

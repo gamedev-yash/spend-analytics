@@ -40,16 +40,6 @@ export const THRESHOLD_PRESETS: Record<string, ThresholdConfig[]> = {
   ],
   "spend-overview": [
     {
-      id: "spend-overview.off-contract",
-      metricKey: "offContractPercent",
-      label: "Off-Contract Spend",
-      targetValue: 25,
-      operator: "lte",
-      sentiment: "lower_is_better",
-      unit: "percent",
-      description: "Red warning when off-contract (maverick) spend exceeds this share.",
-    },
-    {
       id: "spend-overview.yoy-growth",
       metricKey: "yoyChangePercent",
       label: "YoY Spend Growth",
@@ -60,26 +50,30 @@ export const THRESHOLD_PRESETS: Record<string, ThresholdConfig[]> = {
       description: "Cost-control lens: spend growing year-over-year needs attention.",
     },
   ],
+  compliance: [
+    {
+      id: "compliance.unmanaged-spend",
+      metricKey: "unmanagedSpendPercent",
+      label: "Unmanaged Spend",
+      targetValue: 25,
+      operator: "lte",
+      sentiment: "lower_is_better",
+      unit: "percent",
+      description: "Red warning when unmanaged (off-PO + off-contract, maverick) spend exceeds this share.",
+    },
+  ],
   "payment-terms": [
     {
       id: "payment-terms.avg-paid-days",
       metricKey: "avgPaidDays",
       label: "Average Paid Days (DPO)",
       targetValue: 45,
-      operator: "gte",
+      upperBound: 60,
+      operator: "between",
       sentiment: "higher_is_better",
       unit: "days",
-      description: "Working-capital lens: paying no faster than this DPO target.",
-    },
-    {
-      id: "payment-terms.terms-adherence",
-      metricKey: "standardTermsAdherencePercent",
-      label: "Standard Terms Adherence",
-      targetValue: 80,
-      operator: "gte",
-      sentiment: "higher_is_better",
-      unit: "percent",
-      description: "Share of invoices carrying a standard payment term.",
+      description:
+        "Working-capital lens: paying no faster than the lower bound (wastes working capital) and no slower than the upper bound (strains supplier relationships).",
     },
   ],
   "supplier-fragmentation": [
@@ -102,6 +96,20 @@ export const THRESHOLD_PRESETS: Record<string, ThresholdConfig[]> = {
       sentiment: "lower_is_better",
       unit: "percent",
       description: "Share of spend concentrated in the top 10 suppliers.",
+    },
+  ],
+  "single-source-risk": [
+    {
+      id: "single-source-risk.category-count",
+      metricKey: "categoryCount",
+      label: "At-Risk Categories",
+      targetValue: 0,
+      upperBound: 12,
+      operator: "between",
+      sentiment: "lower_is_better",
+      unit: "count",
+      description:
+        "Flags when the count of categories at or below the selected \"Number of Suppliers per Category\" threshold falls outside this range — in practice, above the upper bound, since fewer at-risk categories is always better.",
     },
   ],
 };

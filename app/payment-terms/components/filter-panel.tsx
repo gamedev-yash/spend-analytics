@@ -2,13 +2,11 @@
 
 import { useMemo } from "react";
 import { X } from "lucide-react";
-import { FilterGroup, FilterSelect } from "@/components/ui/filter-controls";
-import { CustomizeViewDrawer } from "@/components/dashboard/customize-view-drawer";
+import { ClearFiltersButton, FilterDateRange, FilterGroup } from "@/components/ui/filter-controls";
+import { MultiSelect } from "@/components/sap/multi-select";
+import { ThresholdSettings } from "@/components/dashboard/threshold-settings";
 import { useFilterSlot } from "@/context/FilterContext";
 import { usePaymentTerms } from "../provider";
-import { formatMonthLabel } from "../constants";
-import { PT_WIDGET_GROUPS } from "./focusParams";
-import { usePaymentTermsFocus } from "./usePaymentTermsFocus";
 import type { LinkedDimension } from "../types";
 
 const DIMENSION_LABELS: Record<LinkedDimension, string> = {
@@ -26,14 +24,17 @@ export function FilterPanel() {
   const {
     filters,
     selection,
-    setEndMonth,
-    setCategory,
-    setGlobalUltimate,
-    setSourceSystem,
-    setPlant,
-    setPaymentTerm,
+    setDateFrom,
+    setDateTo,
+    setCategories,
+    setGlobalUltimates,
+    setSourceSystems,
+    setPlants,
+    setPaymentTerms,
     clearSelection,
-    endMonthOptions,
+    resetFilters,
+    dateMin,
+    dateMax,
     categoryOptions,
     globalUltimateOptions,
     sourceSystemOptions,
@@ -41,57 +42,65 @@ export function FilterPanel() {
     paymentTermOptions,
   } = usePaymentTerms();
 
-  const { isWidgetEnabled, toggleWidgetEnabled, resetWidgetsToDefault } = usePaymentTermsFocus();
+  const hasActiveFilters =
+    filters.categoryCodes.length > 0 ||
+    filters.globalUltimateIds.length > 0 ||
+    filters.sourceSystemIds.length > 0 ||
+    filters.plantIds.length > 0 ||
+    filters.paymentTermCodes.length > 0;
 
   const node = useMemo(
     () => (
       <div className="space-y-8">
-        <FilterGroup title="Global Filters">
-          <FilterSelect
-            label="Date Range"
-            value={filters.endMonth}
-            options={endMonthOptions.map((m) => ({ value: m, label: formatMonthLabel(m) }))}
-            onChange={setEndMonth}
+        <FilterGroup title="Filters">
+          <FilterDateRange
+            fromValue={filters.dateFrom}
+            toValue={filters.dateTo}
+            min={dateMin}
+            max={dateMax}
+            onFromChange={setDateFrom}
+            onToChange={setDateTo}
           />
-          <FilterSelect
-            label="Category L1"
-            value={filters.categoryCode ?? ""}
-            options={[{ value: "", label: "All Categories" }, ...categoryOptions]}
-            onChange={(value) => setCategory(value === "" ? null : value)}
+          <MultiSelect
+            label="Category"
+            allLabel="All Categories"
+            options={categoryOptions}
+            selected={filters.categoryCodes}
+            onChange={setCategories}
           />
-          <FilterSelect
-            label="Supplier (Global Ultimate)"
-            value={filters.globalUltimateId ?? ""}
-            options={[{ value: "", label: "All Suppliers" }, ...globalUltimateOptions]}
-            onChange={(value) => setGlobalUltimate(value === "" ? null : value)}
+          <MultiSelect
+            label="Supplier"
+            allLabel="All Suppliers"
+            options={globalUltimateOptions}
+            selected={filters.globalUltimateIds}
+            onChange={setGlobalUltimates}
           />
-          <FilterSelect
+          <MultiSelect
             label="Source System"
-            value={filters.sourceSystemId ?? ""}
-            options={[{ value: "", label: "All Source Systems" }, ...sourceSystemOptions]}
-            onChange={(value) => setSourceSystem(value === "" ? null : value)}
+            allLabel="All Source Systems"
+            options={sourceSystemOptions}
+            selected={filters.sourceSystemIds}
+            onChange={setSourceSystems}
           />
-          <FilterSelect
-            label="Plant / Site"
-            value={filters.plantId ?? ""}
-            options={[{ value: "", label: "All Plants" }, ...plantOptions]}
-            onChange={(value) => setPlant(value === "" ? null : value)}
+          <MultiSelect
+            label="Business Unit / Plant"
+            allLabel="All Plants"
+            options={plantOptions}
+            selected={filters.plantIds}
+            onChange={setPlants}
           />
+          <MultiSelect
+            label="Payment Term"
+            allLabel="All Payment Terms"
+            options={paymentTermOptions}
+            selected={filters.paymentTermCodes}
+            onChange={setPaymentTerms}
+          />
+          {hasActiveFilters && <ClearFiltersButton onClick={resetFilters} />}
         </FilterGroup>
 
         <FilterGroup title="Page Options">
-          <CustomizeViewDrawer
-            groups={PT_WIDGET_GROUPS}
-            isWidgetEnabled={isWidgetEnabled}
-            onToggleWidgetEnabled={toggleWidgetEnabled}
-            onResetToDefault={resetWidgetsToDefault}
-          />
-          <FilterSelect
-            label="Payment Term"
-            value={filters.paymentTermCode ?? ""}
-            options={[{ value: "", label: "All Payment Terms" }, ...paymentTermOptions]}
-            onChange={(value) => setPaymentTerm(value === "" ? null : value)}
-          />
+          <ThresholdSettings pageKey="payment-terms" className="w-full justify-center" />
         </FilterGroup>
 
         {selection && (
@@ -114,22 +123,23 @@ export function FilterPanel() {
     [
       filters,
       selection,
-      endMonthOptions,
+      hasActiveFilters,
+      dateMin,
+      dateMax,
       categoryOptions,
       globalUltimateOptions,
       sourceSystemOptions,
       plantOptions,
       paymentTermOptions,
-      setEndMonth,
-      setCategory,
-      setGlobalUltimate,
-      setSourceSystem,
-      setPlant,
-      setPaymentTerm,
+      setDateFrom,
+      setDateTo,
+      setCategories,
+      setGlobalUltimates,
+      setSourceSystems,
+      setPlants,
+      setPaymentTerms,
+      resetFilters,
       clearSelection,
-      isWidgetEnabled,
-      toggleWidgetEnabled,
-      resetWidgetsToDefault,
     ]
   );
 

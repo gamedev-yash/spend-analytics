@@ -4,7 +4,9 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import type { SupplierSpendRank } from "../tailSpendMock";
 import { formatINR } from "../tailSpendMock";
 import { useTailSpendTheme } from "../theme";
+import { usePalette } from "@/hooks/use-palette";
 import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
+import { useIsFullscreenChart } from "@/components/dashboard/fullscreen-overlay";
 
 interface SupplierSpendRankChartProps {
   suppliers: SupplierSpendRank[];
@@ -16,16 +18,24 @@ interface SupplierSpendRankChartProps {
  */
 export function SupplierSpendRankChart({ suppliers }: SupplierSpendRankChartProps) {
   const theme = useTailSpendTheme();
+  const palette = usePalette();
+  const isFullscreen = useIsFullscreenChart();
   const sorted = [...suppliers].sort((a, b) => b.totalSpend - a.totalSpend).slice(0, 10);
 
   return (
-    <ResponsiveContainer width="100%" height={280}>
+    <ResponsiveContainer width="100%" height={isFullscreen ? "100%" : 280}>
       <BarChart
         data={sorted}
         layout="vertical"
         margin={{ top: 8, right: 24, bottom: 8, left: 8 }}
         barCategoryGap="24%"
       >
+        <defs>
+          <linearGradient id="grad-supplierSpendRank" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={theme.paretoBarColor} stopOpacity={0.95} />
+            <stop offset="95%" stopColor={theme.paretoBarColor} stopOpacity={0.25} />
+          </linearGradient>
+        </defs>
         <CartesianGrid horizontal={false} stroke={theme.gridline} />
         <XAxis
           type="number"
@@ -56,7 +66,12 @@ export function SupplierSpendRankChart({ suppliers }: SupplierSpendRankChartProp
           }}
           cursor={{ fill: theme.tooltipCursorFill }}
         />
-        <Bar dataKey="totalSpend" name="Total Spend" fill={theme.paretoBarColor} radius={[0, 4, 4, 0]} maxBarSize={20} />
+        <Bar
+          dataKey="totalSpend"
+          name="Total Spend"
+          fill={palette.isDark ? "url(#grad-supplierSpendRank)" : theme.paretoBarColor}
+          radius={[0, 4, 4, 0]}
+        />
       </BarChart>
     </ResponsiveContainer>
   );

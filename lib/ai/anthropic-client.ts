@@ -1,9 +1,6 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 
-/** Default Claude model, used when no Azure Foundry deployment name is configured. */
-export const DEFAULT_MODEL = "claude-opus-5";
-
 export interface ResolvedClient {
   client: Anthropic;
   model: string;
@@ -12,10 +9,17 @@ export interface ResolvedClient {
 /**
  * Azure AI Foundry (AZURE_FOUNDRY_*) and a direct Anthropic key are both
  * supported. Foundry's Claude deployments speak the Anthropic Messages API
- * over a resource-specific baseURL, but route by deployment name (not
- * DEFAULT_MODEL) and require an api-version query param — a direct
- * Anthropic key needs neither. Shared by every AI-backed API route so the
- * key/endpoint/model resolution lives in exactly one place.
+ * over a resource-specific baseURL, but route by deployment name and require
+ * an api-version query param — a direct Anthropic key needs neither. Shared
+ * by every AI-backed API route so the key/endpoint/model resolution lives in
+ * exactly one place.
+ *
+ * The model is always read from the environment — there is no hardcoded
+ * fallback model anywhere in this app. Set AZURE_FOUNDRY_MODEL to your
+ * Foundry deployment name, or ANTHROPIC_MODEL to a public Anthropic model id
+ * (e.g. "claude-sonnet-5") when calling the API directly. If neither is set,
+ * resolution fails (same as a missing key) rather than silently picking a
+ * model you didn't configure.
  *
  * Precedence puts the pre-existing variables first, so adding AZURE_FOUNDRY_*
  * alongside a working AZURE_ANTHROPIC_API_KEY / AZURE_ENDPOINT deployment does
@@ -34,9 +38,11 @@ export function resolveAnthropicClient(): ResolvedClient | null {
     process.env.AZURE_FOUNDRY_API_KEY;
   if (!apiKey) return null;
 
+  const model = process.env.AZURE_FOUNDRY_MODEL || process.env.ANTHROPIC_MODEL;
+  if (!model) return null;
+
   const baseURL = process.env.AZURE_ENDPOINT || process.env.AZURE_FOUNDRY_ENDPOINT || undefined;
   const apiVersion = process.env.AZURE_FOUNDRY_API_VERSION;
-  const model = process.env.AZURE_FOUNDRY_MODEL || DEFAULT_MODEL;
 
   const client = new Anthropic({
     apiKey,
@@ -47,4 +53,4 @@ export function resolveAnthropicClient(): ResolvedClient | null {
 }
 
 export const NO_KEY_ERROR =
-  "The AI Assistant needs an API key. Set AZURE_FOUNDRY_API_KEY (with AZURE_FOUNDRY_ENDPOINT) or ANTHROPIC_API_KEY in the server environment, then restart the dev server.";
+  "The AI Assistant needs an API key and a model configured in the server environment, then a dev server restart. Set AZURE_FOUNDRY_API_KEY + AZURE_FOUNDRY_ENDPOINT + AZURE_FOUNDRY_MODEL for Azure AI Foundry, or ANTHROPIC_API_KEY + ANTHROPIC_MODEL for the direct Anthropic API.";

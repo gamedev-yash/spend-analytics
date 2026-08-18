@@ -12,8 +12,12 @@ export type ChartKind =
   | "groupedBar"
   | "line"
   | "area"
+  | "stackedArea"
   | "stackedBarWithTotalLine"
+  | "pareto"
   | "donut"
+  | "heatmap"
+  | "waterfall"
   | "table";
 
 export type Aggregation = "sum" | "avg" | "count" | "distinct" | "min" | "max";
@@ -40,6 +44,14 @@ export interface WidgetSpec {
   limit?: number;
   colSpan: 3 | 4 | 6 | 8 | 12;
   formatHint?: "currency" | "percent" | "count" | "number";
+  /**
+   * The widget planner's own judgement on whether this widget carries the
+   * dashboard's core story. `true` -> shown on the dashboard from the start;
+   * `false` -> generated but parked in the Add Widget catalog. Optional
+   * because dashboards generated before this field existed don't carry it —
+   * see lib/generated-dashboard/select-initial.ts for the fallback.
+   */
+  essential?: boolean;
 }
 
 export interface DashboardSection {
@@ -62,14 +74,35 @@ export interface DashboardPlan {
   excludedColumns: { name: string; reason: string }[];
 }
 
+/**
+ * Which branch of the data-source picker produced a dashboard: an uploaded
+ * CSV, or one of the platform's own spend tables.
+ */
+export type GeneratedDashboardSourceKind = "csv" | "spend";
+
 export interface GeneratedDashboard {
   id: string;
   title: string;
   createdAt: string;
+  /** The uploaded file's name, or the spend table's label — displayed as provenance. */
   sourceFileName: string;
+  /**
+   * Where `sourceFileName` points. Optional: dashboards stored before the
+   * data-source picker existed were all uploads, so an absent value reads as
+   * "csv".
+   */
+  sourceKind?: GeneratedDashboardSourceKind;
   profile: DatasetProfile;
   plan: DashboardPlan;
+  /** The widgets currently rendered on the dashboard. */
   widgets: WidgetSpec[];
+  /**
+   * Generated-but-not-shown widgets, offered through "Add Widget". A widget
+   * is in exactly one of `widgets`/`library` at a time — adding moves it
+   * across rather than copying it, so it can never be shown twice. Optional:
+   * dashboards stored before this feature have no catalog and read as [].
+   */
+  library?: WidgetSpec[];
   rows: Record<string, unknown>[];
   columns: string[];
 }
@@ -81,8 +114,12 @@ export const CHART_KIND_LABELS: Record<ChartKind, string> = {
   groupedBar: "Grouped Bar",
   line: "Line Chart",
   area: "Area Chart",
+  stackedArea: "Stacked Area",
   stackedBarWithTotalLine: "Stacked Bar (with trend)",
+  pareto: "Pareto Chart",
   donut: "Donut Chart",
+  heatmap: "Heatmap",
+  waterfall: "Waterfall",
   table: "Data Table",
 };
 

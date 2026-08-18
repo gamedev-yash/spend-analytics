@@ -16,35 +16,71 @@ const UNIT_STEP: Record<NonNullable<ThresholdConfig["unit"]> | "default", number
   default: 1,
 };
 
-function ThresholdRow({
-  config,
+/**
+ * Number input with a local draft, so typing doesn't fight the controlled
+ * value. Re-derives when `value` changes externally (e.g. the page's own
+ * slider moved it) via the setState-during-render "derived state" pattern —
+ * no effects.
+ */
+function BoundInput({
+  id,
+  value,
+  step,
+  ariaLabel,
   onCommit,
 }: {
-  config: ThresholdConfig;
+  id: string;
+  value: number;
+  step: number;
+  ariaLabel: string;
   onCommit: (value: number) => void;
 }) {
-  // Local draft so typing doesn't fight the controlled value; re-derived when
-  // the config changes externally (e.g. the page's own slider moved it) via
-  // the setState-during-render "derived state" pattern — no effects.
-  const [draft, setDraft] = useState(String(config.targetValue));
-  const [lastTarget, setLastTarget] = useState(config.targetValue);
-  if (config.targetValue !== lastTarget) {
-    setLastTarget(config.targetValue);
-    setDraft(String(config.targetValue));
+  const [draft, setDraft] = useState(String(value));
+  const [lastValue, setLastValue] = useState(value);
+  if (value !== lastValue) {
+    setLastValue(value);
+    setDraft(String(value));
   }
 
   function handleChange(raw: string) {
     setDraft(raw);
     if (raw.trim() === "") return;
-    const value = Number(raw);
-    if (Number.isFinite(value)) onCommit(value);
+    const next = Number(raw);
+    if (Number.isFinite(next)) onCommit(next);
   }
+
+  return (
+    <input
+      id={id}
+      type="number"
+      value={draft}
+      step={step}
+      aria-label={ariaLabel}
+      onChange={(e) => handleChange(e.target.value)}
+      className="w-full min-w-0 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm tabular-nums text-slate-700 shadow-sm focus:outline-none focus:ring-1 focus:ring-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:ring-slate-500"
+    />
+  );
+}
+
+function ThresholdRow({
+  config,
+  onCommitTarget,
+  onCommitUpperBound,
+}: {
+  config: ThresholdConfig;
+  onCommitTarget: (value: number) => void;
+  onCommitUpperBound: (value: number) => void;
+}) {
+  const step = UNIT_STEP[config.unit ?? "default"];
+  // A 'between' target owns two bounds — the value has to clear the lower one
+  // AND stay under the upper one to count as on target.
+  const isRange = config.operator === "between";
 
   return (
     <div className="space-y-1">
       <div className="flex items-baseline justify-between gap-2">
         <label
-          htmlFor={`threshold-${config.id}`}
+          htmlFor={`target-${config.id}`}
           className="text-xs font-medium text-slate-700 dark:text-slate-200"
           title={config.description}
         >
@@ -54,30 +90,54 @@ function ThresholdRow({
           target {thresholdConditionLabel(config)}
         </span>
       </div>
-      <div className="flex items-center gap-2">
-        <input
-          id={`threshold-${config.id}`}
-          type="number"
-          value={draft}
-          step={UNIT_STEP[config.unit ?? "default"]}
-          onChange={(e) => handleChange(e.target.value)}
-          className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm tabular-nums text-slate-700 shadow-sm focus:outline-none focus:ring-1 focus:ring-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:ring-slate-500"
-        />
-        <span className="w-20 shrink-0 text-right text-[11px] tabular-nums text-slate-500 dark:text-slate-400">
-          {formatThresholdValue(config.targetValue, config.unit)}
-        </span>
-      </div>
+      {isRange ? (
+        <div className="flex items-center gap-1.5">
+          <BoundInput
+            id={`target-${config.id}`}
+            value={config.targetValue}
+            step={step}
+            ariaLabel={`${config.label} — at least`}
+            onCommit={onCommitTarget}
+          />
+          <span className="shrink-0 text-[11px] text-slate-400 dark:text-slate-500">to</span>
+          <BoundInput
+            id={`target-${config.id}-upper`}
+            value={config.upperBound ?? config.targetValue}
+            step={step}
+            ariaLabel={`${config.label} — at most`}
+            onCommit={onCommitUpperBound}
+          />
+        </div>
+      ) : (
+        <div className="flex items-center gap-2">
+          <BoundInput
+            id={`target-${config.id}`}
+            value={config.targetValue}
+            step={step}
+            ariaLabel={config.label}
+            onCommit={onCommitTarget}
+          />
+          <span className="w-20 shrink-0 text-right text-[11px] tabular-nums text-slate-500 dark:text-slate-400">
+            {formatThresholdValue(config.targetValue, config.unit)}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
 
 /**
- * "Thresholds" popover for a page's alert targets. Edits apply live —
+ * "Target" popover for a page's alert targets. Edits apply live —
  * every KPI badge, chart accent, and table pill re-evaluates immediately —
  * and persist to localStorage['app_thresholds'] via ThresholdsContext.
+ *
+ * Every call site is now the left filter sidebar's "Page Options" group, so
+ * pass `className="w-full justify-center"` to match the full-bleed controls
+ * beside it — the trigger is `inline-flex` and would otherwise shrink to fit.
  */
 export function ThresholdSettings({ pageKey, className }: { pageKey: string; className?: string }) {
-  const { thresholdsForPage, setTargetValue, resetPage, pageHasOverrides } = useThresholds();
+  const { thresholdsForPage, setTargetValue, setUpperBound, resetPage, pageHasOverrides } =
+    useThresholds();
   const thresholds = thresholdsForPage(pageKey);
   const dirty = pageHasOverrides(pageKey);
 
@@ -90,16 +150,24 @@ export function ThresholdSettings({ pageKey, className }: { pageKey: string; cla
           "relative inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100",
           className
         )}
-        title="Adjust alert thresholds for this dashboard"
+        title="Adjust alert targets for this dashboard"
       >
         <SlidersHorizontal className="h-3.5 w-3.5" />
-        Thresholds
+        Target
         {dirty && <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-amber-500" />}
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-3">
+      {/*
+        align="start" (not "end") because the trigger now lives in the left
+        sidebar: end-alignment pins the popup's right edge to the trigger's,
+        pushing a 320px popup off the left of the viewport until the shift
+        middleware claws it back, at which point it no longer tracks the
+        trigger. Same reason MultiSelect uses start alignment in this column.
+        The popup is portaled, so overhanging the 280px column is fine.
+      */}
+      <PopoverContent align="start" className="w-80 p-3">
         <div className="flex items-center justify-between gap-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            Alert thresholds
+            Alert targets
           </p>
           <button
             type="button"
@@ -117,7 +185,8 @@ export function ThresholdSettings({ pageKey, className }: { pageKey: string; cla
             <ThresholdRow
               key={config.id}
               config={config}
-              onCommit={(value) => setTargetValue(config.id, value)}
+              onCommitTarget={(value) => setTargetValue(config.id, value)}
+              onCommitUpperBound={(value) => setUpperBound(config.id, value)}
             />
           ))}
         </div>

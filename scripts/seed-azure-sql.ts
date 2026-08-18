@@ -14,18 +14,11 @@
 // ---------------------------------------------------------------------------
 // Source availability
 //
-// Three tables named in the star schema have no CSV of their own; they are
-// derived from the SAP JSON extracts the CSVs were generated from:
-//
-//   dim_plant, dim_company   ← data/sap/dimPlant.json (carries company_code)
-//   dim_material_category    ← data/sap/dimCategory.json (carries L1/L2 names;
-//                              dim_material.csv has only the group code)
-//
-// And fact_po_items has no fact_po_items.csv — spend-overview.csv is that
-// grain (one row per PO line item, 20 columns incl. is_deleted and
-// contract_number). SOURCES below prefers a real CSV wherever one appears
-// later, so dropping fact_po_items.csv into public/sample-data/ takes over
-// without a code change.
+// Every dimension and fact below reads straight from its canonical
+// public/sample-data/*.csv (see lib/server/metadata-registry.ts for the same
+// ten tables' column definitions) — dim_plant carries company_code,
+// dim_category carries L1/L2 names, and fact_po_items is its own file, so no
+// JSON-extract fallback is needed for any of them.
 // ---------------------------------------------------------------------------
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -63,19 +56,10 @@ interface SourceSpec {
 const SOURCES: Record<string, SourceSpec> = {
   vendors: { candidates: ["public/sample-data/dim_vendor.csv"] },
   materials: { candidates: ["public/sample-data/dim_material.csv"] },
-  categories: {
-    candidates: ["public/sample-data/dim_category.csv", "data/sap/dimCategory.json"],
-    note: "no dim_category.csv — dim_material.csv carries the group code but not the L1/L2 names",
-  },
-  plants: {
-    candidates: ["public/sample-data/dim_plant.csv", "data/sap/dimPlant.json"],
-    note: "no dim_plant.csv — dimPlant.json is also the only source of company_code",
-  },
-  paymentTerms: { candidates: ["public/sample-data/payment-terms.csv"] },
-  poItems: {
-    candidates: ["public/sample-data/fact_po_items.csv", "public/sample-data/spend-overview.csv"],
-    note: "no fact_po_items.csv — spend-overview.csv is the PO line-item grain",
-  },
+  categories: { candidates: ["public/sample-data/dim_category.csv"] },
+  plants: { candidates: ["public/sample-data/dim_plant.csv"] },
+  paymentTerms: { candidates: ["public/sample-data/dim_payment_terms.csv"] },
+  poItems: { candidates: ["public/sample-data/fact_po_items.csv"] },
   invoices: { candidates: ["public/sample-data/fact_invoices.csv"] },
 };
 
@@ -247,12 +231,16 @@ function buildVendors(rows: Row[]): VendorDim[] {
     if (!vendorId || seen.has(vendorId)) continue;
     seen.add(vendorId);
     const group = text(row.parent_company_group);
+    // "IND-<own vendor_id>" is this extract's placeholder for "no group" (a
+    // vendor that is its own ultimate parent) — same convention
+    // sample-data-source.ts and lib/sap/raw-data.ts filter for.
+    const isSelfPlaceholder = group === `IND-${vendorId}`;
     out.push({
       vendorKey: out.length + 1,
       vendorId,
       vendorName: text(row.vendor_name) || vendorId,
-      parentGroupKey: group || null,
-      parentCompanyName: group ? humanizeGroupName(group) : null,
+      parentGroupKey: group && !isSelfPlaceholder ? group : null,
+      parentCompanyName: group && !isSelfPlaceholder ? humanizeGroupName(group) : null,
       country: text(row.country) || null,
       city: text(row.city) || null,
       // Not present in the supplier extract; left NULL rather than fabricated.
@@ -349,49 +337,25 @@ interface PaymentTermDim {
   discountPercent: number | null;
 }
 
-/**
- * Payment terms from two vocabularies: the invoice extract's business codes
- * (NET45, D2N10N45, EOM60) and the supplier master's SAP keys (ZN30…ZN90).
- * Both must exist, because invoices inherit their term from the vendor.
- */
-function buildPaymentTerms(invoiceRows: Row[], vendors: VendorDim[]): PaymentTermDim[] {
+/** dim_payment_terms.csv is already this dimension's exact grain — one row per term code, discount fields included. */
+function buildPaymentTerms(rows: Row[]): PaymentTermDim[] {
   const out: PaymentTermDim[] = [];
   const seen = new Set<string>();
 
-  for (const row of invoiceRows) {
-    const termCode = text(row.payment_term_code);
+  for (const row of rows) {
+    const termCode = text(row.payment_term_key);
     if (!termCode || seen.has(termCode)) continue;
     seen.add(termCode);
-    const description = text(row.payment_term_name) || termCode;
-    const nominal = text(row.nominal_days);
-    // Early-settlement terms only: "D2N10N45" → 2% if paid within 10 days.
-    // RET10N60 ("10% retention") and ADV5050 ("50% advance") are not discounts.
-    const discountCode = /^D\d+N(\d+)N\d+$/.exec(termCode);
-    const discountText = /^([\d.]+)\s*%\s*(\d+)\s+net/i.exec(description);
+    const netDays = text(row.net_days);
+    const discountDays = text(row.discount_days_1);
+    const discountPercent = text(row.discount_percent_1);
     out.push({
       paymentTermKey: out.length + 1,
       termCode,
-      description,
-      netDueDays: nominal === "" ? null : num(nominal),
-      discountDays: discountCode ? Number(discountCode[1]) : null,
-      discountPercent: discountCode && discountText ? round(Number(discountText[1]), 2) : null,
-    });
-  }
-
-  // ZN60 → "Net 60 days". Added after the business codes so the invoice
-  // extract keeps the lower keys.
-  for (const vendor of vendors) {
-    const termCode = vendor.paymentTermsKey;
-    if (!termCode || seen.has(termCode)) continue;
-    seen.add(termCode);
-    const days = /(\d+)/.exec(termCode);
-    out.push({
-      paymentTermKey: out.length + 1,
-      termCode,
-      description: days ? `Net ${days[1]} days` : termCode,
-      netDueDays: days ? Number(days[1]) : null,
-      discountDays: null,
-      discountPercent: null,
+      description: text(row.payment_term_description) || termCode,
+      netDueDays: netDays === "" ? null : num(netDays),
+      discountDays: discountDays === "" ? null : num(discountDays),
+      discountPercent: discountPercent === "" ? null : round(num(discountPercent), 2),
     });
   }
 
@@ -697,7 +661,7 @@ function load(): Loaded {
   const vendors = buildVendors(readSource("vendors"));
   const categories = buildCategories(readSource("categories"));
   const { plants, companies } = buildPlantsAndCompanies(readSource("plants"));
-  const paymentTerms = buildPaymentTerms(readSource("paymentTerms"), vendors);
+  const paymentTerms = buildPaymentTerms(readSource("paymentTerms"));
   const dates = buildDateDimension(DATE_FROM, DATE_TO);
 
   const categoryKey = new Map(categories.map((c) => [c.materialGroupId, c.categoryKey]));

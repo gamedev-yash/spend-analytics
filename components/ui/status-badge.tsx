@@ -3,9 +3,9 @@ import { cn } from "@/lib/utils";
 
 /** Pill + dot classes per status — the single source for status colors. */
 export const STATUS_PILL_CLASS: Record<ThresholdStatus, string> = {
-  success: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-  warning: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-  danger: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+  success: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20",
+  warning: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20",
+  danger: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20",
 };
 
 export const STATUS_DOT_CLASS: Record<ThresholdStatus, string> = {

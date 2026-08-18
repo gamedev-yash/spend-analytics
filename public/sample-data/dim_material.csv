@@ -1,601 +1,2157 @@
 material_number,material_description,material_type,category_code
-00200001,Frother MIBC - Spec B64,HIBE,M030
-00200002,Rail Freight Wagon Booking - Spec C71,DIEN,M042
-00200003,Civil Foundation Works - Spec D84,DIEN,M026
-00200004,AC Motor 75kW Spares - Spec E29,ERSA,M007
-00200005,Site Security Service - Spec F14,DIEN,M024
-00200006,Structural Steel Section - Spec A98,HIBE,M052
-00200007,Mechanical Seal Type 21 - Spec B24,ERSA,M011
-00200008,Shutdown Maintenance Contract - Spec C43,DIEN,M026
-00200009,Shutdown Maintenance Contract - Spec D84,DIEN,M022
-00200010,Conveyor Idler Roller - Spec E40,ERSA,M009
-00200011,Ocean Freight Forwarding - Spec F26,DIEN,M042
-00200012,Quick Lime CaO - Spec A58,HIBE,M029
-00200013,Zinc Concentrate 52% Zn - Spec B36,ROH,M001
-00200014,Grinding Media Ball 90mm - Spec C40,ERSA,M012
-00200015,Technical Consulting Engagement - Spec D71,DIEN,M026
-00200016,Mechanical Seal Type 21 - Spec E57,ERSA,M007
-00200017,Server Hardware Unit - Spec F63,HIBE,M044
-00200018,Gasket Set Spiral Wound - Spec A80,ERSA,M009
-00200019,AC Motor 75kW Spares - Spec B62,ERSA,M012
-00200020,Petroleum Coke (Calcined) - Spec C78,HIBE,M036
-00200021,Xanthate Collector SIBX - Spec D89,HIBE,M031
-00200022,Inbound Logistics Service - Spec E69,DIEN,M026
-00200023,Lead Concentrate 60% Pb - Spec F94,ROH,M003
-00200024,AC Motor 75kW Spares - Spec A24,ERSA,M012
-00200025,Iron Ore Fines 62% Fe - Spec B30,ROH,M003
-00200026,Bauxite Ore Grade A - Spec C26,ROH,M001
-00200027,Calcined Alumina - Spec D72,ROH,M002
-00200028,Road Transport Contract - Spec E38,DIEN,M040
-00200029,Ocean Freight Forwarding - Spec F39,DIEN,M039
-00200030,Ready Mix Concrete M30 - Spec A12,HIBE,M052
-00200031,Mechanical Seal Type 21 - Spec B37,ERSA,M007
-00200032,Rotary Drilling Rig - Spec C39,ERSA,M016
-00200033,Copper Concentrate 28% Cu - Spec D99,ROH,M004
-00200034,Copper Concentrate 28% Cu - Spec E91,ROH,M003
-00200035,Iron Ore Fines 62% Fe - Spec F26,ROH,M006
-00200036,Safety Helmet Class E - Spec A49,HIBE,M050
-00200037,Steel Toe Safety Boots - Spec B89,HIBE,M048
-00200038,AC Motor 75kW Spares - Spec C32,ERSA,M010
-00200039,Wooden Pallet Standard - Spec D84,HIBE,M064
-00200040,Furnace Oil - Spec E67,HIBE,M038
-00200041,Rotary Drilling Rig - Spec F15,ERSA,M018
-00200042,Xanthate Collector SIBX - Spec A28,HIBE,M029
-00200043,Gasket Set Spiral Wound - Spec B60,ERSA,M011
-00200044,Variable Frequency Drive 110kW - Spec C30,ERSA,M055
-00200045,Safety Helmet Class E - Spec D40,HIBE,M049
-00200046,Xanthate Collector SIBX - Spec E68,HIBE,M031
-00200047,Plant Housekeeping Service - Spec F52,DIEN,M025
-00200048,Flotation Cell Rotor - Spec A24,ERSA,M007
-00200049,AC Motor 75kW Spares - Spec B63,ERSA,M009
-00200050,Civil Foundation Works - Spec C57,DIEN,M025
-00200051,Iron Ore Fines 62% Fe - Spec D40,ROH,M006
-00200052,Server Hardware Unit - Spec E80,HIBE,M046
-00200053,Grinding Media Ball 90mm - Spec F15,ERSA,M013
-00200054,Zinc Concentrate 52% Zn - Spec A21,ROH,M003
-00200055,Copper Concentrate 28% Cu - Spec B32,ROH,M006
-00200056,Calcined Alumina - Spec C62,ROH,M003
-00200057,Natural Gas (PNG) - Spec D81,HIBE,M035
-00200058,Copper Concentrate 28% Cu - Spec E78,ROH,M004
-00200059,Ball Bearing 6205-2RS - Spec F73,ERSA,M010
-00200060,Port Handling Service - Spec A55,DIEN,M039
-00200061,High Speed Diesel - Spec B83,HIBE,M034
-00200062,High Speed Diesel - Spec C98,HIBE,M038
-00200063,Site Security Service - Spec D70,DIEN,M025
-00200064,Structural Steel Section - Spec E84,HIBE,M051
-00200065,Copper Concentrate 28% Cu - Spec F50,ROH,M001
-00200066,AC Motor 75kW Spares - Spec A99,ERSA,M009
-00200067,Technical Consulting Engagement - Spec B90,DIEN,M025
-00200068,Furnace Oil - Spec C98,HIBE,M036
-00200069,Xanthate Collector SIBX - Spec D17,HIBE,M032
-00200070,Lead Concentrate 60% Pb - Spec E26,ROH,M005
-00200071,Plant Housekeeping Service - Spec F55,DIEN,M021
-00200072,Petroleum Coke (Calcined) - Spec A30,HIBE,M033
-00200073,Xanthate Collector SIBX - Spec B15,HIBE,M030
-00200074,Quick Lime CaO - Spec C11,HIBE,M032
-00200075,SAG Mill Complete Unit - Spec D37,ERSA,M016
-00200076,Leased Line Telecom Service - Spec E71,HIBE,M043
-00200077,Copper Concentrate 28% Cu - Spec F97,ROH,M005
-00200078,Furnace Oil - Spec A52,HIBE,M037
-00200079,Rotary Drilling Rig - Spec B36,ERSA,M015
-00200080,Sulphuric Acid 98% - Spec C67,HIBE,M030
-00200081,Slurry Pump Impeller - Spec D38,ERSA,M009
-00200082,Iron Ore Fines 62% Fe - Spec E42,ROH,M003
-00200083,Ball Bearing 6205-2RS - Spec F92,ERSA,M008
-00200084,Thermal Coal Grade B - Spec A27,HIBE,M036
-00200085,Overland Conveyor System - Spec B72,ERSA,M017
-00200086,Network Switch Enterprise - Spec C92,HIBE,M044
-00200087,Lead Concentrate 60% Pb - Spec D94,ROH,M002
-00200088,Slurry Pump Impeller - Spec E14,ERSA,M011
-00200089,Control Valve Globe Type - Spec F64,ERSA,M059
-00200090,ERP Software License - Spec A77,HIBE,M045
-00200091,Flotation Cell Rotor - Spec B16,ERSA,M008
-00200092,Road Transport Contract - Spec C66,DIEN,M040
-00200093,Variable Frequency Drive 110kW - Spec D40,ERSA,M056
-00200094,Safety Helmet Class E - Spec E41,HIBE,M049
-00200095,Portable Gas Detector - Spec F62,HIBE,M048
-00200096,AC Motor 75kW Spares - Spec A32,ERSA,M008
-00200097,Grinding Media Ball 90mm - Spec B29,ERSA,M010
-00200098,Bauxite Ore Grade A - Spec C80,ROH,M006
-00200099,Road Transport Contract - Spec D13,DIEN,M042
-00200100,Zinc Concentrate 52% Zn - Spec E59,ROH,M006
-00200101,Plant Housekeeping Service - Spec F77,DIEN,M023
-00200102,Polyacrylamide Flocculant - Spec A43,HIBE,M029
-00200103,Bauxite Ore Grade A - Spec B18,ROH,M002
-00200104,Rail Freight Wagon Booking - Spec C31,DIEN,M041
-00200105,Quick Lime CaO - Spec D32,HIBE,M032
-00200106,Overland Conveyor System - Spec E70,ERSA,M017
-00200107,Road Transport Contract - Spec F95,DIEN,M039
-00200108,Rotary Drilling Rig - Spec A19,ERSA,M017
-00200109,Conveyor Idler Roller - Spec B49,ERSA,M011
-00200110,Fire Extinguisher CO2 Type - Spec C49,HIBE,M049
-00200111,Conveyor Idler Roller - Spec D70,ERSA,M010
-00200112,Server Hardware Unit - Spec E58,HIBE,M045
-00200113,High Speed Diesel - Spec F86,HIBE,M036
-00200114,Iron Ore Fines 62% Fe - Spec A34,ROH,M002
-00200115,Technical Consulting Engagement - Spec B73,DIEN,M023
-00200116,XLPE Power Cable 11kV - Spec C93,ERSA,M056
-00200117,Server Hardware Unit - Spec D87,HIBE,M044
-00200118,Rotary Drilling Rig - Spec E27,ERSA,M019
-00200119,Lead Concentrate 60% Pb - Spec F77,ROH,M005
-00200120,ERP Software License - Spec A67,HIBE,M045
-00200121,Natural Gas (PNG) - Spec B99,HIBE,M035
-00200122,Zinc Concentrate 52% Zn - Spec C23,ROH,M004
-00200123,Technical Consulting Engagement - Spec D46,DIEN,M026
-00200124,OPC 53 Grade Cement - Spec E95,HIBE,M053
-00200125,Distribution Transformer 500kVA - Spec F31,ERSA,M058
-00200126,XLPE Power Cable 11kV - Spec A20,ERSA,M057
-00200127,Iron Ore Fines 62% Fe - Spec B37,ROH,M005
-00200128,OPC 53 Grade Cement - Spec C96,HIBE,M054
-00200129,Frother MIBC - Spec D39,HIBE,M027
-00200130,HT Switchgear Panel - Spec E89,ERSA,M057
-00200131,Flotation Cell Rotor - Spec F77,ERSA,M014
-00200132,Safety Helmet Class E - Spec A15,HIBE,M048
-00200133,Ball Bearing 6205-2RS - Spec B11,ERSA,M008
-00200134,Gasket Set Spiral Wound - Spec C24,ERSA,M010
-00200135,Road Transport Contract - Spec D16,DIEN,M042
-00200136,Grinding Media Ball 90mm - Spec E29,ERSA,M014
-00200137,Grinding Media Ball 90mm - Spec F31,ERSA,M014
-00200138,PLC Rack Assembly - Spec A26,ERSA,M060
-00200139,Gasket Set Spiral Wound - Spec B49,ERSA,M014
-00200140,Port Handling Service - Spec C13,DIEN,M042
-00200141,Ocean Freight Forwarding - Spec D43,DIEN,M042
-00200142,Civil Foundation Works - Spec E82,DIEN,M021
-00200143,Copper Concentrate 28% Cu - Spec F62,ROH,M001
-00200144,Xanthate Collector SIBX - Spec A12,HIBE,M031
-00200145,Port Handling Service - Spec B90,DIEN,M039
-00200146,Mechanical Seal Type 21 - Spec C58,ERSA,M013
-00200147,Rotary Drilling Rig - Spec D32,ERSA,M016
-00200148,Site Security Service - Spec E88,DIEN,M022
-00200149,Portable Gas Detector - Spec F63,HIBE,M047
-00200150,Portable Gas Detector - Spec A56,HIBE,M050
-00200151,Calcined Alumina - Spec B76,ROH,M004
-00200152,Rotary Drilling Rig - Spec C22,ERSA,M016
-00200153,Ball Bearing 6205-2RS - Spec D13,ERSA,M009
-00200154,Steel Toe Safety Boots - Spec E29,HIBE,M047
-00200155,Lead Concentrate 60% Pb - Spec F54,ROH,M001
-00200156,Inbound Logistics Service - Spec A88,DIEN,M026
-00200157,Civil Construction Package - Spec B78,HIBE,M052
-00200158,Electricity Purchase Agreement - Spec C90,HIBE,M037
-00200159,Steel Drum 200L - Spec D29,HIBE,M064
-00200160,Zinc Concentrate 52% Zn - Spec E42,ROH,M006
-00200161,Iron Ore Fines 62% Fe - Spec F27,ROH,M001
-00200162,Electricity Purchase Agreement - Spec A20,HIBE,M037
-00200163,Conveyor Idler Roller - Spec B18,ERSA,M012
-00200164,Road Transport Contract - Spec C23,DIEN,M041
-00200165,Rail Freight Wagon Booking - Spec D41,DIEN,M041
-00200166,Road Transport Contract - Spec E65,DIEN,M040
-00200167,Zinc Concentrate 52% Zn - Spec F79,ROH,M001
-00200168,Iron Ore Fines 62% Fe - Spec A34,ROH,M006
-00200169,Quick Lime CaO - Spec B49,HIBE,M027
-00200170,Thermal Coal Grade B - Spec C44,HIBE,M035
-00200171,Portable Gas Detector - Spec D75,HIBE,M049
-00200172,Server Hardware Unit - Spec E16,HIBE,M043
-00200173,Lead Concentrate 60% Pb - Spec F85,ROH,M005
-00200174,Frother MIBC - Spec A28,HIBE,M027
-00200175,Grinding Media Ball 90mm - Spec B73,ERSA,M009
-00200176,XLPE Power Cable 11kV - Spec C98,ERSA,M055
-00200177,Copper Concentrate 28% Cu - Spec D78,ROH,M003
-00200178,Flotation Cell Rotor - Spec E94,ERSA,M009
-00200179,Electromagnetic Flow Meter - Spec F64,ERSA,M060
-00200180,Bauxite Ore Grade A - Spec A32,ROH,M002
-00200181,Petroleum Coke (Calcined) - Spec B64,HIBE,M036
-00200182,Ball Bearing 6205-2RS - Spec C55,ERSA,M014
-00200183,Slurry Pump Impeller - Spec D88,ERSA,M011
-00200184,Electricity Purchase Agreement - Spec E19,HIBE,M038
-00200185,Thermal Coal Grade B - Spec F96,HIBE,M033
-00200186,Slurry Pump Impeller - Spec A17,ERSA,M011
-00200187,Bauxite Ore Grade A - Spec B72,ROH,M005
-00200188,Electromagnetic Flow Meter - Spec C98,ERSA,M059
-00200189,Leased Line Telecom Service - Spec D99,HIBE,M045
-00200190,Civil Foundation Works - Spec E67,DIEN,M023
-00200191,Quick Lime CaO - Spec F75,HIBE,M028
-00200192,Grinding Media Ball 90mm - Spec A13,ERSA,M010
-00200193,Site Security Service - Spec B42,DIEN,M024
-00200194,AC Motor 75kW Spares - Spec C99,ERSA,M008
-00200195,Natural Gas (PNG) - Spec D44,HIBE,M034
-00200196,Leased Line Telecom Service - Spec E32,HIBE,M043
-00200197,Ocean Freight Forwarding - Spec F92,DIEN,M041
-00200198,Fire Extinguisher CO2 Type - Spec A75,HIBE,M050
-00200199,Conveyor Idler Roller - Spec B42,ERSA,M009
-00200200,Flotation Cell Rotor - Spec C42,ERSA,M014
-00200201,Gasket Set Spiral Wound - Spec D77,ERSA,M012
-00200202,Iron Ore Fines 62% Fe - Spec E56,ROH,M004
-00200203,HT Switchgear Panel - Spec F86,ERSA,M058
-00200204,Grinding Media Ball 90mm - Spec A68,ERSA,M012
-00200205,Natural Gas (PNG) - Spec B82,HIBE,M037
-00200206,Site Security Service - Spec C18,DIEN,M025
-00200207,Furnace Oil - Spec D56,HIBE,M037
-00200208,Rail Freight Wagon Booking - Spec E57,DIEN,M041
-00200209,Safety Helmet Class E - Spec F31,HIBE,M047
-00200210,Grinding Media Ball 90mm - Spec A30,ERSA,M011
-00200211,Road Transport Contract - Spec B70,DIEN,M042
-00200212,Online Process Analyzer - Spec C60,ERSA,M061
-00200213,Plant Housekeeping Service - Spec D34,DIEN,M022
-00200214,Control Valve Globe Type - Spec E47,ERSA,M062
-00200215,Rail Freight Wagon Booking - Spec F66,DIEN,M042
-00200216,Ocean Freight Forwarding - Spec A32,DIEN,M040
-00200217,Grinding Media Ball 90mm - Spec B33,ERSA,M007
-00200218,Server Hardware Unit - Spec C85,HIBE,M044
-00200219,Petroleum Coke (Calcined) - Spec D38,HIBE,M037
-00200220,Ball Bearing 6205-2RS - Spec E35,ERSA,M013
-00200221,Site Security Service - Spec F88,DIEN,M021
-00200222,Ocean Freight Forwarding - Spec A41,DIEN,M040
-00200223,Road Transport Contract - Spec B45,DIEN,M041
-00200224,Port Handling Service - Spec C63,DIEN,M039
-00200225,Furnace Oil - Spec D44,HIBE,M035
-00200226,Copper Concentrate 28% Cu - Spec E88,ROH,M001
-00200227,XLPE Power Cable 11kV - Spec F65,ERSA,M057
-00200228,Electricity Purchase Agreement - Spec A98,HIBE,M034
-00200229,Ocean Freight Forwarding - Spec B27,DIEN,M040
-00200230,Lead Concentrate 60% Pb - Spec C45,ROH,M003
-00200231,Electricity Purchase Agreement - Spec D65,HIBE,M035
-00200232,Steel Toe Safety Boots - Spec E70,HIBE,M047
-00200233,Steel Toe Safety Boots - Spec F18,HIBE,M049
-00200234,Iron Ore Fines 62% Fe - Spec A33,ROH,M004
-00200235,Control Valve Globe Type - Spec B63,ERSA,M062
-00200236,Ball Bearing 6205-2RS - Spec C52,ERSA,M010
-00200237,Petroleum Coke (Calcined) - Spec D98,HIBE,M037
-00200238,Calcined Alumina - Spec E94,ROH,M003
-00200239,Thermal Coal Grade B - Spec F24,HIBE,M033
-00200240,Ocean Freight Forwarding - Spec A50,DIEN,M041
-00200241,Thermal Coal Grade B - Spec B61,HIBE,M033
-00200242,Lead Concentrate 60% Pb - Spec C78,ROH,M004
-00200243,Electricity Purchase Agreement - Spec D92,HIBE,M036
-00200244,Zinc Concentrate 52% Zn - Spec E88,ROH,M002
-00200245,SAG Mill Complete Unit - Spec F61,ERSA,M020
-00200246,Inbound Logistics Service - Spec A46,DIEN,M024
-00200247,Road Transport Contract - Spec B20,DIEN,M042
-00200248,Port Handling Service - Spec C99,DIEN,M041
-00200249,Iron Ore Fines 62% Fe - Spec D30,ROH,M001
-00200250,Flotation Cell Rotor - Spec E18,ERSA,M009
-00200251,Ball Bearing 6205-2RS - Spec F23,ERSA,M012
-00200252,HT Switchgear Panel - Spec A63,ERSA,M055
-00200253,Inbound Logistics Service - Spec B19,DIEN,M021
-00200254,Ocean Freight Forwarding - Spec C54,DIEN,M040
-00200255,Distribution Transformer 500kVA - Spec D76,ERSA,M056
-00200256,Conveyor Idler Roller - Spec E69,ERSA,M010
-00200257,Reverberatory Furnace - Spec F16,ERSA,M015
-00200258,Port Handling Service - Spec A31,DIEN,M041
-00200259,Ocean Freight Forwarding - Spec B14,DIEN,M040
-00200260,Zinc Concentrate 52% Zn - Spec C86,ROH,M006
-00200261,Conveyor Idler Roller - Spec D63,ERSA,M011
-00200262,Bauxite Ore Grade A - Spec E59,ROH,M003
-00200263,Mechanical Seal Type 21 - Spec F70,ERSA,M008
-00200264,Slurry Pump Impeller - Spec A94,ERSA,M014
-00200265,Server Hardware Unit - Spec B59,HIBE,M043
-00200266,Steel Toe Safety Boots - Spec C16,HIBE,M050
-00200267,Roller Bearing 22218 - Spec D51,ERSA,M010
-00200268,Structural Steel Section - Spec E75,HIBE,M052
-00200269,Distribution Transformer 500kVA - Spec F86,ERSA,M055
-00200270,PLC Rack Assembly - Spec A52,ERSA,M062
-00200271,Lead Concentrate 60% Pb - Spec B60,ROH,M005
-00200272,Lead Concentrate 60% Pb - Spec C97,ROH,M002
-00200273,Rotary Drilling Rig - Spec D76,ERSA,M019
-00200274,Gasket Set Spiral Wound - Spec E13,ERSA,M011
-00200275,Mechanical Seal Type 21 - Spec F68,ERSA,M007
-00200276,Port Handling Service - Spec A27,DIEN,M039
-00200277,XLPE Power Cable 11kV - Spec B35,ERSA,M055
-00200278,Zinc Concentrate 52% Zn - Spec C18,ROH,M006
-00200279,Mechanical Seal Type 21 - Spec D95,ERSA,M007
-00200280,HT Switchgear Panel - Spec E56,ERSA,M058
-00200281,Ocean Freight Forwarding - Spec F68,DIEN,M039
-00200282,Plant Housekeeping Service - Spec A61,DIEN,M025
-00200283,Fire Extinguisher CO2 Type - Spec B85,HIBE,M050
-00200284,HT Switchgear Panel - Spec C89,ERSA,M055
-00200285,Gasket Set Spiral Wound - Spec D81,ERSA,M013
-00200286,Zinc Concentrate 52% Zn - Spec E18,ROH,M005
-00200287,Rail Freight Wagon Booking - Spec F87,DIEN,M040
-00200288,Fire Extinguisher CO2 Type - Spec A26,HIBE,M048
-00200289,HDPE Woven Sack 50kg - Spec B84,HIBE,M063
-00200290,Ocean Freight Forwarding - Spec C18,DIEN,M042
-00200291,Mechanical Seal Type 21 - Spec D41,ERSA,M007
-00200292,Civil Foundation Works - Spec E78,DIEN,M026
-00200293,Conveyor Idler Roller - Spec F71,ERSA,M011
-00200294,Calcined Alumina - Spec A83,ROH,M003
-00200295,Flotation Cell Rotor - Spec B90,ERSA,M013
-00200296,Port Handling Service - Spec C17,DIEN,M039
-00200297,Technical Consulting Engagement - Spec D72,DIEN,M024
-00200298,Flotation Cell Rotor - Spec E24,ERSA,M010
-00200299,Lead Concentrate 60% Pb - Spec F74,ROH,M002
-00200300,High Speed Diesel - Spec A88,HIBE,M035
-00200301,Technical Consulting Engagement - Spec B89,DIEN,M025
-00200302,Portable Gas Detector - Spec C43,HIBE,M050
-00200303,Conveyor Idler Roller - Spec D89,ERSA,M011
-00200304,Site Security Service - Spec E47,DIEN,M023
-00200305,Jaw Crusher Liner Plate - Spec F14,ERSA,M008
-00200306,Iron Ore Fines 62% Fe - Spec A44,ROH,M004
-00200307,Online Process Analyzer - Spec B27,ERSA,M062
-00200308,Roller Bearing 22218 - Spec C90,ERSA,M008
-00200309,Variable Frequency Drive 110kW - Spec D24,ERSA,M058
-00200310,Technical Consulting Engagement - Spec E48,DIEN,M022
-00200311,ERP Software License - Spec F52,HIBE,M043
-00200312,Jaw Crusher Liner Plate - Spec A86,ERSA,M010
-00200313,Jaw Crusher Liner Plate - Spec B93,ERSA,M010
-00200314,Conveyor Idler Roller - Spec C14,ERSA,M010
-00200315,Conveyor Idler Roller - Spec D63,ERSA,M011
-00200316,Furnace Oil - Spec E37,HIBE,M037
-00200317,Safety Helmet Class E - Spec F60,HIBE,M049
-00200318,Electricity Purchase Agreement - Spec A65,HIBE,M033
-00200319,Lead Concentrate 60% Pb - Spec B97,ROH,M002
-00200320,Civil Construction Package - Spec C35,HIBE,M051
-00200321,Portable Gas Detector - Spec D56,HIBE,M048
-00200322,Conveyor Idler Roller - Spec E34,ERSA,M013
-00200323,Grinding Media Ball 90mm - Spec F22,ERSA,M007
-00200324,Xanthate Collector SIBX - Spec A66,HIBE,M029
-00200325,Xanthate Collector SIBX - Spec B50,HIBE,M031
-00200326,Zinc Concentrate 52% Zn - Spec C95,ROH,M001
-00200327,Civil Foundation Works - Spec D15,DIEN,M022
-00200328,Roller Bearing 22218 - Spec E30,ERSA,M014
-00200329,Mechanical Seal Type 21 - Spec F92,ERSA,M011
-00200330,Site Security Service - Spec A83,DIEN,M023
-00200331,Safety Helmet Class E - Spec B42,HIBE,M050
-00200332,Flotation Cell Rotor - Spec C79,ERSA,M009
-00200333,Steel Toe Safety Boots - Spec D45,HIBE,M049
-00200334,Roller Bearing 22218 - Spec E86,ERSA,M008
-00200335,Conveyor Idler Roller - Spec F41,ERSA,M012
-00200336,Fire Extinguisher CO2 Type - Spec A62,HIBE,M049
-00200337,Zinc Concentrate 52% Zn - Spec B81,ROH,M003
-00200338,ERP Software License - Spec C70,HIBE,M043
-00200339,Ocean Freight Forwarding - Spec D19,DIEN,M041
-00200340,Sulphuric Acid 98% - Spec E30,HIBE,M032
-00200341,Safety Helmet Class E - Spec F56,HIBE,M047
-00200342,Ocean Freight Forwarding - Spec A19,DIEN,M041
-00200343,AC Motor 75kW Spares - Spec B63,ERSA,M009
-00200344,Grinding Media Ball 90mm - Spec C53,ERSA,M009
-00200345,Electromagnetic Flow Meter - Spec D96,ERSA,M062
-00200346,Electromagnetic Flow Meter - Spec E28,ERSA,M059
-00200347,Xanthate Collector SIBX - Spec F68,HIBE,M032
-00200348,OPC 53 Grade Cement - Spec A43,HIBE,M054
-00200349,Roller Bearing 22218 - Spec B64,ERSA,M008
-00200350,Road Transport Contract - Spec C50,DIEN,M041
-00200351,Reverberatory Furnace - Spec D38,ERSA,M015
-00200352,Polyacrylamide Flocculant - Spec E77,HIBE,M032
-00200353,Quick Lime CaO - Spec F62,HIBE,M031
-00200354,Gasket Set Spiral Wound - Spec A21,ERSA,M014
-00200355,Jaw Crusher Liner Plate - Spec B90,ERSA,M012
-00200356,Xanthate Collector SIBX - Spec C32,HIBE,M027
-00200357,Online Process Analyzer - Spec D63,ERSA,M061
-00200358,Grinding Media Ball 90mm - Spec E11,ERSA,M007
-00200359,Iron Ore Fines 62% Fe - Spec F76,ROH,M006
-00200360,Conveyor Idler Roller - Spec A53,ERSA,M014
-00200361,High Speed Diesel - Spec B14,HIBE,M036
-00200362,High Speed Diesel - Spec C94,HIBE,M037
-00200363,Shutdown Maintenance Contract - Spec D43,DIEN,M024
-00200364,Slurry Pump Impeller - Spec E24,ERSA,M011
-00200365,Iron Ore Fines 62% Fe - Spec F46,ROH,M004
-00200366,Bauxite Ore Grade A - Spec A45,ROH,M003
-00200367,Slurry Pump Impeller - Spec B77,ERSA,M007
-00200368,HDPE Woven Sack 50kg - Spec C77,HIBE,M063
-00200369,Conveyor Idler Roller - Spec D16,ERSA,M011
-00200370,Site Security Service - Spec E12,DIEN,M026
-00200371,Conveyor Idler Roller - Spec F71,ERSA,M013
-00200372,Shutdown Maintenance Contract - Spec A68,DIEN,M022
-00200373,Ball Bearing 6205-2RS - Spec B59,ERSA,M007
-00200374,Calcined Alumina - Spec C74,ROH,M005
-00200375,Xanthate Collector SIBX - Spec D20,HIBE,M029
-00200376,Sodium Cyanide Technical Grade - Spec E80,HIBE,M032
-00200377,Natural Gas (PNG) - Spec F21,HIBE,M036
-00200378,Site Security Service - Spec A54,DIEN,M026
-00200379,Civil Foundation Works - Spec B16,DIEN,M024
-00200380,Road Transport Contract - Spec C73,DIEN,M039
-00200381,Server Hardware Unit - Spec D92,HIBE,M045
-00200382,Mechanical Seal Type 21 - Spec E60,ERSA,M011
-00200383,Lead Concentrate 60% Pb - Spec F69,ROH,M001
-00200384,Leased Line Telecom Service - Spec A40,HIBE,M045
-00200385,Gasket Set Spiral Wound - Spec B88,ERSA,M008
-00200386,Quick Lime CaO - Spec C89,HIBE,M030
-00200387,Conveyor Idler Roller - Spec D92,ERSA,M007
-00200388,Technical Consulting Engagement - Spec E39,DIEN,M025
-00200389,High Speed Diesel - Spec F78,HIBE,M037
-00200390,Leased Line Telecom Service - Spec A36,HIBE,M045
-00200391,Port Handling Service - Spec B41,DIEN,M042
-00200392,Lead Concentrate 60% Pb - Spec C28,ROH,M003
-00200393,Bauxite Ore Grade A - Spec D92,ROH,M003
-00200394,Structural Steel Section - Spec E82,HIBE,M053
-00200395,Rail Freight Wagon Booking - Spec F96,DIEN,M040
-00200396,Road Transport Contract - Spec A25,DIEN,M042
-00200397,Conveyor Idler Roller - Spec B68,ERSA,M014
-00200398,Copper Concentrate 28% Cu - Spec C39,ROH,M003
-00200399,Road Transport Contract - Spec D35,DIEN,M041
-00200400,Bauxite Ore Grade A - Spec E16,ROH,M001
-00200401,Jaw Crusher Liner Plate - Spec F69,ERSA,M009
-00200402,Control Valve Globe Type - Spec A32,ERSA,M062
-00200403,Variable Frequency Drive 110kW - Spec B70,ERSA,M056
-00200404,Petroleum Coke (Calcined) - Spec C78,HIBE,M033
-00200405,Inbound Logistics Service - Spec D87,DIEN,M025
-00200406,Ball Bearing 6205-2RS - Spec E78,ERSA,M009
-00200407,Rotary Drilling Rig - Spec F36,ERSA,M019
-00200408,Iron Ore Fines 62% Fe - Spec A62,ROH,M003
-00200409,Petroleum Coke (Calcined) - Spec B44,HIBE,M033
-00200410,Civil Foundation Works - Spec C12,DIEN,M025
-00200411,Flotation Cell Rotor - Spec D69,ERSA,M008
-00200412,Civil Foundation Works - Spec E46,DIEN,M023
-00200413,Corrugated Crate - Spec F70,HIBE,M063
-00200414,Road Transport Contract - Spec A31,DIEN,M039
-00200415,AC Motor 75kW Spares - Spec B96,ERSA,M008
-00200416,Quick Lime CaO - Spec C33,HIBE,M030
-00200417,Road Transport Contract - Spec D32,DIEN,M040
-00200418,Thermal Coal Grade B - Spec E12,HIBE,M034
-00200419,Copper Concentrate 28% Cu - Spec F96,ROH,M002
-00200420,Sodium Cyanide Technical Grade - Spec A13,HIBE,M029
-00200421,Xanthate Collector SIBX - Spec B73,HIBE,M029
-00200422,Plant Housekeeping Service - Spec C18,DIEN,M023
-00200423,Conveyor Idler Roller - Spec D85,ERSA,M012
-00200424,Polyacrylamide Flocculant - Spec E88,HIBE,M032
-00200425,Calcined Alumina - Spec F48,ROH,M004
-00200426,Sulphuric Acid 98% - Spec A63,HIBE,M031
-00200427,Calcined Alumina - Spec B63,ROH,M005
-00200428,Leased Line Telecom Service - Spec C53,HIBE,M046
-00200429,Sodium Cyanide Technical Grade - Spec D74,HIBE,M031
-00200430,Xanthate Collector SIBX - Spec E29,HIBE,M032
-00200431,Bauxite Ore Grade A - Spec F32,ROH,M006
-00200432,Sulphuric Acid 98% - Spec A22,HIBE,M031
-00200433,OPC 53 Grade Cement - Spec B79,HIBE,M054
-00200434,Flotation Cell Rotor - Spec C44,ERSA,M011
-00200435,Roller Bearing 22218 - Spec D97,ERSA,M010
-00200436,High Speed Diesel - Spec E46,HIBE,M034
-00200437,Leased Line Telecom Service - Spec F64,HIBE,M045
-00200438,Conveyor Idler Roller - Spec A73,ERSA,M011
-00200439,HT Switchgear Panel - Spec B94,ERSA,M055
-00200440,Calcined Alumina - Spec C59,ROH,M001
-00200441,Shutdown Maintenance Contract - Spec D21,DIEN,M025
-00200442,Inbound Logistics Service - Spec E62,DIEN,M026
-00200443,Ready Mix Concrete M30 - Spec F92,HIBE,M053
-00200444,Calcined Alumina - Spec A29,ROH,M003
-00200445,Civil Foundation Works - Spec B83,DIEN,M024
-00200446,Natural Gas (PNG) - Spec C27,HIBE,M038
-00200447,Road Transport Contract - Spec D90,DIEN,M040
-00200448,Sodium Cyanide Technical Grade - Spec E82,HIBE,M027
-00200449,Plant Housekeeping Service - Spec F89,DIEN,M022
-00200450,Plant Housekeeping Service - Spec A77,DIEN,M022
-00200451,Civil Construction Package - Spec B20,HIBE,M051
-00200452,ERP Software License - Spec C29,HIBE,M044
-00200453,Mechanical Seal Type 21 - Spec D53,ERSA,M013
-00200454,Safety Helmet Class E - Spec E80,HIBE,M048
-00200455,Site Security Service - Spec F98,DIEN,M023
-00200456,Civil Foundation Works - Spec A34,DIEN,M023
-00200457,Portable Gas Detector - Spec B11,HIBE,M048
-00200458,SAG Mill Complete Unit - Spec C12,ERSA,M017
-00200459,Reverberatory Furnace - Spec D57,ERSA,M017
-00200460,Port Handling Service - Spec E29,DIEN,M040
-00200461,Natural Gas (PNG) - Spec F80,HIBE,M034
-00200462,Network Switch Enterprise - Spec A21,HIBE,M044
-00200463,Zinc Concentrate 52% Zn - Spec B98,ROH,M006
-00200464,Zinc Concentrate 52% Zn - Spec C17,ROH,M005
-00200465,Portable Gas Detector - Spec D98,HIBE,M047
-00200466,Calcined Alumina - Spec E54,ROH,M006
-00200467,Bauxite Ore Grade A - Spec F43,ROH,M002
-00200468,SAG Mill Complete Unit - Spec A19,ERSA,M018
-00200469,Grinding Media Ball 90mm - Spec B12,ERSA,M009
-00200470,Portable Gas Detector - Spec C44,HIBE,M050
-00200471,Polyacrylamide Flocculant - Spec D76,HIBE,M027
-00200472,Plant Housekeeping Service - Spec E73,DIEN,M025
-00200473,Inbound Logistics Service - Spec F32,DIEN,M026
-00200474,Calcined Alumina - Spec A71,ROH,M001
-00200475,Mechanical Seal Type 21 - Spec B19,ERSA,M013
-00200476,Server Hardware Unit - Spec C44,HIBE,M043
-00200477,Overland Conveyor System - Spec D55,ERSA,M018
-00200478,Control Valve Globe Type - Spec E76,ERSA,M062
-00200479,Inbound Logistics Service - Spec F42,DIEN,M022
-00200480,Mechanical Seal Type 21 - Spec A43,ERSA,M008
-00200481,Quick Lime CaO - Spec B78,HIBE,M028
-00200482,Road Transport Contract - Spec C17,DIEN,M041
-00200483,Thermal Coal Grade B - Spec D20,HIBE,M035
-00200484,Ocean Freight Forwarding - Spec E88,DIEN,M041
-00200485,Calcined Alumina - Spec F83,ROH,M004
-00200486,Portable Gas Detector - Spec A36,HIBE,M049
-00200487,AC Motor 75kW Spares - Spec B51,ERSA,M013
-00200488,Server Hardware Unit - Spec C52,HIBE,M046
-00200489,Iron Ore Fines 62% Fe - Spec D70,ROH,M002
-00200490,Ball Bearing 6205-2RS - Spec E26,ERSA,M012
-00200491,Grinding Media Ball 90mm - Spec F32,ERSA,M009
-00200492,Copper Concentrate 28% Cu - Spec A64,ROH,M004
-00200493,Grinding Media Ball 90mm - Spec B93,ERSA,M010
-00200494,Bauxite Ore Grade A - Spec C50,ROH,M001
-00200495,Roller Bearing 22218 - Spec D64,ERSA,M010
-00200496,Technical Consulting Engagement - Spec E92,DIEN,M025
-00200497,Gasket Set Spiral Wound - Spec F87,ERSA,M011
-00200498,PLC Rack Assembly - Spec A50,ERSA,M060
-00200499,Grinding Media Ball 90mm - Spec B53,ERSA,M014
-00200500,Online Process Analyzer - Spec C84,ERSA,M061
-00200501,Fire Extinguisher CO2 Type - Spec D67,HIBE,M050
-00200502,Copper Concentrate 28% Cu - Spec E82,ROH,M003
-00200503,Lead Concentrate 60% Pb - Spec F36,ROH,M004
-00200504,Slurry Pump Impeller - Spec A64,ERSA,M010
-00200505,Lead Concentrate 60% Pb - Spec B29,ROH,M003
-00200506,Grinding Media Ball 90mm - Spec C98,ERSA,M011
-00200507,Civil Construction Package - Spec D30,HIBE,M052
-00200508,Mechanical Seal Type 21 - Spec E53,ERSA,M013
-00200509,Furnace Oil - Spec F26,HIBE,M035
-00200510,Conveyor Idler Roller - Spec A53,ERSA,M010
-00200511,Grinding Media Ball 90mm - Spec B97,ERSA,M008
-00200512,Quick Lime CaO - Spec C58,HIBE,M032
-00200513,Grinding Media Ball 90mm - Spec D66,ERSA,M008
-00200514,Port Handling Service - Spec E13,DIEN,M042
-00200515,Lead Concentrate 60% Pb - Spec F62,ROH,M002
-00200516,OPC 53 Grade Cement - Spec A23,HIBE,M053
-00200517,Civil Foundation Works - Spec B88,DIEN,M022
-00200518,Ball Bearing 6205-2RS - Spec C80,ERSA,M009
-00200519,Lead Concentrate 60% Pb - Spec D13,ROH,M003
-00200520,Distribution Transformer 500kVA - Spec E27,ERSA,M056
-00200521,Calcined Alumina - Spec F65,ROH,M006
-00200522,Shutdown Maintenance Contract - Spec A74,DIEN,M021
-00200523,Portable Gas Detector - Spec B94,HIBE,M047
-00200524,Flotation Cell Rotor - Spec C47,ERSA,M010
-00200525,Xanthate Collector SIBX - Spec D95,HIBE,M027
-00200526,Flotation Cell Rotor - Spec E37,ERSA,M012
-00200527,Port Handling Service - Spec F64,DIEN,M040
-00200528,Bauxite Ore Grade A - Spec A43,ROH,M006
-00200529,Distribution Transformer 500kVA - Spec B48,ERSA,M057
-00200530,Polyacrylamide Flocculant - Spec C80,HIBE,M030
-00200531,Road Transport Contract - Spec D74,DIEN,M042
-00200532,Plant Housekeeping Service - Spec E19,DIEN,M022
-00200533,Sodium Cyanide Technical Grade - Spec F77,HIBE,M031
-00200534,Structural Steel Section - Spec A21,HIBE,M054
-00200535,Shutdown Maintenance Contract - Spec B90,DIEN,M025
-00200536,Natural Gas (PNG) - Spec C15,HIBE,M037
-00200537,Grinding Media Ball 90mm - Spec D97,ERSA,M014
-00200538,Technical Consulting Engagement - Spec E70,DIEN,M021
-00200539,Calcined Alumina - Spec F60,ROH,M004
-00200540,HT Switchgear Panel - Spec A29,ERSA,M055
-00200541,Inbound Logistics Service - Spec B57,DIEN,M022
-00200542,Grinding Media Ball 90mm - Spec C89,ERSA,M013
-00200543,Electromagnetic Flow Meter - Spec D86,ERSA,M062
-00200544,Copper Concentrate 28% Cu - Spec E19,ROH,M001
-00200545,Site Security Service - Spec F35,DIEN,M023
-00200546,Plant Housekeeping Service - Spec A24,DIEN,M021
-00200547,Civil Foundation Works - Spec B76,DIEN,M022
-00200548,Conveyor Idler Roller - Spec C13,ERSA,M009
-00200549,Portable Gas Detector - Spec D35,HIBE,M047
-00200550,Rail Freight Wagon Booking - Spec E65,DIEN,M042
-00200551,Overland Conveyor System - Spec F23,ERSA,M020
-00200552,Steel Toe Safety Boots - Spec A31,HIBE,M050
-00200553,Rail Freight Wagon Booking - Spec B30,DIEN,M040
-00200554,Calcined Alumina - Spec C61,ROH,M006
-00200555,XLPE Power Cable 11kV - Spec D49,ERSA,M058
-00200556,Sodium Cyanide Technical Grade - Spec E61,HIBE,M028
-00200557,Slurry Pump Impeller - Spec F41,ERSA,M011
-00200558,Electricity Purchase Agreement - Spec A66,HIBE,M033
-00200559,High Speed Diesel - Spec B86,HIBE,M036
-00200560,Lead Concentrate 60% Pb - Spec C19,ROH,M005
-00200561,Iron Ore Fines 62% Fe - Spec D82,ROH,M002
-00200562,Sulphuric Acid 98% - Spec E18,HIBE,M032
-00200563,Ball Bearing 6205-2RS - Spec F93,ERSA,M014
-00200564,OPC 53 Grade Cement - Spec A46,HIBE,M052
-00200565,Site Security Service - Spec B55,DIEN,M025
-00200566,Distribution Transformer 500kVA - Spec C13,ERSA,M058
-00200567,Site Security Service - Spec D87,DIEN,M024
-00200568,AC Motor 75kW Spares - Spec E60,ERSA,M009
-00200569,Road Transport Contract - Spec F67,DIEN,M039
-00200570,Civil Foundation Works - Spec A12,DIEN,M026
-00200571,Xanthate Collector SIBX - Spec B84,HIBE,M029
-00200572,Thermal Coal Grade B - Spec C48,HIBE,M036
-00200573,Electromagnetic Flow Meter - Spec D31,ERSA,M061
-00200574,Iron Ore Fines 62% Fe - Spec E11,ROH,M003
-00200575,Electricity Purchase Agreement - Spec F73,HIBE,M035
-00200576,Mechanical Seal Type 21 - Spec A49,ERSA,M010
-00200577,Network Switch Enterprise - Spec B60,HIBE,M044
-00200578,Online Process Analyzer - Spec C79,ERSA,M060
-00200579,Mechanical Seal Type 21 - Spec D52,ERSA,M007
-00200580,Grinding Media Ball 90mm - Spec E27,ERSA,M009
-00200581,OPC 53 Grade Cement - Spec F64,HIBE,M053
-00200582,Roller Bearing 22218 - Spec A59,ERSA,M010
-00200583,Jaw Crusher Liner Plate - Spec B12,ERSA,M013
-00200584,Rail Freight Wagon Booking - Spec C18,DIEN,M040
-00200585,Gasket Set Spiral Wound - Spec D28,ERSA,M013
-00200586,Gasket Set Spiral Wound - Spec E45,ERSA,M013
-00200587,Port Handling Service - Spec F75,DIEN,M041
-00200588,Jaw Crusher Liner Plate - Spec A24,ERSA,M007
-00200589,Slurry Pump Impeller - Spec B29,ERSA,M010
-00200590,Quick Lime CaO - Spec C34,HIBE,M027
-00200591,Rail Freight Wagon Booking - Spec D60,DIEN,M039
-00200592,Steel Toe Safety Boots - Spec E45,HIBE,M048
-00200593,Safety Helmet Class E - Spec F48,HIBE,M049
-00200594,Plant Housekeeping Service - Spec A67,DIEN,M024
-00200595,Quick Lime CaO - Spec B58,HIBE,M030
-00200596,Mechanical Seal Type 21 - Spec C87,ERSA,M007
-00200597,Fire Extinguisher CO2 Type - Spec D53,HIBE,M050
-00200598,Electricity Purchase Agreement - Spec E78,HIBE,M034
-00200599,Portable Gas Detector - Spec F78,HIBE,M048
-00200600,Electrolytic Cell Assembly - Spec A93,ERSA,M020
+0000100000,Lead Concentrate Grade A,ROH,001
+0000100001,Dolomite High Purity,ROH,001
+0000100002,Bauxite Standard,ROH,001
+0000100003,Copper Concentrate Calcined,ROH,001
+0000100004,Lead Concentrate 40-80mm,ROH,001
+0000100005,Dolomite Lumpy,ROH,001
+0000100006,Lead Concentrate Fine,ROH,001
+0000100007,Iron Ore Fines Grade A,ROH,001
+0000100008,Zinc Concentrate Grade B,ROH,001
+0000100009,Bauxite Standard,ROH,001
+0000100010,Silico Manganese Fine,ROH,001
+0000100011,Zinc Concentrate Lumpy,ROH,001
+0000100012,Bauxite Calcined,ROH,001
+0000100013,Limestone Calcined,ROH,001
+0000100014,Silico Manganese 45% Zn,ROH,001
+0000100015,Bauxite 55% Pb,ROH,001
+0000100016,Coke Metallurgical High Purity,ROH,001
+0000100017,Fluorspar Grade A,ROH,001
+0000100018,Fluorspar Fused,ROH,001
+0000100019,Copper Concentrate Calcined,ROH,001
+0000100020,Iron Ore Fines Technical Grade,ROH,001
+0000100021,Alumina Calcined Premium Grade,ROH,001
+0000100022,Bauxite Fused,ROH,001
+0000100023,Iron Ore Lumps Grade B,ROH,001
+0000100024,Lead Concentrate 45% Zn,ROH,001
+0000100025,Iron Ore Lumps Technical Grade,ROH,002
+0000100026,Coke Metallurgical High Purity,ROH,002
+0000100027,Fluorspar Grade A,ROH,002
+0000100028,Dolomite 55% Pb,ROH,002
+0000100029,Silico Manganese Grade B,ROH,002
+0000100030,Iron Ore Fines Grade B,ROH,002
+0000100031,Silico Manganese High Purity,ROH,002
+0000100032,Limestone Fine,ROH,002
+0000100033,Iron Ore Lumps Fine,ROH,002
+0000100034,Bauxite Calcined,ROH,002
+0000100035,Lead Concentrate Grade A,ROH,002
+0000100036,Limestone Standard,ROH,002
+0000100037,Fluorspar High Purity,ROH,002
+0000100038,Lead Concentrate Standard,ROH,002
+0000100039,Lead Concentrate 45% Zn,ROH,002
+0000100040,Alumina Calcined 55% Pb,ROH,002
+0000100041,Iron Ore Lumps Premium Grade,ROH,003
+0000100042,Iron Ore Lumps Technical Grade,ROH,003
+0000100043,Bauxite 40-80mm,ROH,003
+0000100044,Alumina Calcined Calcined,ROH,003
+0000100045,Limestone 40-80mm,ROH,003
+0000100046,Lead Concentrate Fine,ROH,003
+0000100047,Limestone Premium Grade,ROH,003
+0000100048,Silico Manganese Calcined,ROH,003
+0000100049,Bauxite Premium Grade,ROH,003
+0000100050,Manganese Ore 45% Zn,ROH,003
+0000100051,Alumina Calcined 40-80mm,ROH,003
+0000100052,Dolomite Lumpy,ROH,003
+0000100053,Bauxite 40-80mm,ROH,003
+0000100054,Iron Ore Lumps Fused,ROH,003
+0000100055,Fluorspar Grade A,ROH,003
+0000100056,Bauxite Grade A,ROH,003
+0000100057,Fluorspar Technical Grade,ROH,003
+0000100058,Iron Ore Fines High Purity,ROH,003
+0000100059,Lead Concentrate Standard,ROH,003
+0000100060,Coke Metallurgical Calcined,ROH,003
+0000100061,Iron Ore Lumps Standard,ROH,003
+0000100062,Limestone 55% Pb,ROH,003
+0000100063,Iron Ore Fines 40-80mm,ROH,003
+0000100064,Manganese Ore Premium Grade,ROH,003
+0000100065,Alumina Calcined Premium Grade,ROH,003
+0000100066,Dolomite Lumpy,ROH,004
+0000100067,Silico Manganese High Purity,ROH,004
+0000100068,Dolomite Fine,ROH,004
+0000100069,Iron Ore Fines Fine,ROH,004
+0000100070,Iron Ore Fines Technical Grade,ROH,004
+0000100071,Bauxite Premium Grade,ROH,004
+0000100072,Silico Manganese 55% Pb,ROH,004
+0000100073,Lead Concentrate Fused,ROH,004
+0000100074,Zinc Concentrate Grade B,ROH,004
+0000100075,Copper Concentrate 40-80mm,ROH,004
+0000100076,Copper Concentrate Fused,ROH,004
+0000100077,Limestone 45% Zn,ROH,004
+0000100078,Coke Metallurgical Grade B,ROH,004
+0000100079,Iron Ore Fines 45% Zn,ROH,004
+0000100080,Coke Metallurgical 55% Pb,ROH,004
+0000100081,Silico Manganese High Purity,ROH,004
+0000100082,Silico Manganese Grade A,ROH,004
+0000100083,Limestone Calcined,ROH,004
+0000100084,Limestone Lumpy,ROH,005
+0000100085,Fluorspar High Purity,ROH,005
+0000100086,Fluorspar 40-80mm,ROH,005
+0000100087,Iron Ore Lumps Grade B,ROH,005
+0000100088,Alumina Calcined 45% Zn,ROH,005
+0000100089,Copper Concentrate 55% Pb,ROH,005
+0000100090,Zinc Concentrate Calcined,ROH,005
+0000100091,Dolomite High Purity,ROH,005
+0000100092,Silico Manganese Fused,ROH,005
+0000100093,Copper Concentrate Lumpy,ROH,005
+0000100094,Lead Concentrate 40-80mm,ROH,005
+0000100095,Alumina Calcined 40-80mm,ROH,005
+0000100096,Silico Manganese Fine,ROH,005
+0000100097,Bauxite Premium Grade,ROH,005
+0000100098,Iron Ore Lumps Fused,ROH,005
+0000100099,Copper Concentrate Lumpy,ROH,005
+0000100100,Zinc Concentrate Fine,ROH,006
+0000100101,Iron Ore Lumps 55% Pb,ROH,006
+0000100102,Zinc Concentrate Grade B,ROH,006
+0000100103,Iron Ore Lumps Fused,ROH,006
+0000100104,Alumina Calcined Standard,ROH,006
+0000100105,Zinc Concentrate Standard,ROH,006
+0000100106,Coke Metallurgical Grade B,ROH,006
+0000100107,Lead Concentrate Calcined,ROH,006
+0000100108,Manganese Ore Grade B,ROH,006
+0000100109,Fluorspar Lumpy,ROH,006
+0000100110,Fluorspar Premium Grade,ROH,006
+0000100111,Copper Concentrate 40-80mm,ROH,006
+0000100112,Manganese Ore Lumpy,ROH,006
+0000100113,Copper Concentrate High Purity,ROH,006
+0000100114,Silico Manganese Fine,ROH,006
+0000100115,Iron Ore Fines Standard,ROH,006
+0000100116,Silico Manganese Fused,ROH,006
+0000100117,Dolomite Calcined,ROH,006
+0000100118,Bauxite Calcined,ROH,006
+0000100119,Alumina Calcined 45% Zn,ROH,006
+0000100120,Limestone 40-80mm,ROH,006
+0000100121,Iron Ore Lumps 55% Pb,ROH,006
+0000100122,Silico Manganese 55% Pb,ROH,006
+0000100123,Bauxite Standard,ROH,007
+0000100124,Lead Concentrate Technical Grade,ROH,007
+0000100125,Zinc Concentrate Fine,ROH,007
+0000100126,Silico Manganese Standard,ROH,007
+0000100127,Coke Metallurgical Standard,ROH,007
+0000100128,Zinc Concentrate Grade B,ROH,007
+0000100129,Dolomite 40-80mm,ROH,007
+0000100130,Zinc Concentrate Standard,ROH,007
+0000100131,Lead Concentrate Grade A,ROH,007
+0000100132,Iron Ore Lumps Grade B,ROH,007
+0000100133,Silico Manganese Standard,ROH,007
+0000100134,Alumina Calcined 40-80mm,ROH,007
+0000100135,Manganese Ore Standard,ROH,007
+0000100136,Silico Manganese Premium Grade,ROH,007
+0000100137,Dolomite Fine,ROH,007
+0000100138,Coke Metallurgical 55% Pb,ROH,007
+0000100139,Fluorspar 55% Pb,ROH,008
+0000100140,Fluorspar 45% Zn,ROH,008
+0000100141,Bauxite Grade B,ROH,008
+0000100142,Lead Concentrate 40-80mm,ROH,008
+0000100143,Iron Ore Fines Technical Grade,ROH,008
+0000100144,Iron Ore Fines 45% Zn,ROH,008
+0000100145,Manganese Ore Calcined,ROH,008
+0000100146,Zinc Concentrate 40-80mm,ROH,008
+0000100147,Limestone 40-80mm,ROH,008
+0000100148,Lead Concentrate Grade A,ROH,008
+0000100149,Iron Ore Fines Calcined,ROH,008
+0000100150,Iron Ore Lumps Fused,ROH,008
+0000100151,Lead Concentrate Standard,ROH,008
+0000100152,Bauxite Standard,ROH,008
+0000100153,Silico Manganese 55% Pb,ROH,008
+0000100154,Copper Concentrate 45% Zn,ROH,008
+0000100155,Copper Concentrate High Purity,ROH,008
+0000100156,Manganese Ore Standard,ROH,008
+0000100157,O-Ring 80mm,ERSA,009
+0000100158,Pump Impeller 6308-ZZ,ERSA,009
+0000100159,Ball Bearing 22220-CCK,ERSA,009
+0000100160,V-Belt FAG,ERSA,009
+0000100161,Washer Spring 100mm,ERSA,009
+0000100162,Flotation Cell Stator DN150,ERSA,009
+0000100163,Nut Hex 6308-ZZ,ERSA,009
+0000100164,Crusher Liner 40mm,ERSA,009
+0000100165,Ball Bearing 40mm,ERSA,009
+0000100166,Filter Cartridge 80mm,ERSA,009
+0000100167,Gear Box 60mm,ERSA,009
+0000100168,Screen Panel NTN,ERSA,009
+0000100169,Grinding Ball EP500/3,ERSA,009
+0000100170,Grinding Rod 6308-ZZ,ERSA,009
+0000100171,Seal Kit High Chrome,ERSA,009
+0000100172,Clutch Plate 6308-ZZ,ERSA,009
+0000100173,Seal Kit CI,ERSA,009
+0000100174,Flotation Cell Stator SS316,ERSA,009
+0000100175,Wear Plate FAG,ERSA,009
+0000100176,Seal Kit SS316,ERSA,009
+0000100177,Gasket Set FAG,ERSA,009
+0000100178,O-Ring Chrome,ERSA,009
+0000100179,O-Ring Polyurethane,ERSA,009
+0000100180,V-Belt 40mm,ERSA,009
+0000100181,Pump Shaft Sleeve CI,ERSA,009
+0000100182,V-Belt CI,ERSA,009
+0000100183,Taper Bearing Chrome,ERSA,009
+0000100184,Gasket Set 60mm,ERSA,009
+0000100185,Wear Plate EP800/4,ERSA,009
+0000100186,Filter Cartridge DN150,ERSA,009
+0000100187,Clutch Plate DN200,ERSA,009
+0000100188,Filter Cartridge 40mm,ERSA,009
+0000100189,Conveyor Belt Polyurethane,ERSA,009
+0000100190,Brake Pad 80mm,ERSA,009
+0000100191,Clutch Plate 22220-CCK,ERSA,009
+0000100192,Ball Bearing 80mm,ERSA,009
+0000100193,Pump Impeller 22220-CCK,ERSA,009
+0000100194,Grinding Rod SS316,ERSA,009
+0000100195,Filter Cartridge NTN,ERSA,009
+0000100196,Valve Globe 22220-CCK,ERSA,009
+0000100197,V-Belt ST1000,ERSA,009
+0000100198,Gear Box FAG,ERSA,009
+0000100199,Sprocket CS,ERSA,009
+0000100200,Brake Pad Chrome,ERSA,009
+0000100201,Wear Plate 6205-2RS,ERSA,009
+0000100202,Brake Pad Polyurethane,ERSA,009
+0000100203,Pump Impeller NTN,ERSA,009
+0000100204,Filter Cartridge SKF,ERSA,009
+0000100205,Pump Impeller High Chrome,ERSA,009
+0000100206,Conveyor Idler DN300,ERSA,009
+0000100207,Gear Box Chrome,ERSA,009
+0000100208,Grinding Rod Ni-Hard,ERSA,009
+0000100209,Valve Gate DN150,ERSA,009
+0000100210,Filter Cartridge SS316,ERSA,009
+0000100211,Screen Panel DN300,ERSA,009
+0000100212,Seal Kit 22220-CCK,ERSA,009
+0000100213,Chain Roller DN300,ERSA,009
+0000100214,Taper Bearing 6205-2RS,ERSA,009
+0000100215,Valve Gate NTN,ERSA,009
+0000100216,Filter Cartridge FAG,ERSA,009
+0000100217,Sprocket CS,ERSA,009
+0000100218,Chain Roller CS,ERSA,009
+0000100219,Ball Bearing SKF,ERSA,009
+0000100220,O-Ring Ni-Hard,ERSA,009
+0000100221,Conveyor Idler CS,ERSA,009
+0000100222,Taper Bearing ST1000,ERSA,009
+0000100223,Conveyor Idler 60mm,ERSA,009
+0000100224,Conveyor Belt 6308-ZZ,ERSA,009
+0000100225,Brake Pad ST1000,ERSA,009
+0000100226,Taper Bearing ST1000,ERSA,009
+0000100227,Grinding Rod Polyurethane,ERSA,009
+0000100228,V-Belt Polyurethane,ERSA,009
+0000100229,Pump Impeller ST1000,ERSA,009
+0000100230,Washer Spring Chrome,ERSA,009
+0000100231,Conveyor Idler DN200,ERSA,009
+0000100232,Crusher Liner FAG,ERSA,009
+0000100233,Washer Spring 6205-2RS,ERSA,009
+0000100234,Jaw Plate High Chrome,ERSA,009
+0000100235,Valve Gate 60mm,ERSA,009
+0000100236,V-Belt DN300,ERSA,009
+0000100237,Crusher Liner Ni-Hard,ERSA,009
+0000100238,Pump Impeller 40mm,ERSA,009
+0000100239,Taper Bearing 100mm,ERSA,009
+0000100240,Motor Coupling DN150,ERSA,009
+0000100241,Flotation Cell Rotor ST1000,ERSA,009
+0000100242,Brake Pad DN200,ERSA,009
+0000100243,Motor Coupling 6205-2RS,ERSA,009
+0000100244,Grinding Ball 40mm,ERSA,010
+0000100245,Valve Gate DN300,ERSA,010
+0000100246,O-Ring DN300,ERSA,010
+0000100247,Valve Globe Rubber Lined,ERSA,010
+0000100248,Cyclone Liner 40mm,ERSA,010
+0000100249,Valve Gate 6205-2RS,ERSA,010
+0000100250,Pump Shaft Sleeve DN300,ERSA,010
+0000100251,Jaw Plate CI,ERSA,010
+0000100252,Filter Cartridge 6308-ZZ,ERSA,010
+0000100253,Pump Impeller Chrome,ERSA,010
+0000100254,Chain Roller ST1000,ERSA,010
+0000100255,Clutch Plate 60mm,ERSA,010
+0000100256,Cyclone Liner SKF,ERSA,010
+0000100257,Bolt Hex CI,ERSA,010
+0000100258,Grinding Ball DN300,ERSA,010
+0000100259,Taper Bearing Ni-Hard,ERSA,010
+0000100260,Chain Roller 6205-2RS,ERSA,010
+0000100261,Wear Plate CS,ERSA,010
+0000100262,Grinding Ball ST1000,ERSA,010
+0000100263,Chain Roller 22220-CCK,ERSA,010
+0000100264,Valve Gate Chrome,ERSA,010
+0000100265,Clutch Plate Polyurethane,ERSA,010
+0000100266,Pump Shaft Sleeve High Chrome,ERSA,010
+0000100267,Brake Pad SS316,ERSA,010
+0000100268,Brake Pad Polyurethane,ERSA,010
+0000100269,Washer Spring EP800/4,ERSA,010
+0000100270,Nut Hex Ni-Hard,ERSA,010
+0000100271,Gear Box CS,ERSA,010
+0000100272,Conveyor Belt DN150,ERSA,010
+0000100273,Washer Spring Polyurethane,ERSA,010
+0000100274,Bolt Hex Polyurethane,ERSA,010
+0000100275,Jaw Plate Chrome,ERSA,010
+0000100276,Brake Pad 40mm,ERSA,010
+0000100277,Ball Bearing EP500/3,ERSA,010
+0000100278,Gear Box DN150,ERSA,010
+0000100279,Chain Roller CI,ERSA,010
+0000100280,Clutch Plate 80mm,ERSA,010
+0000100281,Sprocket 80mm,ERSA,010
+0000100282,Grinding Rod SS316,ERSA,010
+0000100283,Flotation Cell Stator High Chrome,ERSA,010
+0000100284,Crusher Liner Polyurethane,ERSA,010
+0000100285,Gasket Set EP500/3,ERSA,010
+0000100286,Cyclone Liner Polyurethane,ERSA,010
+0000100287,Valve Gate 22220-CCK,ERSA,010
+0000100288,V-Belt Polyurethane,ERSA,010
+0000100289,Brake Pad DN200,ERSA,010
+0000100290,Grinding Ball NTN,ERSA,010
+0000100291,Roller Bearing 6308-ZZ,ERSA,010
+0000100292,V-Belt 100mm,ERSA,010
+0000100293,O-Ring 80mm,ERSA,010
+0000100294,Washer Spring Rubber Lined,ERSA,010
+0000100295,Grinding Ball Ni-Hard,ERSA,010
+0000100296,Bolt Hex 100mm,ERSA,010
+0000100297,Nut Hex DN200,ERSA,010
+0000100298,Conveyor Idler Rubber Lined,ERSA,010
+0000100299,Ball Bearing SKF,ERSA,010
+0000100300,Chain Roller DN200,ERSA,010
+0000100301,Jaw Plate Ni-Hard,ERSA,010
+0000100302,Wear Plate 80mm,ERSA,010
+0000100303,Seal Kit CS,ERSA,010
+0000100304,V-Belt SKF,ERSA,010
+0000100305,Flotation Cell Rotor NTN,ERSA,010
+0000100306,Flotation Cell Rotor Polyurethane,ERSA,010
+0000100307,Wear Plate CS,ERSA,010
+0000100308,Clutch Plate 80mm,ERSA,010
+0000100309,Cyclone Liner 60mm,ERSA,010
+0000100310,Sprocket FAG,ERSA,010
+0000100311,Flotation Cell Stator 80mm,ERSA,010
+0000100312,Filter Cartridge DN200,ERSA,010
+0000100313,Hydraulic Hose SS316,ERSA,010
+0000100314,Screen Panel Rubber Lined,ERSA,010
+0000100315,V-Belt DN300,ERSA,010
+0000100316,Sprocket 22220-CCK,ERSA,010
+0000100317,Gear Box DN200,ERSA,010
+0000100318,Hydraulic Hose EP800/4,ERSA,010
+0000100319,Clutch Plate CS,ERSA,010
+0000100320,Gasket Set NTN,ERSA,010
+0000100321,Conveyor Idler DN200,ERSA,010
+0000100322,Bolt Hex Ni-Hard,ERSA,010
+0000100323,Conveyor Idler Ni-Hard,ERSA,010
+0000100324,Grinding Rod 22220-CCK,ERSA,010
+0000100325,Washer Spring EP800/4,ERSA,011
+0000100326,Flotation Cell Rotor 60mm,ERSA,011
+0000100327,Seal Kit DN150,ERSA,011
+0000100328,Washer Spring 40mm,ERSA,011
+0000100329,Roller Bearing CI,ERSA,011
+0000100330,Bolt Hex 100mm,ERSA,011
+0000100331,Ball Bearing ST1000,ERSA,011
+0000100332,Brake Pad 40mm,ERSA,011
+0000100333,Washer Spring CS,ERSA,011
+0000100334,Motor Coupling 100mm,ERSA,011
+0000100335,Motor Coupling DN300,ERSA,011
+0000100336,Chain Roller 100mm,ERSA,011
+0000100337,Roller Bearing 40mm,ERSA,011
+0000100338,Valve Gate Polyurethane,ERSA,011
+0000100339,Nut Hex High Chrome,ERSA,011
+0000100340,Crusher Liner 80mm,ERSA,011
+0000100341,Conveyor Belt Chrome,ERSA,011
+0000100342,Roller Bearing 40mm,ERSA,011
+0000100343,Roller Bearing 22220-CCK,ERSA,011
+0000100344,Chain Roller NTN,ERSA,011
+0000100345,Flotation Cell Rotor FAG,ERSA,011
+0000100346,Seal Kit DN300,ERSA,011
+0000100347,Bolt Hex EP800/4,ERSA,011
+0000100348,Grinding Rod 80mm,ERSA,011
+0000100349,Clutch Plate EP800/4,ERSA,011
+0000100350,Bolt Hex DN300,ERSA,011
+0000100351,Washer Spring DN300,ERSA,011
+0000100352,Gasket Set 100mm,ERSA,011
+0000100353,Roller Bearing High Chrome,ERSA,011
+0000100354,Seal Kit ST1000,ERSA,011
+0000100355,Motor Coupling Rubber Lined,ERSA,011
+0000100356,O-Ring Rubber Lined,ERSA,011
+0000100357,Taper Bearing 6205-2RS,ERSA,011
+0000100358,V-Belt DN150,ERSA,011
+0000100359,Roller Bearing Chrome,ERSA,011
+0000100360,Conveyor Idler DN200,ERSA,011
+0000100361,Conveyor Belt 100mm,ERSA,011
+0000100362,Pump Shaft Sleeve CI,ERSA,011
+0000100363,Grinding Rod 80mm,ERSA,011
+0000100364,Filter Cartridge ST1000,ERSA,011
+0000100365,Crusher Liner Chrome,ERSA,011
+0000100366,Pump Shaft Sleeve FAG,ERSA,011
+0000100367,Brake Pad SKF,ERSA,011
+0000100368,Roller Bearing EP500/3,ERSA,011
+0000100369,Bolt Hex 40mm,ERSA,011
+0000100370,Grinding Ball 22220-CCK,ERSA,011
+0000100371,V-Belt SKF,ERSA,011
+0000100372,Brake Pad Polyurethane,ERSA,011
+0000100373,Pump Shaft Sleeve CI,ERSA,011
+0000100374,Taper Bearing ST1000,ERSA,011
+0000100375,Chain Roller Polyurethane,ERSA,011
+0000100376,Pipe Flange 22220-CCK,ERSA,011
+0000100377,Cyclone Liner Rubber Lined,ERSA,011
+0000100378,Valve Gate 6205-2RS,ERSA,011
+0000100379,Washer Spring 100mm,ERSA,011
+0000100380,Pump Impeller 60mm,ERSA,011
+0000100381,Pipe Flange Rubber Lined,ERSA,011
+0000100382,Flotation Cell Rotor Ni-Hard,ERSA,011
+0000100383,Conveyor Idler 60mm,ERSA,011
+0000100384,Jaw Plate High Chrome,ERSA,011
+0000100385,Wear Plate Rubber Lined,ERSA,011
+0000100386,Hydraulic Hose Chrome,ERSA,011
+0000100387,Flotation Cell Stator 80mm,ERSA,011
+0000100388,Chain Roller High Chrome,ERSA,011
+0000100389,Hydraulic Hose EP800/4,ERSA,011
+0000100390,V-Belt 22220-CCK,ERSA,011
+0000100391,Hydraulic Hose 80mm,ERSA,011
+0000100392,V-Belt 80mm,ERSA,011
+0000100393,Bolt Hex EP800/4,ERSA,011
+0000100394,Roller Bearing 100mm,ERSA,011
+0000100395,Clutch Plate FAG,ERSA,011
+0000100396,Screen Panel DN150,ERSA,011
+0000100397,Valve Globe DN300,ERSA,011
+0000100398,Hydraulic Hose Chrome,ERSA,012
+0000100399,Hydraulic Hose CS,ERSA,012
+0000100400,Ball Bearing SS316,ERSA,012
+0000100401,Grinding Ball 22220-CCK,ERSA,012
+0000100402,V-Belt High Chrome,ERSA,012
+0000100403,Washer Spring 100mm,ERSA,012
+0000100404,V-Belt Ni-Hard,ERSA,012
+0000100405,Flotation Cell Stator Rubber Lined,ERSA,012
+0000100406,Screen Panel 80mm,ERSA,012
+0000100407,Roller Bearing 22220-CCK,ERSA,012
+0000100408,Gear Box DN200,ERSA,012
+0000100409,Nut Hex Ni-Hard,ERSA,012
+0000100410,V-Belt EP500/3,ERSA,012
+0000100411,Pipe Flange 100mm,ERSA,012
+0000100412,Wear Plate ST1000,ERSA,012
+0000100413,Chain Roller High Chrome,ERSA,012
+0000100414,Valve Gate ST1000,ERSA,012
+0000100415,Flotation Cell Rotor DN300,ERSA,012
+0000100416,Brake Pad DN300,ERSA,012
+0000100417,Motor Coupling SKF,ERSA,012
+0000100418,Grinding Ball EP800/4,ERSA,012
+0000100419,Pump Shaft Sleeve High Chrome,ERSA,012
+0000100420,Jaw Plate DN150,ERSA,012
+0000100421,Grinding Rod High Chrome,ERSA,012
+0000100422,Flotation Cell Stator DN300,ERSA,012
+0000100423,Wear Plate Chrome,ERSA,012
+0000100424,Gear Box SKF,ERSA,012
+0000100425,Grinding Ball EP500/3,ERSA,012
+0000100426,Motor Coupling ST1000,ERSA,012
+0000100427,Jaw Plate EP500/3,ERSA,012
+0000100428,Ball Bearing Ni-Hard,ERSA,012
+0000100429,Conveyor Belt DN300,ERSA,012
+0000100430,Taper Bearing 6308-ZZ,ERSA,012
+0000100431,Gear Box Ni-Hard,ERSA,012
+0000100432,Conveyor Belt Rubber Lined,ERSA,012
+0000100433,Screen Panel SKF,ERSA,012
+0000100434,Ball Bearing CI,ERSA,012
+0000100435,Gear Box 100mm,ERSA,012
+0000100436,Flotation Cell Stator 80mm,ERSA,012
+0000100437,Valve Gate FAG,ERSA,012
+0000100438,Seal Kit DN300,ERSA,012
+0000100439,Flotation Cell Stator SKF,ERSA,012
+0000100440,O-Ring 40mm,ERSA,012
+0000100441,Screen Panel 22220-CCK,ERSA,012
+0000100442,Seal Kit NTN,ERSA,012
+0000100443,Conveyor Idler CI,ERSA,012
+0000100444,Brake Pad 22220-CCK,ERSA,012
+0000100445,V-Belt SKF,ERSA,012
+0000100446,Washer Spring Chrome,ERSA,012
+0000100447,Motor Coupling SS316,ERSA,012
+0000100448,Bolt Hex 80mm,ERSA,012
+0000100449,Sprocket EP500/3,ERSA,012
+0000100450,Chain Roller EP500/3,ERSA,012
+0000100451,Seal Kit Chrome,ERSA,012
+0000100452,Pump Impeller DN150,ERSA,012
+0000100453,Grinding Rod DN300,ERSA,012
+0000100454,Gasket Set FAG,ERSA,012
+0000100455,V-Belt FAG,ERSA,012
+0000100456,O-Ring FAG,ERSA,012
+0000100457,Ball Bearing 60mm,ERSA,012
+0000100458,Sprocket Ni-Hard,ERSA,012
+0000100459,Flotation Cell Stator EP500/3,ERSA,012
+0000100460,Taper Bearing DN200,ERSA,012
+0000100461,Gear Box Ni-Hard,ERSA,012
+0000100462,Gear Box Ni-Hard,ERSA,012
+0000100463,Flotation Cell Rotor 22220-CCK,ERSA,012
+0000100464,Motor Coupling DN300,ERSA,012
+0000100465,Grinding Ball 60mm,ERSA,012
+0000100466,Pump Shaft Sleeve CS,ERSA,012
+0000100467,Motor Coupling Rubber Lined,ERSA,012
+0000100468,Hydraulic Hose NTN,ERSA,013
+0000100469,O-Ring 6308-ZZ,ERSA,013
+0000100470,Crusher Liner EP500/3,ERSA,013
+0000100471,Gear Box 80mm,ERSA,013
+0000100472,Pump Shaft Sleeve 80mm,ERSA,013
+0000100473,Brake Pad Ni-Hard,ERSA,013
+0000100474,Nut Hex DN300,ERSA,013
+0000100475,Cyclone Liner CS,ERSA,013
+0000100476,Screen Panel 80mm,ERSA,013
+0000100477,Gasket Set Chrome,ERSA,013
+0000100478,Taper Bearing 60mm,ERSA,013
+0000100479,Clutch Plate Chrome,ERSA,013
+0000100480,Filter Cartridge 6205-2RS,ERSA,013
+0000100481,Gasket Set DN200,ERSA,013
+0000100482,Roller Bearing Polyurethane,ERSA,013
+0000100483,Hydraulic Hose CI,ERSA,013
+0000100484,Taper Bearing FAG,ERSA,013
+0000100485,Flotation Cell Stator SS316,ERSA,013
+0000100486,Sprocket DN300,ERSA,013
+0000100487,Jaw Plate CI,ERSA,013
+0000100488,Chain Roller Rubber Lined,ERSA,013
+0000100489,Screen Panel 22220-CCK,ERSA,013
+0000100490,Flotation Cell Stator ST1000,ERSA,013
+0000100491,Washer Spring EP800/4,ERSA,013
+0000100492,Clutch Plate Polyurethane,ERSA,013
+0000100493,Pump Impeller FAG,ERSA,013
+0000100494,Valve Gate 60mm,ERSA,013
+0000100495,Screen Panel EP500/3,ERSA,013
+0000100496,Nut Hex CS,ERSA,013
+0000100497,Taper Bearing 80mm,ERSA,013
+0000100498,Gasket Set EP800/4,ERSA,013
+0000100499,Filter Cartridge EP800/4,ERSA,013
+0000100500,Pump Shaft Sleeve 40mm,ERSA,013
+0000100501,Cyclone Liner 6205-2RS,ERSA,013
+0000100502,Flotation Cell Rotor 60mm,ERSA,013
+0000100503,Seal Kit DN150,ERSA,013
+0000100504,Wear Plate ST1000,ERSA,013
+0000100505,Screen Panel Rubber Lined,ERSA,013
+0000100506,Sprocket 6308-ZZ,ERSA,013
+0000100507,Grinding Rod DN300,ERSA,013
+0000100508,Conveyor Belt EP500/3,ERSA,013
+0000100509,Sprocket Ni-Hard,ERSA,013
+0000100510,Screen Panel SKF,ERSA,013
+0000100511,Roller Bearing Rubber Lined,ERSA,013
+0000100512,V-Belt Ni-Hard,ERSA,013
+0000100513,Crusher Liner EP500/3,ERSA,013
+0000100514,Ball Bearing CS,ERSA,013
+0000100515,Washer Spring 22220-CCK,ERSA,013
+0000100516,Motor Coupling SKF,ERSA,013
+0000100517,Flotation Cell Rotor SKF,ERSA,013
+0000100518,Conveyor Idler 100mm,ERSA,013
+0000100519,Gear Box SS316,ERSA,013
+0000100520,Hydraulic Hose 60mm,ERSA,013
+0000100521,Flotation Cell Stator 100mm,ERSA,013
+0000100522,V-Belt 80mm,ERSA,013
+0000100523,Conveyor Idler 40mm,ERSA,013
+0000100524,Grinding Ball Chrome,ERSA,013
+0000100525,Cyclone Liner High Chrome,ERSA,013
+0000100526,Conveyor Belt 22220-CCK,ERSA,013
+0000100527,Hydraulic Hose 60mm,ERSA,013
+0000100528,Valve Gate SS316,ERSA,013
+0000100529,Hydraulic Hose 6205-2RS,ERSA,013
+0000100530,Gear Box High Chrome,ERSA,013
+0000100531,Brake Pad CI,ERSA,013
+0000100532,Screen Panel NTN,ERSA,014
+0000100533,Sprocket CS,ERSA,014
+0000100534,Flotation Cell Stator ST1000,ERSA,014
+0000100535,Valve Gate CS,ERSA,014
+0000100536,Bolt Hex 80mm,ERSA,014
+0000100537,Clutch Plate DN150,ERSA,014
+0000100538,V-Belt CI,ERSA,014
+0000100539,Bolt Hex DN200,ERSA,014
+0000100540,Washer Spring 6308-ZZ,ERSA,014
+0000100541,Clutch Plate High Chrome,ERSA,014
+0000100542,Flotation Cell Stator Ni-Hard,ERSA,014
+0000100543,Bolt Hex 40mm,ERSA,014
+0000100544,Conveyor Idler 100mm,ERSA,014
+0000100545,Taper Bearing NTN,ERSA,014
+0000100546,Cyclone Liner CI,ERSA,014
+0000100547,Valve Gate SKF,ERSA,014
+0000100548,Sprocket SKF,ERSA,014
+0000100549,Wear Plate 80mm,ERSA,014
+0000100550,Ball Bearing High Chrome,ERSA,014
+0000100551,Conveyor Idler 60mm,ERSA,014
+0000100552,Conveyor Idler 22220-CCK,ERSA,014
+0000100553,Flotation Cell Stator DN300,ERSA,014
+0000100554,Valve Gate Chrome,ERSA,014
+0000100555,Nut Hex Rubber Lined,ERSA,014
+0000100556,Gasket Set EP800/4,ERSA,014
+0000100557,Bolt Hex EP800/4,ERSA,014
+0000100558,Screen Panel CS,ERSA,014
+0000100559,Taper Bearing Chrome,ERSA,014
+0000100560,O-Ring DN200,ERSA,014
+0000100561,Gear Box DN200,ERSA,014
+0000100562,Gasket Set 60mm,ERSA,014
+0000100563,Pump Impeller Rubber Lined,ERSA,014
+0000100564,Pump Impeller 80mm,ERSA,014
+0000100565,Crusher Liner Ni-Hard,ERSA,014
+0000100566,Brake Pad 6205-2RS,ERSA,014
+0000100567,Taper Bearing EP800/4,ERSA,014
+0000100568,Seal Kit EP500/3,ERSA,014
+0000100569,Valve Globe ST1000,ERSA,014
+0000100570,Chain Roller NTN,ERSA,014
+0000100571,V-Belt SS316,ERSA,014
+0000100572,Washer Spring CI,ERSA,014
+0000100573,Jaw Plate FAG,ERSA,014
+0000100574,Jaw Plate 22220-CCK,ERSA,014
+0000100575,Bolt Hex Chrome,ERSA,014
+0000100576,V-Belt 100mm,ERSA,014
+0000100577,Conveyor Idler DN200,ERSA,014
+0000100578,Flotation Cell Rotor Rubber Lined,ERSA,014
+0000100579,Filter Cartridge 80mm,ERSA,014
+0000100580,Filter Cartridge Polyurethane,ERSA,014
+0000100581,Ball Bearing 80mm,ERSA,014
+0000100582,Gear Box Polyurethane,ERSA,014
+0000100583,Crusher Liner 22220-CCK,ERSA,014
+0000100584,Sprocket ST1000,ERSA,014
+0000100585,Brake Pad Rubber Lined,ERSA,014
+0000100586,Chain Roller Ni-Hard,ERSA,014
+0000100587,Filter Cartridge 80mm,ERSA,014
+0000100588,Brake Pad DN150,ERSA,014
+0000100589,Bolt Hex 100mm,ERSA,014
+0000100590,Pump Impeller DN200,ERSA,014
+0000100591,Bolt Hex CI,ERSA,014
+0000100592,Valve Globe CI,ERSA,014
+0000100593,Gear Box Ni-Hard,ERSA,014
+0000100594,Gear Box 6205-2RS,ERSA,014
+0000100595,Nut Hex DN300,ERSA,014
+0000100596,Ball Bearing CI,ERSA,014
+0000100597,Seal Kit Chrome,ERSA,014
+0000100598,Screen Panel EP500/3,ERSA,014
+0000100599,Motor Coupling Chrome,ERSA,014
+0000100600,Valve Globe DN200,ERSA,014
+0000100601,Grinding Ball Chrome,ERSA,014
+0000100602,Filter Cartridge Polyurethane,ERSA,014
+0000100603,Conveyor Belt Rubber Lined,ERSA,014
+0000100604,Pump Impeller Rubber Lined,ERSA,014
+0000100605,Taper Bearing EP500/3,ERSA,014
+0000100606,Sprocket 6308-ZZ,ERSA,014
+0000100607,Pipe Flange High Chrome,ERSA,014
+0000100608,Conveyor Belt 22220-CCK,ERSA,014
+0000100609,Gear Box EP800/4,ERSA,014
+0000100610,Washer Spring FAG,ERSA,015
+0000100611,Grinding Ball NTN,ERSA,015
+0000100612,Pipe Flange SS316,ERSA,015
+0000100613,Cyclone Liner DN300,ERSA,015
+0000100614,Crusher Liner DN300,ERSA,015
+0000100615,Flotation Cell Stator EP500/3,ERSA,015
+0000100616,Valve Gate SKF,ERSA,015
+0000100617,Flotation Cell Rotor 22220-CCK,ERSA,015
+0000100618,Conveyor Idler DN200,ERSA,015
+0000100619,Nut Hex CS,ERSA,015
+0000100620,Pipe Flange 22220-CCK,ERSA,015
+0000100621,Nut Hex 6205-2RS,ERSA,015
+0000100622,Filter Cartridge CS,ERSA,015
+0000100623,Pump Shaft Sleeve 80mm,ERSA,015
+0000100624,Pipe Flange Polyurethane,ERSA,015
+0000100625,Filter Cartridge CI,ERSA,015
+0000100626,Bolt Hex Rubber Lined,ERSA,015
+0000100627,Pipe Flange SKF,ERSA,015
+0000100628,Motor Coupling 100mm,ERSA,015
+0000100629,Roller Bearing Chrome,ERSA,015
+0000100630,Clutch Plate Chrome,ERSA,015
+0000100631,Motor Coupling Rubber Lined,ERSA,015
+0000100632,O-Ring Rubber Lined,ERSA,015
+0000100633,Flotation Cell Rotor Ni-Hard,ERSA,015
+0000100634,Brake Pad Rubber Lined,ERSA,015
+0000100635,Washer Spring SKF,ERSA,015
+0000100636,Conveyor Belt 6308-ZZ,ERSA,015
+0000100637,Taper Bearing EP500/3,ERSA,015
+0000100638,Screen Panel SKF,ERSA,015
+0000100639,Pump Impeller DN200,ERSA,015
+0000100640,Conveyor Belt 40mm,ERSA,015
+0000100641,Flotation Cell Rotor ST1000,ERSA,015
+0000100642,Washer Spring CI,ERSA,015
+0000100643,Conveyor Idler 60mm,ERSA,015
+0000100644,Pump Impeller 100mm,ERSA,015
+0000100645,Washer Spring DN300,ERSA,015
+0000100646,Taper Bearing Ni-Hard,ERSA,015
+0000100647,Pipe Flange DN150,ERSA,015
+0000100648,Sprocket 80mm,ERSA,015
+0000100649,V-Belt ST1000,ERSA,015
+0000100650,Pump Impeller Polyurethane,ERSA,015
+0000100651,Pipe Flange CS,ERSA,015
+0000100652,Valve Globe 6308-ZZ,ERSA,015
+0000100653,Nut Hex DN300,ERSA,015
+0000100654,Grinding Ball SKF,ERSA,015
+0000100655,Flotation Cell Rotor 22220-CCK,ERSA,015
+0000100656,Grinding Rod Rubber Lined,ERSA,015
+0000100657,Roller Bearing 6308-ZZ,ERSA,015
+0000100658,Valve Gate DN200,ERSA,015
+0000100659,Conveyor Belt CI,ERSA,015
+0000100660,Grinding Rod 22220-CCK,ERSA,015
+0000100661,Grinding Rod CI,ERSA,015
+0000100662,Grinding Rod DN200,ERSA,015
+0000100663,Valve Gate NTN,ERSA,015
+0000100664,Ball Bearing DN300,ERSA,015
+0000100665,Conveyor Idler NTN,ERSA,015
+0000100666,Filter Cartridge FAG,ERSA,015
+0000100667,Pump Shaft Sleeve Polyurethane,ERSA,015
+0000100668,Roller Bearing NTN,ERSA,015
+0000100669,Ball Bearing ST1000,ERSA,015
+0000100670,V-Belt CI,ERSA,015
+0000100671,Clutch Plate 6205-2RS,ERSA,015
+0000100672,Jaw Plate DN300,ERSA,015
+0000100673,Seal Kit NTN,ERSA,015
+0000100674,Washer Spring SS316,ERSA,015
+0000100675,Pump Shaft Sleeve High Chrome,ERSA,015
+0000100676,O-Ring 100mm,ERSA,015
+0000100677,Sprocket ST1000,ERSA,015
+0000100678,Cyclone Liner CI,ERSA,015
+0000100679,Pump Impeller 80mm,ERSA,015
+0000100680,Cyclone Liner DN200,ERSA,015
+0000100681,Taper Bearing High Chrome,ERSA,015
+0000100682,Wear Plate EP500/3,ERSA,015
+0000100683,Flotation Cell Rotor Rubber Lined,ERSA,015
+0000100684,Roller Bearing 6308-ZZ,ERSA,015
+0000100685,Flotation Cell Stator 40mm,ERSA,015
+0000100686,Chain Roller Polyurethane,ERSA,015
+0000100687,Pump Impeller 100mm,ERSA,015
+0000100688,Sprocket 22220-CCK,ERSA,015
+0000100689,Gasket Set EP800/4,ERSA,015
+0000100690,Conveyor Idler 22220-CCK,ERSA,015
+0000100691,Conveyor Belt DN300,ERSA,015
+0000100692,Clutch Plate 40mm,ERSA,015
+0000100693,Wear Plate EP500/3,ERSA,016
+0000100694,Flotation Cell Rotor SS316,ERSA,016
+0000100695,Chain Roller SKF,ERSA,016
+0000100696,Pump Shaft Sleeve Rubber Lined,ERSA,016
+0000100697,Grinding Rod 60mm,ERSA,016
+0000100698,Sprocket DN200,ERSA,016
+0000100699,Washer Spring EP800/4,ERSA,016
+0000100700,Flotation Cell Rotor 40mm,ERSA,016
+0000100701,Washer Spring High Chrome,ERSA,016
+0000100702,Pump Impeller EP800/4,ERSA,016
+0000100703,Chain Roller EP800/4,ERSA,016
+0000100704,Filter Cartridge ST1000,ERSA,016
+0000100705,Conveyor Idler Polyurethane,ERSA,016
+0000100706,Flotation Cell Stator 22220-CCK,ERSA,016
+0000100707,Gasket Set 22220-CCK,ERSA,016
+0000100708,Gasket Set 60mm,ERSA,016
+0000100709,Pump Impeller High Chrome,ERSA,016
+0000100710,Pipe Flange NTN,ERSA,016
+0000100711,Seal Kit CI,ERSA,016
+0000100712,Valve Gate Polyurethane,ERSA,016
+0000100713,Pump Shaft Sleeve 60mm,ERSA,016
+0000100714,Valve Globe Polyurethane,ERSA,016
+0000100715,Chain Roller High Chrome,ERSA,016
+0000100716,Seal Kit EP500/3,ERSA,016
+0000100717,Brake Pad ST1000,ERSA,016
+0000100718,Pump Impeller CI,ERSA,016
+0000100719,Cyclone Liner DN150,ERSA,016
+0000100720,Conveyor Idler Polyurethane,ERSA,016
+0000100721,Flotation Cell Stator DN200,ERSA,016
+0000100722,Pump Impeller ST1000,ERSA,016
+0000100723,Pipe Flange SKF,ERSA,016
+0000100724,Hydraulic Hose CI,ERSA,016
+0000100725,Motor Coupling 60mm,ERSA,016
+0000100726,Roller Bearing Chrome,ERSA,016
+0000100727,Hydraulic Hose 6205-2RS,ERSA,016
+0000100728,Jaw Plate DN300,ERSA,016
+0000100729,Brake Pad EP800/4,ERSA,016
+0000100730,Valve Globe 6205-2RS,ERSA,016
+0000100731,Jaw Plate NTN,ERSA,016
+0000100732,Nut Hex 22220-CCK,ERSA,016
+0000100733,Conveyor Idler High Chrome,ERSA,016
+0000100734,Roller Bearing 22220-CCK,ERSA,016
+0000100735,Wear Plate DN150,ERSA,016
+0000100736,Bolt Hex 60mm,ERSA,016
+0000100737,Flotation Cell Rotor EP800/4,ERSA,016
+0000100738,Crusher Liner ST1000,ERSA,016
+0000100739,Brake Pad High Chrome,ERSA,016
+0000100740,Clutch Plate CI,ERSA,016
+0000100741,Gasket Set 6308-ZZ,ERSA,016
+0000100742,Conveyor Idler FAG,ERSA,016
+0000100743,Seal Kit Polyurethane,ERSA,016
+0000100744,Gasket Set DN300,ERSA,016
+0000100745,Sprocket Polyurethane,ERSA,016
+0000100746,Chain Roller 100mm,ERSA,016
+0000100747,Sprocket 60mm,ERSA,016
+0000100748,Hydraulic Hose DN150,ERSA,016
+0000100749,Cyclone Liner SKF,ERSA,016
+0000100750,Valve Globe 60mm,ERSA,016
+0000100751,Pump Shaft Sleeve EP500/3,ERSA,016
+0000100752,Screen Panel SS316,ERSA,016
+0000100753,Brake Pad 6308-ZZ,ERSA,016
+0000100754,Motor Coupling 40mm,ERSA,016
+0000100755,Seal Kit 6205-2RS,ERSA,016
+0000100756,Grinding Rod EP500/3,ERSA,016
+0000100757,Grinding Rod NTN,ERSA,016
+0000100758,Filter Cartridge EP500/3,ERSA,016
+0000100759,Clutch Plate SKF,ERSA,016
+0000100760,Ball Bearing 100mm,ERSA,016
+0000100761,Chain Roller FAG,ERSA,016
+0000100762,Conveyor Belt 40mm,ERSA,016
+0000100763,Motor Coupling SS316,ERSA,016
+0000100764,Valve Globe 22220-CCK,ERSA,016
+0000100765,Nut Hex High Chrome,ERSA,016
+0000100766,Taper Bearing 60mm,ERSA,016
+0000100767,Roller Bearing 80mm,ERSA,016
+0000100768,O-Ring EP800/4,ERSA,016
+0000100769,Chain Roller CI,ERSA,016
+0000100770,Nut Hex Ni-Hard,ERSA,016
+0000100771,Washer Spring EP500/3,ERSA,016
+0000100772,Nut Hex 6205-2RS,ERSA,017
+0000100773,Clutch Plate FAG,ERSA,017
+0000100774,Flotation Cell Rotor Ni-Hard,ERSA,017
+0000100775,Pipe Flange 22220-CCK,ERSA,017
+0000100776,Chain Roller SKF,ERSA,017
+0000100777,V-Belt 60mm,ERSA,017
+0000100778,Nut Hex SS316,ERSA,017
+0000100779,Gasket Set 40mm,ERSA,017
+0000100780,Brake Pad High Chrome,ERSA,017
+0000100781,Valve Gate DN200,ERSA,017
+0000100782,Valve Gate FAG,ERSA,017
+0000100783,O-Ring SS316,ERSA,017
+0000100784,Pump Shaft Sleeve SS316,ERSA,017
+0000100785,Cyclone Liner DN150,ERSA,017
+0000100786,Valve Globe ST1000,ERSA,017
+0000100787,Conveyor Idler DN200,ERSA,017
+0000100788,Pump Impeller NTN,ERSA,017
+0000100789,Filter Cartridge DN150,ERSA,017
+0000100790,Jaw Plate Chrome,ERSA,017
+0000100791,Conveyor Idler Rubber Lined,ERSA,017
+0000100792,O-Ring FAG,ERSA,017
+0000100793,Screen Panel 80mm,ERSA,017
+0000100794,Sprocket Polyurethane,ERSA,017
+0000100795,Clutch Plate Rubber Lined,ERSA,017
+0000100796,Clutch Plate NTN,ERSA,017
+0000100797,Sprocket 22220-CCK,ERSA,017
+0000100798,Flotation Cell Stator 80mm,ERSA,017
+0000100799,Brake Pad DN300,ERSA,017
+0000100800,Seal Kit ST1000,ERSA,017
+0000100801,Cyclone Liner 22220-CCK,ERSA,017
+0000100802,Brake Pad 80mm,ERSA,017
+0000100803,Sprocket 6308-ZZ,ERSA,017
+0000100804,Seal Kit ST1000,ERSA,017
+0000100805,Gear Box 22220-CCK,ERSA,017
+0000100806,Gasket Set Chrome,ERSA,017
+0000100807,Cyclone Liner 40mm,ERSA,017
+0000100808,Flotation Cell Rotor CI,ERSA,017
+0000100809,Taper Bearing 80mm,ERSA,017
+0000100810,Grinding Ball EP800/4,ERSA,017
+0000100811,Flotation Cell Stator SS316,ERSA,017
+0000100812,Conveyor Idler 6308-ZZ,ERSA,017
+0000100813,Sprocket SKF,ERSA,017
+0000100814,Valve Gate Ni-Hard,ERSA,017
+0000100815,Gasket Set SS316,ERSA,017
+0000100816,Jaw Plate 6308-ZZ,ERSA,017
+0000100817,V-Belt Ni-Hard,ERSA,017
+0000100818,Sprocket 80mm,ERSA,017
+0000100819,Wear Plate SS316,ERSA,017
+0000100820,Crusher Liner ST1000,ERSA,017
+0000100821,Pipe Flange EP500/3,ERSA,017
+0000100822,Bolt Hex 60mm,ERSA,017
+0000100823,Valve Gate Polyurethane,ERSA,017
+0000100824,Seal Kit Rubber Lined,ERSA,017
+0000100825,Valve Gate 22220-CCK,ERSA,017
+0000100826,Valve Gate SKF,ERSA,017
+0000100827,Bolt Hex EP500/3,ERSA,017
+0000100828,Filter Cartridge High Chrome,ERSA,017
+0000100829,Conveyor Idler EP800/4,ERSA,017
+0000100830,Gasket Set CI,ERSA,017
+0000100831,Conveyor Idler ST1000,ERSA,017
+0000100832,Brake Pad Rubber Lined,ERSA,017
+0000100833,Nut Hex NTN,ERSA,017
+0000100834,Gasket Set EP500/3,ERSA,017
+0000100835,Bolt Hex Rubber Lined,ERSA,018
+0000100836,Valve Gate NTN,ERSA,018
+0000100837,Wear Plate 22220-CCK,ERSA,018
+0000100838,Chain Roller SS316,ERSA,018
+0000100839,Pipe Flange 6205-2RS,ERSA,018
+0000100840,Pipe Flange EP500/3,ERSA,018
+0000100841,Jaw Plate DN150,ERSA,018
+0000100842,Valve Gate 100mm,ERSA,018
+0000100843,Grinding Ball DN200,ERSA,018
+0000100844,Conveyor Belt NTN,ERSA,018
+0000100845,O-Ring EP500/3,ERSA,018
+0000100846,Pump Impeller SS316,ERSA,018
+0000100847,Wear Plate 6308-ZZ,ERSA,018
+0000100848,Valve Gate Chrome,ERSA,018
+0000100849,Conveyor Belt Chrome,ERSA,018
+0000100850,Bolt Hex NTN,ERSA,018
+0000100851,Crusher Liner FAG,ERSA,018
+0000100852,Crusher Liner High Chrome,ERSA,018
+0000100853,Sprocket 6308-ZZ,ERSA,018
+0000100854,Washer Spring ST1000,ERSA,018
+0000100855,V-Belt 80mm,ERSA,018
+0000100856,Gear Box High Chrome,ERSA,018
+0000100857,Sprocket DN200,ERSA,018
+0000100858,V-Belt EP500/3,ERSA,018
+0000100859,Flotation Cell Stator DN150,ERSA,018
+0000100860,Pipe Flange Polyurethane,ERSA,018
+0000100861,Sprocket 80mm,ERSA,018
+0000100862,Gear Box 40mm,ERSA,018
+0000100863,Cyclone Liner SS316,ERSA,018
+0000100864,Washer Spring FAG,ERSA,018
+0000100865,Grinding Ball Chrome,ERSA,018
+0000100866,Conveyor Belt DN300,ERSA,018
+0000100867,Seal Kit Rubber Lined,ERSA,018
+0000100868,Flotation Cell Stator ST1000,ERSA,018
+0000100869,Pump Impeller Ni-Hard,ERSA,018
+0000100870,Wear Plate SKF,ERSA,018
+0000100871,Gear Box 22220-CCK,ERSA,018
+0000100872,Crusher Liner DN300,ERSA,018
+0000100873,Sprocket SS316,ERSA,018
+0000100874,Conveyor Idler 60mm,ERSA,018
+0000100875,Gasket Set DN200,ERSA,018
+0000100876,Sprocket ST1000,ERSA,018
+0000100877,Roller Bearing 60mm,ERSA,018
+0000100878,Seal Kit 40mm,ERSA,018
+0000100879,Cyclone Liner ST1000,ERSA,018
+0000100880,V-Belt 40mm,ERSA,018
+0000100881,Gasket Set ST1000,ERSA,018
+0000100882,Motor Coupling 6205-2RS,ERSA,018
+0000100883,Clutch Plate SKF,ERSA,018
+0000100884,Valve Gate NTN,ERSA,018
+0000100885,Conveyor Belt 6308-ZZ,ERSA,018
+0000100886,Gear Box 100mm,ERSA,018
+0000100887,Conveyor Belt Ni-Hard,ERSA,018
+0000100888,Flotation Cell Stator 80mm,ERSA,018
+0000100889,Ball Bearing 22220-CCK,ERSA,018
+0000100890,Roller Bearing DN300,ERSA,018
+0000100891,Grinding Rod NTN,ERSA,018
+0000100892,Wear Plate 60mm,ERSA,018
+0000100893,Pump Shaft Sleeve EP500/3,ERSA,018
+0000100894,V-Belt EP500/3,ERSA,018
+0000100895,Pump Shaft Sleeve 6308-ZZ,ERSA,018
+0000100896,V-Belt 60mm,ERSA,018
+0000100897,Flotation Cell Rotor 22220-CCK,ERSA,018
+0000100898,Pump Shaft Sleeve 100mm,ERSA,018
+0000100899,Roller Bearing Rubber Lined,ERSA,018
+0000100900,Cyclone Liner CI,ERSA,018
+0000100901,V-Belt Ni-Hard,ERSA,018
+0000100902,Conveyor Idler EP500/3,ERSA,018
+0000100903,Chain Roller 6205-2RS,ERSA,018
+0000100904,Valve Globe DN200,ERSA,018
+0000100905,Washer Spring FAG,ERSA,018
+0000100906,Gasket Set SS316,ERSA,018
+0000100907,Pipe Flange 22220-CCK,ERSA,018
+0000100908,Wear Plate CS,ERSA,018
+0000100909,Cyclone Liner SS316,ERSA,018
+0000100910,Roller Bearing 40mm,ERSA,018
+0000100911,Flotation Cell Stator 6308-ZZ,ERSA,018
+0000100912,Fork Lift 100T,ERSA,019
+0000100913,SAG Mill Model B,ERSA,019
+0000100914,Jaw Crusher Model B,ERSA,019
+0000100915,Electrostatic Precipitator 50 TPH,ERSA,019
+0000100916,Cooling Tower Model A,ERSA,019
+0000100917,Rotary Kiln 200 TPH,ERSA,019
+0000100918,Fork Lift Model A,ERSA,019
+0000100919,Flash Smelter Automated,ERSA,019
+0000100920,Compressor Screw 10 MW,ERSA,019
+0000100921,Rotary Kiln 100 TPH,ERSA,019
+0000100922,Drill Rig 200 TPH,ERSA,019
+0000100923,Filter Press 5 MW,ERSA,019
+0000100924,Ball Mill 5 MW,ERSA,019
+0000100925,Ball Mill Model A,ERSA,019
+0000100926,Filter Press Heavy Duty,ERSA,019
+0000100927,Dump Truck Semi-Auto,ERSA,019
+0000100928,Ball Mill 5 MW,ERSA,020
+0000100929,Filter Press Model B,ERSA,020
+0000100930,Ball Mill Model A,ERSA,020
+0000100931,Thickener 50 TPH,ERSA,020
+0000100932,Fork Lift Type-II,ERSA,020
+0000100933,Dump Truck Automated,ERSA,020
+0000100934,Dump Truck Model A,ERSA,020
+0000100935,Flash Smelter Semi-Auto,ERSA,020
+0000100936,Compressor Screw Model B,ERSA,020
+0000100937,Transformer Power 100T,ERSA,020
+0000100938,Jaw Crusher Type-II,ERSA,020
+0000100939,Jaw Crusher Type-II,ERSA,020
+0000100940,Boiler 10 MW,ERSA,020
+0000100941,DG Set 200T,ERSA,020
+0000100942,Cone Crusher 100 TPH,ERSA,021
+0000100943,Overhead Crane 200T,ERSA,021
+0000100944,Filter Press Automated,ERSA,021
+0000100945,Boiler Type-II,ERSA,021
+0000100946,Flash Smelter Automated,ERSA,021
+0000100947,Fork Lift Automated,ERSA,021
+0000100948,Ball Mill Model B,ERSA,021
+0000100949,Boiler Type-II,ERSA,021
+0000100950,Thickener 200 TPH,ERSA,021
+0000100951,Jaw Crusher Type-I,ERSA,021
+0000100952,Fork Lift Heavy Duty,ERSA,021
+0000100953,Flash Smelter 500 TPH,ERSA,021
+0000100954,Rotary Kiln Automated,ERSA,021
+0000100955,Ball Mill 20 MW,ERSA,021
+0000100956,Jaw Crusher 50T,ERSA,021
+0000100957,Fork Lift Type-I,ERSA,022
+0000100958,Cooling Tower 200 TPH,ERSA,022
+0000100959,Boiler 20 MW,ERSA,022
+0000100960,Drill Rig Model B,ERSA,022
+0000100961,Fork Lift Automated,ERSA,022
+0000100962,Jaw Crusher 20 MW,ERSA,022
+0000100963,Transformer Power Model B,ERSA,022
+0000100964,Dump Truck Model A,ERSA,022
+0000100965,Thickener 50T,ERSA,022
+0000100966,Cone Crusher 500 TPH,ERSA,022
+0000100967,Flash Smelter Semi-Auto,ERSA,022
+0000100968,Transformer Power Type-I,ERSA,022
+0000100969,DG Set 50 TPH,ERSA,022
+0000100970,Thickener 100T,ERSA,022
+0000100971,Drill Rig 5 MW,ERSA,022
+0000100972,Compressor Screw 5 MW,ERSA,023
+0000100973,Cone Crusher 20 MW,ERSA,023
+0000100974,Jaw Crusher Automated,ERSA,023
+0000100975,Flash Smelter Automated,ERSA,023
+0000100976,Jaw Crusher Model A,ERSA,023
+0000100977,Fork Lift 100 TPH,ERSA,023
+0000100978,DG Set 200T,ERSA,023
+0000100979,Filter Press 10 MW,ERSA,023
+0000100980,Flash Smelter Model B,ERSA,023
+0000100981,Transformer Power 50T,ERSA,023
+0000100982,Cone Crusher 5 MW,ERSA,023
+0000100983,Rotary Kiln 50T,ERSA,023
+0000100984,Compressor Screw 500 TPH,ERSA,023
+0000100985,Fork Lift Model B,ERSA,023
+0000100986,DG Set 20 MW,ERSA,024
+0000100987,Boiler 100 TPH,ERSA,024
+0000100988,Jaw Crusher 200T,ERSA,024
+0000100989,Dump Truck Semi-Auto,ERSA,024
+0000100990,Transformer Power Type-II,ERSA,024
+0000100991,Excavator 100 TPH,ERSA,024
+0000100992,Rotary Kiln Model A,ERSA,024
+0000100993,Jaw Crusher Automated,ERSA,024
+0000100994,Drill Rig Heavy Duty,ERSA,024
+0000100995,Fork Lift 20 MW,ERSA,024
+0000100996,DG Set 10 MW,ERSA,024
+0000100997,Rotary Kiln Type-II,ERSA,024
+0000100998,Transformer Power 200 TPH,ERSA,024
+0000100999,Cone Crusher Heavy Duty,ERSA,024
+0000101000,Rotary Kiln 200T,ERSA,024
+0000101001,Flash Smelter 10 MW,ERSA,024
+0000101002,Overhead Crane 50T,ERSA,024
+0000101003,Anti-Scalant 95% Purity,ROH,025
+0000101004,Sodium Isopropyl Xanthate 95% Purity,ROH,025
+0000101005,Zinc Sulphate Liquid,ROH,025
+0000101006,Ferric Chloride 95% Purity,ROH,025
+0000101007,Pine Oil Liquid,ROH,025
+0000101008,Caustic Soda Flakes Granular,ROH,025
+0000101009,Ferric Chloride Lab Grade,ROH,025
+0000101010,Anti-Scalant Liquid,ROH,025
+0000101011,Copper Sulphate Granular,ROH,025
+0000101012,Pine Oil Industrial Grade,ROH,025
+0000101013,Caustic Soda Lye Granular,ROH,025
+0000101014,Potassium Amyl Xanthate Technical Grade,ROH,025
+0000101015,Sodium Isopropyl Xanthate Technical Grade,ROH,025
+0000101016,Hydrochloric Acid Liquid,ROH,025
+0000101017,Zinc Sulphate Pellets,ROH,025
+0000101018,Hydrogen Peroxide Granular,ROH,025
+0000101019,Sodium Cyanide 30% w/v,ROH,025
+0000101020,Ferric Chloride 95% Purity,ROH,025
+0000101021,Caustic Soda Flakes 30% w/v,ROH,025
+0000101022,Sulphuric Acid Pellets,ROH,025
+0000101023,Activated Carbon 95% Purity,ROH,025
+0000101024,Flocculant Anionic Lab Grade,ROH,025
+0000101025,Potassium Amyl Xanthate Industrial Grade,ROH,025
+0000101026,Flocculant Anionic 32% Solution,ROH,025
+0000101027,Flocculant Cationic 30% w/v,ROH,025
+0000101028,Zinc Sulphate 50% Solution,ROH,025
+0000101029,Pine Oil 50% Solution,ROH,025
+0000101030,Caustic Soda Lye Briquettes,ROH,025
+0000101031,Lime Powder 32% Solution,ROH,025
+0000101032,Pine Oil Pellets,ROH,025
+0000101033,Lime Powder Powder,ROH,025
+0000101034,Caustic Soda Lye 98% Purity,ROH,026
+0000101035,Flocculant Anionic Lab Grade,ROH,026
+0000101036,Hydrochloric Acid 30% w/v,ROH,026
+0000101037,Sulphuric Acid Industrial Grade,ROH,026
+0000101038,MIBC Frother Technical Grade,ROH,026
+0000101039,Caustic Soda Flakes 32% Solution,ROH,026
+0000101040,Hydrogen Peroxide 98% Purity,ROH,026
+0000101041,Copper Sulphate 50% Solution,ROH,026
+0000101042,Caustic Soda Lye 98% Purity,ROH,026
+0000101043,Copper Sulphate 30% w/v,ROH,026
+0000101044,Anti-Scalant 30% w/v,ROH,026
+0000101045,Flocculant Cationic 95% Purity,ROH,026
+0000101046,Flocculant Cationic Technical Grade,ROH,026
+0000101047,Sodium Isopropyl Xanthate 32% Solution,ROH,026
+0000101048,Anti-Scalant 30% w/v,ROH,026
+0000101049,Sulphuric Acid 98% Purity,ROH,026
+0000101050,Lime Powder Technical Grade,ROH,026
+0000101051,Potassium Amyl Xanthate 95% Purity,ROH,026
+0000101052,Flocculant Cationic Granular,ROH,026
+0000101053,Flocculant Cationic 95% Purity,ROH,026
+0000101054,Ferric Chloride Technical Grade,ROH,026
+0000101055,MIBC Frother 32% Solution,ROH,026
+0000101056,Pine Oil 95% Purity,ROH,026
+0000101057,Activated Carbon 50% Solution,ROH,027
+0000101058,Potassium Amyl Xanthate 32% Solution,ROH,027
+0000101059,Potassium Amyl Xanthate Granular,ROH,027
+0000101060,Ferric Chloride 98% Purity,ROH,027
+0000101061,Lime Powder Powder,ROH,027
+0000101062,Caustic Soda Flakes Lab Grade,ROH,027
+0000101063,Activated Carbon Powder,ROH,027
+0000101064,Flocculant Anionic Pellets,ROH,027
+0000101065,Ferric Chloride 95% Purity,ROH,027
+0000101066,MIBC Frother Industrial Grade,ROH,027
+0000101067,MIBC Frother 32% Solution,ROH,027
+0000101068,Lime Powder Pellets,ROH,027
+0000101069,Caustic Soda Lye Powder,ROH,027
+0000101070,Lime Powder Pellets,ROH,027
+0000101071,Pine Oil 98% Purity,ROH,027
+0000101072,Anti-Scalant 32% Solution,ROH,027
+0000101073,Anti-Scalant Technical Grade,ROH,027
+0000101074,Potassium Amyl Xanthate Technical Grade,ROH,027
+0000101075,Pine Oil Briquettes,ROH,027
+0000101076,Caustic Soda Lye Pellets,ROH,027
+0000101077,Flocculant Cationic Powder,ROH,027
+0000101078,Flocculant Anionic Industrial Grade,ROH,027
+0000101079,Anti-Scalant Industrial Grade,ROH,027
+0000101080,Caustic Soda Lye Granular,ROH,027
+0000101081,Caustic Soda Lye Industrial Grade,ROH,027
+0000101082,Activated Carbon Granular,ROH,027
+0000101083,Caustic Soda Flakes Granular,ROH,027
+0000101084,Caustic Soda Lye Powder,ROH,027
+0000101085,Anti-Scalant Powder,ROH,027
+0000101086,Flocculant Cationic Briquettes,ROH,027
+0000101087,Caustic Soda Flakes 30% w/v,ROH,027
+0000101088,Lime Powder 50% Solution,ROH,028
+0000101089,MIBC Frother 32% Solution,ROH,028
+0000101090,Caustic Soda Flakes Pellets,ROH,028
+0000101091,Sodium Cyanide Granular,ROH,028
+0000101092,Flocculant Cationic 95% Purity,ROH,028
+0000101093,Sulphuric Acid Briquettes,ROH,028
+0000101094,Potassium Amyl Xanthate Granular,ROH,028
+0000101095,Flocculant Cationic Industrial Grade,ROH,028
+0000101096,Anti-Scalant Liquid,ROH,028
+0000101097,Activated Carbon Industrial Grade,ROH,028
+0000101098,Sulphuric Acid Technical Grade,ROH,028
+0000101099,MIBC Frother 98% Purity,ROH,028
+0000101100,Sodium Cyanide 30% w/v,ROH,028
+0000101101,Caustic Soda Lye 32% Solution,ROH,028
+0000101102,Pine Oil 32% Solution,ROH,028
+0000101103,Zinc Sulphate 32% Solution,ROH,028
+0000101104,Anti-Scalant Pellets,ROH,028
+0000101105,Flocculant Cationic Briquettes,ROH,028
+0000101106,Potassium Amyl Xanthate Briquettes,ROH,028
+0000101107,Pine Oil Powder,ROH,028
+0000101108,Ferric Chloride 50% Solution,ROH,029
+0000101109,Flocculant Cationic Powder,ROH,029
+0000101110,Activated Carbon 50% Solution,ROH,029
+0000101111,Copper Sulphate 30% w/v,ROH,029
+0000101112,Ferric Chloride 50% Solution,ROH,029
+0000101113,Ferric Chloride 50% Solution,ROH,029
+0000101114,Hydrochloric Acid Granular,ROH,029
+0000101115,Flocculant Cationic 98% Purity,ROH,029
+0000101116,Sulphuric Acid 95% Purity,ROH,029
+0000101117,Ferric Chloride 95% Purity,ROH,029
+0000101118,Sulphuric Acid 95% Purity,ROH,029
+0000101119,Caustic Soda Flakes Briquettes,ROH,029
+0000101120,Zinc Sulphate Briquettes,ROH,029
+0000101121,Flocculant Cationic 50% Solution,ROH,029
+0000101122,Flocculant Cationic 50% Solution,ROH,029
+0000101123,Ferric Chloride Pellets,ROH,029
+0000101124,Hydrochloric Acid 95% Purity,ROH,029
+0000101125,MIBC Frother Granular,ROH,029
+0000101126,Ferric Chloride 32% Solution,ROH,029
+0000101127,Activated Carbon 50% Solution,ROH,029
+0000101128,Pine Oil 95% Purity,ROH,029
+0000101129,Potassium Amyl Xanthate 95% Purity,ROH,029
+0000101130,Sodium Isopropyl Xanthate 50% Solution,ROH,029
+0000101131,Flocculant Anionic Liquid,ROH,029
+0000101132,Hydrochloric Acid Briquettes,ROH,029
+0000101133,Flocculant Cationic 98% Purity,ROH,029
+0000101134,Ferric Chloride 95% Purity,ROH,030
+0000101135,Ferric Chloride Briquettes,ROH,030
+0000101136,Hydrochloric Acid Industrial Grade,ROH,030
+0000101137,MIBC Frother Granular,ROH,030
+0000101138,Sulphuric Acid 98% Purity,ROH,030
+0000101139,Potassium Amyl Xanthate Liquid,ROH,030
+0000101140,Anti-Scalant 98% Purity,ROH,030
+0000101141,Sulphuric Acid Technical Grade,ROH,030
+0000101142,MIBC Frother 32% Solution,ROH,030
+0000101143,Caustic Soda Lye Briquettes,ROH,030
+0000101144,Flocculant Cationic Lab Grade,ROH,030
+0000101145,Pine Oil Technical Grade,ROH,030
+0000101146,Ferric Chloride Industrial Grade,ROH,030
+0000101147,Hydrogen Peroxide Liquid,ROH,030
+0000101148,Flocculant Cationic 30% w/v,ROH,030
+0000101149,Zinc Sulphate Pellets,ROH,030
+0000101150,Caustic Soda Flakes 50% Solution,ROH,030
+0000101151,Caustic Soda Flakes Liquid,ROH,030
+0000101152,Potassium Amyl Xanthate Pellets,ROH,030
+0000101153,Sodium Isopropyl Xanthate Liquid,ROH,030
+0000101154,Sulphuric Acid Powder,ROH,030
+0000101155,Potassium Amyl Xanthate Industrial Grade,ROH,030
+0000101156,Hydrogen Peroxide Industrial Grade,ROH,030
+0000101157,Potassium Amyl Xanthate 32% Solution,ROH,030
+0000101158,Flocculant Cationic Industrial Grade,ROH,030
+0000101159,Caustic Soda Flakes Technical Grade,ROH,030
+0000101160,Caustic Soda Flakes Granular,ROH,031
+0000101161,MIBC Frother 50% Solution,ROH,031
+0000101162,Caustic Soda Flakes 30% w/v,ROH,031
+0000101163,Ferric Chloride Powder,ROH,031
+0000101164,Flocculant Cationic Industrial Grade,ROH,031
+0000101165,Anti-Scalant 30% w/v,ROH,031
+0000101166,Hydrochloric Acid 98% Purity,ROH,031
+0000101167,MIBC Frother 50% Solution,ROH,031
+0000101168,Copper Sulphate Briquettes,ROH,031
+0000101169,Flocculant Anionic Liquid,ROH,031
+0000101170,Hydrochloric Acid Briquettes,ROH,031
+0000101171,Copper Sulphate Technical Grade,ROH,031
+0000101172,Caustic Soda Lye Pellets,ROH,031
+0000101173,Caustic Soda Flakes Granular,ROH,031
+0000101174,Zinc Sulphate Industrial Grade,ROH,031
+0000101175,Activated Carbon 32% Solution,ROH,031
+0000101176,Anti-Scalant 50% Solution,ROH,031
+0000101177,Sodium Isopropyl Xanthate 32% Solution,ROH,031
+0000101178,MIBC Frother Industrial Grade,ROH,031
+0000101179,Pine Oil 30% w/v,ROH,031
+0000101180,Natural Gas BS-VI,ROH,032
+0000101181,Coal Imported 4500 GCV,ROH,032
+0000101182,Natural Gas Indonesian,ROH,032
+0000101183,Coal Imported 5500 GCV,ROH,032
+0000101184,Coal Imported Bulk,ROH,032
+0000101185,Electricity Captive BS-VI,ROH,032
+0000101186,Coal Imported Bagged,ROH,032
+0000101187,Coal Domestic Piped,ROH,032
+0000101188,Natural Gas BS-VI,ROH,032
+0000101189,Furnace Oil Indonesian,ROH,032
+0000101190,Coal Imported High Calorific,ROH,032
+0000101191,Petroleum Coke Bagged,ROH,032
+0000101192,Electricity Grid Piped,ROH,032
+0000101193,Coal Imported Piped,ROH,032
+0000101194,Furnace Oil Bagged,ROH,032
+0000101195,Coal Imported 5500 GCV,ROH,032
+0000101196,Electricity Captive Low Ash,ROH,032
+0000101197,Natural Gas High Calorific,ROH,032
+0000101198,Charcoal High Calorific,ROH,032
+0000101199,Charcoal Piped,ROH,032
+0000101200,Electricity Captive 5500 GCV,ROH,032
+0000101201,Petroleum Coke Piped,ROH,032
+0000101202,Electricity Grid Indonesian,ROH,032
+0000101203,Electricity Grid Bagged,ROH,032
+0000101204,Natural Gas Low Ash,ROH,032
+0000101205,Electricity Grid Indonesian,ROH,033
+0000101206,Electricity Grid Piped,ROH,033
+0000101207,Coal Domestic LDO Grade,ROH,033
+0000101208,Electricity Captive LDO Grade,ROH,033
+0000101209,Diesel HSD South African,ROH,033
+0000101210,Electricity Grid Low Ash,ROH,033
+0000101211,Electricity Captive South African,ROH,033
+0000101212,LPG Industrial High Calorific,ROH,033
+0000101213,Coal Domestic South African,ROH,033
+0000101214,Charcoal LDO Grade,ROH,033
+0000101215,Natural Gas Piped,ROH,033
+0000101216,Electricity Captive Indonesian,ROH,033
+0000101217,Furnace Oil South African,ROH,033
+0000101218,Charcoal BS-VI,ROH,033
+0000101219,Charcoal High Calorific,ROH,033
+0000101220,Electricity Grid 4500 GCV,ROH,033
+0000101221,Charcoal Bulk,ROH,033
+0000101222,Electricity Grid Indonesian,ROH,034
+0000101223,Coal Imported Piped,ROH,034
+0000101224,Diesel HSD 4500 GCV,ROH,034
+0000101225,Coal Imported BS-VI,ROH,034
+0000101226,Natural Gas Bulk,ROH,034
+0000101227,Furnace Oil BS-VI,ROH,034
+0000101228,Petroleum Coke 5500 GCV,ROH,034
+0000101229,Furnace Oil South African,ROH,034
+0000101230,Diesel HSD LDO Grade,ROH,034
+0000101231,Charcoal BS-VI,ROH,034
+0000101232,Coal Imported 4500 GCV,ROH,034
+0000101233,LPG Industrial High Calorific,ROH,034
+0000101234,Petroleum Coke 5500 GCV,ROH,034
+0000101235,Petroleum Coke Indonesian,ROH,034
+0000101236,Petroleum Coke 4500 GCV,ROH,034
+0000101237,Furnace Oil Bagged,ROH,034
+0000101238,Coal Domestic LDO Grade,ROH,035
+0000101239,LPG Industrial South African,ROH,035
+0000101240,Petroleum Coke South African,ROH,035
+0000101241,LPG Industrial Piped,ROH,035
+0000101242,Natural Gas BS-VI,ROH,035
+0000101243,Diesel HSD 6000 GCV,ROH,035
+0000101244,Charcoal Bagged,ROH,035
+0000101245,Electricity Grid 4500 GCV,ROH,035
+0000101246,Electricity Grid 4500 GCV,ROH,035
+0000101247,Natural Gas Low Ash,ROH,035
+0000101248,Charcoal 5500 GCV,ROH,035
+0000101249,LPG Industrial 6000 GCV,ROH,035
+0000101250,Natural Gas Piped,ROH,035
+0000101251,Furnace Oil BS-VI,ROH,035
+0000101252,Petroleum Coke Bulk,ROH,035
+0000101253,Diesel HSD Low Ash,ROH,035
+0000101254,Natural Gas LDO Grade,ROH,035
+0000101255,Furnace Oil Bulk,ROH,035
+0000101256,Diesel HSD Indonesian,ROH,035
+0000101257,Natural Gas Piped,ROH,036
+0000101258,Diesel HSD 4500 GCV,ROH,036
+0000101259,Charcoal Low Ash,ROH,036
+0000101260,Electricity Grid Low Ash,ROH,036
+0000101261,Diesel HSD High Calorific,ROH,036
+0000101262,Electricity Grid 6000 GCV,ROH,036
+0000101263,Natural Gas Piped,ROH,036
+0000101264,Electricity Captive 5500 GCV,ROH,036
+0000101265,Electricity Captive Bulk,ROH,036
+0000101266,Coal Domestic Low Ash,ROH,036
+0000101267,Coal Imported High Calorific,ROH,036
+0000101268,Electricity Grid Low Ash,ROH,036
+0000101269,Petroleum Coke 6000 GCV,ROH,036
+0000101270,Coal Imported BS-VI,ROH,036
+0000101271,Electricity Grid Bulk,ROH,036
+0000101272,LPG Industrial Bagged,ROH,036
+0000101273,Housekeeping Service Lump Sum,DIEN,037
+0000101274,Annual Maintenance Contract Annual,DIEN,037
+0000101275,Consulting Engineering Mine Area,DIEN,037
+0000101276,Transportation Service Captive Power Plant,DIEN,037
+0000101277,Housekeeping Service Annual,DIEN,037
+0000101278,EPC Contractor As Required,DIEN,037
+0000101279,Transportation Service FY2025,DIEN,037
+0000101280,Civil Works As Required,DIEN,037
+0000101281,Electrical Maintenance Captive Power Plant,DIEN,037
+0000101282,Housekeeping Service Lump Sum,DIEN,037
+0000101283,Instrumentation Service Monthly,DIEN,037
+0000101284,Civil Works Plant Area,DIEN,037
+0000101285,Electrical Maintenance Captive Power Plant,DIEN,037
+0000101286,Manpower Supply FY2023,DIEN,037
+0000101287,Housekeeping Service As Required,DIEN,037
+0000101288,Transportation Service Rate Contract,DIEN,037
+0000101289,Housekeeping Service FY2025,DIEN,037
+0000101290,Transportation Service Monthly,DIEN,037
+0000101291,Instrumentation Service Annual,DIEN,038
+0000101292,Consulting Engineering FY2024,DIEN,038
+0000101293,NDT Testing Lump Sum,DIEN,038
+0000101294,Calibration Service Annual,DIEN,038
+0000101295,Mechanical Maintenance Rate Contract,DIEN,038
+0000101296,EPC Contractor Monthly,DIEN,038
+0000101297,Annual Maintenance Contract Quarterly,DIEN,038
+0000101298,Transportation Service Mine Area,DIEN,038
+0000101299,Security Service Smelter Area,DIEN,038
+0000101300,Annual Maintenance Contract FY2024,DIEN,038
+0000101301,Instrumentation Service Captive Power Plant,DIEN,038
+0000101302,Environmental Monitoring Smelter Area,DIEN,038
+0000101303,EPC Contractor Mine Area,DIEN,038
+0000101304,Housekeeping Service Monthly,DIEN,038
+0000101305,Manpower Supply Monthly,DIEN,038
+0000101306,Calibration Service Annual,DIEN,038
+0000101307,NDT Testing FY2023,DIEN,039
+0000101308,Instrumentation Service Monthly,DIEN,039
+0000101309,EPC Contractor FY2024,DIEN,039
+0000101310,EPC Contractor Captive Power Plant,DIEN,039
+0000101311,Manpower Supply Monthly,DIEN,039
+0000101312,EPC Contractor Smelter Area,DIEN,039
+0000101313,EPC Contractor Monthly,DIEN,039
+0000101314,Transportation Service Monthly,DIEN,039
+0000101315,Housekeeping Service Annual,DIEN,039
+0000101316,Environmental Monitoring Quarterly,DIEN,039
+0000101317,Transportation Service Lump Sum,DIEN,039
+0000101318,Housekeeping Service Mine Area,DIEN,039
+0000101319,Shutdown Maintenance Quarterly,DIEN,039
+0000101320,Civil Works Annual,DIEN,039
+0000101321,Housekeeping Service Lump Sum,DIEN,039
+0000101322,Manpower Supply FY2024,DIEN,039
+0000101323,Environmental Monitoring Annual,DIEN,040
+0000101324,NDT Testing Monthly,DIEN,040
+0000101325,Shutdown Maintenance Annual,DIEN,040
+0000101326,Transportation Service FY2023,DIEN,040
+0000101327,Security Service Monthly,DIEN,040
+0000101328,EPC Contractor FY2025,DIEN,040
+0000101329,Annual Maintenance Contract Quarterly,DIEN,040
+0000101330,Housekeeping Service Smelter Area,DIEN,040
+0000101331,Security Service Plant Area,DIEN,040
+0000101332,Transportation Service Quarterly,DIEN,040
+0000101333,Electrical Maintenance Monthly,DIEN,040
+0000101334,Shutdown Maintenance Monthly,DIEN,040
+0000101335,Transportation Service Smelter Area,DIEN,040
+0000101336,Calibration Service Monthly,DIEN,040
+0000101337,Manpower Supply Rate Contract,DIEN,040
+0000101338,Consulting Engineering Mine Area,DIEN,040
+0000101339,Shutdown Maintenance Quarterly,DIEN,040
+0000101340,Environmental Monitoring Lump Sum,DIEN,040
+0000101341,EPC Contractor Mine Area,DIEN,040
+0000101342,Manpower Supply FY2025,DIEN,041
+0000101343,EPC Contractor Captive Power Plant,DIEN,041
+0000101344,Shutdown Maintenance FY2025,DIEN,041
+0000101345,Electrical Maintenance Plant Area,DIEN,041
+0000101346,Housekeeping Service Lump Sum,DIEN,041
+0000101347,Electrical Maintenance Rate Contract,DIEN,041
+0000101348,Consulting Engineering FY2023,DIEN,041
+0000101349,Housekeeping Service FY2023,DIEN,041
+0000101350,Calibration Service FY2024,DIEN,041
+0000101351,Calibration Service Mine Area,DIEN,041
+0000101352,Annual Maintenance Contract Captive Power Plant,DIEN,041
+0000101353,Annual Maintenance Contract As Required,DIEN,041
+0000101354,Electrical Maintenance Mine Area,DIEN,041
+0000101355,Instrumentation Service FY2024,DIEN,041
+0000101356,EPC Contractor FY2025,DIEN,041
+0000101357,Annual Maintenance Contract Monthly,DIEN,041
+0000101358,Housekeeping Service Lump Sum,DIEN,041
+0000101359,Shutdown Maintenance FY2023,DIEN,041
+0000101360,Security Service Mine Area,DIEN,041
+0000101361,Consulting Engineering Lump Sum,DIEN,042
+0000101362,Annual Maintenance Contract FY2023,DIEN,042
+0000101363,Housekeeping Service Rate Contract,DIEN,042
+0000101364,Transportation Service FY2023,DIEN,042
+0000101365,Annual Maintenance Contract Rate Contract,DIEN,042
+0000101366,EPC Contractor Quarterly,DIEN,042
+0000101367,Housekeeping Service Quarterly,DIEN,042
+0000101368,Annual Maintenance Contract Rate Contract,DIEN,042
+0000101369,Calibration Service Plant Area,DIEN,042
+0000101370,Consulting Engineering As Required,DIEN,042
+0000101371,Environmental Monitoring FY2025,DIEN,042
+0000101372,Mechanical Maintenance FY2024,DIEN,042
+0000101373,Housekeeping Service FY2025,DIEN,042
+0000101374,Instrumentation Service Monthly,DIEN,042
+0000101375,Security Service Rate Contract,DIEN,042
+0000101376,Civil Works Annual,DIEN,042
+0000101377,Civil Works Captive Power Plant,DIEN,042
+0000101378,Transportation Service FY2024,DIEN,042
+0000101379,Shutdown Maintenance As Required,DIEN,042
+0000101380,Security Service Monthly,DIEN,043
+0000101381,EPC Contractor Monthly,DIEN,043
+0000101382,Civil Works Mine Area,DIEN,043
+0000101383,Calibration Service FY2024,DIEN,043
+0000101384,Consulting Engineering Mine Area,DIEN,043
+0000101385,Environmental Monitoring FY2023,DIEN,043
+0000101386,Mechanical Maintenance As Required,DIEN,043
+0000101387,Transportation Service As Required,DIEN,043
+0000101388,Housekeeping Service Lump Sum,DIEN,043
+0000101389,Annual Maintenance Contract Mine Area,DIEN,043
+0000101390,Annual Maintenance Contract Plant Area,DIEN,043
+0000101391,Electrical Maintenance FY2024,DIEN,043
+0000101392,Manpower Supply As Required,DIEN,043
+0000101393,Consulting Engineering Captive Power Plant,DIEN,043
+0000101394,Shutdown Maintenance Smelter Area,DIEN,043
+0000101395,Calibration Service FY2024,DIEN,043
+0000101396,NDT Testing Rate Contract,DIEN,043
+0000101397,NDT Testing FY2023,DIEN,043
+0000101398,Instrumentation Service Monthly,DIEN,043
+0000101399,Container 40ft Per MT,DIEN,044
+0000101400,Rail Freight Domestic,DIEN,044
+0000101401,Forklift Hiring Regular,DIEN,044
+0000101402,Road Transport Per Day,DIEN,044
+0000101403,Warehouse Storage Per MT,DIEN,044
+0000101404,Container 20ft Regular,DIEN,044
+0000101405,Sea Freight Hazardous,DIEN,044
+0000101406,Rail Freight Domestic,DIEN,044
+0000101407,Sea Freight Regular,DIEN,044
+0000101408,Container 20ft Regular,DIEN,044
+0000101409,Loading Unloading Express,DIEN,044
+0000101410,Warehouse Storage Hazardous,DIEN,044
+0000101411,Sea Freight Per Trip,DIEN,044
+0000101412,Forklift Hiring International,DIEN,044
+0000101413,Road Transport Per Trip,DIEN,044
+0000101414,Loading Unloading Per Month,DIEN,044
+0000101415,Rail Freight International,DIEN,044
+0000101416,Vehicle Hiring Regular,DIEN,044
+0000101417,Vehicle Hiring Hazardous,DIEN,044
+0000101418,Road Transport Domestic,DIEN,045
+0000101419,Crane Hiring Oversize,DIEN,045
+0000101420,Container 20ft International,DIEN,045
+0000101421,Forklift Hiring Hazardous,DIEN,045
+0000101422,Loading Unloading Per Day,DIEN,045
+0000101423,Vehicle Hiring Hazardous,DIEN,045
+0000101424,Rail Freight Regular,DIEN,045
+0000101425,Container 40ft Per Month,DIEN,045
+0000101426,Rail Freight Per Trip,DIEN,045
+0000101427,Container 40ft Per Day,DIEN,045
+0000101428,Loading Unloading Per Day,DIEN,045
+0000101429,Loading Unloading International,DIEN,045
+0000101430,Warehouse Storage Per Trip,DIEN,045
+0000101431,Rail Freight Per MT,DIEN,045
+0000101432,Container 40ft Oversize,DIEN,045
+0000101433,Warehouse Storage Domestic,DIEN,045
+0000101434,Rail Freight Per Day,DIEN,045
+0000101435,Sea Freight Hazardous,DIEN,046
+0000101436,Crane Hiring Express,DIEN,046
+0000101437,Forklift Hiring Express,DIEN,046
+0000101438,Loading Unloading Per Trip,DIEN,046
+0000101439,Road Transport Per Trip,DIEN,046
+0000101440,Warehouse Storage Express,DIEN,046
+0000101441,Rail Freight Regular,DIEN,046
+0000101442,Vehicle Hiring International,DIEN,046
+0000101443,Loading Unloading Per MT,DIEN,046
+0000101444,Container 40ft Hazardous,DIEN,046
+0000101445,Loading Unloading Per Trip,DIEN,046
+0000101446,Forklift Hiring Per Month,DIEN,046
+0000101447,Vehicle Hiring Express,DIEN,046
+0000101448,Loading Unloading Per Day,DIEN,047
+0000101449,Sea Freight Domestic,DIEN,047
+0000101450,Container 40ft Domestic,DIEN,047
+0000101451,Crane Hiring Per Day,DIEN,047
+0000101452,Rail Freight Per Day,DIEN,047
+0000101453,Loading Unloading Domestic,DIEN,047
+0000101454,Loading Unloading Domestic,DIEN,047
+0000101455,Crane Hiring Per Trip,DIEN,047
+0000101456,Warehouse Storage Domestic,DIEN,047
+0000101457,Container 20ft Oversize,DIEN,047
+0000101458,Vehicle Hiring Regular,DIEN,047
+0000101459,Container 20ft Oversize,DIEN,047
+0000101460,Rail Freight Per Day,DIEN,047
+0000101461,Container 40ft Per MT,DIEN,047
+0000101462,Warehouse Storage Regular,DIEN,048
+0000101463,Loading Unloading International,DIEN,048
+0000101464,Crane Hiring International,DIEN,048
+0000101465,Loading Unloading Regular,DIEN,048
+0000101466,Sea Freight Domestic,DIEN,048
+0000101467,Warehouse Storage Regular,DIEN,048
+0000101468,Container 20ft Oversize,DIEN,048
+0000101469,Warehouse Storage Per Day,DIEN,048
+0000101470,Loading Unloading International,DIEN,048
+0000101471,Container 40ft Oversize,DIEN,048
+0000101472,Vehicle Hiring Per Month,DIEN,048
+0000101473,Warehouse Storage Hazardous,DIEN,048
+0000101474,Container 40ft Hazardous,DIEN,048
+0000101475,Warehouse Storage Per Trip,DIEN,048
+0000101476,Vehicle Hiring Per Month,DIEN,048
+0000101477,Vehicle Hiring Express,DIEN,048
+0000101478,Sea Freight Express,DIEN,048
+0000101479,Road Transport Oversize,DIEN,048
+0000101480,Radio Handset 1 Gbps,HIBE,049
+0000101481,Fiber Optic Cable 10 Gbps,HIBE,049
+0000101482,IT AMC Dell,HIBE,049
+0000101483,Printer Laser 1 Gbps,HIBE,049
+0000101484,CCTV Camera 24-Port,HIBE,049
+0000101485,Radio Handset Lenovo,HIBE,049
+0000101486,SAP Support Hikvision,HIBE,049
+0000101487,Network Switch Hikvision,HIBE,049
+0000101488,SAP Support Lenovo,HIBE,049
+0000101489,IT AMC Enterprise,HIBE,049
+0000101490,Printer Laser Enterprise,HIBE,049
+0000101491,Desktop PC Standard,HIBE,049
+0000101492,Cloud Hosting Standard,HIBE,049
+0000101493,Cloud Hosting Enterprise,HIBE,049
+0000101494,Software License Annual,HIBE,049
+0000101495,IT AMC Enterprise,HIBE,049
+0000101496,Software License HP,HIBE,049
+0000101497,Printer Laser Motorola,HIBE,049
+0000101498,IT AMC 1 Gbps,HIBE,049
+0000101499,Software License Per User,HIBE,049
+0000101500,SAP Support Dell,HIBE,049
+0000101501,Printer Laser Cisco,HIBE,050
+0000101502,SAP Support 24-Port,HIBE,050
+0000101503,UPS System Lenovo,HIBE,050
+0000101504,SAP Support Per User,HIBE,050
+0000101505,Laptop Per User,HIBE,050
+0000101506,SAP Support 24-Port,HIBE,050
+0000101507,SAP Support Enterprise,HIBE,050
+0000101508,Printer Laser Motorola,HIBE,050
+0000101509,Printer Laser Enterprise,HIBE,050
+0000101510,Desktop PC HP,HIBE,050
+0000101511,Desktop PC Hikvision,HIBE,050
+0000101512,Network Switch Annual,HIBE,050
+0000101513,IT AMC Annual,HIBE,050
+0000101514,Software License Per User,HIBE,050
+0000101515,IT AMC Per User,HIBE,050
+0000101516,Network Switch Standard,HIBE,050
+0000101517,UPS System Enterprise,HIBE,050
+0000101518,Radio Handset 1 Gbps,HIBE,050
+0000101519,UPS System HP,HIBE,051
+0000101520,Radio Handset Dell,HIBE,051
+0000101521,Fiber Optic Cable Enterprise,HIBE,051
+0000101522,Desktop PC Dell,HIBE,051
+0000101523,IT AMC Lenovo,HIBE,051
+0000101524,UPS System Hikvision,HIBE,051
+0000101525,UPS System Standard,HIBE,051
+0000101526,Printer Laser Cisco,HIBE,051
+0000101527,Software License Standard,HIBE,051
+0000101528,UPS System Standard,HIBE,051
+0000101529,Desktop PC Standard,HIBE,051
+0000101530,IT AMC 48-Port,HIBE,051
+0000101531,Radio Handset Motorola,HIBE,051
+0000101532,Desktop PC Hikvision,HIBE,051
+0000101533,Laptop 1 Gbps,HIBE,051
+0000101534,IT AMC Dell,HIBE,051
+0000101535,Laptop 10 Gbps,HIBE,051
+0000101536,UPS System 24-Port,HIBE,051
+0000101537,Desktop PC 24-Port,HIBE,051
+0000101538,IT AMC Cisco,HIBE,052
+0000101539,Software License Lenovo,HIBE,052
+0000101540,Software License Lenovo,HIBE,052
+0000101541,UPS System Annual,HIBE,052
+0000101542,CCTV Camera Standard,HIBE,052
+0000101543,Network Switch 1 Gbps,HIBE,052
+0000101544,CCTV Camera 24-Port,HIBE,052
+0000101545,Server Rack Lenovo,HIBE,052
+0000101546,SAP Support 24-Port,HIBE,052
+0000101547,CCTV Camera Enterprise,HIBE,052
+0000101548,Laptop 48-Port,HIBE,052
+0000101549,Cloud Hosting Cisco,HIBE,052
+0000101550,Radio Handset Per User,HIBE,052
+0000101551,CCTV Camera Enterprise,HIBE,052
+0000101552,Laptop 48-Port,HIBE,052
+0000101553,Network Switch Cisco,HIBE,052
+0000101554,Fiber Optic Cable 1 Gbps,HIBE,052
+0000101555,IT AMC 1 Gbps,HIBE,052
+0000101556,Printer Laser Dell,HIBE,052
+0000101557,Cloud Hosting Dell,HIBE,052
+0000101558,UPS System Motorola,HIBE,053
+0000101559,Network Switch Standard,HIBE,053
+0000101560,Desktop PC Hikvision,HIBE,053
+0000101561,SAP Support 10 Gbps,HIBE,053
+0000101562,Radio Handset Annual,HIBE,053
+0000101563,SAP Support Motorola,HIBE,053
+0000101564,Cloud Hosting Enterprise,HIBE,053
+0000101565,Cloud Hosting Enterprise,HIBE,053
+0000101566,Cloud Hosting Dell,HIBE,053
+0000101567,UPS System Motorola,HIBE,053
+0000101568,Radio Handset Per User,HIBE,053
+0000101569,Server Rack 10 Gbps,HIBE,053
+0000101570,SAP Support 48-Port,HIBE,053
+0000101571,Printer Laser Hikvision,HIBE,053
+0000101572,Cloud Hosting Per User,HIBE,053
+0000101573,Desktop PC 24-Port,HIBE,053
+0000101574,Server Rack Motorola,HIBE,053
+0000101575,Desktop PC Cisco,HIBE,053
+0000101576,Fiber Optic Cable Dell,HIBE,053
+0000101577,Server Rack Motorola,HIBE,053
+0000101578,Fire Extinguisher Single Gas,HIBE,054
+0000101579,Full Face Respirator Class-B,HIBE,054
+0000101580,First Aid Kit Single Gas,HIBE,054
+0000101581,Full Face Respirator Nitrile,HIBE,054
+0000101582,Safety Harness Nitrile,HIBE,054
+0000101583,Fire Extinguisher Nitrile,HIBE,054
+0000101584,Safety Harness ABC Type,HIBE,054
+0000101585,Safety Shoes Nitrile,HIBE,054
+0000101586,Dust Mask Medium,HIBE,054
+0000101587,First Aid Kit EN Standard,HIBE,054
+0000101588,Gas Detector Fixed 4-Gas,HIBE,054
+0000101589,Safety Helmet Small,HIBE,054
+0000101590,Safety Shoes Leather,HIBE,054
+0000101591,Gas Detector Fixed Single Gas,HIBE,054
+0000101592,Fire Extinguisher Small,HIBE,054
+0000101593,Full Face Respirator Small,HIBE,054
+0000101594,Full Face Respirator Medium,HIBE,054
+0000101595,Safety Harness Nitrile,HIBE,054
+0000101596,Safety Goggles IS Standard,HIBE,054
+0000101597,Ear Plug EN Standard,HIBE,055
+0000101598,Ear Plug PVC,HIBE,055
+0000101599,Fire Extinguisher ABC Type,HIBE,055
+0000101600,Safety Shoes Medium,HIBE,055
+0000101601,First Aid Kit Small,HIBE,055
+0000101602,Fire Extinguisher Class-A,HIBE,055
+0000101603,First Aid Kit Class-A,HIBE,055
+0000101604,Ear Plug 4-Gas,HIBE,055
+0000101605,Fire Extinguisher EN Standard,HIBE,055
+0000101606,Gas Detector Portable Medium,HIBE,055
+0000101607,Fire Extinguisher Leather,HIBE,055
+0000101608,Full Face Respirator Class-A,HIBE,055
+0000101609,Reflective Jacket PVC,HIBE,055
+0000101610,Ear Plug EN Standard,HIBE,055
+0000101611,Safety Harness Canvas,HIBE,055
+0000101612,Dust Mask DGMS Approved,HIBE,055
+0000101613,Safety Harness Class-A,HIBE,055
+0000101614,Gas Detector Portable PVC,HIBE,055
+0000101615,Ear Muff 4-Gas,HIBE,055
+0000101616,Gas Detector Fixed Large,HIBE,055
+0000101617,Safety Shoes Class-B,HIBE,055
+0000101618,Gas Detector Portable Leather,HIBE,055
+0000101619,Gas Detector Portable EN Standard,HIBE,056
+0000101620,First Aid Kit 4-Gas,HIBE,056
+0000101621,Fire Extinguisher Canvas,HIBE,056
+0000101622,First Aid Kit Nitrile,HIBE,056
+0000101623,Dust Mask ABC Type,HIBE,056
+0000101624,Ear Plug Canvas,HIBE,056
+0000101625,Gas Detector Fixed Class-A,HIBE,056
+0000101626,Safety Shoes Large,HIBE,056
+0000101627,Safety Helmet Canvas,HIBE,056
+0000101628,Gas Detector Fixed Class-B,HIBE,056
+0000101629,Reflective Jacket Class-B,HIBE,056
+0000101630,Ear Muff Class-B,HIBE,056
+0000101631,Reflective Jacket CO2 Type,HIBE,056
+0000101632,Gas Detector Fixed PVC,HIBE,056
+0000101633,Gas Detector Portable Single Gas,HIBE,056
+0000101634,Safety Harness Class-B,HIBE,056
+0000101635,First Aid Kit Canvas,HIBE,056
+0000101636,Safety Gloves Large,HIBE,056
+0000101637,Full Face Respirator Medium,HIBE,056
+0000101638,Safety Goggles DGMS Approved,HIBE,056
+0000101639,Full Face Respirator Canvas,HIBE,056
+0000101640,Safety Harness Small,HIBE,057
+0000101641,Dust Mask IS Standard,HIBE,057
+0000101642,Gas Detector Fixed DGMS Approved,HIBE,057
+0000101643,Reflective Jacket Medium,HIBE,057
+0000101644,Safety Gloves 4-Gas,HIBE,057
+0000101645,Gas Detector Fixed DGMS Approved,HIBE,057
+0000101646,Gas Detector Portable Single Gas,HIBE,057
+0000101647,Ear Muff Large,HIBE,057
+0000101648,Gas Detector Fixed Leather,HIBE,057
+0000101649,Safety Harness Canvas,HIBE,057
+0000101650,Dust Mask ABC Type,HIBE,057
+0000101651,Dust Mask Class-B,HIBE,057
+0000101652,First Aid Kit Small,HIBE,057
+0000101653,Gas Detector Portable CO2 Type,HIBE,057
+0000101654,Safety Gloves EN Standard,HIBE,057
+0000101655,Safety Helmet Class-A,HIBE,057
+0000101656,Safety Gloves Medium,HIBE,057
+0000101657,Safety Helmet Class-A,HIBE,057
+0000101658,Gas Detector Fixed Nitrile,HIBE,057
+0000101659,Safety Harness Medium,HIBE,057
+0000101660,Safety Helmet Large,HIBE,057
+0000101661,Ear Muff Class-B,HIBE,057
+0000101662,Safety Gloves ABC Type,HIBE,057
+0000101663,Safety Shoes Canvas,HIBE,057
+0000101664,Safety Goggles 4-Gas,HIBE,057
+0000101665,Ear Plug DGMS Approved,HIBE,057
+0000101666,Roofing Sheet GI M25,ROH,058
+0000101667,Cement OPC 0.5mm,ROH,058
+0000101668,Roofing Sheet GI Coarse,ROH,058
+0000101669,Paint Industrial M40,ROH,058
+0000101670,Sand Crushed Fe500,ROH,058
+0000101671,Paint Industrial Fe550D,ROH,058
+0000101672,Cement OPC M30,ROH,058
+0000101673,Aggregate Fe500,ROH,058
+0000101674,TMT Rebar M40,ROH,058
+0000101675,Bricks Red Epoxy,ROH,058
+0000101676,Cement OPC 43 Grade,ROH,058
+0000101677,Paint Industrial 20mm,ROH,058
+0000101678,PVC Pipe Fe550D,ROH,058
+0000101679,PVC Pipe 0.63mm,ROH,058
+0000101680,Paint Industrial M20,ROH,058
+0000101681,Aggregate Fe500,ROH,058
+0000101682,Structural Steel 0.5mm,ROH,058
+0000101683,Cement PPC Fe550D,ROH,058
+0000101684,Cement PPC 20mm,ROH,058
+0000101685,Sand River Coarse,ROH,058
+0000101686,TMT Rebar 0.5mm,ROH,058
+0000101687,Waterproofing Compound M20,ROH,058
+0000101688,Roofing Sheet GI M20,ROH,058
+0000101689,Cement PPC 43 Grade,ROH,058
+0000101690,AAC Blocks M25,ROH,058
+0000101691,Aggregate 40mm,ROH,058
+0000101692,Roofing Sheet GI M20,ROH,059
+0000101693,Sand Crushed Epoxy,ROH,059
+0000101694,PVC Pipe M30,ROH,059
+0000101695,Cement PPC Fe550D,ROH,059
+0000101696,TMT Rebar Fe550D,ROH,059
+0000101697,AAC Blocks 0.5mm,ROH,059
+0000101698,Sand River 0.63mm,ROH,059
+0000101699,Sand River M20,ROH,059
+0000101700,Structural Steel Fine,ROH,059
+0000101701,Roofing Sheet GI Fe500,ROH,059
+0000101702,Structural Steel Coarse,ROH,059
+0000101703,Waterproofing Compound 43 Grade,ROH,059
+0000101704,PVC Pipe Coarse,ROH,059
+0000101705,Structural Steel M30,ROH,059
+0000101706,Paint Industrial 0.5mm,ROH,059
+0000101707,Ready Mix Concrete 53 Grade,ROH,059
+0000101708,Waterproofing Compound M40,ROH,059
+0000101709,Aggregate 0.5mm,ROH,059
+0000101710,Cement PPC M40,ROH,059
+0000101711,Aggregate Fe500,ROH,059
+0000101712,Bricks Red 43 Grade,ROH,059
+0000101713,Sand River M20,ROH,060
+0000101714,Sand Crushed 0.63mm,ROH,060
+0000101715,Sand River M25,ROH,060
+0000101716,Waterproofing Compound Polyurethane,ROH,060
+0000101717,Waterproofing Compound Fe500,ROH,060
+0000101718,Cement OPC Fe500,ROH,060
+0000101719,Cement OPC Fine,ROH,060
+0000101720,Structural Steel 53 Grade,ROH,060
+0000101721,Cement OPC 0.5mm,ROH,060
+0000101722,Bricks Red Coarse,ROH,060
+0000101723,Roofing Sheet GI 0.63mm,ROH,060
+0000101724,Sand Crushed 0.5mm,ROH,060
+0000101725,Cement PPC M20,ROH,060
+0000101726,Ready Mix Concrete Fe500,ROH,060
+0000101727,Ready Mix Concrete Fe500,ROH,060
+0000101728,Bricks Red M30,ROH,060
+0000101729,Waterproofing Compound M20,ROH,060
+0000101730,Bricks Red 20mm,ROH,060
+0000101731,Sand Crushed Fe500,ROH,060
+0000101732,Ready Mix Concrete 0.63mm,ROH,060
+0000101733,Paint Industrial M40,ROH,060
+0000101734,Cement OPC M40,ROH,060
+0000101735,Cement PPC 0.63mm,ROH,060
+0000101736,Cement PPC Epoxy,ROH,060
+0000101737,AAC Blocks 53 Grade,ROH,060
+0000101738,Ready Mix Concrete M25,ROH,060
+0000101739,Cement OPC M20,ROH,061
+0000101740,Paint Industrial 43 Grade,ROH,061
+0000101741,TMT Rebar Polyurethane,ROH,061
+0000101742,Sand River Fine,ROH,061
+0000101743,TMT Rebar 40mm,ROH,061
+0000101744,TMT Rebar Fine,ROH,061
+0000101745,Paint Industrial Fe550D,ROH,061
+0000101746,Waterproofing Compound 43 Grade,ROH,061
+0000101747,Sand River 0.63mm,ROH,061
+0000101748,Ready Mix Concrete Fe500,ROH,061
+0000101749,Ready Mix Concrete Fe500,ROH,061
+0000101750,Aggregate Epoxy,ROH,061
+0000101751,Bricks Red 40mm,ROH,061
+0000101752,Cement OPC Polyurethane,ROH,061
+0000101753,PVC Pipe M25,ROH,061
+0000101754,Sand River M25,ROH,061
+0000101755,Ready Mix Concrete Fe550D,ROH,061
+0000101756,AAC Blocks Fe550D,ROH,061
+0000101757,LED Floodlight Siemens,ERSA,062
+0000101758,Electric Motor 11 kW,ERSA,062
+0000101759,Cable Tray 5.5 kW,ERSA,062
+0000101760,Transformer Distribution 11 kW,ERSA,062
+0000101761,Busbar Aluminium 11 kV,ERSA,062
+0000101762,Busbar Copper 55 kW,ERSA,062
+0000101763,Switchgear Panel 11 kW,ERSA,062
+0000101764,Relay Protection 4C x 95 sqmm,ERSA,062
+0000101765,Transformer Distribution 6.6 kV,ERSA,062
+0000101766,Transformer Distribution 4C x 95 sqmm,ERSA,062
+0000101767,LED Floodlight 6.6 kV,ERSA,062
+0000101768,Cable Power XLPE 22 kW,ERSA,062
+0000101769,Contactor 11 kV,ERSA,062
+0000101770,VFD Drive Siemens,ERSA,062
+0000101771,Circuit Breaker 11 kW,ERSA,062
+0000101772,Switchgear Panel 160 kW,ERSA,062
+0000101773,Junction Box Siemens,ERSA,062
+0000101774,Electric Motor 33 kV,ERSA,062
+0000101775,VFD Drive 3.5C x 240 sqmm,ERSA,062
+0000101776,Cable Tray 3.3 kV,ERSA,062
+0000101777,Junction Box 3.3 kV,ERSA,062
+0000101778,Cable Control 22 kW,ERSA,062
+0000101779,Relay Protection 3.5C x 240 sqmm,ERSA,062
+0000101780,Electric Motor 11 kV,ERSA,062
+0000101781,Transformer Distribution 3.3 kV,ERSA,062
+0000101782,Contactor 3.3 kV,ERSA,062
+0000101783,LED Floodlight 160 kW,ERSA,062
+0000101784,Cable Control L&T,ERSA,063
+0000101785,Busbar Aluminium 110 kW,ERSA,063
+0000101786,LED Floodlight Schneider,ERSA,063
+0000101787,Junction Box 160 kW,ERSA,063
+0000101788,Switchgear Panel 5.5 kW,ERSA,063
+0000101789,Busbar Copper 5.5 kW,ERSA,063
+0000101790,Transformer Distribution Schneider,ERSA,063
+0000101791,Cable Control 5.5 kW,ERSA,063
+0000101792,Cable Control 5.5 kW,ERSA,063
+0000101793,Junction Box 33 kV,ERSA,063
+0000101794,Cable Tray 3.3 kV,ERSA,063
+0000101795,VFD Drive 110 kW,ERSA,063
+0000101796,Relay Protection 160 kW,ERSA,063
+0000101797,Busbar Copper ABB,ERSA,063
+0000101798,Electric Motor 55 kW,ERSA,063
+0000101799,LED Floodlight 250 kW,ERSA,063
+0000101800,VFD Drive 11 kW,ERSA,063
+0000101801,Transformer Distribution Siemens,ERSA,063
+0000101802,Busbar Copper 11 kV,ERSA,063
+0000101803,Busbar Aluminium 22 kW,ERSA,063
+0000101804,Contactor 37 kW,ERSA,063
+0000101805,Relay Protection 55 kW,ERSA,063
+0000101806,Circuit Breaker 33 kV,ERSA,063
+0000101807,VFD Drive L&T,ERSA,063
+0000101808,Contactor 11 kW,ERSA,063
+0000101809,Busbar Copper 55 kW,ERSA,063
+0000101810,Transformer Distribution 3.3 kV,ERSA,063
+0000101811,Cable Power XLPE 6.6 kV,ERSA,063
+0000101812,Junction Box 33 kV,ERSA,063
+0000101813,LED Floodlight 6.6 kV,ERSA,063
+0000101814,Cable Control 3.5C x 240 sqmm,ERSA,063
+0000101815,Cable Power XLPE 160 kW,ERSA,063
+0000101816,VFD Drive 110 kW,ERSA,063
+0000101817,Switchgear Panel L&T,ERSA,063
+0000101818,Switchgear Panel 37 kW,ERSA,064
+0000101819,Switchgear Panel 3.5C x 240 sqmm,ERSA,064
+0000101820,Busbar Aluminium 6.6 kV,ERSA,064
+0000101821,Busbar Copper 37 kW,ERSA,064
+0000101822,Relay Protection 11 kV,ERSA,064
+0000101823,Junction Box 110 kW,ERSA,064
+0000101824,Busbar Aluminium 3.3 kV,ERSA,064
+0000101825,Busbar Aluminium 250 kW,ERSA,064
+0000101826,Cable Tray 37 kW,ERSA,064
+0000101827,VFD Drive 90 kW,ERSA,064
+0000101828,Junction Box 3.3 kV,ERSA,064
+0000101829,Cable Tray 11 kW,ERSA,064
+0000101830,Transformer Distribution 6.6 kV,ERSA,064
+0000101831,Switchgear Panel 22 kW,ERSA,064
+0000101832,LED Floodlight 160 kW,ERSA,064
+0000101833,Cable Control 33 kV,ERSA,064
+0000101834,Relay Protection 11 kW,ERSA,064
+0000101835,Circuit Breaker 3.3 kV,ERSA,064
+0000101836,Cable Power XLPE 90 kW,ERSA,064
+0000101837,Electric Motor 33 kV,ERSA,064
+0000101838,Cable Tray 3.5C x 240 sqmm,ERSA,064
+0000101839,Relay Protection Schneider,ERSA,064
+0000101840,Transformer Distribution 37 kW,ERSA,064
+0000101841,VFD Drive 55 kW,ERSA,065
+0000101842,VFD Drive 5.5 kW,ERSA,065
+0000101843,Electric Motor 160 kW,ERSA,065
+0000101844,Switchgear Panel 110 kW,ERSA,065
+0000101845,Cable Tray 33 kV,ERSA,065
+0000101846,Cable Control 22 kW,ERSA,065
+0000101847,Contactor L&T,ERSA,065
+0000101848,Cable Power XLPE 22 kW,ERSA,065
+0000101849,Electric Motor 22 kW,ERSA,065
+0000101850,Transformer Distribution 3.5C x 240 sqmm,ERSA,065
+0000101851,Junction Box 55 kW,ERSA,065
+0000101852,VFD Drive 6.6 kV,ERSA,065
+0000101853,VFD Drive 11 kW,ERSA,065
+0000101854,Busbar Aluminium 11 kW,ERSA,065
+0000101855,Switchgear Panel L&T,ERSA,065
+0000101856,Busbar Copper 33 kV,ERSA,065
+0000101857,Busbar Aluminium 5.5 kW,ERSA,065
+0000101858,Busbar Copper 4C x 95 sqmm,ERSA,065
+0000101859,Switchgear Panel 11 kV,ERSA,065
+0000101860,Transformer Distribution 90 kW,ERSA,065
+0000101861,Cable Power XLPE 250 kW,ERSA,065
+0000101862,Busbar Aluminium 55 kW,ERSA,065
+0000101863,Electric Motor 160 kW,ERSA,065
+0000101864,Circuit Breaker 3.3 kV,ERSA,065
+0000101865,Busbar Aluminium 4C x 95 sqmm,ERSA,065
+0000101866,Relay Protection ABB,ERSA,065
+0000101867,Electric Motor 22 kW,ERSA,065
+0000101868,Cable Power XLPE 33 kV,ERSA,065
+0000101869,Switchgear Panel 4C x 95 sqmm,ERSA,065
+0000101870,Transformer Distribution Siemens,ERSA,065
+0000101871,Transformer Distribution Schneider,ERSA,065
+0000101872,Junction Box 5.5 kW,ERSA,065
+0000101873,Busbar Copper 11 kV,ERSA,065
+0000101874,Busbar Aluminium Schneider,ERSA,065
+0000101875,Cable Control L&T,ERSA,066
+0000101876,Relay Protection 6.6 kV,ERSA,066
+0000101877,Busbar Copper 250 kW,ERSA,066
+0000101878,Switchgear Panel 5.5 kW,ERSA,066
+0000101879,Cable Control 160 kW,ERSA,066
+0000101880,Electric Motor 250 kW,ERSA,066
+0000101881,Electric Motor ABB,ERSA,066
+0000101882,Relay Protection 11 kV,ERSA,066
+0000101883,Junction Box L&T,ERSA,066
+0000101884,Transformer Distribution 90 kW,ERSA,066
+0000101885,VFD Drive 160 kW,ERSA,066
+0000101886,Circuit Breaker 160 kW,ERSA,066
+0000101887,Cable Power XLPE Schneider,ERSA,066
+0000101888,Cable Tray 11 kW,ERSA,066
+0000101889,Junction Box 160 kW,ERSA,066
+0000101890,Contactor 33 kV,ERSA,066
+0000101891,Cable Control 90 kW,ERSA,066
+0000101892,Switchgear Panel 160 kW,ERSA,066
+0000101893,Contactor 6.6 kV,ERSA,066
+0000101894,Junction Box 11 kV,ERSA,066
+0000101895,Contactor 5.5 kW,ERSA,066
+0000101896,LED Floodlight 11 kV,ERSA,066
+0000101897,Contactor L&T,ERSA,066
+0000101898,Switchgear Panel L&T,ERSA,066
+0000101899,Transformer Distribution ABB,ERSA,066
+0000101900,Relay Protection 3.3 kV,ERSA,066
+0000101901,Switchgear Panel ABB,ERSA,066
+0000101902,Electric Motor 22 kW,ERSA,066
+0000101903,Electric Motor 160 kW,ERSA,066
+0000101904,Contactor 160 kW,ERSA,066
+0000101905,Electric Motor Siemens,ERSA,066
+0000101906,Busbar Aluminium 5.5 kW,ERSA,066
+0000101907,Cable Control 110 kW,ERSA,066
+0000101908,Junction Box 55 kW,ERSA,066
+0000101909,Cable Control 90 kW,ERSA,066
+0000101910,Pressure Transmitter 0-10 bar,ERSA,067
+0000101911,Level Transmitter Type J,ERSA,067
+0000101912,Weighing Scale Type K,ERSA,067
+0000101913,Loadcell 4-20mA,ERSA,067
+0000101914,Loadcell Coriolis,ERSA,067
+0000101915,Temperature Transmitter Coriolis,ERSA,067
+0000101916,Analyser DO Honeywell,ERSA,067
+0000101917,RTD Sensor Type K,ERSA,067
+0000101918,Solenoid Valve Electromagnetic,ERSA,067
+0000101919,Solenoid Valve Type J,ERSA,067
+0000101920,Level Transmitter Emerson,ERSA,067
+0000101921,Weighing Scale Yokogawa,ERSA,067
+0000101922,Analyser pH Ultrasonic,ERSA,067
+0000101923,Level Transmitter HART,ERSA,067
+0000101924,Analyser DO Coriolis,ERSA,067
+0000101925,Flow Meter PT100,ERSA,067
+0000101926,PLC Module Electromagnetic,ERSA,067
+0000101927,Analyser DO Electromagnetic,ERSA,067
+0000101928,Level Transmitter PT100,ERSA,067
+0000101929,Analyser DO 0-10 bar,ERSA,067
+0000101930,Analyser DO Honeywell,ERSA,067
+0000101931,Loadcell 0-50 bar,ERSA,067
+0000101932,Level Transmitter Ultrasonic,ERSA,067
+0000101933,Weighing Scale DN100,ERSA,067
+0000101934,Analyser pH Type K,ERSA,067
+0000101935,DCS Controller Type J,ERSA,067
+0000101936,Solenoid Valve 0-100 bar,ERSA,067
+0000101937,Flow Meter Coriolis,ERSA,067
+0000101938,Solenoid Valve PT100,ERSA,067
+0000101939,Analyser pH 0-100 bar,ERSA,067
+0000101940,DCS Controller 0-10 bar,ERSA,068
+0000101941,Control Valve DN50,ERSA,068
+0000101942,Flow Meter 0-100 bar,ERSA,068
+0000101943,Solenoid Valve DN150,ERSA,068
+0000101944,Weighing Scale Type K,ERSA,068
+0000101945,Analyser DO 0-10 bar,ERSA,068
+0000101946,Pressure Transmitter Honeywell,ERSA,068
+0000101947,DCS Controller Emerson,ERSA,068
+0000101948,Level Transmitter Emerson,ERSA,068
+0000101949,DCS Controller Honeywell,ERSA,068
+0000101950,Solenoid Valve HART,ERSA,068
+0000101951,PLC Module Type K,ERSA,068
+0000101952,Loadcell Yokogawa,ERSA,068
+0000101953,Weighing Scale DN100,ERSA,068
+0000101954,Level Transmitter Endress+Hauser,ERSA,068
+0000101955,Temperature Transmitter 0-50 bar,ERSA,068
+0000101956,Control Valve 0-10 bar,ERSA,068
+0000101957,Solenoid Valve DN150,ERSA,068
+0000101958,Temperature Transmitter 0-100 bar,ERSA,068
+0000101959,Solenoid Valve PT100,ERSA,068
+0000101960,PLC Module PT100,ERSA,068
+0000101961,Analyser DO 0-100 bar,ERSA,068
+0000101962,Thermocouple 0-100 bar,ERSA,068
+0000101963,Solenoid Valve Yokogawa,ERSA,068
+0000101964,Analyser DO 0-10 bar,ERSA,068
+0000101965,PLC Module PT100,ERSA,068
+0000101966,RTD Sensor Emerson,ERSA,068
+0000101967,Level Transmitter 0-50 bar,ERSA,068
+0000101968,Temperature Transmitter Ultrasonic,ERSA,068
+0000101969,Flow Meter DN50,ERSA,068
+0000101970,Analyser DO HART,ERSA,069
+0000101971,Analyser DO HART,ERSA,069
+0000101972,Control Valve Electromagnetic,ERSA,069
+0000101973,Control Valve DN100,ERSA,069
+0000101974,Temperature Transmitter 0-50 bar,ERSA,069
+0000101975,PLC Module HART,ERSA,069
+0000101976,Loadcell Yokogawa,ERSA,069
+0000101977,Level Transmitter 0-50 bar,ERSA,069
+0000101978,Solenoid Valve 0-10 bar,ERSA,069
+0000101979,PLC Module 0-100 bar,ERSA,069
+0000101980,Control Valve Yokogawa,ERSA,069
+0000101981,Flow Meter Type K,ERSA,069
+0000101982,Pressure Transmitter DN50,ERSA,069
+0000101983,Level Transmitter Electromagnetic,ERSA,069
+0000101984,Temperature Transmitter Yokogawa,ERSA,069
+0000101985,Loadcell Type K,ERSA,069
+0000101986,Control Valve Honeywell,ERSA,069
+0000101987,DCS Controller Yokogawa,ERSA,069
+0000101988,Analyser pH DN150,ERSA,069
+0000101989,Temperature Transmitter HART,ERSA,069
+0000101990,PLC Module PT100,ERSA,069
+0000101991,Solenoid Valve Honeywell,ERSA,069
+0000101992,Solenoid Valve PT100,ERSA,069
+0000101993,DCS Controller 0-50 bar,ERSA,069
+0000101994,Control Valve Endress+Hauser,ERSA,069
+0000101995,DCS Controller DN150,ERSA,069
+0000101996,Flow Meter DN150,ERSA,069
+0000101997,RTD Sensor 0-50 bar,ERSA,069
+0000101998,Level Transmitter Type K,ERSA,069
+0000101999,Temperature Transmitter Coriolis,ERSA,069
+0000102000,Weighing Scale HART,ERSA,069
+0000102001,PLC Module DN100,ERSA,069
+0000102002,Thermocouple 0-50 bar,ERSA,069
+0000102003,Loadcell 4-20mA,ERSA,070
+0000102004,PLC Module HART,ERSA,070
+0000102005,Analyser pH Yokogawa,ERSA,070
+0000102006,RTD Sensor DN100,ERSA,070
+0000102007,DCS Controller Electromagnetic,ERSA,070
+0000102008,Temperature Transmitter Honeywell,ERSA,070
+0000102009,Loadcell 0-50 bar,ERSA,070
+0000102010,Thermocouple 4-20mA,ERSA,070
+0000102011,Weighing Scale Type J,ERSA,070
+0000102012,Temperature Transmitter Endress+Hauser,ERSA,070
+0000102013,Level Transmitter PT100,ERSA,070
+0000102014,Flow Meter DN50,ERSA,070
+0000102015,Level Transmitter 0-50 bar,ERSA,070
+0000102016,PLC Module 0-100 bar,ERSA,070
+0000102017,Analyser pH Emerson,ERSA,070
+0000102018,Flow Meter Type J,ERSA,070
+0000102019,Loadcell DN150,ERSA,070
+0000102020,Solenoid Valve 0-100 bar,ERSA,070
+0000102021,Temperature Transmitter Honeywell,ERSA,070
+0000102022,Thermocouple Honeywell,ERSA,070
+0000102023,Thermocouple Ultrasonic,ERSA,070
+0000102024,Loadcell DN150,ERSA,070
+0000102025,Thermocouple Endress+Hauser,ERSA,070
+0000102026,Loadcell 0-10 bar,ERSA,070
+0000102027,Weighing Scale 4-20mA,ERSA,070
+0000102028,Weighing Scale Emerson,ERSA,070
+0000102029,Temperature Transmitter Emerson,ERSA,070
+0000102030,Level Transmitter Type J,ERSA,070
+0000102031,RTD Sensor Type K,ERSA,070
+0000102032,Temperature Transmitter Type K,ERSA,070
+0000102033,Weighing Scale Electromagnetic,ERSA,070
+0000102034,Loadcell HART,ERSA,070
+0000102035,Strapping Band Laminated,HIBE,071
+0000102036,Strapping Band 18mm,HIBE,071
+0000102037,Drum Steel 100 L,HIBE,071
+0000102038,Shrink Wrap Plain,HIBE,071
+0000102039,HDPE Bag 1 MT,HIBE,071
+0000102040,Wooden Pallet Printed,HIBE,071
+0000102041,Jumbo Bag FIBC 100 L,HIBE,071
+0000102042,Shrink Wrap 18mm,HIBE,071
+0000102043,Strapping Band 50 kg,HIBE,071
+0000102044,Strapping Band Unlaminated,HIBE,071
+0000102045,Corrugated Box 50 kg,HIBE,071
+0000102046,Drum Steel Laminated,HIBE,071
+0000102047,Stretch Film 50 kg,HIBE,071
+0000102048,Stretch Film Recycled,HIBE,071
+0000102049,Wooden Pallet Laminated,HIBE,071
+0000102050,Wooden Pallet Recycled,HIBE,071
+0000102051,Drum Steel Recycled,HIBE,071
+0000102052,PP Bag Recycled,HIBE,071
+0000102053,Corrugated Box 1 MT,HIBE,071
+0000102054,Wooden Pallet 12mm,HIBE,071
+0000102055,Drum Steel Virgin,HIBE,071
+0000102056,Stretch Film Laminated,HIBE,071
+0000102057,Strapping Band 100 L,HIBE,071
+0000102058,PP Bag 1.5 MT,HIBE,071
+0000102059,Drum Steel 1.5 MT,HIBE,071
+0000102060,Strapping Band 12mm,HIBE,071
+0000102061,Drum Plastic Recycled,HIBE,072
+0000102062,Stretch Film Recycled,HIBE,072
+0000102063,HDPE Bag 200 L,HIBE,072
+0000102064,Jumbo Bag FIBC 25 kg,HIBE,072
+0000102065,Wooden Pallet 12mm,HIBE,072
+0000102066,Drum Plastic Printed,HIBE,072
+0000102067,Jumbo Bag FIBC Virgin,HIBE,072
+0000102068,Drum Plastic 100 L,HIBE,072
+0000102069,HDPE Bag 1 MT,HIBE,072
+0000102070,Corrugated Box Recycled,HIBE,072
+0000102071,Corrugated Box Recycled,HIBE,072
+0000102072,HDPE Bag 1.5 MT,HIBE,072
+0000102073,HDPE Bag Plain,HIBE,072
+0000102074,HDPE Bag Unlaminated,HIBE,072
+0000102075,Corrugated Box Laminated,HIBE,072
+0000102076,Stretch Film Recycled,HIBE,072
+0000102077,Drum Steel 200 L,HIBE,072
+0000102078,Strapping Band 18mm,HIBE,072
+0000102079,PP Bag 18mm,HIBE,072
+0000102080,HDPE Bag 1.5 MT,HIBE,072
+0000102081,Stretch Film Plain,HIBE,072
+0000102082,Shrink Wrap Plain,HIBE,072
+0000102083,Jumbo Bag FIBC Recycled,HIBE,072
+0000102084,Drum Steel 100 L,HIBE,072
+0000102085,Drum Plastic Unlaminated,HIBE,072
+0000102086,Stretch Film 1 MT,HIBE,072
+0000102087,Wooden Pallet 12mm,HIBE,072
+0000102088,PP Bag Laminated,HIBE,072
+0000102089,HDPE Bag Printed,HIBE,072
+0000102090,HDPE Bag 1 MT,HIBE,072
+0000102091,Corrugated Box 18mm,HIBE,073
+0000102092,Corrugated Box 18mm,HIBE,073
+0000102093,Corrugated Box Laminated,HIBE,073
+0000102094,Strapping Band 200 L,HIBE,073
+0000102095,HDPE Bag Recycled,HIBE,073
+0000102096,HDPE Bag Plain,HIBE,073
+0000102097,Jumbo Bag FIBC 18mm,HIBE,073
+0000102098,Jumbo Bag FIBC 100 L,HIBE,073
+0000102099,HDPE Bag 1.5 MT,HIBE,073
+0000102100,Wooden Pallet 100 L,HIBE,073
+0000102101,Wooden Pallet 12mm,HIBE,073
+0000102102,Wooden Pallet Printed,HIBE,073
+0000102103,Strapping Band Recycled,HIBE,073
+0000102104,Stretch Film Plain,HIBE,073
+0000102105,Wooden Pallet 1.5 MT,HIBE,073
+0000102106,Drum Steel Laminated,HIBE,073
+0000102107,Drum Plastic Recycled,HIBE,073
+0000102108,Shrink Wrap Printed,HIBE,073
+0000102109,Shrink Wrap 25 kg,HIBE,073
+0000102110,HDPE Bag 200 L,HIBE,073
+0000102111,Stretch Film 200 L,HIBE,073
+0000102112,Wooden Pallet 18mm,HIBE,074
+0000102113,PP Bag Plain,HIBE,074
+0000102114,PP Bag Unlaminated,HIBE,074
+0000102115,Wooden Pallet 18mm,HIBE,074
+0000102116,Stretch Film Recycled,HIBE,074
+0000102117,Wooden Pallet Laminated,HIBE,074
+0000102118,Wooden Pallet 1.5 MT,HIBE,074
+0000102119,Jumbo Bag FIBC 200 L,HIBE,074
+0000102120,Corrugated Box 50 kg,HIBE,074
+0000102121,Shrink Wrap Printed,HIBE,074
+0000102122,Stretch Film 18mm,HIBE,074
+0000102123,Jumbo Bag FIBC 12mm,HIBE,074
+0000102124,HDPE Bag 18mm,HIBE,074
+0000102125,Drum Steel Laminated,HIBE,074
+0000102126,Wooden Pallet Printed,HIBE,074
+0000102127,Strapping Band Printed,HIBE,074
+0000102128,HDPE Bag 100 L,HIBE,074
+0000102129,Shrink Wrap Recycled,HIBE,074
+0000102130,Corrugated Box Unlaminated,HIBE,074
+0000102131,Corrugated Box 18mm,HIBE,074
+0000102132,Drum Plastic 18mm,HIBE,074
+0000102133,Drum Steel 18mm,HIBE,074
+0000102134,Stretch Film 200 L,HIBE,074
+0000102135,Wooden Pallet Recycled,HIBE,074
+0000102136,Drum Plastic 1 MT,HIBE,075
+0000102137,Wooden Pallet 25 kg,HIBE,075
+0000102138,Drum Steel 1 MT,HIBE,075
+0000102139,Wooden Pallet 12mm,HIBE,075
+0000102140,Drum Plastic Virgin,HIBE,075
+0000102141,Jumbo Bag FIBC 18mm,HIBE,075
+0000102142,Stretch Film 18mm,HIBE,075
+0000102143,PP Bag 1.5 MT,HIBE,075
+0000102144,Stretch Film 1.5 MT,HIBE,075
+0000102145,Wooden Pallet Printed,HIBE,075
+0000102146,Stretch Film Unlaminated,HIBE,075
+0000102147,Wooden Pallet 100 L,HIBE,075
+0000102148,Wooden Pallet Plain,HIBE,075
+0000102149,PP Bag Plain,HIBE,075
+0000102150,HDPE Bag Recycled,HIBE,075
+0000102151,Shrink Wrap 100 L,HIBE,075
+0000102152,Shrink Wrap 25 kg,HIBE,075
+0000102153,Drum Steel 1.5 MT,HIBE,075
+0000102154,Drum Plastic 25 kg,HIBE,075
+0000102155,Strapping Band 200 L,HIBE,075

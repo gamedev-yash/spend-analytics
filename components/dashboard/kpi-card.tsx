@@ -61,10 +61,12 @@ export function KpiCard({
 }: KpiCardProps) {
   const palette = usePalette();
   const isGood = delta ? delta.direction === (delta.goodDirection ?? "up") : true;
-  const deltaColor = isGood ? palette.status.good : palette.status.critical;
   const sparkColor = isGood ? palette.categorical.blue : palette.status.critical;
   const accentColor = accent !== "neutral" ? palette.accent(accent) : undefined;
   const isCompact = size === "compact";
+  const deltaClasses = isGood
+    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+    : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20";
 
   return (
     <motion.div
@@ -76,7 +78,7 @@ export function KpiCard({
     >
       <div
         className={cn(
-          "h-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800/80 dark:bg-slate-900/80",
+          "h-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:border-slate-400 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/80 dark:hover:border-slate-600",
           isCompact ? "space-y-1" : "space-y-2"
         )}
       >
@@ -141,7 +143,12 @@ export function KpiCard({
         {(delta || hint) && (
           <div className={cn("flex items-center gap-1.5", isCompact ? "text-[11px]" : "text-xs")}>
             {delta && (
-              <span className="inline-flex items-center gap-0.5 font-medium" style={{ color: deltaColor }}>
+              <span
+                className={cn(
+                  "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-medium",
+                  deltaClasses
+                )}
+              >
                 {delta.direction === "up" ? (
                   <ArrowUpRight className={isCompact ? "h-3 w-3" : "h-3.5 w-3.5"} />
                 ) : (

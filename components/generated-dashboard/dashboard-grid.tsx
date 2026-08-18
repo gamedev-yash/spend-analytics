@@ -14,6 +14,14 @@ interface DashboardGridProps {
   plan: DashboardPlan;
   widgets: WidgetSpec[];
   rows: Record<string, unknown>[];
+  /**
+   * Enables a per-widget remove control. Omit for a read-only grid.
+   *
+   * Lives here rather than in GeneratedWidget's ChartCard `action` slot
+   * because KPI widgets render a KpiCard, which has no header slot to hang it
+   * off — this is the one layer that wraps every widget kind identically.
+   */
+  onRemoveWidget?: (widgetId: string) => void;
 }
 
 // Tailwind can't resolve dynamically interpolated classes like
@@ -51,8 +59,45 @@ function CaveatsNote({ caveats }: { caveats: string[] }) {
   );
 }
 
-export function DashboardGrid({ plan, widgets, rows }: DashboardGridProps) {
+/**
+ * Per-widget remove control. Hover/focus-revealed and floated over the card's
+ * top-right corner: it sits outside ChartCard, so it clears the maximize
+ * button in the header, and staying hidden until hover keeps a dozen delete
+ * affordances from shouting over the actual data.
+ *
+ * Not a destructive action — the widget goes back to the Add Widget catalog —
+ * so there's no confirmation step, and the tooltip says where it went.
+ */
+function RemoveWidgetButton({ title, onClick }: { title: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={`Remove "${title}" — stays available under Add Widget`}
+      aria-label={`Remove ${title} from this dashboard`}
+      className="absolute -top-2 -right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-500 opacity-0 shadow-sm transition-all hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 group-hover/widget:opacity-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-rose-800 dark:hover:bg-rose-950/60 dark:hover:text-rose-400"
+    >
+      <X className="h-3.5 w-3.5" />
+    </button>
+  );
+}
+
+export function DashboardGrid({ plan, widgets, rows, onRemoveWidget }: DashboardGridProps) {
   const sortedSections = [...plan.sections].sort((a, b) => a.priority - b.priority);
+
+  // Reachable now that widgets can be removed one by one — without this the
+  // page would just render nothing, with no hint that Add Widget can refill it.
+  if (widgets.length === 0) {
+    return (
+      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 p-10 text-center dark:border-slate-700">
+        <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">No widgets on this dashboard</h2>
+        <p className="max-w-sm text-sm text-slate-500 dark:text-slate-400">
+          Everything has been removed. Use <span className="font-medium">Add Widget</span> to put any of
+          them back — nothing was thrown away.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -75,8 +120,17 @@ export function DashboardGrid({ plan, widgets, rows }: DashboardGridProps) {
             </div>
             <div className="grid grid-cols-12 gap-4">
               {sectionWidgets.map((widget) => (
-                <div key={widget.id} className={cn(COL_SPAN_CLASS[widget.colSpan] ?? COL_SPAN_CLASS[6])}>
+                <div
+                  key={widget.id}
+                  className={cn(
+                    "group/widget relative",
+                    COL_SPAN_CLASS[widget.colSpan] ?? COL_SPAN_CLASS[6]
+                  )}
+                >
                   <GeneratedWidget widget={widget} rows={rows} />
+                  {onRemoveWidget && (
+                    <RemoveWidgetButton title={widget.title} onClick={() => onRemoveWidget(widget.id)} />
+                  )}
                 </div>
               ))}
             </div>

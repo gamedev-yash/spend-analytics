@@ -5,6 +5,7 @@ import { Bell, ChevronDown, SlidersHorizontal, UserRound } from "lucide-react";
 import { NAV_ITEMS } from "@/lib/nav";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { ProviderModeBadge } from "@/components/layout/provider-mode-badge";
+import { SnapshotHistoryDialog } from "@/components/dashboard/snapshot-history-dialog";
 import { cn } from "@/lib/utils";
 
 interface TopHeaderProps {
@@ -15,18 +16,21 @@ interface TopHeaderProps {
 export function TopHeader({ filtersVisible, onToggleFilters }: TopHeaderProps) {
   const pathname = usePathname();
   const activeItem = NAV_ITEMS.find((item) => pathname?.startsWith(item.href));
+  const dashboardTitle = activeItem?.label ?? "Dashboard";
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-slate-200 bg-white/80 px-8 backdrop-blur transition-colors duration-200 ease-in-out dark:border-slate-800 dark:bg-slate-900/80">
       <div>
-        <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-          {activeItem?.label ?? "Dashboard"}
-        </h1>
+        <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{dashboardTitle}</h1>
         <p className="text-xs text-slate-400 dark:text-slate-500">Enterprise Procurement Analytics</p>
       </div>
 
       <div className="flex items-center gap-2">
         <ProviderModeBadge />
+
+        <SnapshotHistoryDialog dashboardTitle={dashboardTitle} />
+
+        <div className="mx-1 h-6 w-px bg-slate-200 dark:bg-slate-800" />
 
         <button
           type="button"

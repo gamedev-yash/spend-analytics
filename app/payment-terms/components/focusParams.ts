@@ -1,53 +1,40 @@
-import { Banknote, Layers, ShieldAlert, Users } from "lucide-react";
-import type { CustomizeWidgetGroupDef } from "@/components/dashboard/customize-view-drawer";
-import type { FocusParameterDef, FocusPresetDef } from "@/components/dashboard/focus-parameter-bar";
+import { Gauge, Layers, Users } from "lucide-react";
+import type { FocusParameterDef } from "@/components/dashboard/focus-parameter-bar";
 
-export type PaymentTermsFocusId = "term-distribution" | "working-capital" | "compliance-risk" | "supplier-impact";
+export type PaymentTermsFocusId = "term-mix" | "payment-performance" | "supplier-view";
 
+/**
+ * Three sections, each owning its widgets exclusively — see PT_WIDGET_TAGS.
+ *
+ * Replaces the earlier four-way split (Term Distribution / Working Capital /
+ * Compliance & Risk / Supplier Impact), where tags had to overlap because no
+ * widget belonged to Working Capital or Compliance & Risk alone. Overlapping
+ * tags made those two chips no-ops: switching one off left its widgets on
+ * screen, held by the other tag. "Working Capital" and "Compliance & Risk"
+ * are merged here because on this dashboard both resolve to the same single
+ * signal — actual paid days vs. the term's nominal days.
+ */
 export const PT_FOCUS_PARAMETERS: FocusParameterDef<PaymentTermsFocusId>[] = [
   {
-    id: "term-distribution",
-    label: "Term Distribution",
-    description: "Standard vs. non-standard term breakdown, DPO metrics",
+    id: "term-mix",
+    label: "Term Mix",
+    description: "How spend and invoice volume split across payment terms and categories",
     icon: Layers,
   },
   {
-    id: "working-capital",
-    label: "Working Capital",
-    description: "Discount capture potential, cash flow impact charts",
-    icon: Banknote,
+    id: "payment-performance",
+    label: "Payment Performance",
+    description: "Spend by term against average paid days vs. nominal days",
+    icon: Gauge,
   },
   {
-    id: "compliance-risk",
-    label: "Compliance & Risk",
-    description: "Term adherence, overdue payment risk",
-    icon: ShieldAlert,
-  },
-  {
-    id: "supplier-impact",
-    label: "Supplier Impact",
-    description: "Top supplier payment terms table/cards",
+    id: "supplier-view",
+    label: "Supplier View",
+    description: "Term spread per supplier, plus the supplier-level detail report",
     icon: Users,
   },
 ];
 
-export const PT_FOCUS_PRESETS: FocusPresetDef<PaymentTermsFocusId>[] = [
-  {
-    id: "all",
-    label: "All Parameters",
-    parameterIds: ["term-distribution", "working-capital", "compliance-risk", "supplier-impact"],
-  },
-  { id: "cash-flow-focus", label: "Cash Flow Focus", parameterIds: ["working-capital", "compliance-risk"] },
-  { id: "term-overview", label: "Term Overview", parameterIds: ["term-distribution", "supplier-impact"] },
-];
-
-/**
- * No existing widget is purely "Working Capital" or "Compliance & Risk" in
- * isolation — the combo chart (spend + avg paid days vs. nominal days per
- * term) is the closest fit for both, since the nominal-vs-actual gap it
- * plots IS the term-adherence signal, and avg paid days is the cash-flow
- * angle. Tagged under both so neither chip is a no-op.
- */
 export type PaymentTermsWidgetId =
   | "kpi-ribbon"
   | "category-chart"
@@ -56,34 +43,16 @@ export type PaymentTermsWidgetId =
   | "invoice-count-chart"
   | "detail-table";
 
+/**
+ * Untagged (`[]`) means cross-cutting — always rendered, regardless of which
+ * sections are active. The KPI ribbon is untagged because both remaining stats
+ * are referenced by every section rather than belonging to one.
+ */
 export const PT_WIDGET_TAGS: Record<PaymentTermsWidgetId, PaymentTermsFocusId[]> = {
-  "kpi-ribbon": ["term-distribution", "working-capital"],
-  "category-chart": ["term-distribution"],
-  "supplier-chart": ["supplier-impact"],
-  "combo-chart": ["working-capital", "compliance-risk"],
-  "invoice-count-chart": ["term-distribution"],
-  "detail-table": ["supplier-impact"],
+  "kpi-ribbon": [],
+  "category-chart": ["term-mix"],
+  "invoice-count-chart": ["term-mix"],
+  "combo-chart": ["payment-performance"],
+  "supplier-chart": ["supplier-view"],
+  "detail-table": ["supplier-view"],
 };
-
-export const PT_WIDGET_GROUPS: CustomizeWidgetGroupDef<PaymentTermsWidgetId>[] = [
-  {
-    id: "kpis",
-    title: "KPIs",
-    widgets: [{ id: "kpi-ribbon", label: "Payment Terms KPI Ribbon" }],
-  },
-  {
-    id: "charts",
-    title: "Charts",
-    widgets: [
-      { id: "category-chart", label: "Payment Terms by Category" },
-      { id: "supplier-chart", label: "Payment Terms by Supplier" },
-      { id: "combo-chart", label: "Spend by Term & Avg. Paid Days" },
-      { id: "invoice-count-chart", label: "Payment Terms by Invoice Count" },
-    ],
-  },
-  {
-    id: "tables",
-    title: "Tables",
-    widgets: [{ id: "detail-table", label: "Detail Report Table" }],
-  },
-];

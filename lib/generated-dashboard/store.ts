@@ -4,6 +4,7 @@ import { useCallback, useSyncExternalStore } from "react";
 import type {
   DashboardPlan,
   GeneratedDashboard,
+  GeneratedDashboardSourceKind,
   WidgetSpec,
 } from "@/types/generated-dashboard";
 import type { DatasetProfile } from "@/types/dataset-profile";
@@ -106,9 +107,13 @@ export function newGeneratedDashboardId(prefix = "gen"): string {
 export function createGeneratedDashboard(params: {
   title: string;
   sourceFileName: string;
+  /** Which data-source branch produced this — defaults to "csv" when omitted. */
+  sourceKind?: GeneratedDashboardSourceKind;
   profile: DatasetProfile;
   plan: DashboardPlan;
   widgets: WidgetSpec[];
+  /** Generated-but-not-shown widgets, offered through "Add Widget". */
+  library?: WidgetSpec[];
   rows: Record<string, unknown>[];
   columns: string[];
 }): GeneratedDashboard {
@@ -117,14 +122,57 @@ export function createGeneratedDashboard(params: {
     title: params.title.trim() || "Untitled dashboard",
     createdAt: new Date().toISOString(),
     sourceFileName: params.sourceFileName,
+    sourceKind: params.sourceKind ?? "csv",
     profile: params.profile,
     plan: params.plan,
     widgets: params.widgets,
+    library: params.library ?? [],
     rows: params.rows,
     columns: params.columns,
   };
   updateStore((prev) => [...prev, dashboard]);
   return dashboard;
+}
+
+/**
+ * Move one widget out of the Add Widget catalog and onto the dashboard.
+ *
+ * A move, not a copy: the widget lives in exactly one of the two arrays, so
+ * the same chart can never be added twice and the catalog list needs no
+ * cross-referencing against `widgets` to know what's still available.
+ * Appending is enough for placement — DashboardGrid groups by `sectionId`, so
+ * the widget lands at the end of its own section wherever that section sits.
+ */
+export function addWidgetFromLibrary(dashboardId: string, widgetId: string): void {
+  updateStore((prev) =>
+    prev.map((d) => {
+      if (d.id !== dashboardId) return d;
+      const library = d.library ?? [];
+      const widget = library.find((w) => w.id === widgetId);
+      if (!widget) return d;
+      return {
+        ...d,
+        widgets: [...d.widgets, widget],
+        library: library.filter((w) => w.id !== widgetId),
+      };
+    })
+  );
+}
+
+/** The inverse of `addWidgetFromLibrary` — takes a widget off the dashboard and back into the catalog. */
+export function removeWidgetToLibrary(dashboardId: string, widgetId: string): void {
+  updateStore((prev) =>
+    prev.map((d) => {
+      if (d.id !== dashboardId) return d;
+      const widget = d.widgets.find((w) => w.id === widgetId);
+      if (!widget) return d;
+      return {
+        ...d,
+        widgets: d.widgets.filter((w) => w.id !== widgetId),
+        library: [...(d.library ?? []), widget],
+      };
+    })
+  );
 }
 
 export function deleteGeneratedDashboard(id: string): void {
