@@ -35,6 +35,45 @@ const COL_SPAN_CLASS: Record<WidgetSpec["colSpan"], string> = {
   12: "col-span-12",
 };
 
+/**
+ * Fills the one layout gap `deriveColSpan` (validate.ts) can't see coming: it
+ * decides each widget's width in isolation, so a section can still end up
+ * with a half-width (6) widget that has no partner to share a row with —
+ * e.g. a lone bar chart after a full-width (12) trend line, or an odd count
+ * of half-width charts.  Simulates the same left-to-right, wrap-on-overflow
+ * placement the CSS grid itself performs (`grid-auto-flow: row`, non-dense,
+ * never backfills an earlier row), and promotes any resulting row that holds
+ * exactly one half-width widget to full width, closing the gap instead of
+ * leaving it blank.
+ *
+ * Donut is exempt even when it ends up alone: a pie's diameter is capped by
+ * its height, so widening it to 12 buys no more visible chart — it would
+ * just trade a half-empty row for a mostly-empty one.
+ */
+function packSectionColSpans(widgets: WidgetSpec[]): WidgetSpec[] {
+  const rows: WidgetSpec[][] = [];
+  let current: WidgetSpec[] = [];
+  let used = 0;
+  for (const widget of widgets) {
+    if (used + widget.colSpan > 12) {
+      rows.push(current);
+      current = [];
+      used = 0;
+    }
+    current.push(widget);
+    used += widget.colSpan;
+  }
+  if (current.length > 0) rows.push(current);
+
+  return rows.flatMap((row) => {
+    const lone = row.length === 1 ? row[0] : null;
+    if (lone && lone.colSpan === 6 && lone.kind !== "donut") {
+      return [{ ...lone, colSpan: 12 as const }];
+    }
+    return row;
+  });
+}
+
 function CaveatsNote({ caveats }: { caveats: string[] }) {
   const [dismissed, setDismissed] = useState(false);
   if (dismissed || caveats.length === 0) return null;
@@ -105,7 +144,7 @@ export function DashboardGrid({ plan, widgets, rows, onRemoveWidget }: Dashboard
       {/* <CaveatsNote caveats={plan.caveats ?? []} /> */}
 
       {sortedSections.map((section) => {
-        const sectionWidgets = widgets.filter((w) => w.sectionId === section.id);
+        const sectionWidgets = packSectionColSpans(widgets.filter((w) => w.sectionId === section.id));
         if (sectionWidgets.length === 0) return null;
 
         return (

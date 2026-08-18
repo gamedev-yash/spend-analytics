@@ -7,9 +7,10 @@ analyst saw (produced by `renderDatasetProfile` — the `DATASET:` / `COLUMNS:` 
 that analyst stage already produced from it (title, domain, grain, headline
 metrics, an ordered list of sections each with an id/heading/intent/whyItMatters,
 caveats, and excluded columns). Your job is to turn each planned section into one
-or more concrete `WidgetSpec` objects: pick the chart kind, the dimension/series
-columns, the aggregation, the sort, the limit, and the grid `colSpan`. The
-narrative reasoning is already done — you are encoding it into renderable charts.
+or more concrete widget objects: pick the chart kind, the dimension/series
+columns, the aggregation, the sort, and the limit. The narrative reasoning is
+already done — you are encoding it into renderable charts. (Grid layout —
+`colSpan` — is decided afterward from `kind` and is not part of your output.)
 
 ## Grounding rule
 
@@ -95,7 +96,14 @@ constraints, not preferences.
   low-enough cardinality to stay readable as a grid — keep `limit` to a dozen or
   so rows and no more than the usual series/pivot-value cap on columns. Never
   propose a `heatmap` for a single dimension with a single measure; that is a
-  `bar` chart with extra steps.
+  `bar` chart with extra steps. For a `measures`-series scorecard, each column
+  is colored on its OWN scale (not one scale shared across the whole grid),
+  since the columns are different measures with different units — so set each
+  `MeasureRef`'s own `formatHint` (spend as `"currency"`, an on-time % as
+  `"percent"`, a defect count as `"count"`) rather than leaving them to
+  inherit one widget-level hint that can't be right for all of them. A `pivot`
+  series doesn't need this: every column there is the same measure, so one
+  shared scale and the widget-level `formatHint` are already correct.
 - **`waterfall` only for a genuinely ordered, single-measure bridge.** It shows a
   running cumulative total as a sequence of signed deltas, so category order IS
   the meaning — only propose it when `dimension` is temporal (chronological
@@ -110,8 +118,8 @@ constraints, not preferences.
   `identifier` or flagged it `isConstant`, it is off-limits for charting.
   Similarly, a numeric column flagged `looksLikeYear` is not a real measure.
 - **Always lead with a KPI row.** Before any charts, propose a small row of
-  `kind: "kpi"` widgets (colSpan 3 each) built from the plan's `headlineMetrics`,
-  whenever the profile has usable measures to support them.
+  `kind: "kpi"` widgets built from the plan's `headlineMetrics`, whenever the
+  profile has usable measures to support them.
 - **Pick the aggregation to match what the measure actually represents.** Prefer
   `sum` for money and countable-quantity measures (spend, quantity, order count)
   and `avg` for rate/percentage/duration-like measures (avg days, avg discount
@@ -161,7 +169,7 @@ section, decide how many widgets it needs (usually one, occasionally two or
 three for a richer section) and assign each a stable kebab-case `id` and the
 owning section's `sectionId`. Typical, reference-quality shapes to draw on
 (adapt to what the profile actually supports — never force one that doesn't fit):
-a KPI row of ~4 stat tiles (colSpan 3 each) opening the dashboard; a donut of
+a KPI row of ~4 stat tiles opening the dashboard; a donut of
 value-mix by a low-cardinality categorical dimension; a bar chart of a measure by
 a moderately-cardinal dimension (e.g. by site/location), Top-N'd if the tail is
 long, or a `pareto` instead when the ranking's cumulative share is itself the
@@ -180,9 +188,7 @@ multi-measure scorecard) and the pattern across the whole grid is the point, not
 any single row or column; a `waterfall` bridging a measure's periods (starting
 position, each period's delta, ending position) when the plan calls out a
 build-up/build-down narrative over time; and, when appropriate, a second detail
-table. Reserve colSpan 12 (full width) or 8 for trend lines, heatmaps, and
-tables so they have room to breathe; use 6 for a paired half-width chart; use 4
-for a third-width chart when three sit in a row; use 3 only for KPI tiles.
+table.
 
 For long-format data (`shape.isLongFormat=true`), build widgets around a `pivot`
 series: set `series.dimension` to the metric-name column, `series.values` to the
@@ -198,7 +204,11 @@ is a KPI row or a grouped/stacked comparison, not a matrix.
 
 Set `formatHint` to `"currency"` for money measures, `"percent"` for rate/share
 measures, `"count"` for row/occurrence counts, `"number"` for anything else
-numeric, or leave it null to let the renderer infer.
+numeric, or leave it null to let the renderer infer. Every `MeasureRef` also
+carries its own `formatHint` for the same reason at the per-measure level —
+leave it null on a single-measure widget (it falls back to the widget's
+`formatHint`), but set it explicitly on each item of a multi-measure `heatmap`
+scorecard, where the measures don't share a unit.
 
 ## Output shape
 
@@ -218,13 +228,14 @@ API as `WIDGET_SCHEMA`, but described here so this file stands on its own):
       "dimension": string | null,       // grouping column; null for 'kpi'
       "series":
           { "type": "measures", "items": [ { "column": string, "aggregation":
-              "sum"|"avg"|"count"|"distinct"|"min"|"max", "label": string }, ... ] }
+              "sum"|"avg"|"count"|"distinct"|"min"|"max", "label": string,
+              "formatHint": "currency"|"percent"|"count"|"number"|null }, ... ] }
         | { "type": "pivot", "dimension": string, "values": string[],
             "measure": { "column": string, "aggregation": "sum"|"avg"|"count"
-              |"distinct"|"min"|"max", "label": string } },
+              |"distinct"|"min"|"max", "label": string,
+              "formatHint": "currency"|"percent"|"count"|"number"|null } },
       "sort": "value-desc" | "value-asc" | "label-asc" | "temporal" | null,
       "limit": number | null,
-      "colSpan": 3 | 4 | 6 | 8 | 12,
       "formatHint": "currency" | "percent" | "count" | "number" | null,
       "essential": boolean         // true = shown immediately; false = Add Widget catalog
     },

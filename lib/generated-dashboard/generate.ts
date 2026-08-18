@@ -9,7 +9,7 @@ import type {
   DashboardPlan,
   GeneratedDashboard,
   GeneratedDashboardSourceKind,
-  WidgetSpec,
+  WidgetSpecDraft,
 } from "@/types/generated-dashboard";
 
 // The half of Generate Custom Dashboard that both data sources share: take
@@ -31,7 +31,7 @@ export type GenerationStage = "profile" | "plan" | "widgets" | "finalize";
 
 interface GenerateDashboardResponse {
   plan: DashboardPlan;
-  widgets: WidgetSpec[];
+  widgets: WidgetSpecDraft[];
   error?: string;
 }
 

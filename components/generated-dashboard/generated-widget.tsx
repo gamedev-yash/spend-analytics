@@ -26,7 +26,12 @@ import { ChartTooltipCard } from "@/components/charts/chart-tooltip";
 import { Button } from "@/components/ui/button";
 import { usePalette } from "@/hooks/use-palette";
 import type { ChartPalette } from "@/lib/chart-colors";
-import { computeKpiValue, computeWidgetSeries, type SeriesPoint } from "@/lib/generated-dashboard/compute";
+import {
+  computeKpiValue,
+  computeWidgetSeries,
+  isTemporalDimension,
+  type SeriesPoint,
+} from "@/lib/generated-dashboard/compute";
 import type { WidgetSpec } from "@/types/generated-dashboard";
 
 // Renders one AI-planned widget spec against the dataset's raw rows. Pure
@@ -216,17 +221,24 @@ function BarLikeWidget({
 
   const Chart = withTotalLine ? ComposedChart : BarChart;
   const maxLabelLength = Math.max(0, ...data.map((d) => String(d.label ?? "").length));
+  // A time axis (e.g. stackedBarWithTotalLine's category = month) must stay
+  // left-to-right regardless of period count or label length — flipping it
+  // to horizontal bars would put time running down the y-axis, scrambling
+  // the one thing a trend needs to read correctly.
+  const isTimeSeries = isTemporalDimension(widget, rows);
   // Long or numerous category labels don't fit on a horizontal axis without
   // rotating (and rotated text still overlaps once labels get long enough),
   // so flip to horizontal bars instead — categories read naturally on the
   // y-axis and values extend along x.
-  const horizontal = data.length > 5 || maxLabelLength > 10;
+  const horizontal = !isTimeSeries && (data.length > 5 || maxLabelLength > 10);
   const categoryAxisWidth = Math.min(180, Math.max(72, maxLabelLength * 6.5 + 16));
   const barRadius: [number, number, number, number] = horizontal ? [0, 3, 3, 0] : [3, 3, 0, 0];
 
   return (
     <ChartCard title={widget.title} expandable={!preview}>
-      <FullscreenResponsiveContainer height={horizontal ? Math.max(260, data.length * 38 + 40) : 300}>
+      <FullscreenResponsiveContainer
+        height={horizontal ? Math.max(260, data.length * 38 + 40) : isTimeSeries ? 360 : 300}
+      >
         <Chart
           data={data}
           layout={horizontal ? "vertical" : "horizontal"}
@@ -342,7 +354,7 @@ function ParetoWidget({ widget, rows, preview }: GeneratedWidgetProps) {
 
   return (
     <ChartCard title={widget.title} expandable={!preview}>
-      <FullscreenResponsiveContainer height={300}>
+      <FullscreenResponsiveContainer height={360}>
         <ComposedChart data={points} margin={{ top: 8, right: 16, bottom: rotateLabels ? 28 : 8, left: 0 }}>
           <CartesianGrid vertical={false} stroke={palette.ink.grid} />
           <XAxis
@@ -484,7 +496,7 @@ function WaterfallWidget({ widget, rows, preview }: GeneratedWidgetProps) {
           Decrease
         </span>
       </div>
-      <FullscreenResponsiveContainer height={280}>
+      <FullscreenResponsiveContainer height={360}>
         <ComposedChart data={bars} margin={{ top: 20, right: 16, bottom: 8, left: 0 }}>
           <CartesianGrid vertical={false} stroke={palette.ink.grid} />
           <XAxis
@@ -569,7 +581,7 @@ function LineLikeWidget({
 
   return (
     <ChartCard title={widget.title} expandable={!preview}>
-      <FullscreenResponsiveContainer height={300}>
+      <FullscreenResponsiveContainer height={360}>
         <Chart data={data} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
           <CartesianGrid vertical={false} stroke={palette.ink.grid} />
           <XAxis
@@ -688,15 +700,15 @@ function HeatmapRow({
   columns,
   values,
   palette,
-  formatHint,
+  formatHints,
   tFor,
 }: {
   point: SeriesPoint;
   columns: string[];
   values: number[];
   palette: ChartPalette;
-  formatHint: WidgetSpec["formatHint"];
-  tFor: (value: number) => number;
+  formatHints: WidgetSpec["formatHint"][];
+  tFor: (value: number, columnIndex: number) => number;
 }) {
   return (
     <>
@@ -707,9 +719,10 @@ function HeatmapRow({
         {point.label}
       </div>
       {values.map((value, index) => {
-        const t = tFor(value);
+        const t = tFor(value, index);
         const bg = palette.sequential(t);
         const text = palette.sequentialText(t);
+        const formatHint = formatHints[index];
         return (
           <div key={columns[index]} className="group relative p-1">
             {/* CSS grid stretches each grid item to its row's height by
@@ -763,14 +776,43 @@ function HeatmapLegend({
   );
 }
 
+/** This widget's own formatting hint for one column, independent of column
+ * index for a `pivot` series (every column there is the same measure) but
+ * per-column for a `measures` series (every column is a different measure,
+ * potentially a different unit) — falls back to the widget-level hint when
+ * the model left a `MeasureRef`'s own hint unset. */
+function formatHintForColumn(widget: WidgetSpec, columnIndex: number): WidgetSpec["formatHint"] {
+  if (widget.series.type === "pivot") return widget.series.measure.formatHint ?? widget.formatHint;
+  return widget.series.items[columnIndex]?.formatHint ?? widget.formatHint;
+}
+
+function statsFor(values: number[]): { min: number; max: number; span: number } {
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  return { min, max, span: max - min };
+}
+
 /**
- * Dimension × series matrix, colored by magnitude on one shared sequential
- * scale (never per-row/per-column normalized — a shared scale is what makes
- * cells comparable to each other at a glance). Works for either SeriesSpec
- * shape unchanged: a `pivot` series makes the columns distinct values of a
- * second dimension; a `measures` series makes them distinct measures (a
- * scorecard). Plain CSS grid rather than a Recharts chart — there's no
- * Recharts primitive for this shape.
+ * Dimension × series matrix, colored by magnitude. Plain CSS grid rather than
+ * a Recharts chart — there's no Recharts primitive for this shape, and the
+ * usual workaround (a ScatterChart with categorical axes and a custom rect
+ * shape) loses sticky row/column labels and precise cell sizing for no real
+ * gain here.
+ *
+ * The two SeriesSpec shapes get genuinely different scale treatment, not the
+ * same code path: a `pivot` series' columns are all the SAME measure (e.g.
+ * category-by-month spend), so one shared scale across the whole grid is
+ * correct — it's what lets a reader spot "March was the biggest month" by
+ * color alone. A `measures` series' columns are DIFFERENT measures with
+ * different units (a scorecard: on-time %, defect rate, spend) — sharing one
+ * scale there would let whichever measure has the largest raw magnitude
+ * (almost always spend) swamp the others into a uniform, uninformative near-
+ * white column, hiding real variation the other measures actually have. So a
+ * `measures` heatmap gets its own min/max PER COLUMN instead, and skips the
+ * single min↔max legend entirely — a legend implies one scale, and showing
+ * one here would just reintroduce the same "one number for many units"
+ * problem in miniature. Each cell already prints its own value, formatted
+ * per-column too (see formatHintForColumn), so nothing is lost by dropping it.
  */
 function HeatmapWidget({ widget, rows, preview }: GeneratedWidgetProps) {
   const palette = usePalette();
@@ -788,11 +830,16 @@ function HeatmapWidget({ widget, rows, preview }: GeneratedWidgetProps) {
   // `breakdown` is built from the same `values`/`items` array as `columns`,
   // in the same order (see compute.ts), so a positional zip is safe here.
   const cellValues = points.map((point) => columns.map((_, index) => point.breakdown[index]?.value ?? 0));
-  const allValues = cellValues.flat();
-  const min = Math.min(...allValues);
-  const max = Math.max(...allValues);
-  const span = max - min;
-  const tFor = (value: number) => (span > 0 ? (value - min) / span : 0.5);
+  const isScorecard = widget.series.type === "measures";
+  const sharedStats = statsFor(cellValues.flat());
+  const columnStats = isScorecard
+    ? columns.map((_, colIndex) => statsFor(cellValues.map((row) => row[colIndex])))
+    : columns.map(() => sharedStats);
+  const tFor = (value: number, colIndex: number) => {
+    const { min, span } = columnStats[colIndex];
+    return span > 0 ? (value - min) / span : 0.5;
+  };
+  const formatHints = columns.map((_, colIndex) => formatHintForColumn(widget, colIndex));
 
   return (
     <ChartCard title={widget.title} expandable={!preview}>
@@ -800,14 +847,21 @@ function HeatmapWidget({ widget, rows, preview }: GeneratedWidgetProps) {
         {/* Legend precedes the scroller (not after) so fullscreen's generic
             "last child grows" cascade — see globals.css — targets the
             scroller, not this fixed-height caption row. */}
-        <HeatmapLegend palette={palette} min={min} max={max} formatHint={widget.formatHint} />
+        {!isScorecard && (
+          <HeatmapLegend
+            palette={palette}
+            min={sharedStats.min}
+            max={sharedStats.max}
+            formatHint={formatHints[0]}
+          />
+        )}
         <div className="fullscreen-scroll-list max-h-[320px] flex-1 overflow-auto">
           <HeatmapGridMatrix
             columns={columns}
             points={points}
             cellValues={cellValues}
             palette={palette}
-            formatHint={widget.formatHint}
+            formatHints={formatHints}
             tFor={tFor}
           />
         </div>
@@ -833,15 +887,15 @@ function HeatmapGridMatrix({
   points,
   cellValues,
   palette,
-  formatHint,
+  formatHints,
   tFor,
 }: {
   columns: string[];
   points: SeriesPoint[];
   cellValues: number[][];
   palette: ChartPalette;
-  formatHint: WidgetSpec["formatHint"];
-  tFor: (value: number) => number;
+  formatHints: WidgetSpec["formatHint"][];
+  tFor: (value: number, columnIndex: number) => number;
 }) {
   const isFullscreen = useIsFullscreenChart();
   return (
@@ -869,7 +923,7 @@ function HeatmapGridMatrix({
           columns={columns}
           values={cellValues[rowIndex]}
           palette={palette}
-          formatHint={formatHint}
+          formatHints={formatHints}
           tFor={tFor}
         />
       ))}

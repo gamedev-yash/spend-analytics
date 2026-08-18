@@ -3,7 +3,8 @@
 // Stateless, two-call pipeline over a client-computed DatasetProfile (never
 // raw rows): a "dashboard planning" call reasons about the business meaning
 // of the data and produces a narrative DashboardPlan, then a "widget
-// planning" call turns that plan into concrete WidgetSpec[] chart specs.
+// planning" call turns that plan into concrete WidgetSpecDraft[] chart specs
+// (layout's `colSpan` is added afterward by validate.ts, not planned here).
 //
 // This is a brand-new feature route — it does not import from, and is not
 // wired into, the older "custom dashboard generation" builder/assistant
@@ -18,7 +19,7 @@ import { renderDatasetProfile } from "@/lib/ai/profile/render-profile";
 import { PLAN_SCHEMA } from "@/lib/ai/schemas/plan-schema";
 import { WIDGET_SCHEMA } from "@/lib/ai/schemas/widget-schema";
 import type { DatasetProfile } from "@/types/dataset-profile";
-import type { DashboardPlan, WidgetSpec } from "@/types/generated-dashboard";
+import type { DashboardPlan, WidgetSpecDraft } from "@/types/generated-dashboard";
 
 export const runtime = "nodejs";
 
@@ -161,7 +162,7 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    const widgetOutput = widgetResponse.parsed_output as unknown as { widgets: WidgetSpec[] } | null;
+    const widgetOutput = widgetResponse.parsed_output as unknown as { widgets: WidgetSpecDraft[] } | null;
     if (!widgetOutput) {
       return Response.json(
         { error: "The widget planning call returned no structured output." },

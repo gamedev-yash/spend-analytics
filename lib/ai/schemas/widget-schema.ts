@@ -1,9 +1,11 @@
 // Anthropic Messages API "structured outputs" JSON Schema for the widget
 // planning call. This is passed as `output_config: { format: { type:
 // "json_schema", schema: WIDGET_SCHEMA } }` — NOT a tool-calling schema. Field
-// shapes must match types/generated-dashboard.ts's `WidgetSpec` exactly. Root
-// is an object wrapping the widget array (structured outputs require an
-// object at the top level, not a bare array).
+// shapes must match types/generated-dashboard.ts's `WidgetSpecDraft` exactly
+// (WidgetSpec minus `colSpan`, which validate.ts derives afterward rather
+// than asking the model to lay out its own grid). Root is an object wrapping
+// the widget array (structured outputs require an object at the top level,
+// not a bare array).
 
 const MEASURE_REF_SCHEMA = {
   type: "object",
@@ -22,8 +24,17 @@ const MEASURE_REF_SCHEMA = {
       type: "string",
       description: "Human-readable label for this measure, shown in legends/tooltips.",
     },
+    formatHint: {
+      type: ["string", "null"],
+      enum: ["currency", "percent", "count", "number", null],
+      description:
+        "This measure's OWN formatting hint, independent of the widget's formatHint. Set this whenever a widget " +
+        "combines measures of genuinely different units — most importantly a multi-measure heatmap scorecard " +
+        "(e.g. spend, an on-time %, and a defect count as separate columns) — so each one renders in its own " +
+        "unit. Null to fall back to the widget-level formatHint, which is enough for a single-measure widget.",
+    },
   },
-  required: ["column", "aggregation", "label"],
+  required: ["column", "aggregation", "label", "formatHint"],
 } as const;
 
 const SERIES_SCHEMA = {
@@ -111,11 +122,6 @@ const WIDGET_ITEM_SCHEMA = {
       type: ["integer", "null"],
       description: "Maximum number of categories/rows to show, or null for no limit.",
     },
-    colSpan: {
-      type: "integer",
-      enum: [3, 4, 6, 8, 12],
-      description: "Grid column span out of a 12-column layout.",
-    },
     formatHint: {
       type: ["string", "null"],
       enum: ["currency", "percent", "count", "number", null],
@@ -136,7 +142,6 @@ const WIDGET_ITEM_SCHEMA = {
     "series",
     "sort",
     "limit",
-    "colSpan",
     "formatHint",
     "essential",
   ],
@@ -155,4 +160,4 @@ export const WIDGET_SCHEMA = {
   required: ["widgets"],
 } as const;
 
-export type { WidgetSpec } from "@/types/generated-dashboard";
+export type { WidgetSpecDraft } from "@/types/generated-dashboard";

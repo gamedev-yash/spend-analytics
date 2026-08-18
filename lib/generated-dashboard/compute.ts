@@ -85,6 +85,19 @@ function monthBucket(date: Date): string {
   return `${y}-${m}`;
 }
 
+/** Sniffs whether `column`'s first non-empty value across `rows` looks like a
+ * date. Row-data-driven and profile-independent — shared by grouping (decides
+ * whether to bucket by calendar month) and by rendering (decides axis
+ * orientation and layout), so both stay in agreement. */
+function sniffIsTemporal(rows: Record<string, unknown>[], column: string): boolean {
+  for (const row of rows) {
+    const raw = row[column];
+    if (isEmpty(raw)) continue;
+    return tryParseDate(raw) !== null;
+  }
+  return false;
+}
+
 // ---------------------------------------------------------------------------
 // Aggregation
 // ---------------------------------------------------------------------------
@@ -147,13 +160,7 @@ interface GroupedRows {
  * ("YYYY-MM") rather than by their raw string value.
  */
 function groupByDimension(rows: Record<string, unknown>[], dimensionColumn: string): GroupedRows {
-  let isTemporal = false;
-  for (const row of rows) {
-    const raw = row[dimensionColumn];
-    if (isEmpty(raw)) continue;
-    isTemporal = tryParseDate(raw) !== null;
-    break;
-  }
+  const isTemporal = sniffIsTemporal(rows, dimensionColumn);
 
   const groups = new Map<string, Record<string, unknown>[]>();
   const order: string[] = [];
@@ -201,6 +208,18 @@ function groupByDimension(rows: Record<string, unknown>[], dimensionColumn: stri
  * value-desc. Regardless of display sort, `limit` selects most-recent-N for
  * temporal dimensions and top-N by value otherwise, per the task spec.
  */
+/**
+ * Whether `widget.dimension` reads as a date column, by the same ground
+ * truth `computeWidgetSeries` uses to decide monthly bucketing. Renderers
+ * use this — not `colSpan` — to decide axis orientation: `colSpan` can be
+ * bumped to full width by DashboardGrid's gap-filling pack step for reasons
+ * that have nothing to do with whether the data is a time series, so it
+ * isn't a safe proxy for that decision.
+ */
+export function isTemporalDimension(widget: WidgetSpec, rows: Record<string, unknown>[]): boolean {
+  return widget.dimension !== undefined && sniffIsTemporal(rows, widget.dimension);
+}
+
 export function computeWidgetSeries(
   widget: WidgetSpec,
   rows: Record<string, unknown>[]
