@@ -1,15 +1,13 @@
 import type { DatasetProfile } from "@/types/dataset-profile";
-import type { ChartKind, WidgetSpec } from "@/types/generated-dashboard";
+import type { ChartKind, WidgetSpec, WidgetSpecDraft } from "@/types/generated-dashboard";
 import { needsDimension } from "@/types/generated-dashboard";
 
 // Gatekeeper between whatever the LLM returned and what actually renders.
 // Never trust the model's output blindly: resolve every referenced column
 // name against the real profile (tolerating typo-ish drift), enforce the
-// cardinality/range rules the JSON Schema couldn't express, and drop any
-// widget that can't be made renderable rather than let it blow up a chart.
-
-const ALLOWED_COL_SPANS = [3, 4, 6, 8, 12] as const;
-type ColSpan = (typeof ALLOWED_COL_SPANS)[number];
+// cardinality/range rules the JSON Schema couldn't express, derive the one
+// layout decision (colSpan) the model no longer makes, and drop any widget
+// that can't be made renderable rather than let it blow up a chart.
 
 const DEFAULT_LIMIT = 10;
 const MIN_LIMIT = 1;
@@ -36,27 +34,49 @@ function buildColumnLookup(profile: DatasetProfile): Map<string, string> {
   return lookup;
 }
 
+/** Real column name -> its profiled role, for deriveColSpan's temporal check. */
+function buildColumnRoleLookup(profile: DatasetProfile): Map<string, string> {
+  const roles = new Map<string, string>();
+  for (const col of profile.columns) {
+    roles.set(col.name, col.role);
+  }
+  return roles;
+}
+
 /** Resolve a possibly-drifted column name to the real column name in the profile. */
 function resolveColumn(name: string | undefined, lookup: Map<string, string>): string | undefined {
   if (!name) return undefined;
   return lookup.get(normalize(name));
 }
 
-function clampColSpan(value: unknown): ColSpan {
-  const n = typeof value === "number" ? value : Number(value);
-  if (ALLOWED_COL_SPANS.includes(n as ColSpan)) return n as ColSpan;
-  if (!Number.isFinite(n)) return 6;
-  // Snap to the nearest allowed value.
-  let best: ColSpan = ALLOWED_COL_SPANS[0];
-  let bestDist = Infinity;
-  for (const allowed of ALLOWED_COL_SPANS) {
-    const dist = Math.abs(allowed - n);
-    if (dist < bestDist) {
-      bestDist = dist;
-      best = allowed;
-    }
-  }
-  return best;
+/**
+ * Grid width is a layout decision, not a creative one — the model used to be
+ * asked to pick from {3,4,6,8,12} and reliably produced gap-prone, arbitrary
+ * combinations (an 8 pairs with nothing; a 4+6 pair never tiles). Deriving it
+ * from `kind` and whether `dimension` is temporal removes the guesswork:
+ *  - table/heatmap/pareto: always full — a real grid, or a wide combo chart,
+ *    both need the room.
+ *  - donut: always half, regardless of anything else — a pie's diameter is
+ *    capped by its *height*, so extra width buys it zero additional pixels of
+ *    chart; full width would just surround a small circle with dead space.
+ *  - everything else: full when `dimension` is temporal (a long ordered time
+ *    axis wants the room), half otherwise (categorical bar-like charts
+ *    commonly flip to horizontal bars — see BarLikeWidget — which grow
+ *    downward, not outward, so width past half is wasted there too).
+ * Only 6 and 12 come out of this, so two half-width widgets always tile a
+ * row exactly; DashboardGrid's packSectionColSpans handles the leftover case
+ * of a lone half-width widget with nothing to pair with.
+ */
+function deriveColSpan(
+  kind: ChartKind,
+  dimension: string | undefined,
+  columnRoles: Map<string, string>
+): WidgetSpec["colSpan"] {
+  if (kind === "kpi") return 3;
+  if (kind === "table" || kind === "heatmap" || kind === "pareto") return 12;
+  if (kind === "donut") return 6;
+  const isTemporal = dimension !== undefined && columnRoles.get(dimension) === "temporal";
+  return isTemporal ? 12 : 6;
 }
 
 function limitCapFor(kind: ChartKind): number {
@@ -85,7 +105,11 @@ function clampLimit(value: unknown, kind: ChartKind): number {
  * Resolve + repair one widget against the profile, or return null if it
  * cannot be made renderable (missing dimension/measure column it depends on).
  */
-function resolveWidget(widget: WidgetSpec, lookup: Map<string, string>): WidgetSpec | null {
+function resolveWidget(
+  widget: WidgetSpecDraft,
+  lookup: Map<string, string>,
+  columnRoles: Map<string, string>
+): WidgetSpec | null {
   const kind: ChartKind = widget.kind;
 
   // Resolve the dimension column, if this kind needs one.
@@ -134,7 +158,7 @@ function resolveWidget(widget: WidgetSpec, lookup: Map<string, string>): WidgetS
     dimension,
     series,
     limit: clampLimit(widget.limit, kind),
-    colSpan: clampColSpan(widget.colSpan),
+    colSpan: deriveColSpan(kind, dimension, columnRoles),
   };
 }
 
@@ -145,11 +169,12 @@ function resolveWidget(widget: WidgetSpec, lookup: Map<string, string>): WidgetS
  * can't be resolved is dropped. The contract: everything returned is
  * guaranteed renderable against this profile.
  */
-export function validateWidgets(widgets: WidgetSpec[], profile: DatasetProfile): WidgetSpec[] {
+export function validateWidgets(widgets: WidgetSpecDraft[], profile: DatasetProfile): WidgetSpec[] {
   const lookup = buildColumnLookup(profile);
+  const columnRoles = buildColumnRoleLookup(profile);
   const result: WidgetSpec[] = [];
   for (const widget of widgets) {
-    const resolved = resolveWidget(widget, lookup);
+    const resolved = resolveWidget(widget, lookup, columnRoles);
     if (resolved) result.push(resolved);
   }
   return result;
