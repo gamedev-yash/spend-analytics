@@ -124,7 +124,25 @@ constraints, not preferences.
   `sum` for money and countable-quantity measures (spend, quantity, order count)
   and `avg` for rate/percentage/duration-like measures (avg days, avg discount
   rate, average cycle time) — the same judgement call used throughout
-  procurement analytics: you sum spend, you average a rate.
+  procurement analytics: you sum spend, you average a rate. `avg` only works
+  when the column already holds a per-row numeric rate (e.g. a 0-100
+  discount-rate column) — it is never valid over a categorical status column.
+- **A rate/share derived from a categorical outcome column needs `pivot` +
+  `percentOfTotal`, never `count`.** "On-time payment rate", "% of invoices
+  disputed", "% of orders delivered late" and similar are NOT the row count of
+  the matching category — that is a raw count mislabeled as a rate, and it is
+  the single most common way a generated KPI silently lies (a tile titled
+  "Rate" that actually shows a four-digit count). There is no
+  count-divided-by-count aggregation for a plain `measures` item, so build
+  these as a `pivot` series instead: `dimension` = the categorical column
+  (e.g. "Payment Status"), `values` = the qualifying categories (e.g.
+  `["On Time"]`, or several together for a combined rate like
+  `["On Time", "On Time (Discount Missed)"]`), and set
+  `measure.aggregation: "percentOfTotal"` — legal ONLY on a pivot's `measure`,
+  never on a `measures`-series item. Set both the measure's own `formatHint`
+  and the widget's `formatHint` to `"percent"`. `measure.column` is ignored by
+  `percentOfTotal` (it counts row membership, not a column's values); repeat
+  the pivot's own dimension column there to satisfy the schema.
 
 ## Essential widgets vs. the Add Widget catalog
 
@@ -232,7 +250,7 @@ API as `WIDGET_SCHEMA`, but described here so this file stands on its own):
               "formatHint": "currency"|"percent"|"count"|"number"|null }, ... ] }
         | { "type": "pivot", "dimension": string, "values": string[],
             "measure": { "column": string, "aggregation": "sum"|"avg"|"count"
-              |"distinct"|"min"|"max", "label": string,
+              |"distinct"|"min"|"max"|"percentOfTotal", "label": string,
               "formatHint": "currency"|"percent"|"count"|"number"|null } },
       "sort": "value-desc" | "value-asc" | "label-asc" | "temporal" | null,
       "limit": number | null,
