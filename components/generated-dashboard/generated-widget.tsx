@@ -647,6 +647,11 @@ function DonutWidget({ widget, rows, preview }: GeneratedWidgetProps) {
     );
   }
 
+  // Percentages are of the slices actually drawn (not the full unsliced
+  // dataset) so they agree with what the pie itself shows — `points` is
+  // already top-N'd to DONUT_MAX_SLICES with no "Other" bucket added back.
+  const total = points.reduce((sum, point) => sum + point.value, 0);
+
   return (
     <ChartCard title={widget.title} expandable={!preview}>
       <FullscreenResponsiveContainer height={360}>
@@ -669,11 +674,15 @@ function DonutWidget({ widget, rows, preview }: GeneratedWidgetProps) {
             content={({ active, payload }) => {
               const row = (payload?.[0]?.payload ?? null) as { label: string; value: number } | null;
               if (!active || !row) return null;
+              const pct = total > 0 ? (row.value / total) * 100 : 0;
               return (
                 <ChartTooltipCard
                   active={active}
                   heading={row.label}
-                  rows={[{ label: "Value", value: formatValue(row.value, widget.formatHint) }]}
+                  rows={[
+                    { label: "Value", value: formatValue(row.value, widget.formatHint) },
+                    { label: "Share", value: `${pct.toLocaleString("en-IN", { maximumFractionDigits: 1 })}%` },
+                  ]}
                 />
               );
             }}
@@ -683,7 +692,19 @@ function DonutWidget({ widget, rows, preview }: GeneratedWidgetProps) {
             align="right"
             verticalAlign="middle"
             wrapperStyle={{ fontSize: 11, color: palette.ink.muted }}
-            formatter={(value: string) => <span style={{ color: palette.ink.muted }}>{value}</span>}
+            // recharts' LegendPayload.payload is typed `object`; runtime shape here is always this
+            // chart's own SeriesPoint (see recharts' selectPieLegend, which passes the Pie's own datum
+            // through as `payload` untouched).
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            formatter={(value: string, entry: any) => {
+              const point = entry?.payload as { value: number } | undefined;
+              const pct = point && total > 0 ? (point.value / total) * 100 : 0;
+              return (
+                <span style={{ color: palette.ink.muted }}>
+                  {value} ({pct.toLocaleString("en-IN", { maximumFractionDigits: 1 })}%)
+                </span>
+              );
+            }}
           />
         </PieChart>
       </FullscreenResponsiveContainer>

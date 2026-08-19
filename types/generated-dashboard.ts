@@ -22,9 +22,22 @@ export type ChartKind =
 
 export type Aggregation = "sum" | "avg" | "count" | "distinct" | "min" | "max";
 
-export interface MeasureRef {
+/**
+ * A pivot's `measure` may additionally use `"percentOfTotal"`: the share of
+ * this group's rows whose pivot column matched one of `values`, out of all of
+ * this group's rows, expressed 0-100. This is the only way the engine can
+ * express a true rate/share metric (e.g. "on-time payment rate") when the
+ * source data has a categorical outcome column rather than an
+ * already-numeric per-row rate — `avg` only works on the latter. It's
+ * meaningless for a `measures`-series item (no filtered subset exists to
+ * compare against there), so it's deliberately excluded from the base
+ * `Aggregation` union rather than added to it.
+ */
+export type PivotAggregation = Aggregation | "percentOfTotal";
+
+export interface MeasureRef<A extends string = Aggregation> {
   column: string;
-  aggregation: Aggregation;
+  aggregation: A;
   label: string;
   /**
    * This measure's own value-formatting hint, independent of the widget's
@@ -38,7 +51,7 @@ export interface MeasureRef {
 
 export type SeriesSpec =
   | { type: "measures"; items: MeasureRef[] }
-  | { type: "pivot"; dimension: string; values: string[]; measure: MeasureRef };
+  | { type: "pivot"; dimension: string; values: string[]; measure: MeasureRef<PivotAggregation> };
 
 export interface WidgetSpec {
   id: string;
