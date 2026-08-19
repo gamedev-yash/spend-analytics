@@ -142,14 +142,6 @@ function matchesPivotValue(raw: unknown, target: string): boolean {
   return String(raw).trim().toLowerCase() === target.trim().toLowerCase();
 }
 
-/** Row-count share of `matching` out of `total`, as 0-100. Backs the
- * pivot-only `"percentOfTotal"` aggregation (see `PivotAggregation` in
- * types/generated-dashboard.ts), which counts row membership rather than
- * aggregating a column's values. */
-function percentOfTotal(matching: number, total: number): number {
-  return total > 0 ? (matching / total) * 100 : 0;
-}
-
 // ---------------------------------------------------------------------------
 // Grouping
 // ---------------------------------------------------------------------------
@@ -209,9 +201,7 @@ function groupByDimension(rows: Record<string, unknown>[], dimensionColumn: stri
  *  - 'pivot': one point per dimension value, breakdown = one entry per
  *    `values` entry, aggregating `measure` over the rows in that group whose
  *    pivot column matches that value — this is what turns a long-format
- *    dataset into a stacked/grouped chart. When `measure.aggregation` is
- *    `"percentOfTotal"`, that entry is instead the matching rows' share of
- *    the whole group (0-100) — e.g. an "on-time %" trend line over time.
+ *    dataset into a stacked/grouped chart.
  *
  * Sorting/limiting: `sort` is honored when provided; otherwise temporal
  * dimensions default to chronological order and categorical ones to
@@ -245,14 +235,13 @@ export function computeWidgetSeries(
       const { dimension: pivotColumn, values, measure } = widget.series;
       const breakdown = values.map((pivotValue) => {
         const cellRows = groupRows.filter((r) => matchesPivotValue(r[pivotColumn], pivotValue));
-        const value =
-          measure.aggregation === "percentOfTotal"
-            ? percentOfTotal(cellRows.length, groupRows.length)
-            : aggregateColumn(
-                cellRows.map((r) => r[measure.column]),
-                measure.aggregation
-              );
-        return { key: pivotValue, value };
+        return {
+          key: pivotValue,
+          value: aggregateColumn(
+            cellRows.map((r) => r[measure.column]),
+            measure.aggregation
+          ),
+        };
       });
       const value = breakdown.reduce((sum, b) => sum + b.value, 0);
       return { label: key, value, count: groupRows.length, breakdown };
@@ -311,11 +300,7 @@ export function computeWidgetSeries(
  * rows whose pivot column matches one of `values` first (e.g. only the
  * "Total Inventory" rows of a long-format `Metric` column) and aggregates the
  * measure over just that subset — without this filter every pivoted KPI on
- * the same measure column collapses to the same grand total. When
- * `measure.aggregation` is `"percentOfTotal"`, the result is that subset's
- * share of every given row instead (0-100) — the correct way to compute a
- * rate like "on-time payment rate" from a categorical outcome column; a
- * plain `"count"` here would return the matching row count, not a rate.
+ * the same measure column collapses to the same grand total.
  */
 export function computeKpiValue(widget: WidgetSpec, rows: Record<string, unknown>[]): number {
   if (widget.series.type === "pivot") {
@@ -323,9 +308,6 @@ export function computeKpiValue(widget: WidgetSpec, rows: Record<string, unknown
     const matchingRows = rows.filter((r) =>
       values.some((pivotValue) => matchesPivotValue(r[pivotColumn], pivotValue))
     );
-    if (measure.aggregation === "percentOfTotal") {
-      return percentOfTotal(matchingRows.length, rows.length);
-    }
     return aggregateColumn(
       matchingRows.map((r) => r[measure.column]),
       measure.aggregation

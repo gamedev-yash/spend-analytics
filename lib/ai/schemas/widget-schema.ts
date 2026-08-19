@@ -37,31 +37,6 @@ const MEASURE_REF_SCHEMA = {
   required: ["column", "aggregation", "label", "formatHint"],
 } as const;
 
-// Only a pivot's `measure` may additionally use "percentOfTotal": the share
-// of a group's rows whose pivot column matched one of `values`, out of all of
-// that group's rows (0-100) — the only way to express a true rate/share
-// metric (e.g. "on-time payment rate") when the source data has a
-// categorical outcome column rather than an already-numeric per-row rate.
-// Kept as its own schema (not a shared enum) so the model structurally
-// cannot select it for a `measures`-series item, where there is no filtered
-// subset for it to mean anything.
-const PIVOT_MEASURE_REF_SCHEMA = {
-  ...MEASURE_REF_SCHEMA,
-  properties: {
-    ...MEASURE_REF_SCHEMA.properties,
-    aggregation: {
-      type: "string",
-      enum: ["sum", "avg", "count", "distinct", "min", "max", "percentOfTotal"],
-      description:
-        "Aggregation function applied to the column. \"percentOfTotal\" is the ONLY correct choice for a " +
-        "rate/share metric over a categorical outcome column (e.g. on-time payment rate from a Payment Status " +
-        "column) — it computes what percentage of this group's rows matched one of `values`, as 0-100. It " +
-        "ignores `column`'s actual values when used this way (it counts row membership, not a column's " +
-        "values) — repeat the pivot's own `dimension` column there to satisfy the schema.",
-    },
-  },
-} as const;
-
 const SERIES_SCHEMA = {
   anyOf: [
     {
@@ -91,7 +66,7 @@ const SERIES_SCHEMA = {
           description: "The specific distinct values of `dimension` to pivot into series.",
           items: { type: "string" },
         },
-        measure: PIVOT_MEASURE_REF_SCHEMA,
+        measure: MEASURE_REF_SCHEMA,
       },
       required: ["type", "dimension", "values", "measure"],
     },

@@ -103,20 +103,6 @@ hallucinate a section the data can't back up.
    tying it back to the domain you identified, and a `priority` integer for
    display order (lower first).
 
-   **Keep that first, big-picture section numbers-only.** It's where the KPI
-   row lives — the stat tiles built from `headlineMetrics` — so its `intent`
-   should describe only scale/health figures: totals, counts, an overall rate
-   or average, the kind of number a single stat tile shows. Never fold a
-   categorical mix or split into that same intent (e.g. "total invoice value,
-   invoice count, AND the split of payment statuses" is two stories under one
-   heading), no matter how naturally it seems to belong with the headline
-   numbers. A categorical breakdown is "how it's composed," and belongs in its
-   own section further down even when it feels closely related — the
-   widget-planning stage turns your intent text directly into widgets, so a
-   big-picture section whose intent mentions a split will end up with a
-   breakdown chart built into it, leaving the dashboard's opening section
-   cluttered instead of the clean, numbers-first KPI row it's supposed to be.
-
 7. **List the columns you deliberately did NOT use, and why.** Populate
    `excludedColumns` with every column you chose to leave out of your plan —
    typically identifier-role columns (order IDs, row numbers), near-constant
